@@ -51,6 +51,7 @@ function render(){
  document.body.classList.toggle('has-bar',V.mode==='exam');
  if(open)document.querySelectorAll('[data-act="drawer"]').forEach(function(x){x.setAttribute('aria-expanded','true')});
  if(window.netbar)netbar();
+ var cp=document.querySelector('.ptab[aria-current="true"]');if(cp&&cp.scrollIntoView)cp.scrollIntoView({inline:'center',block:'nearest'});
 }
 
 function viewLogin(){
@@ -192,7 +193,7 @@ function drOpen(on){
 window.addEventListener('popstate',function(){if(drIsOpen())drSet(false)});
 function leaveExam(){
  if(V.mode==='list')return true;
- if(V.mode==='exam'&&Object.keys(V.checks).length&&!confirm('Tinggalkan penilaian ini? Isian yang belum disimpan akan hilang.'))return false;
+ if(V.mode==='exam'&&anyChecked()&&!confirm('Tinggalkan penilaian ini? Isian yang belum disimpan akan hilang.'))return false;
  stopTimer();V.mode='list';return true;
 }
 document.addEventListener('click',async function(e){

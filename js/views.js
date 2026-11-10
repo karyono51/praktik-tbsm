@@ -25,22 +25,29 @@ function viewExam(){
   });
   var pes='';
   if(isStaff()){
-    var ro=S.roster.filter(function(r){return r.kelas===j.kelas});
-    pes='<label class="f">Siswa yang dinilai<select id="peserta">'+(ro.length?'':'<option value="">Belum ada siswa kelas '+j.kelas+'</option>')+ro.map(function(r){return '<option value="'+esc(r.nama)+'"'+(V.peserta===r.nama?' selected':'')+'>'+esc(r.nama)+(r.contoh?' (contoh)':'')+'</option>'}).join('')+'</select></label>'+
-      '<div class="row"><div class="grow"><input id="newsiswa" placeholder="Tambah siswa kelas '+j.kelas+'" aria-label="Nama siswa baru"></div><button type="button" class="btn small" data-act="addsiswa">Tambah</button></div>';
+    var ro=S.roster.filter(function(r){return r.kelas===j.kelas}),rest=ro.filter(function(r){return V.group.indexOf(r.nama)<0});
+    var tot=j.items.length;
+    var tabs=V.group.map(function(n){var on=!V.kel&&V.peserta===n;
+      return '<div class="ptab'+(V.kel?' mem':'')+'" data-n="'+esc(n)+'"'+(on?' aria-current="true"':'')+'>'+(V.kel?'<span class="pn">'+esc(n)+'</span>':'<button type="button" class="pn" data-act="ptab" data-n="'+esc(n)+'">'+esc(n)+' <span class="mono pb">'+doneOf(n)+'/'+tot+'</span></button>')+
+      (V.group.length>1?'<button type="button" class="px" data-act="prm" data-n="'+esc(n)+'" aria-label="Keluarkan '+esc(n)+'">&times;</button>':'')+'</div>'}).join('');
+    pes='<div class="seg" role="group" aria-label="Cara menilai"><button type="button" data-act="gmode" data-v="0" aria-pressed="'+(!V.kel)+'">Per siswa</button><button type="button" data-act="gmode" data-v="1" aria-pressed="'+(!!V.kel)+'">Kelompok</button></div>'+
+      '<p class="note">'+(V.kel?'Satu rubrik untuk seluruh anggota. Skor dan status yang sama disimpan untuk tiap anggota.':'Setiap siswa punya rubrik sendiri. Ketuk nama untuk berpindah siswa.')+'</p>'+
+      '<div class="ptabs" role="group" aria-label="'+(V.kel?'Anggota kelompok':'Siswa yang dinilai')+'">'+(tabs||'<span class="note">Belum ada siswa kelas '+j.kelas+'. Tambahkan di bawah.</span>')+'</div>'+
+      '<div class="row"><select id="addpes" class="grow" aria-label="Pilih siswa untuk ditambahkan"><option value="">'+(rest.length?'Tambah siswa…':'Semua siswa kelas '+j.kelas+' sudah dipilih')+'</option>'+rest.map(function(r){return '<option value="'+esc(r.nama)+'">'+esc(r.nama)+(r.contoh?' (contoh)':'')+'</option>'}).join('')+'</select><button type="button" class="btn small" data-act="padd">Tambah</button></div>'+
+      '<div class="row"><div class="grow"><input id="newsiswa" placeholder="Atau tulis siswa baru kelas '+j.kelas+'" aria-label="Nama siswa baru"></div><button type="button" class="btn small" data-act="addsiswa">Tambah baru</button></div>';
   }else{
     pes='<label class="f">Nama kamu<input id="peserta" value="'+esc(V.peserta)+'" placeholder="Nama lengkap" autocomplete="name" readonly></label>';
   }
   var total=j.items.length,done=Object.keys(V.checks).length;
   return '<div class="row"><button type="button" class="btn small" data-act="back">Kembali</button><span class="pill">Kelas '+j.kelas+' · Fase '+KELAS[j.kelas].fase+'</span></div>'+
-    '<div class="card"><h2>'+esc(j.judul)+'</h2><div class="meta muted" style="font-size:13px">'+esc(j.unit)+' · target '+j.menit+' menit'+(j.skkni?' · SKKNI '+j.skkni:'')+'</div>'+pes+
+    '<div class="card"><h2>'+esc(j.judul)+'</h2>'+(isStaff()&&V.group.length&&!V.kel?'<div class="pill" style="align-self:flex-start">Menilai: '+esc(V.peserta)+'</div>':'')+'<div class="meta muted" style="font-size:13px">'+esc(j.unit)+' · target '+j.menit+' menit'+(j.skkni?' · SKKNI '+j.skkni:'')+'</div>'+pes+
     '<p class="note">Butir bertanda Wajib menyangkut keselamatan atau ketepatan kerja. Satu butir wajib yang belum terpenuhi membuat hasil Belum Kompeten, berapa pun skornya.</p></div>'+groups+
-    '<div class="bar"><div class="in"><div><div class="mono" style="font-size:20px;font-weight:600" id="clock">'+mmss(V.sec)+'</div><div class="note"><span id="prog">'+done+'</span>/'+total+' butir terisi</div></div>'+
-    '<div class="row"><button type="button" class="btn small" data-act="timer" id="tbtn">'+(V.running?'Jeda':'Mulai waktu')+'</button><button type="button" class="btn primary" data-act="finish" id="fin"'+(done<total?' disabled':'')+'>Hitung hasil</button></div></div></div>';
+    '<div class="bar"><div class="in"><div><div class="mono" style="font-size:20px;font-weight:600" id="clock">'+mmss(V.sec)+'</div><div class="note"><span id="prog">'+done+'</span>/'+total+' butir terisi</div><div class="note" id="gcount">'+esc(gcText())+'</div></div>'+
+    '<div class="row"><button type="button" class="btn small" data-act="timer" id="tbtn">'+(V.running?'Jeda':'Mulai waktu')+'</button><button type="button" class="btn primary" data-act="finish" id="fin"'+(groupComplete()?'':' disabled')+'>Hitung hasil</button></div></div></div>';
 }
 
 function viewResult(){
-  var j=V.job,r=V.res,c=r.calc;
+  var j=V.job,r=V.res,c=r.calc,its=V.items||[],multi=its.length>1,rname=(V.kel&&multi)?'Kelompok ('+its.length+' siswa)':(V.peserta||'Tanpa nama');
   var asp=Object.keys(ASPEK).map(function(a){var t=c.by[a].y+c.by[a].n,p=t?Math.round(100*c.by[a].y/t):0;
     return '<div><div class="row sb"><span>'+ASPEK[a].n+'</span><span class="mono">'+c.by[a].y+'/'+t+'</span></div><div class="meter"><i class="'+(p<S.kkm?'low':'')+'" style="width:'+p+'%"></i></div></div>'}).join('');
   var why='';
@@ -49,10 +56,13 @@ function viewResult(){
   var other=c.unmet.filter(function(i){return !i.k});
   var tl=other.length?'<div class="card"><h3>Perlu diperbaiki</h3><ul class="plain">'+other.map(function(i){return '<li>'+esc(i.t)+'</li>'}).join('')+'</ul></div>':'';
   var wk=V.sec?'<span class="pill plain mono">Waktu '+mmss(V.sec)+' / '+j.menit+':00</span>':'';
-  return '<div class="card"><div class="row sb"><span class="label">'+esc(j.judul)+'</span>'+wk+'</div>'+
-    '<div class="row" style="gap:16px"><div class="score mono">'+c.score+'</div><div class="stack" style="gap:6px"><span class="pill '+(c.kompeten?'ok':'bad')+'" style="font-size:14px">'+(c.kompeten?'Kompeten':'Belum kompeten')+'</span><span class="note">'+esc(V.peserta||'Tanpa nama')+' · KKM '+S.kkm+'</span></div></div>'+asp+'</div>'+why+tl+
-    '<div class="card"><label class="f">Catatan '+(isStaff()?'asesor':'untuk diri sendiri')+'<textarea id="catatan" placeholder="Temuan, saran perbaikan, atau bukti pendukung">'+esc(V.catatan)+'</textarea></label></div>'+
-    '<div class="row"><button type="button" class="btn" data-act="redo">Ulangi</button><button type="button" class="btn" data-act="pdfone">Unduh PDF</button><button type="button" class="btn primary grow" data-act="save">Simpan ke rekap</button></div>';
+  var rtabs='';
+  if(multi&&!V.kel)rtabs='<div class="ptabs" role="group" aria-label="Hasil per siswa">'+its.map(function(it,k){return '<div class="ptab" '+(k===V.rc?'aria-current="true"':'')+'><button type="button" class="pn" data-act="rtab" data-v="'+k+'">'+esc(it.nama||'Tanpa nama')+' <span class="mono pb">'+it.calc.score+'</span><i class="dot '+(it.calc.kompeten?'ok':'bad')+'"></i></button></div>'}).join('')+'</div>';
+  else if(multi&&V.kel)rtabs='<div class="card"><span class="label">Anggota kelompok</span><div class="ptabs">'+its.map(function(it){return '<div class="ptab mem"><span class="pn">'+esc(it.nama||'Tanpa nama')+'</span></div>'}).join('')+'</div></div>';
+  return rtabs+'<div class="card"><div class="row sb"><span class="label">'+esc(j.judul)+'</span>'+wk+'</div>'+
+    '<div class="row" style="gap:16px"><div class="score mono">'+c.score+'</div><div class="stack" style="gap:6px"><span class="pill '+(c.kompeten?'ok':'bad')+'" style="font-size:14px">'+(c.kompeten?'Kompeten':'Belum kompeten')+'</span><span class="note">'+esc(rname)+' · KKM '+S.kkm+'</span></div></div>'+asp+'</div>'+why+tl+
+    '<div class="card"><label class="f">Catatan '+(isStaff()?'asesor':'untuk diri sendiri')+'<textarea id="catatan" placeholder="Temuan, saran perbaikan, atau bukti pendukung">'+esc(V.notes[noteKey()]||'')+'</textarea></label></div>'+
+    '<div class="row"><button type="button" class="btn" data-act="redo">Ulangi</button><button type="button" class="btn" data-act="pdfone">Unduh PDF</button><button type="button" class="btn primary grow" data-act="save">'+(multi?'Simpan '+its.length+' hasil':'Simpan ke rekap')+'</button></div>';
 }
 function viewAcuan(){
   function card(t,body){return '<div class="card"><h3>'+t+'</h3>'+body+'</div>'}
@@ -80,7 +90,7 @@ function viewBeranda(){
  var rec=list.slice(0,3).map(function(r){var j=jobById(r.jobId);
   return '<div class="rec"><span class="dot '+(r.kompeten?'ok':'bad')+'"></span><div class="grow"><b>'+esc(j?j.judul:r.jobId)+'</b><div class="note">'+(isStaff()?esc(r.siswa||'Tanpa nama')+' · ':'')+'Kelas '+r.kelas+' · '+tgl(r.ts)+'</div></div><span class="mono sc">'+r.score+'</span></div>'}).join('');
  return '<section class="strip" aria-label="Ringkasan"><div><b class="mono">'+a[0]+'</b><span>'+(isStaff()?'data nilai':'latihan')+'</span></div><div><b class="mono">'+a[1]+'</b><span>rata-rata</span></div><div><b class="mono">'+Math.round(a[2]*100)+'<small>%</small></b><span>kompeten</span></div></section>'+
-  secHead('kelas','Pilih kelas')+'<div class="kcards">'+kc+'</div>'+
   secHead('menu','Pintasan')+'<div class="tiles n'+tl.length+'">'+tiles+'</div>'+
+  secHead('kelas','Pilih kelas')+'<div class="kcards">'+kc+'</div>'+
   '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari unit pertama.</p>')+'</section>';
 }

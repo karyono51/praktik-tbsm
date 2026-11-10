@@ -232,3 +232,17 @@ fieldset.roles legend{font-size:13px;font-weight:500;color:var(--muted);padding:
 .top:not(.big) .hello b{display:inline}
 .addr span{white-space:nowrap}
 .addr{font-size:clamp(10px,3.05vw,12px)}
+
+/* Penilaian banyak siswa dan kelompok */
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--bg);border:1px solid var(--line);border-radius:14px}
+.seg button{border:0;background:transparent;border-radius:10px;padding:9px 6px;font-weight:650;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--onc);box-shadow:0 6px 14px -8px rgba(11,107,58,.8)}
+.ptabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;margin:0 -2px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.ptab{flex:none;display:inline-flex;align-items:stretch;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;max-width:78vw;overflow:hidden}
+.ptab[aria-current=true]{border-color:var(--accent);background:var(--accent-soft)}
+.ptab .pn{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:8px 12px;font-size:13px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptab.mem{background:var(--accent-soft);border-color:transparent}
+.ptab .pb{font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--bg);color:var(--accent)}
+.ptab .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}.ptab .dot.bad{background:var(--bad)}
+.ptab .px{border:0;border-left:1px solid var(--line);background:none;padding:0 11px;font-size:18px;line-height:1;color:var(--muted)}
+.ptab .px:active{color:var(--bad)}
