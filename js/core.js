@@ -36,7 +36,7 @@ function pick(o,F){var x={};F.forEach(function(k){if(o[k]!==undefined&&o[k]!==nu
 function fromDoc(d){var o={id:d.$id};Object.keys(d).forEach(function(k){if(k[0]!=='$')o[k]=d[k]});o.r=1;return o}
 var Cloud={on:CLOUD_ON,busy:false,
  init:function(){var c=new Appwrite.Client().setEndpoint(CFG.APPWRITE_ENDPOINT).setProject(CFG.APPWRITE_PROJECT);this.acc=new Appwrite.Account(c);this.db=new Appwrite.Databases(c)},
- me:async function(){try{return await this.acc.get()}catch(e){return null}},
+ me:async function(){try{return await this.acc.get()}catch(e){if(e&&e.code===401)return null;if(navigator.onLine===false||!(e&&e.code))return 'offline';return null}},
  login:async function(e,p){await this.acc.createEmailPasswordSession(e,p)},
  register:async function(n,e,p){await this.acc.create(Appwrite.ID.unique(),e,p,n);await this.login(e,p)},
  google:function(){this.acc.createOAuth2Session('google',location.href,location.href)},
@@ -67,7 +67,7 @@ var Cloud={on:CLOUD_ON,busy:false,
 
 async function boot(){
  try{
-  if(Cloud.on){Cloud.init();var me=await Cloud.me();if(me)await Cloud.enter(me)}
+  if(Cloud.on){Cloud.init();var me=await Cloud.me();if(me==='offline'){loadSnap()}else if(me){await Cloud.enter(me)}else dropSnap()}
   else{await seed();var sid=localStorage.getItem(SES),u=S.users.find(function(x){return x.id===sid&&x.aktif!==false});if(u)enter(u)}
  }catch(e){A.err=e.message||String(e)}
  render();

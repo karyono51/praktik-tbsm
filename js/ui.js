@@ -1,5 +1,5 @@
 /* ui.js: tampilan utama, login, rekap, manajemen akun */
-var A={q:'',peran:'ALL',edit:null,imp:null,reg:false,err:''};
+var A={q:'',peran:'ALL',edit:null,imp:null,impn:null,reg:false,err:''};
 function opt(arr,sel,lab){return arr.map(function(v){return '<option value="'+v+'"'+(v===sel?' selected':'')+'>'+(lab?lab(v):v)+'</option>'}).join('')}
 
 function render(){
@@ -39,6 +39,7 @@ function viewRekap(){
  return '<h2>Rekap nilai</h2><div class="chips" role="group" aria-label="Filter kelas">'+chips+'</div>'+
   '<div class="stats"><div class="card"><span class="label">Data</span><b class="mono">'+n+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+a[1]+'</b></div><div class="card"><span class="label">Kompeten</span><b class="mono">'+Math.round(a[2]*100)+'%</b></div></div>'+
   '<div class="row"><button type="button" class="btn small" data-act="xlsrekap">Unduh Excel</button><button type="button" class="btn small primary" data-act="pdfrekap">Unduh PDF</button>'+(can('hapus')&&!Cloud.on?'<button type="button" class="btn small danger" data-act="rmall">Hapus semua</button>':'')+'</div>'+
+  imporNilaiHtml()+
   (rows||'<div class="card"><p class="muted">Belum ada data untuk filter ini. Mulai dari tab Unit ujian.</p></div>')+
   '<p class="note">'+(Cloud.on?'Data tersinkron ke Appwrite.':'Data tersimpan di peramban ini. Unduh Excel atau PDF untuk arsip.')+'</p>';
 }
@@ -98,8 +99,8 @@ document.addEventListener('submit',async function(e){
 });
 async function doLogout(){
  stopTimer();
- if(Cloud.on){await Cloud.logout();S.users=[];S.results=[]}else localStorage.removeItem(SES);
- S.user=null;A.edit=null;A.imp=null;A.err='';resetV();render();
+ if(Cloud.on){await Cloud.logout();dropSnap();S.users=[];S.results=[]}else localStorage.removeItem(SES);
+ S.user=null;A.edit=null;A.imp=null;A.impn=null;A.err='';resetV();render();
 }
 document.addEventListener('click',async function(e){
  var b=e.target.closest('[data-act]');if(!b)return;var a=b.dataset.act,v=b.dataset.v;

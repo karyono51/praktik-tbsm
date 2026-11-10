@@ -1,0 +1,17 @@
+{
+  "name": "Uji Praktik TBSM",
+  "short_name": "Uji TBSM",
+  "description": "Penilaian uji praktik TBSM SMKS Medina Bandung",
+  "lang": "id",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F6F7F9",
+  "theme_color": "#0F766E",
+  "icons": [
+    {"src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+    {"src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
