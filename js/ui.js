@@ -5,7 +5,7 @@ function opt(arr,sel,lab){return arr.map(function(v){return '<option value="'+v+
 function render(){
  if(!S.user){$('#app').innerHTML=viewLogin();return}
  var u=S.user;
- var head='<header class="top"><div class="brandrow"><img class="logo" src="'+LOGO+'" alt="Logo SMK Medina"><div class="brand"><b>Uji Praktik TBSM</b><span>SMKS Medina Bandung</span></div></div>'+
+ var head='<header class="top"><div class="brandrow"><img class="logo" src="'+LOGO+'" alt="Logo SMK Medina"><div class="brand"><b>Uji Praktik TBSM</b><span>SMKS Medina Bandung</span><div class="netslot" id="netslot" hidden></div></div></div>'+
   '<div class="who"><div class="whotxt"><b>'+esc(u.nama)+'</b><span class="pill">'+PERAN[u.peran]+'</span></div><button type="button" class="btn small" data-act="logout">Keluar</button></div></header>';
  var body;
  if(V.mode==='exam')body=viewExam();else if(V.mode==='result')body=viewResult();
@@ -14,6 +14,7 @@ function render(){
  var nav=V.mode==='list'?'<nav class="bar" aria-label="Menu utama"><div class="in">'+tabs.map(function(t){return '<button type="button" data-act="tab" data-v="'+t[0]+'"'+(S.tab===t[0]?' aria-current="page"':'')+'>'+t[1]+'</button>'}).join('')+'</div></nav>':'';
  var foot='<footer class="school"><img src="'+LOGO+'" alt=""><div><b>SMKS Medina Bandung</b><div class="note">Jl. K.H. Ahmad Dahlan No. 13–15, Kel. Burangrang, Kec. Lengkong, Kota Bandung, Jawa Barat 40262</div></div></footer>';
  $('#app').innerHTML=head+'<main class="stack">'+body+foot+'</main>'+nav;
+ if(window.netbar)netbar();
 }
 
 function viewLogin(){

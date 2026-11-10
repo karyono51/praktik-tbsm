@@ -1,4 +1,4 @@
-/* pwa.js: pendaftaran service worker, tombol pasang, banner offline, antrean sinkron Appwrite */
+/* pwa.js: pendaftaran service worker, tombol pasang, status jaringan di header, antrean sinkron Appwrite */
 var QK='tbsm-queue',SK='tbsm-snap';
 function pendingList(){
  var u=S.users.filter(function(o){return !o.r||o.d}),h=S.results.filter(function(o){return !o.r||o.d});
@@ -20,35 +20,49 @@ function loadSnap(){
   var me=S.users.find(function(u){return u.id===s.user.id})||s.user;enter(me);return true}catch(e){return false}}
 function dropSnap(){try{localStorage.removeItem(SK)}catch(e){}}
 
-/* banner jaringan */
+/* status jaringan dan tombol pasang: tampil di header, di bawah judul (elemen #netslot dibuat oleh render) */
+var deferredInstall=null;
 function netbar(){
- var el=document.getElementById('netbar');if(!el){el=document.createElement('div');el.id='netbar';el.setAttribute('role','status');document.body.appendChild(el)}
- var n=Cloud.on?pendingCount():0,off=navigator.onLine===false;
- if(!off&&!n){el.hidden=true;return}
- el.hidden=false;el.className=off?'off':'sync';
- el.textContent=(off?'Offline':'Online')+(n?' · '+n+' data menunggu sinkron':' · menampilkan data tersimpan');
+ var el=document.getElementById('netslot');if(!el)return;
+ var n=Cloud.on?pendingCount():0,off=navigator.onLine===false,h='';
+ if(off||n)h+='<i class="ns '+(off?'off':'sync')+'">'+(off?'Offline':'Online')+(n?' · '+n+' menunggu sinkron':' · data tersimpan')+'</i>';
+ if(deferredInstall)h+='<button type="button" class="btn small primary" data-act="pwainstall">Pasang aplikasi</button>';
+ if(el.dataset.h!==h){el.dataset.h=h;el.innerHTML=h}
+ el.hidden=!h;
 }
 (function(){
  if(Cloud.on){
   var e0=Cloud.enter;
   Cloud.enter=async function(me){await e0.call(this,me);restorePending();if(pendingCount())Cloud.flush();else saveSnap();netbar()};
-  var f0=Cloud.flush;
+  /* Sinkron per item: kegagalan satu item tidak menghentikan yang lain. Item yang sudah ada di server (ID sama) diperbarui, bukan membuat error berulang. */
   Cloud.flush=async function(){
-   if(!S.user)return;
+   if(!this.on||!S.user||this.busy)return;
    savePending();
    if(navigator.onLine===false){netbar();toast('Offline: data disimpan di perangkat, disinkronkan saat online');return}
-   await f0.call(this);savePending();saveSnap();netbar()};
+   this.busy=true;var fails=[];
+   try{
+    var jobs=[[S.users,'akun',FA],[S.results,'hasil',FH]];
+    for(var i=0;i<jobs.length;i++){var arr=jobs[i][0],col=jobs[i][1],F=jobs[i][2];
+     for(var k=0;k<arr.length;k++){var o=arr[k];if(o.r&&!o.d)continue;
+      try{
+       if(!o.r){
+        try{await this.db.createDocument(CFG.DB,col,o.id,pick(o,F))}
+        catch(e1){if(e1&&(e1.code===409||/already exists|unique/i.test(e1.message||''))){await this.db.updateDocument(CFG.DB,col,o.id,pick(o,F))}else throw e1}
+        o.r=1;o.d=0}
+       else{await this.db.updateDocument(CFG.DB,col,o.id,pick(o,F));o.d=0}
+      }catch(e2){fails.push(col+': '+((e2&&e2.message)||e2))}}}
+   }catch(e){fails.push(String((e&&e.message)||e))}
+   this.busy=false;savePending();saveSnap();netbar();
+   if(fails.length)toast('Sinkronisasi gagal ('+fails.length+'): '+fails[0]);
+  };
  }
- window.addEventListener('online',function(){netbar();if(Cloud.on&&S.user&&pendingCount())Cloud.flush().then(function(){if(!pendingCount())toast('Data tersinkron ke Appwrite');if(typeof render==='function')render()})});
+ window.addEventListener('online',function(){netbar();if(Cloud.on&&S.user&&pendingCount())Cloud.flush().then(function(){netbar();if(!pendingCount())toast('Data tersinkron ke Appwrite')})});
  window.addEventListener('offline',netbar);
- document.addEventListener('DOMContentLoaded',netbar);
  setInterval(netbar,4000);
 })();
-
-/* tombol pasang aplikasi */
-var deferredInstall=null;
-window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredInstall=e;
- var b=document.getElementById('pwabtn');if(!b){b=document.createElement('button');b.id='pwabtn';b.type='button';b.className='btn small primary';b.textContent='Pasang aplikasi';document.body.appendChild(b);
-  b.addEventListener('click',function(){if(!deferredInstall)return;deferredInstall.prompt();deferredInstall.userChoice.then(function(){deferredInstall=null;b.remove()})})}});
-window.addEventListener('appinstalled',function(){var b=document.getElementById('pwabtn');if(b)b.remove();toast('Aplikasi terpasang')});
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredInstall=e;netbar()});
+window.addEventListener('appinstalled',function(){deferredInstall=null;netbar();toast('Aplikasi terpasang')});
+document.addEventListener('click',function(e){
+ var b=e.target.closest('[data-act="pwainstall"]');if(!b||!deferredInstall)return;
+ deferredInstall.prompt();deferredInstall.userChoice.then(function(){deferredInstall=null;netbar()})});
 if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js').catch(function(){})});
