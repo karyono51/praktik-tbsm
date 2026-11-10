@@ -75,12 +75,12 @@ function viewBeranda(){
  var kc=Object.keys(KELAS).map(function(c){
   var js=JOBS.filter(function(j){return j.kelas===c}),dn=js.filter(function(j){return tried[j.id]}).length,pct=js.length?Math.round(100*dn/js.length):0;
   return '<button type="button" class="kcard" data-act="menu" data-v="kelas:'+c+'"><span class="num" aria-hidden="true">'+c+'</span><span class="kt"><b>'+KELAS[c].judul+'</b><span>'+KELAS[c].sub+'</span><span class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></span><span class="mono kn">'+dn+' dari '+js.length+' unit '+(isStaff()?'sudah dinilai':'sudah dicoba')+'</span></span></button>'}).join('');
- var tl=[['rekap','Rekap nilai','g1','menu'],can('akun')?['akun','Akun','g3','menu']:['drawer','Menu','g4','drawer'],['acuan','Acuan','g2','menu']];
+ var tl=[['rekap','Rekap nilai','g1','menu']];if(can('akun'))tl.push(['akun','Akun','g3','menu']);tl.push(['acuan','Acuan','g2','menu'],['drawer','Menu','g4','drawer']);
  var tiles=tl.map(function(t){return '<button type="button" class="tile" data-act="'+t[3]+'"'+(t[3]==='menu'?' data-v="'+t[0]+'"':'')+'><span class="ico '+t[2]+'">'+svg(ICO[t[0]==='drawer'?'menu':t[0]],26)+'</span><span>'+t[1]+'</span></button>'}).join('');
  var rec=list.slice(0,3).map(function(r){var j=jobById(r.jobId);
   return '<div class="rec"><span class="dot '+(r.kompeten?'ok':'bad')+'"></span><div class="grow"><b>'+esc(j?j.judul:r.jobId)+'</b><div class="note">'+(isStaff()?esc(r.siswa||'Tanpa nama')+' · ':'')+'Kelas '+r.kelas+' · '+tgl(r.ts)+'</div></div><span class="mono sc">'+r.score+'</span></div>'}).join('');
  return '<section class="strip" aria-label="Ringkasan"><div><b class="mono">'+a[0]+'</b><span>'+(isStaff()?'data nilai':'latihan')+'</span></div><div><b class="mono">'+a[1]+'</b><span>rata-rata</span></div><div><b class="mono">'+Math.round(a[2]*100)+'<small>%</small></b><span>kompeten</span></div></section>'+
   secHead('kelas','Pilih kelas')+'<div class="kcards">'+kc+'</div>'+
-  secHead('menu','Pintasan')+'<div class="tiles">'+tiles+'</div>'+
+  secHead('menu','Pintasan')+'<div class="tiles n'+tl.length+'">'+tiles+'</div>'+
   '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari unit pertama.</p>')+'</section>';
 }

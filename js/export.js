@@ -2,7 +2,7 @@
 var HM={};
 (function(){var H={nama:['nama','namalengkap','name'],username:['username','user','akun','nis','nip'],email:['email','surel'],pw:['password','sandi','katasandi'],peran:['peran','role','level'],kelas:['kelas','class','tingkat'],aktif:['status','aktif']};Object.keys(H).forEach(function(c){H[c].forEach(function(a){HM[a]=c})})})();
 function normKelas(v){v=String(v||'').toUpperCase().replace(/KELAS|[\s-]/g,'');var m=v.match(/^(XII|XI|X|12|11|10)/);return m?({'12':'XII','11':'XI','10':'X'}[m[1]]||m[1]):''}
-function normPeran(v){v=String(v||'').toLowerCase();return v.indexOf('admin')>-1?'admin':/guru|asesor|teacher/.test(v)?'guru':'siswa'}
+function normPeran(v){v=String(v||'').toLowerCase();var o=[];if(v.indexOf('admin')>-1)o.push('admin');if(/guru|asesor|teacher/.test(v))o.push('guru');if(/siswa|murid|student/.test(v)||!o.length)o.push('siswa');return o.join(',')}
 function normAktif(v){return !/^(tidak|nonaktif|non-aktif|0|false|no|n)$/i.test(String(v||'').trim())}
 function needX(){if(!window.XLSX){toast('Pustaka Excel belum termuat, periksa koneksi');return false}return true}
 function needP(){if(!(window.jspdf&&window.jspdf.jsPDF)){toast('Pustaka PDF belum termuat, periksa koneksi');return false}return true}
@@ -28,8 +28,8 @@ async function parseAkun(f){
   if(email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return bad('Email tidak valid: '+email);
   if(Cloud.on&&!email)return bad('Email wajib pada mode Appwrite');
   if(!un)un=email?email.split('@')[0]:slug(nama);
-  var peran=normPeran(r.peran),kelas=peran==='siswa'?normKelas(r.kelas):'';
-  if(peran==='siswa'&&!kelas)return bad('Kelas siswa harus X, XI, atau XII');
+  var peran=normPeran(r.peran),isSw=hasRole({peran:peran},'siswa'),kelas=isSw?normKelas(r.kelas):'';
+  if(isSw&&!kelas)return bad('Kelas siswa harus X, XI, atau XII');
   if(r.pw&&!Cloud.on&&r.pw.length<6)return bad('Sandi minimal 6 karakter');
   var keys=[un,email].filter(Boolean);
   if(keys.some(function(k){return seen[k]}))return bad('Duplikat di dalam file: '+(email||un));
@@ -53,7 +53,7 @@ async function applyImport(){
    if(!Cloud.on){gen=r.pw?'':genPw();if(gen)hasGen=true;await setPw(u,r.pw||gen)}
    S.users.push(u);
   }
-  out.push([r.nama,u.username,u.email,PERAN[u.peran],u.kelas,r.id?'Diperbarui':'Baru',gen||(Cloud.on?'(daftar sendiri dengan email ini)':'(sesuai file)')]);
+  out.push([r.nama,u.username,u.email,peranLabel(u.peran),u.kelas,r.id?'Diperbarui':'Baru',gen||(Cloud.on?'(daftar sendiri dengan email ini)':'(sesuai file)')]);
  }
  var n=A.imp.ok.length;A.imp=null;persist();
  if(hasGen&&needX())book([['Hasil impor',[['Nama','Username','Email','Peran','Kelas','Status','Sandi awal']].concat(out),[26,18,28,9,7,12,30]]],'Hasil_Impor_Akun');
@@ -64,7 +64,7 @@ async function applyImport(){
 function xlsAkun(){
  if(!needX())return;
  var L=S.users.slice().sort(function(a,b){return a.peran.localeCompare(b.peran)||a.nama.localeCompare(b.nama)});
- book([['Akun',[['No','Nama','Username','Email','Peran','Kelas','Status','Dibuat']].concat(L.map(function(u,i){return [i+1,u.nama,u.username,u.email||'',PERAN[u.peran],u.kelas||'',u.aktif===false?'Nonaktif':'Aktif',u.dibuat?new Date(u.dibuat).toLocaleDateString('id-ID'):'']})),[5,28,20,30,9,7,10,12]]],'Akun_TBSM');
+ book([['Akun',[['No','Nama','Username','Email','Peran','Kelas','Status','Dibuat']].concat(L.map(function(u,i){return [i+1,u.nama,u.username,u.email||'',peranLabel(u.peran),u.kelas||'',u.aktif===false?'Nonaktif':'Aktif',u.dibuat?new Date(u.dibuat).toLocaleDateString('id-ID'):'']})),[5,28,20,30,9,7,10,12]]],'Akun_TBSM');
 }
 function tplAkun(){
  if(!needX())return;

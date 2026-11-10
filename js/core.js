@@ -10,12 +10,19 @@ if(!CLOUD_ON){try{var d0=JSON.parse(localStorage.getItem(KEY)||'null');if(d0){S.
 
 function save(){try{localStorage.setItem('tbsm-kkm',S.kkm);if(!CLOUD_ON)localStorage.setItem(KEY,JSON.stringify({users:S.users,results:S.results}))}catch(e){}}
 function persist(){syncRoster();save();Cloud.flush()}
-function can(p){return !!S.user&&PERM[S.user.peran].indexOf(p)>-1}
-function isStaff(){return !!S.user&&S.user.peran!=='siswa'}
-function syncRoster(){S.roster=S.users.filter(function(u){return u.peran==='siswa'&&u.aktif!==false}).map(function(u){return {id:u.id,nama:u.nama,kelas:u.kelas}})}
+/* Peran ganda: kolom peran menyimpan daftar dipisah koma (mis. 'guru,siswa', maksimal 16 karakter). Peran aktif dipilih di header. */
+var URUT=['admin','guru','siswa'];
+function roleList(u){var r=String((u&&u.peran)||'').split(/[,\s]+/).filter(function(x){return PERAN[x]});r.sort(function(a,b){return URUT.indexOf(a)-URUT.indexOf(b)});return r.length?r:['siswa']}
+function hasRole(u,r){return roleList(u).indexOf(r)>-1}
+function peranLabel(p){return roleList({peran:p}).map(function(r){return PERAN[r]}).join(' + ')}
+function actRole(){return S.act||(S.user?roleList(S.user)[0]:'siswa')}
+function setAct(r){S.act=r;S.role=r;try{localStorage.setItem('tbsm-act-'+S.user.id,r)}catch(e){}}
+function can(p){return !!S.user&&PERM[actRole()].indexOf(p)>-1}
+function isStaff(){return !!S.user&&actRole()!=='siswa'}
+function syncRoster(){S.roster=S.users.filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false}).map(function(u){return {id:u.id,nama:u.nama,kelas:u.kelas}})}
 function visibleResults(){return isStaff()?S.results:S.results.filter(function(r){return r.sid===S.user.id})}
 function lastFor(id){return visibleResults().filter(function(x){return x.jobId===id}).sort(function(a,b){return b.ts-a.ts})[0]}
-function sidOf(n){var u=S.users.find(function(x){return x.peran==='siswa'&&x.nama===n});return u?u.id:(S.user.peran==='siswa'?S.user.id:'')}
+function sidOf(n){var u=S.users.find(function(x){return hasRole(x,'siswa')&&x.nama===n});return u?u.id:(actRole()==='siswa'?S.user.id:'')}
 function slug(n){return String(n).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'.').replace(/^\.|\.$/g,'')}
 function resetV(){V={mode:'list',job:null,checks:{},peserta:'',catatan:'',sec:0,running:false,res:null}}
 
@@ -26,7 +33,7 @@ async function hashPw(p,s){var t=s+':'+p;if(window.crypto&&crypto.subtle){var b=
 async function setPw(u,pw){u.salt=uid();u.pw=await hashPw(pw,u.salt)}
 async function seed(){if(!S.users.length){var u={id:uid(),nama:'Administrator',username:'admin',email:'',peran:'admin',kelas:'',aktif:true,dibuat:Date.now()};await setPw(u,'admin123');S.users.push(u);save()}}
 async function localLogin(id,pw){id=id.toLowerCase();var u=S.users.find(function(x){return x.aktif!==false&&(x.username===id||(x.email&&x.email===id))});if(!u||!u.pw)return null;return (await hashPw(pw,u.salt))===u.pw?u:null}
-function enter(u){S.user=u;S.role=u.peran;S.siswaName=u.nama;if(u.peran==='siswa'&&u.kelas)S.kelas=u.kelas;S.tab='beranda';resetV();syncRoster()}
+function enter(u){S.user=u;var rl=roleList(u),sv='';try{sv=localStorage.getItem('tbsm-act-'+u.id)||''}catch(e){}S.act=rl.indexOf(sv)>-1?sv:rl[0];S.role=S.act;S.siswaName=u.nama;if(S.act==='siswa'&&u.kelas)S.kelas=u.kelas;S.tab='beranda';resetV();syncRoster()}
 function quickSiswa(nama,kelas){var u={id:uid(),nama:nama,username:slug(nama)+'.'+Math.random().toString(36).slice(2,5),email:'',peran:'siswa',kelas:kelas,aktif:true,dibuat:Date.now()};S.users.push(u);persist();toast('Siswa ditambahkan')}
 
 /* ---- Appwrite ---- */
@@ -50,7 +57,7 @@ var Cloud={on:CLOUD_ON,busy:false,
   await this.db.createDocument(CFG.DB,'akun',p.id,pick(p,FA));p.r=1;return p},
  enter:async function(me){var p=await this.resolve(me);if(p.aktif===false){await this.logout();throw new Error('Akun dinonaktifkan. Hubungi admin.')}
   S.user=p;S.users=[p];
-  if(p.peran!=='siswa'){S.users=(await this.list('akun')).map(fromDoc);S.results=(await this.list('hasil')).map(fromDoc)}
+  if(roleList(p).some(function(r){return r!=='siswa'})){S.users=(await this.list('akun')).map(fromDoc);S.results=(await this.list('hasil')).map(fromDoc)}
   else S.results=(await this.list('hasil',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);
   enter(S.users.find(function(u){return u.id===p.id})||p)},
  flush:async function(){

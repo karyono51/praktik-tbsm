@@ -11,20 +11,23 @@ var ICO={
  menu:'<rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/>',
  keluar:'<path d="M9 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H9M15 8l4 4-4 4M19 12H9"/>',
  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
- chev:'<path d="m9 6 6 6-6 6"/>'
+ chev:'<path d="m9 6 6 6-6 6"/>',
+ swap:'<path d="M7 4 3.5 7.5 7 11M3.5 7.5H18M17 13l3.5 3.5L17 20M20.5 16.5H6"/>'
 };
 function svg(d,n){n=n||20;return '<svg viewBox="0 0 24 24" width="'+n+'" height="'+n+'" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>'}
 
 function render(){
  if(!S.user){$('#app').innerHTML=viewLogin();return}
- var u=S.user,home=V.mode==='list'&&S.tab==='beranda';
- var gearBtn='<button type="button" class="gear" data-act="drawer" aria-label="Menu dan pengaturan" aria-controls="drawer" aria-expanded="false">'+svg(ICO.gear,22)+'</button>';
+ var u=S.user,home=V.mode==='list'&&S.tab==='beranda',act=actRole(),multi=roleList(u).length>1;
  var logoBtn='<button type="button" class="logobtn" data-act="drawer" aria-label="Buka menu" aria-controls="drawer" aria-expanded="false"><img class="logo" src="'+LOGO+'" alt="Logo SMK Medina"></button>';
- var first=esc(String(u.nama).split(' ')[0]);
+ var rolePill=multi?'<button type="button" class="pill glass role" data-act="switchrole" aria-label="Peran aktif '+PERAN[act]+'. Ketuk untuk berganti peran">'+PERAN[act]+svg(ICO.swap,14)+'</button>':'<span class="pill glass">'+PERAN[act]+'</span>';
+ var kls=act==='siswa'&&u.kelas?'<span class="pill glass">Kelas '+esc(u.kelas)+'</span>':'';
+ var who='<div class="hi"><p class="hello"><span>Halo,</span> <b>'+esc(u.nama)+'</b></p><p class="mail">'+esc(u.email||u.username||'')+'</p><div class="hmeta">'+rolePill+kls+'</div>'+(home?'':'<div class="netslot" id="netslot" hidden></div>')+'</div>';
+ var moto='<svg class="moto" viewBox="0 0 170 96" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="32" cy="66" r="19"/><circle cx="138" cy="66" r="19"/><circle cx="32" cy="66" r="5"/><circle cx="138" cy="66" r="5"/><path d="M32 66 56 42h40l14 24M96 42l12-22h16M108 20 138 66M60 42l-6-8h24M62 66h32l8-14"/></svg>';
  var head=home?
-  '<header class="top big"><svg class="rings" viewBox="0 0 220 220" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="150" cy="70" r="30"/><circle cx="150" cy="70" r="60"/><circle cx="150" cy="70" r="90"/></svg>'+
-  '<p class="app">KBM Praktik TBSM</p><div class="hrow">'+logoBtn+'<div class="hi"><span>Halo,</span><b>'+first+'</b><div class="hmeta"><span class="pill glass">'+PERAN[u.peran]+'</span>'+(u.peran==='siswa'&&u.kelas?'<span class="pill glass">Kelas '+u.kelas+'</span>':'')+'</div></div>'+gearBtn+'</div><div class="netslot" id="netslot" hidden></div></header>':
-  '<header class="top">'+logoBtn+'<div class="brand"><b>KBM Praktik TBSM</b><span>SMKS Medina Bandung</span><div class="netslot" id="netslot" hidden></div></div>'+gearBtn+'</header>';
+  '<header class="top big"><svg class="rings" viewBox="0 0 220 220" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="150" cy="70" r="30"/><circle cx="150" cy="70" r="60"/><circle cx="150" cy="70" r="90"/></svg>'+moto+
+  '<div class="hrow">'+logoBtn+who+'</div><div class="netslot" id="netslot" hidden></div></header>':
+  '<header class="top">'+logoBtn+who+'</header>';
  var body;
  if(V.mode==='exam')body=viewExam();else if(V.mode==='result')body=viewResult();
  else if(S.tab==='beranda')body=viewBeranda();else if(S.tab==='rekap')body=viewRekap();else if(S.tab==='akun'&&can('akun'))body=viewAkun();else if(S.tab==='acuan')body=viewAcuan();else body=viewKatalog();
@@ -32,8 +35,8 @@ function render(){
  var row=function(v,t,sub,ic,on,tone){return '<button type="button" class="srow'+(tone?' '+tone:'')+'" data-act="'+(v==='keluar'?'menulogout':'menu')+'" data-v="'+v+'"'+(on?' aria-current="page"':'')+'><span class="ico">'+svg(ICO[ic],22)+'</span><span class="st"><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+svg(ICO.chev,18)+'</button>'};
  var kr=Object.keys(KELAS).map(function(c){return row('kelas:'+c,KELAS[c].judul,KELAS[c].sub,'kelas',cur==='katalog'&&S.kelas===c)}).join('');
  var sh='<div class="scrim" data-act="drawerclose"></div><aside class="sheet" id="drawer" role="dialog" aria-modal="true" aria-label="Menu"><div class="grab" data-act="drawerclose" aria-hidden="true"><i></i></div><div class="sbody">'+
-  '<div class="sbrand"><img class="logo ring" src="'+LOGO+'" alt=""><b>SMKS Medina Bandung</b><span class="bar2"></span></div>'+
-  '<div class="sprofile"><span class="av" aria-hidden="true">'+esc(String(u.nama).trim().charAt(0).toUpperCase())+'</span><div class="grow"><b>'+esc(u.nama)+'</b><div class="note">'+esc(u.email||u.username||'')+'</div></div><span class="pill">'+PERAN[u.peran]+'</span></div>'+
+  '<div class="sbrand"><img class="logo ring" src="'+LOGO+'" alt=""><b>SMKS Medina Bandung</b><address class="addr"><span>Jl. K.H. Ahmad Dahlan No. 13–15,</span><span>Kel. Burangrang, Kec. Lengkong,</span><span>Kota Bandung, Jawa Barat 40262</span></address><span class="bar2"></span></div>'+
+  '<div class="sprofile"><span class="av" aria-hidden="true">'+esc(String(u.nama).trim().charAt(0).toUpperCase())+'</span><div class="grow"><b>'+esc(u.nama)+'</b><div class="note">'+esc(u.email||u.username||'')+'</div></div>'+(multi?'<button type="button" class="pill role" data-act="switchrole" aria-label="Peran aktif '+PERAN[act]+'. Ketuk untuk berganti peran">'+PERAN[act]+svg(ICO.swap,14)+'</button>':'<span class="pill">'+PERAN[act]+'</span>')+'</div>'+
   row('beranda','Beranda','Ringkasan dan pintasan','beranda',cur==='beranda')+
   '<div class="chip">'+svg(ICO.kelas,16)+'Unit ujian</div>'+kr+
   '<div class="chip">'+svg(ICO.menu,16)+'Lainnya</div>'+
@@ -42,9 +45,9 @@ function render(){
   row('acuan','Acuan','Rubrik dan standar penilaian','acuan',cur==='acuan')+
   '<div class="chip">'+svg(ICO.keluar,16)+'Sesi</div>'+row('keluar','Keluar','Akhiri sesi di perangkat ini','keluar',false,'danger')+
   '</div></aside>';
- var foot='<footer class="school"><b>SMKS Medina Bandung</b><address><span>Jl. K.H. Ahmad Dahlan No. 13–15,</span> <span>Kel. Burangrang, Kec. Lengkong,</span> <span>Kota Bandung, Jawa Barat 40262</span></address></footer>';
+ var foot='<footer class="school"><span>© 2026 SMKS Medina Bandung</span><i aria-hidden="true">|</i><span>supported by @pakar1501</span></footer>';
  var open=document.body.classList.contains('dr-open');
- $('#app').innerHTML=head+'<main class="stack">'+body+foot+'</main>'+sh;
+ $('#app').innerHTML=head+'<main class="stack'+(home?' home':'')+'">'+body+foot+'</main>'+sh;
  document.body.classList.toggle('has-bar',V.mode==='exam');
  if(open)document.querySelectorAll('[data-act="drawer"]').forEach(function(x){x.setAttribute('aria-expanded','true')});
  if(window.netbar)netbar();
@@ -80,12 +83,12 @@ function viewRekap(){
 
 function viewAkun(){
  var q=A.q.toLowerCase(),e=A.edit;
- var L=S.users.filter(function(u){return (A.peran==='ALL'||u.peran===A.peran)&&(!q||(u.nama+' '+u.username+' '+(u.email||'')).toLowerCase().indexOf(q)>-1)});
- var chips=['ALL','admin','guru','siswa'].map(function(c){return '<button type="button" data-act="akunfilter" data-v="'+c+'" aria-pressed="'+(A.peran===c)+'">'+(c==='ALL'?'Semua':PERAN[c])+' <span class="mono">'+(c==='ALL'?S.users.length:S.users.filter(function(u){return u.peran===c}).length)+'</span></button>'}).join('');
+ var L=S.users.filter(function(u){return (A.peran==='ALL'||hasRole(u,A.peran))&&(!q||(u.nama+' '+u.username+' '+(u.email||'')).toLowerCase().indexOf(q)>-1)});
+ var chips=['ALL','admin','guru','siswa'].map(function(c){return '<button type="button" data-act="akunfilter" data-v="'+c+'" aria-pressed="'+(A.peran===c)+'">'+(c==='ALL'?'Semua':PERAN[c])+' <span class="mono">'+(c==='ALL'?S.users.length:S.users.filter(function(u){return hasRole(u,c)}).length)+'</span></button>'}).join('');
  var form=e?'<form class="card" data-form="akun"><h3>'+(e.id?'Ubah akun':'Akun baru')+'</h3>'+
   '<label class="f">Nama<input name="nama" required value="'+esc(e.nama)+'"></label>'+
   '<div class="two"><label class="f">Username<input name="username" value="'+esc(e.username)+'" placeholder="otomatis"></label><label class="f">Email<input name="email" type="email" value="'+esc(e.email)+'"'+(Cloud.on?' required':'')+'></label></div>'+
-  '<div class="two"><label class="f">Peran<select name="peran">'+opt(['admin','guru','siswa'],e.peran,function(v){return PERAN[v]})+'</select></label><label class="f">Kelas (siswa)<select name="kelas">'+opt(KLS,e.kelas||'X')+'</select></label></div>'+
+  '<fieldset class="roles"><legend>Peran (boleh lebih dari satu)</legend>'+URUT.map(function(r){return '<label class="chk"><input type="checkbox" name="peran" value="'+r+'"'+(hasRole(e,r)?' checked':'')+'> '+PERAN[r]+'</label>'}).join('')+'</fieldset><label class="f">Kelas (jika siswa)<select name="kelas">'+opt(KLS,e.kelas||'X')+'</select></label>'+
   (Cloud.on?'':'<label class="f">Sandi'+(e.id?' (kosongkan jika tidak diubah)':'')+'<input name="pw" type="password" autocomplete="new-password"'+(e.id?'':' required')+' minlength="6"></label>')+
   '<label class="chk"><input type="checkbox" name="aktif"'+(e.aktif!==false?' checked':'')+'> Akun aktif</label>'+
   (A.err?'<p class="err" role="alert">'+esc(A.err)+'</p>':'')+
@@ -108,12 +111,13 @@ function viewAkun(){
 async function saveAkun(d){
  var e=A.edit,nama=(d.nama||'').trim(),em=(d.email||'').trim().toLowerCase(),un=(d.username||'').trim().toLowerCase().replace(/\s+/g,'')||(em?em.split('@')[0]:slug(nama));
  if(!nama)throw new Error('Nama wajib diisi.');
+ var pr=URUT.filter(function(r){return (d.peranAll||[]).indexOf(r)>-1});if(!pr.length)throw new Error('Pilih minimal satu peran.');
  if(Cloud.on&&!em)throw new Error('Email wajib diisi.');
  if(S.users.some(function(u){return u.id!==e.id&&(u.username===un||(em&&u.email===em))}))throw new Error('Username atau email sudah dipakai.');
  var o=e.id?S.users.find(function(u){return u.id===e.id}):{id:uid(),dibuat:Date.now()};
- if(o.id===S.user.id&&(d.peran!=='admin'||!d.aktif))throw new Error('Akun Anda sendiri tidak bisa diturunkan atau dinonaktifkan.');
+ if(o.id===S.user.id&&(pr.indexOf('admin')<0||!d.aktif))throw new Error('Akun Anda sendiri tidak bisa diturunkan atau dinonaktifkan.');
  if(!Cloud.on&&d.pw&&d.pw.length<6)throw new Error('Sandi minimal 6 karakter.');
- Object.assign(o,{nama:nama,username:un,email:em,peran:d.peran,kelas:d.peran==='siswa'?d.kelas:'',aktif:!!d.aktif});
+ Object.assign(o,{nama:nama,username:un,email:em,peran:pr.join(','),kelas:pr.indexOf('siswa')>-1?d.kelas:'',aktif:!!d.aktif});
  if(!Cloud.on&&d.pw)await setPw(o,d.pw);
  if(e.id)o.d=1;else S.users.push(o);
  A.edit=null;persist();toast('Akun disimpan');
@@ -121,7 +125,7 @@ async function saveAkun(d){
 
 document.addEventListener('submit',async function(e){
  var f=e.target.closest('form[data-form]');if(!f)return;e.preventDefault();
- var k=f.dataset.form,d=Object.fromEntries(new FormData(f));A.err='';
+ var k=f.dataset.form,fd=new FormData(f),d=Object.fromEntries(fd);d.peranAll=fd.getAll('peran');A.err='';
  try{
   if(k==='login'){
    if(Cloud.on){await Cloud.login(d.id.trim(),d.pw);await Cloud.enter(await Cloud.me())}
@@ -146,7 +150,7 @@ document.addEventListener('click',async function(e){
  else if(a==='akuncancel'){A.edit=null;A.err='';render()}
  else if(a==='akundel'){
   var u=S.users.find(function(x){return x.id===v});
-  if(u.peran==='admin'&&S.users.filter(function(x){return x.peran==='admin'&&x.aktif!==false&&x.id!==v}).length<1){toast('Harus tersisa satu admin aktif');return}
+  if(hasRole(u,'admin')&&S.users.filter(function(x){return hasRole(x,'admin')&&x.aktif!==false&&x.id!==v}).length<1){toast('Harus tersisa satu admin aktif');return}
   if(!confirm('Hapus akun '+u.nama+'? Data nilai tetap tersimpan.'))return;
   S.users=S.users.filter(function(x){return x.id!==v});Cloud.remove('akun',v);persist();render();toast('Akun dihapus');
  }
@@ -196,6 +200,7 @@ document.addEventListener('click',async function(e){
  if(a==='drawer')drOpen(!drIsOpen());
  else if(a==='drawerclose')drOpen(false);
  else if(a==='menu'){drOpen(false);if(!leaveExam())return;var v=b.dataset.v;if(v.indexOf('kelas:')===0){S.kelas=v.slice(6);S.tab='katalog';persist()}else S.tab=v;render();window.scrollTo(0,0)}
+ else if(a==='switchrole'){var rl=roleList(S.user),nx=rl[(rl.indexOf(actRole())+1)%rl.length];if(!leaveExam())return;setAct(nx);if(nx==='siswa'&&S.user.kelas)S.kelas=S.user.kelas;S.tab='beranda';render();window.scrollTo(0,0);toast('Peran aktif: '+PERAN[nx])}
  else if(a==='menulogout'){drOpen(false);if(!leaveExam())return;await doLogout()}
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&drIsOpen())drOpen(false)});

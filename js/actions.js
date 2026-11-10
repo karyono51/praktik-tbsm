@@ -35,7 +35,7 @@ document.addEventListener('click',function(e){
   else if(a==='finish'){
     stopTimer();
     var ps=$('#peserta');if(ps)V.peserta=ps.value.trim();
-    if(S.role==='siswa'){S.siswaName=V.peserta;persist()}
+    if(actRole()==='siswa'){S.siswaName=V.peserta;persist()}
     V.res={calc:calc(V.job,V.checks,S.kkm)};V.mode='result';render();window.scrollTo(0,0);
   }
   else if(a==='redo'){var j=V.job;startExam(j.id)}

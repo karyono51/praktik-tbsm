@@ -35,7 +35,7 @@ async function parseNilai(f){
   if(!st)kom=score>=S.kkm;else if(/^(belum|tidak|bk|no|n|0|false)/.test(st))kom=false;else if(/^(kompeten|k|ya|yes|y|1|true)/.test(st))kom=true;else return bad('Status harus Kompeten atau Belum kompeten');
   var tipe=/latihan/i.test(r.tipe||'')?'Latihan':'Penilaian';
   var row={id:uid(),ts:ts,jobId:j.id,kelas:kelas,siswa:siswa,tipe:tipe,score:score,kompeten:kom,catatan:(r.catatan||'').slice(0,1000),oleh:S.user.username,penilai:(r.penilai||S.user.nama).slice(0,128)};
-  var ac=S.users.find(function(u){return u.peran==='siswa'&&u.nama.toLowerCase()===siswa.toLowerCase()&&(!u.kelas||u.kelas===kelas)});
+  var ac=S.users.find(function(u){return hasRole(u,'siswa')&&u.nama.toLowerCase()===siswa.toLowerCase()&&(!u.kelas||u.kelas===kelas)});
   row.sid=ac?ac.id:'';
   var key=dupKey(row);
   if(have[key]||seen[key]){dup++;return}
