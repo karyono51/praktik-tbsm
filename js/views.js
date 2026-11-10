@@ -1,6 +1,5 @@
 function viewKatalog(){
   var k=KELAS[S.kelas];
-  var tabs=Object.keys(KELAS).map(function(c){return '<button type="button" data-act="kelas" data-v="'+c+'" aria-pressed="'+(S.kelas===c)+'"><b>'+KELAS[c].judul.replace('Kelas ','')+'</b><span>'+KELAS[c].sub+'</span></button>'}).join('');
   var jobs=JOBS.filter(function(j){return j.kelas===S.kelas}).map(function(j){
     var l=lastFor(j.id),st='<span class="pill plain">Belum dicoba</span>';
     if(l)st='<span class="pill '+(l.kompeten?'ok':'bad')+'">'+(l.kompeten?'Kompeten':'Belum kompeten')+' · '+l.score+'</span>';
@@ -10,8 +9,8 @@ function viewKatalog(){
       (j.skkni?'<div><span class="pill plain mono" title="Kode unit SKKNI">SKKNI '+j.skkni+'</span></div>':'')+
       '<div class="row sb">'+st+'<button type="button" class="btn primary small" data-act="start" data-v="'+j.id+'">'+(isStaff()?'Nilai siswa':'Mulai latihan')+'</button></div></article>';
   }).join('');
-  return '<div class="kelas-tabs" role="group" aria-label="Pilih kelas">'+tabs+'</div>'+
-    '<p class="note">'+(isStaff()?'Mode guru: menilai siswa dengan rubrik. Hasil tercatat sebagai Penilaian.':'Mode siswa: latihan mandiri dengan pengukur waktu. Hasil tercatat sebagai Latihan.')+' Kelas '+S.kelas+' berada di Fase '+k.fase+' Kurikulum Merdeka.</p><div class="jobs">'+jobs+'</div>';
+  return '<div class="row sb"><div><h2>'+k.judul+'</h2><p class="note">'+k.sub+'</p></div><span class="pill plain">'+JOBS.filter(function(j){return j.kelas===S.kelas}).length+' unit</span></div>'+
+    '<p class="note">'+(isStaff()?'Mode guru: menilai siswa dengan rubrik. Hasil tercatat sebagai Penilaian.':'Mode siswa: latihan mandiri dengan pengukur waktu. Hasil tercatat sebagai Latihan.')+' Ganti kelas lewat menu di dasbor.</p><div class="jobs">'+jobs+'</div>';
 }
 
 function viewExam(){
@@ -66,4 +65,20 @@ function viewAcuan(){
   card('Cara penilaian di aplikasi','<ul class="plain"><li>Setiap butir dinilai Terpenuhi atau Belum, seperti observasi asesor pada skema sertifikasi.</li><li>Aspek yang dinilai: keselamatan kerja, kesesuaian SOP, penguasaan alat dan bahan, hasil, dan sikap.</li><li>Butir Wajib (K3 dan ketepatan kritis) harus terpenuhi semua untuk dinyatakan Kompeten.</li></ul>')+
   card('Batasan','<p>Aplikasi ini untuk simulasi dan latihan. Penilaian resmi UKK tetap memakai skema, tempat uji kompetensi, dan asesor bersertifikat dari LSP. Periksa juknis tahun pelajaran berjalan dan ketentuan dinas pendidikan provinsi sebelum memakai hasilnya sebagai nilai resmi.</p>')+
   card('Sumber','<ul class="plain"><li><a href="https://www.komunitasbelajar.id/2026/01/pedoman-atau-juknis-ukk-smk-tahun-2026.html" target="_blank" rel="noopener">Pedoman atau Juknis UKK SMK Tahun 2026</a></li><li><a href="https://www.komunitasbelajar.id/2026/08/peraturan-kepala-bkpdm-nomor-1-tahun-2026-kerangka-asesmen-tka-smk-mak.html" target="_blank" rel="noopener">Peraturan Kepala BKPDM No. 1 Tahun 2026 (TKA SMK/MAK)</a></li><li><a href="https://kurikulum.kemdikbud.go.id/" target="_blank" rel="noopener">Portal Kurikulum Kemdikbud (CP per mata pelajaran)</a></li></ul>');
+}
+
+
+function viewBeranda(){
+ var u=S.user,h=new Date().getHours(),sal=h<11?'Selamat pagi':h<15?'Selamat siang':h<19?'Selamat sore':'Selamat malam';
+ var list=visibleResults().slice().sort(function(a,b){return b.ts-a.ts}),a=agg(list);
+ var tried={};list.forEach(function(r){tried[r.jobId]=1});
+ var kc=Object.keys(KELAS).map(function(c){
+  var js=JOBS.filter(function(j){return j.kelas===c}),dn=js.filter(function(j){return tried[j.id]}).length;
+  return '<button type="button" class="kcard" data-act="menu" data-v="kelas:'+c+'"><b>'+KELAS[c].judul+'</b><span>'+KELAS[c].sub+'</span><div class="meter" aria-hidden="true"><i style="width:'+(js.length?Math.round(100*dn/js.length):0)+'%"></i></div><span class="mono">'+dn+' dari '+js.length+' unit '+(isStaff()?'sudah dinilai':'sudah dicoba')+'</span></button>'}).join('');
+ var rec=list.slice(0,3).map(function(r){var j=jobById(r.jobId);
+  return '<div class="row sb rec"><div class="grow"><b>'+esc(j?j.judul:r.jobId)+'</b><div class="note">'+(isStaff()?esc(r.siswa||'Tanpa nama')+' · ':'')+'Kelas '+r.kelas+' · '+tgl(r.ts)+'</div></div><span class="pill '+(r.kompeten?'ok':'bad')+'">'+r.score+'</span></div>'}).join('');
+ return '<section class="hero"><img class="logo" src="'+LOGO+'" alt=""><div><h1>'+sal+', '+esc(String(u.nama).split(' ')[0])+'</h1><p>'+(isStaff()?'Pilih kelas untuk menilai praktik siswa dengan rubrik kompetensi.':'Pilih kelas untuk berlatih unit praktik dengan pengukur waktu.')+'</p></div></section>'+
+  '<div class="stats"><div class="card"><span class="label">'+(isStaff()?'Data nilai':'Latihan saya')+'</span><b class="mono">'+a[0]+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+a[1]+'</b></div><div class="card"><span class="label">Kompeten</span><b class="mono">'+Math.round(a[2]*100)+'%</b></div></div>'+
+  '<h3>Pilih kelas</h3><div class="kcards">'+kc+'</div>'+
+  '<div class="card"><div class="row sb"><h3>Terbaru</h3>'+(list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+'</div>'+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari unit pertama.</p>')+'</div>';
 }

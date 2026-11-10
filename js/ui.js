@@ -9,14 +9,16 @@ var head='<header class="top"><div class="brandrow"><button type="button" class=
   '<div class="who"><div class="whotxt"><b>'+esc(u.nama)+'</b><span class="pill">'+PERAN[u.peran]+'</span></div></div></header>';
  var body;
  if(V.mode==='exam')body=viewExam();else if(V.mode==='result')body=viewResult();
- else if(S.tab==='rekap')body=viewRekap();else if(S.tab==='akun'&&can('akun'))body=viewAkun();else if(S.tab==='acuan')body=viewAcuan();else body=viewKatalog();
- var IC={katalog:'<path d="M9 5h10M9 12h10M9 19h10M4.5 5h.01M4.5 12h.01M4.5 19h.01"/>',rekap:'<path d="M5 20V10M12 20V4M19 20v-7"/>',akun:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14.3c1.9.8 3 2.7 3 5.7"/>',acuan:'<path d="M5 4.5h10.5A3.5 3.5 0 0 1 19 8v11.5H8.5A3.5 3.5 0 0 1 5 16z"/><path d="M5 16a3.5 3.5 0 0 1 3.5-3.5H19"/>'};
- var tabs=[['katalog','Unit ujian'],['rekap','Rekap nilai']].concat(can('akun')?[['akun','Akun']]:[],[['acuan','Acuan']]);
+ else if(S.tab==='beranda')body=viewBeranda();else if(S.tab==='rekap')body=viewRekap();else if(S.tab==='akun'&&can('akun'))body=viewAkun();else if(S.tab==='acuan')body=viewAcuan();else body=viewKatalog();
+ var IC={beranda:'<path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/>',kelas:'<path d="M3 9.5 12 5l9 4.5-9 4.5zM7 12v4.5c1.4 1.3 3.2 2 5 2s3.6-.7 5-2V12"/>',katalog:'<path d="M9 5h10M9 12h10M9 19h10M4.5 5h.01M4.5 12h.01M4.5 19h.01"/>',rekap:'<path d="M5 20V10M12 20V4M19 20v-7"/>',akun:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14.3c1.9.8 3 2.7 3 5.7"/>',acuan:'<path d="M5 4.5h10.5A3.5 3.5 0 0 1 19 8v11.5H8.5A3.5 3.5 0 0 1 5 16z"/><path d="M5 16a3.5 3.5 0 0 1 3.5-3.5H19"/>'};
+ var tabs=[['beranda','Beranda']];
+ var after=[['rekap','Rekap nilai']].concat(can('akun')?[['akun','Akun']]:[],[['acuan','Acuan']]);
  var svg=function(d){return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>'};
  var cur=V.mode==='list'?S.tab:'';
+ var mb=function(v,t,ic,on,sub){return '<button type="button"'+(sub?' class="sub"':'')+' data-act="menu" data-v="'+v+'"'+(on?' aria-current="page"':'')+'>'+(sub?'':svg(IC[ic]))+'<span>'+t+'</span></button>'};
  var dr='<div class="scrim" data-act="drawerclose"></div><aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Menu utama"><div class="dhead"><img class="logo" src="'+LOGO+'" alt=""><div class="brand"><b>SMKS Medina Bandung</b><span>Uji Praktik TBSM</span></div></div>'+
   '<div class="duser"><b>'+esc(u.nama)+'</b><span class="pill">'+PERAN[u.peran]+'</span></div>'+
-  '<nav class="dnav" aria-label="Menu utama">'+tabs.map(function(t){return '<button type="button" data-act="menu" data-v="'+t[0]+'"'+(cur===t[0]?' aria-current="page"':'')+'>'+svg(IC[t[0]])+'<span>'+t[1]+'</span></button>'}).join('')+'</nav>'+
+  '<nav class="dnav" aria-label="Menu utama">'+mb('beranda','Beranda','beranda',cur==='beranda')+'<div class="dgroup">'+svg(IC.kelas)+'<span>Unit ujian</span></div>'+Object.keys(KELAS).map(function(c){return mb('kelas:'+c,KELAS[c].judul+' <small>Fase '+KELAS[c].fase+'</small>','',cur==='katalog'&&S.kelas===c,1)}).join('')+after.map(function(t){return mb(t[0],t[1],t[0],cur===t[0])}).join('')+'</nav>'+
   '<div class="dfoot"><button type="button" class="dout" data-act="menulogout">'+svg('<path d="M9 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H9M15 8l4 4-4 4M19 12H9"/>')+'<span>Keluar</span></button></div></aside>';
  var foot='<footer class="school"><img src="'+LOGO+'" alt=""><div><b>SMKS Medina Bandung</b><div class="note">Jl. K.H. Ahmad Dahlan No. 13–15, Kel. Burangrang, Kec. Lengkong, Kota Bandung, Jawa Barat 40262</div></div></footer>';
  $('#app').innerHTML=head+'<main class="stack">'+body+foot+'</main>'+dr;
@@ -164,7 +166,7 @@ document.addEventListener('click',async function(e){
  var b=e.target.closest('[data-act]');if(!b)return;var a=b.dataset.act;
  if(a==='drawer')drOpen(!document.body.classList.contains('dr-open'));
  else if(a==='drawerclose')drOpen(false);
- else if(a==='menu'){drOpen(false);if(!leaveExam())return;S.tab=b.dataset.v;render();window.scrollTo(0,0)}
+ else if(a==='menu'){drOpen(false);if(!leaveExam())return;var v=b.dataset.v;if(v.indexOf('kelas:')===0){S.kelas=v.slice(6);S.tab='katalog';persist()}else S.tab=v;render();window.scrollTo(0,0)}
  else if(a==='menulogout'){drOpen(false);if(!leaveExam())return;await doLogout()}
 });
 ['pointerdown','keydown','scroll'].forEach(function(t){document.addEventListener(t,function(e){

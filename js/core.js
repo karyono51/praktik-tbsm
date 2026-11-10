@@ -26,7 +26,7 @@ async function hashPw(p,s){var t=s+':'+p;if(window.crypto&&crypto.subtle){var b=
 async function setPw(u,pw){u.salt=uid();u.pw=await hashPw(pw,u.salt)}
 async function seed(){if(!S.users.length){var u={id:uid(),nama:'Administrator',username:'admin',email:'',peran:'admin',kelas:'',aktif:true,dibuat:Date.now()};await setPw(u,'admin123');S.users.push(u);save()}}
 async function localLogin(id,pw){id=id.toLowerCase();var u=S.users.find(function(x){return x.aktif!==false&&(x.username===id||(x.email&&x.email===id))});if(!u||!u.pw)return null;return (await hashPw(pw,u.salt))===u.pw?u:null}
-function enter(u){S.user=u;S.role=u.peran;S.siswaName=u.nama;if(u.peran==='siswa'&&u.kelas)S.kelas=u.kelas;S.tab='katalog';resetV();syncRoster()}
+function enter(u){S.user=u;S.role=u.peran;S.siswaName=u.nama;if(u.peran==='siswa'&&u.kelas)S.kelas=u.kelas;S.tab='beranda';resetV();syncRoster()}
 function quickSiswa(nama,kelas){var u={id:uid(),nama:nama,username:slug(nama)+'.'+Math.random().toString(36).slice(2,5),email:'',peran:'siswa',kelas:kelas,aktif:true,dibuat:Date.now()};S.users.push(u);persist();toast('Siswa ditambahkan')}
 
 /* ---- Appwrite ---- */
