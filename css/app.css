@@ -253,3 +253,4 @@ fieldset.roles legend{font-size:13px;font-weight:500;color:var(--muted);padding:
 .fdp{display:flex;flex-direction:column;gap:10px;padding-top:10px;border-top:1px dashed var(--line)}.fdp[hidden]{display:none}
 .three{display:grid;grid-template-columns:1fr 1fr .7fr;gap:8px}@media(max-width:380px){.three{grid-template-columns:1fr 1fr}.three label:last-child{grid-column:1/-1}}
 input[type=date]{min-height:42px}
+.lkpd{margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}

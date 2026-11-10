@@ -130,7 +130,7 @@ function pdfOne(){
  if(!needP()||!V.res)return;
  var ct=$('#catatan');V.catatan=ct?ct.value.trim():'';
  var j=V.job,c=V.res.calc,doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),dd=dataFor(V.peserta),kg=V.kel&&V.items&&V.items.length>1;
- kop(doc,'Lembar Penilaian KBM Praktik');
+ kop(doc,lkpdJudul(V.job));
  doc.autoTable({startY:45,theme:'plain',styles:{fontSize:10,cellPadding:1.2},columnStyles:{0:{cellWidth:38,fontStyle:'bold'}},body:[
   [(V.kel&&V.items&&V.items.length>1)?'Kelompok':'Siswa',(V.kel&&V.items&&V.items.length>1)?V.items.map(function(x){return x.nama}).join(', '):(V.peserta||'-')],['Tanggal praktik',fmtTgl(dd.tgl)||'-'],kg?['NIS anggota',V.items.map(function(x){return x.nama+' ('+((V.idn&&V.idn[x.nama]&&String(V.idn[x.nama].nis||'').trim())||'-')+')'}).join(', ')]:['NIS',dd.nis||'-'],['Kendaraan',dd.kend||'-'],['No. polisi',dd.nopol||'-'],['Kelas','Kelas '+j.kelas+' (Fase '+KELAS[j.kelas].fase+')'],['Unit praktik',j.judul],['Kode SKKNI',j.skkni||'-'],['Penilai',isStaff()?S.user.nama:'Latihan mandiri'],['Waktu pengerjaan',mmss(V.sec)+' dari target '+j.menit+' menit'],['KKM',String(S.kkm)]]});
  var y=doc.lastAutoTable.finalY+6;
@@ -145,4 +145,41 @@ function pdfOne(){
  if(V.catatan){doc.setFontSize(10).setFont('helvetica','bold').text('Catatan',14,y);doc.setFont('helvetica','normal');var t=doc.splitTextToSize(V.catatan,180);doc.text(t,14,y+5);y+=8+t.length*4.5}
  ttd(doc,y+8,[['Siswa',(V.kel&&V.items&&V.items.length>1)?V.items[0].nama+' dkk.':V.peserta],['Penilai',isStaff()?S.user.nama:'']]);
  foot(doc);doc.save((V.kel&&V.items&&V.items.length>1?'Penilaian_kelompok_':'Penilaian_'+slug(V.peserta||'siswa')+'_')+j.id+'.pdf');
+}
+
+/* ---- LKPD kosong yang bisa dicetak dan diisi tangan ---- */
+function pdfLkpd(id){
+ if(!needP())return;
+ var j=jobById(id);if(!j)return;
+ var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),k=KELAS[j.kelas];
+ kop(doc,lkpdJudul(j));
+ doc.setFont('helvetica','bold').setFontSize(11).text(j.judul,14,47);
+ doc.setFont('helvetica','normal').setFontSize(9).setTextColor(90).text(j.unit+' | target '+j.menit+' menit'+(j.skkni?' | SKKNI '+j.skkni:''),14,52).setTextColor(0);
+ doc.autoTable({startY:56,theme:'grid',styles:{fontSize:9.5,cellPadding:2.4,minCellHeight:8},columnStyles:{0:{cellWidth:40,fontStyle:'bold',fillColor:[242,247,244]},1:{cellWidth:51},2:{cellWidth:40,fontStyle:'bold',fillColor:[242,247,244]},3:{cellWidth:51}},
+  body:[['Nama','','Kelas','Kelas '+j.kelas+' (Fase '+k.fase+')'],['NIS','','Tanggal praktik',''],['Kendaraan','','No. polisi','']]});
+ var y=doc.lastAutoTable.finalY+7;
+ doc.setFont('helvetica','bold').setFontSize(10).text('Petunjuk',14,y);doc.setFont('helvetica','normal').setFontSize(9.5);
+ var pet=['Kenakan wearpack, sepatu kerja, dan APD sebelum mulai bekerja.','Baca buku manual atau SOP pekerjaan, lalu siapkan alat dan bahan.','Kerjakan berurutan dalam waktu '+j.menit+' menit.','Beri tanda V pada kolom Terpenuhi atau Belum. Butir bertanda Wajib harus terpenuhi agar dinyatakan kompeten.'];
+ pet.forEach(function(t,i){var l=doc.splitTextToSize((i+1)+'. '+t,176);doc.text(l,16,y+5.5);y+=l.length*4.6+1.4});
+ y+=5;doc.setFont('helvetica','bold').setFontSize(10).text('Alat dan bahan yang dipakai',14,y);
+ doc.setDrawColor(170);for(var n=1;n<=2;n++)doc.line(14,y+n*7+1,W-14,y+n*7+1);
+ var rows=[],no=0;
+ Object.keys(ASPEK).forEach(function(a){
+  var its=j.items.filter(function(i){return i.a===a});if(!its.length)return;
+  rows.push([{content:ASPEK[a].n+' (bobot '+ASPEK[a].w+'%)',colSpan:6,styles:{fillColor:[226,242,233],fontStyle:'bold',textColor:[6,78,43]}}]);
+  its.forEach(function(i){no++;rows.push([no,i.t,i.k?'Wajib':'','','',''])});
+ });
+ doc.autoTable({startY:y+22,theme:'grid',styles:{fontSize:9,cellPadding:2.2,minCellHeight:9,valign:'middle'},headStyles:TH,head:[['No','Butir pekerjaan','Wajib','Terpenuhi','Belum','Keterangan']],body:rows,
+  columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:78},2:{cellWidth:14,halign:'center',fontStyle:'bold'},3:{cellWidth:20},4:{cellWidth:16},5:{cellWidth:45}}});
+ var ms=[];j.items.forEach(function(i,n){if(i.m)ms.push([n+1,i.t,'','',''])});
+ if(ms.length){
+  doc.setFont('helvetica','bold').setFontSize(10);var ty=doc.lastAutoTable.finalY+8;if(ty>H-50){doc.addPage();ty=22}
+  doc.text('Data hasil ukur',14,ty);
+  doc.autoTable({startY:ty+3,theme:'grid',styles:{fontSize:9,cellPadding:2.2,minCellHeight:10,valign:'middle'},headStyles:TH,head:[['No','Butir pengukuran','Hasil ukur','Spesifikasi','Satuan']],body:ms,columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:83},2:{cellWidth:32},3:{cellWidth:36},4:{cellWidth:22}}});
+ }
+ var cy=doc.lastAutoTable.finalY+8;if(cy>H-70){doc.addPage();cy=22}
+ doc.setFont('helvetica','bold').setFontSize(10).text('Catatan atau temuan',14,cy);
+ doc.setDrawColor(170);for(var m=1;m<=3;m++)doc.line(14,cy+m*7,W-14,cy+m*7);
+ ttd(doc,cy+32,[['Peserta didik'],['Guru / Asesor']]);
+ foot(doc);doc.save('LKPD_Fase_'+k.fase+'_Kelas_'+j.kelas+'_'+j.id+'.pdf');
 }

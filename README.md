@@ -46,8 +46,9 @@ Kolom: `Nama, Username, Email, Sandi, Peran, Kelas, Status`. Unduh contoh dari t
 - Keluar menghapus salinan data di perangkat. Data antrean yang belum terkirim tetap disimpan sampai berhasil dikirim.
 - Setelah mengubah berkas aplikasi, naikkan `CACHE` di `service-worker.js` (misalnya `tbsm-v2`) agar perangkat memuat versi baru.
 
-## Form identitas, data unit, dan isian rinci (update13)
+## Form identitas, data unit, dan isian rinci (update15)
 - Layar penilaian punya kartu **Identitas & data unit**: tanggal praktik, NIS, kendaraan, dan no. polisi. Semua boleh kosong.
 - Tiap butir punya tombol isian: butir pengukuran berisi hasil ukur, spesifikasi, dan satuan; semua butir berisi keterangan/temuan.
 - Isian ikut tercetak di lembar PDF. Ringkasannya juga disisipkan di kolom Catatan rekap, sehingga **tidak perlu mengubah skema Appwrite**.
 - Opsional: untuk menyimpan isian lengkap di Appwrite, tambahkan atribut string `data` (ukuran 8000, tidak wajib) pada koleksi `hasil`, lalu setel `HASIL_DATA:true` di `js/config.js`.
+- **Cetak LKPD** (update15): tombol "Cetak LKPD" di tiap unit dan "Cetak LKPD kosong" di layar penilaian menghasilkan PDF A4 kosong untuk diisi tangan.

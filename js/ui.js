@@ -163,6 +163,7 @@ document.addEventListener('click',async function(e){
  else if(a==='xlsrekap')xlsRekap();
  else if(a==='pdfrekap')pdfRekap();
  else if(a==='pdfone')pdfOne();
+ else if(a==='lkpd')pdfLkpd(b.dataset.v);
 });
 document.addEventListener('change',async function(e){
  if(e.target.id!=='impfile')return;

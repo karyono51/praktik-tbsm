@@ -97,6 +97,7 @@ JOBS.forEach(function(j){
   j.items=it;
   it.forEach(function(i){i.m=/mengukur|pengukuran|hasil ukur|torsi|celah|tekanan|kekenduran|resistansi|putaran idle|tinggi pelampung|membaca skala/i.test(i.t)});
 });
+function lkpdJudul(j){return 'LKPD Fase '+KELAS[j.kelas].fase+' Kelas '+j.kelas+' TSM'}
 function jobById(id){return JOBS.filter(function(j){return j.id===id})[0]}
 
 /* ===== Penilaian: kompeten bila semua butir wajib terpenuhi dan skor >= KKM ===== */
