@@ -1,5 +1,5 @@
 {
-  "projectId": "GANTI_PROJECT_ID",
+  "projectId": "6af2a76d00199ba40ab0",
   "projectName": "Uji Praktik TBSM",
   "databases": [{ "$id": "tbsm", "name": "tbsm", "enabled": true }],
   "collections": [
