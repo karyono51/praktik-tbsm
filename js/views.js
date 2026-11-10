@@ -21,7 +21,7 @@ function viewExam(){
     groups+='<section class="aspek"><div class="aspek-head"><span class="label">'+ASPEK[a].n+'</span><span class="mono note">bobot '+ASPEK[a].w+'%</span></div>'+
       its.map(function(i){var v=V.checks[i.id];
         return '<div class="item" data-id="'+i.id+'" data-v="'+(v===undefined?'':v)+'"><div class="t"><span>'+esc(i.t)+'</span>'+(i.k?'<span class="pill warn">Wajib</span>':'')+'</div>'+
-          '<div class="yn"><button type="button" class="y" data-act="chk" data-id="'+i.id+'" data-v="1" aria-pressed="'+(v===1)+'">Terpenuhi</button><button type="button" class="n" data-act="chk" data-id="'+i.id+'" data-v="0" aria-pressed="'+(v===0)+'">Belum</button></div></div>';
+          '<div class="yn"><button type="button" class="y" data-act="chk" data-id="'+i.id+'" data-v="1" aria-pressed="'+(v===1)+'">Terpenuhi</button><button type="button" class="n" data-act="chk" data-id="'+i.id+'" data-v="0" aria-pressed="'+(v===0)+'">Belum</button></div>'+fdHtml(i)+'</div>';
       }).join('')+'</section>';
   });
   var pes='';
@@ -42,7 +42,7 @@ function viewExam(){
   var total=j.items.length,done=Object.keys(V.checks).length;
   return '<div class="row"><button type="button" class="btn small" data-act="back">Kembali</button><span class="pill">Kelas '+j.kelas+' · Fase '+KELAS[j.kelas].fase+'</span></div>'+
     '<div class="card"><h2>'+esc(j.judul)+'</h2>'+(isStaff()&&V.group.length&&!V.kel?'<div class="pill" style="align-self:flex-start">Menilai: '+esc(V.peserta)+'</div>':'')+'<div class="meta muted" style="font-size:13px">'+esc(j.unit)+' · target '+j.menit+' menit'+(j.skkni?' · SKKNI '+j.skkni:'')+'</div>'+pes+
-    '<p class="note">Butir bertanda Wajib menyangkut keselamatan atau ketepatan kerja. Satu butir wajib yang belum terpenuhi membuat hasil Belum Kompeten, berapa pun skornya.</p></div>'+groups+
+    '<p class="note">Butir bertanda Wajib menyangkut keselamatan atau ketepatan kerja. Satu butir wajib yang belum terpenuhi membuat hasil Belum Kompeten, berapa pun skornya.</p></div>'+idnHtml()+groups+
     '<div class="bar"><div class="in"><div><div class="mono" style="font-size:20px;font-weight:600" id="clock">'+mmss(V.sec)+'</div><div class="note"><span id="prog">'+done+'</span>/'+total+' butir terisi</div><div class="note" id="gcount">'+esc(gcText())+'</div></div>'+
     '<div class="row"><button type="button" class="btn small" data-act="timer" id="tbtn">'+(V.running?'Jeda':'Mulai waktu')+'</button><button type="button" class="btn primary" data-act="finish" id="fin"'+(groupComplete()?'':' disabled')+'>Hitung hasil</button></div></div></div>';
 }
@@ -60,10 +60,12 @@ function viewResult(){
   var rtabs='';
   if(multi&&!V.kel)rtabs='<div class="ptabs" role="group" aria-label="Hasil per siswa">'+its.map(function(it,k){return '<div class="ptab" '+(k===V.rc?'aria-current="true"':'')+'><button type="button" class="pn" data-act="rtab" data-v="'+k+'">'+esc(it.nama||'Tanpa nama')+' <span class="mono pb">'+it.calc.score+'</span><i class="dot '+(it.calc.kompeten?'ok':'bad')+'"></i></button></div>'}).join('')+'</div>';
   else if(multi&&V.kel)rtabs='<div class="card"><span class="label">Anggota kelompok</span><div class="ptabs">'+its.map(function(it){return '<div class="ptab mem"><span class="pn">'+esc(it.nama||'Tanpa nama')+'</span></div>'}).join('')+'</div></div>';
+  var dd=dataFor(V.peserta),nf=Object.keys(dd.f||{}).length,di=[['Tanggal praktik',fmtTgl(dd.tgl)],['NIS',dd.nis],['Kendaraan',dd.kend],['No. polisi',dd.nopol]].filter(function(x){return x[1]}).map(function(x){return '<div class="row sb"><span class="note">'+x[0]+'</span><b>'+esc(x[1])+'</b></div>'}).join('');
+  var dcard=(di||nf)?'<div class="card"><span class="label">Identitas &amp; data unit</span>'+di+(nf?'<p class="note">'+nf+' butir punya isian rinci (hasil ukur atau temuan). Ikut tercetak di PDF.</p>':'')+'</div>':'';
   return rtabs+'<div class="card"><div class="row sb"><span class="label">'+esc(j.judul)+'</span>'+wk+'</div>'+
     '<div class="row" style="gap:16px"><div class="score mono">'+c.score+'</div><div class="stack" style="gap:6px"><span class="pill '+(c.kompeten?'ok':'bad')+'" style="font-size:14px">'+(c.kompeten?'Kompeten':'Belum kompeten')+'</span><span class="note">'+esc(rname)+' · KKM '+S.kkm+'</span></div></div>'+asp+'</div>'+why+tl+
     '<div class="card"><label class="f">Catatan '+(isStaff()?'asesor':'untuk diri sendiri')+'<textarea id="catatan" placeholder="Temuan, saran perbaikan, atau bukti pendukung">'+esc(V.notes[noteKey()]||'')+'</textarea></label></div>'+
-    '<div class="row"><button type="button" class="btn" data-act="redo">Ulangi</button><button type="button" class="btn" data-act="pdfone">Unduh PDF</button><button type="button" class="btn primary grow" data-act="save">'+(multi?'Simpan '+its.length+' hasil':'Simpan ke rekap')+'</button></div>';
+    dcard+'<div class="row"><button type="button" class="btn" data-act="redo">Ulangi</button><button type="button" class="btn" data-act="pdfone">Unduh PDF</button><button type="button" class="btn primary grow" data-act="save">'+(multi?'Simpan '+its.length+' hasil':'Simpan ke rekap')+'</button></div>';
 }
 function viewAcuan(){
   function card(t,body){return '<div class="card"><h3>'+t+'</h3>'+body+'</div>'}

@@ -95,6 +95,7 @@ JOBS.forEach(function(j){
   j.hasil.forEach(function(c){it.push({id:j.id+'-'+(n++),a:'H',t:c[0],k:!!c[1]})});
   COMMON_S.forEach(function(c){it.push({id:j.id+'-'+(n++),a:'S',t:c,k:false})});
   j.items=it;
+  it.forEach(function(i){i.m=/mengukur|pengukuran|hasil ukur|torsi|celah|tekanan|kekenduran|resistansi|putaran idle|tinggi pelampung|membaca skala/i.test(i.t)});
 });
 function jobById(id){return JOBS.filter(function(j){return j.id===id})[0]}
 

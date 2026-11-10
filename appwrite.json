@@ -31,7 +31,8 @@
         { "key": "detik", "type": "integer", "min": 0, "max": 86400, "required": false, "array": false },
         { "key": "oleh", "type": "string", "size": 64, "required": false, "array": false },
         { "key": "penilai", "type": "string", "size": 128, "required": false, "array": false },
-        { "key": "sid", "type": "string", "size": 36, "required": false, "array": false }
+        { "key": "sid", "type": "string", "size": 36, "required": false, "array": false },
+        { "key": "data", "type": "string", "size": 8000, "required": false, "array": false }
       ],
       "indexes": [{ "key": "idx_sid", "type": "key", "attributes": ["sid"], "orders": ["ASC"] }]
     }
