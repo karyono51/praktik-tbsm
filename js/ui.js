@@ -38,7 +38,7 @@ function render(){
   '<div class="sbrand"><img class="logo ring" src="'+LOGO+'" alt=""><b>SMKS Medina Bandung</b><address class="addr"><span>Jl. K.H. Ahmad Dahlan No. 13–15, Kel. Burangrang,</span><span>Kec. Lengkong, Kota Bandung, Jawa Barat 40262</span></address><span class="bar2"></span></div>'+
   '<div class="sprofile"><span class="av" aria-hidden="true">'+esc(String(u.nama).trim().charAt(0).toUpperCase())+'</span><div class="grow"><b>'+esc(u.nama)+'</b><div class="note">'+esc(u.email||u.username||'')+'</div></div>'+(multi?'<button type="button" class="pill role" data-act="switchrole" aria-label="Peran aktif '+PERAN[act]+'. Ketuk untuk berganti peran">'+PERAN[act]+svg(ICO.swap,14)+'</button>':'<span class="pill">'+PERAN[act]+'</span>')+'</div>'+
   row('beranda','Beranda','Ringkasan dan pintasan','beranda',cur==='beranda')+
-  '<div class="chip">'+svg(ICO.kelas,16)+(isStaff()?'Unit ujian':'Unit ujian kelas saya')+'</div>'+kr+
+  '<div class="chip">'+svg(ICO.kelas,16)+(kelasBoleh().length>1?'Unit ujian':'Unit ujian kelas saya')+'</div>'+kr+
   '<div class="chip">'+svg(ICO.menu,16)+'Lainnya</div>'+
   row('rekap','Rekap nilai','Nilai, ekspor Excel dan PDF','rekap',cur==='rekap')+
   (can('akun')?row('akun','Akun','Kelola akun, impor, dan KKM','akun',cur==='akun'):'')+

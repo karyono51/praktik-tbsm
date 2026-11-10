@@ -92,6 +92,6 @@ function viewBeranda(){
   return '<div class="rec"><span class="dot '+(r.kompeten?'ok':'bad')+'"></span><div class="grow"><b>'+esc(j?j.judul:r.jobId)+'</b><div class="note">'+(isStaff()?esc(r.siswa||'Tanpa nama')+' · ':'')+'Kelas '+r.kelas+' · '+tgl(r.ts)+'</div></div><span class="mono sc">'+r.score+'</span></div>'}).join('');
  return '<section class="strip" aria-label="Ringkasan"><div><b class="mono">'+a[0]+'</b><span>'+(isStaff()?'data nilai':'latihan')+'</span></div><div><b class="mono">'+a[1]+'</b><span>rata-rata</span></div><div><b class="mono">'+Math.round(a[2]*100)+'<small>%</small></b><span>kompeten</span></div></section>'+
   secHead('menu','Pintasan')+'<div class="tiles n'+tl.length+'">'+tiles+'</div>'+
-  secHead('kelas',isStaff()?'Pilih kelas':'Kelas saya')+'<div class="kcards">'+kc+'</div>'+
+  secHead('kelas',kelasBoleh().length>1?'Pilih kelas':'Kelas saya')+'<div class="kcards">'+kc+'</div>'+
   '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari unit pertama.</p>')+'</section>';
 }
