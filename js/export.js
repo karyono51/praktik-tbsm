@@ -147,39 +147,51 @@ function pdfOne(){
  foot(doc);doc.save((V.kel&&V.items&&V.items.length>1?'Penilaian_kelompok_':'Penilaian_'+slug(V.peserta||'siswa')+'_')+j.id+'.pdf');
 }
 
-/* ---- LKPD kosong yang bisa dicetak dan diisi tangan ---- */
+/* ---- LKPD lengkap yang bisa dicetak dan diisi tangan ---- */
 function pdfLkpd(id){
  if(!needP())return;
  var j=jobById(id);if(!j)return;
- var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),k=KELAS[j.kelas];
+ var L=(typeof LKPD!=='undefined'&&LKPD[j.id])||{tujuan:['Melaksanakan pekerjaan "'+j.judul+'" sesuai SOP dan keselamatan kerja.'],k3:['Kenakan APD dan ikuti SOP.'],alat:['Sesuai kebutuhan pekerjaan'],bahan:['Sesuai kebutuhan pekerjaan'],tanya:['Apa temuan utama dari pekerjaan ini?']};
+ var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),k=KELAS[j.kelas],y;
+ var G=[242,247,244],hd=function(t){if(y>H-40){doc.addPage();y=22}doc.setFont('helvetica','bold').setFontSize(10.5).setTextColor(6,78,43).text(t,14,y);doc.setTextColor(0).setFont('helvetica','normal').setFontSize(9.5);y+=5};
+ var list=function(a,mark){a.forEach(function(t,n){var l=doc.splitTextToSize((mark||((n+1)+'.'))+' '+t,172);if(y+l.length*4.6>H-18){doc.addPage();y=22}doc.text(l,17,y);y+=l.length*4.6+1})};
+ var lines=function(n,gap){if(y+n*(gap||7)>H-18){doc.addPage();y=22}doc.setDrawColor(170);for(var q=1;q<=n;q++)doc.line(14,y+q*(gap||7)-2,W-14,y+q*(gap||7)-2);y+=n*(gap||7)};
+ var gap=function(v){y=doc.lastAutoTable.finalY+(v||7)};
+ var TB={theme:'grid',styles:{fontSize:9,cellPadding:2.2,minCellHeight:9,valign:'middle'},headStyles:TH};
  kop(doc,lkpdJudul(j));
- doc.setFont('helvetica','bold').setFontSize(11).text(j.judul,14,47);
+ doc.setFont('helvetica','bold').setFontSize(11.5).text(j.judul,14,47);
  doc.setFont('helvetica','normal').setFontSize(9).setTextColor(90).text(j.unit+' | target '+j.menit+' menit'+(j.skkni?' | SKKNI '+j.skkni:''),14,52).setTextColor(0);
- doc.autoTable({startY:56,theme:'grid',styles:{fontSize:9.5,cellPadding:2.4,minCellHeight:8},columnStyles:{0:{cellWidth:40,fontStyle:'bold',fillColor:[242,247,244]},1:{cellWidth:51},2:{cellWidth:40,fontStyle:'bold',fillColor:[242,247,244]},3:{cellWidth:51}},
-  body:[['Nama','','Kelas','Kelas '+j.kelas+' (Fase '+k.fase+')'],['NIS','','Tanggal praktik',''],['Kendaraan','','No. polisi','']]});
- var y=doc.lastAutoTable.finalY+7;
- doc.setFont('helvetica','bold').setFontSize(10).text('Petunjuk',14,y);doc.setFont('helvetica','normal').setFontSize(9.5);
- var pet=['Kenakan wearpack, sepatu kerja, dan APD sebelum mulai bekerja.','Baca buku manual atau SOP pekerjaan, lalu siapkan alat dan bahan.','Kerjakan berurutan dalam waktu '+j.menit+' menit.','Beri tanda V pada kolom Terpenuhi atau Belum. Butir bertanda Wajib harus terpenuhi agar dinyatakan kompeten.'];
- pet.forEach(function(t,i){var l=doc.splitTextToSize((i+1)+'. '+t,176);doc.text(l,16,y+5.5);y+=l.length*4.6+1.4});
- y+=5;doc.setFont('helvetica','bold').setFontSize(10).text('Alat dan bahan yang dipakai',14,y);
- doc.setDrawColor(170);for(var n=1;n<=2;n++)doc.line(14,y+n*7+1,W-14,y+n*7+1);
+ doc.autoTable({startY:56,theme:'grid',styles:{fontSize:9.5,cellPadding:2.4,minCellHeight:8},columnStyles:{0:{cellWidth:40,fontStyle:'bold',fillColor:G},1:{cellWidth:51},2:{cellWidth:40,fontStyle:'bold',fillColor:G},3:{cellWidth:51}},
+  body:[['Nama','','Kelas','Kelas '+j.kelas+' (Fase '+k.fase+')'],['NIS','','Tanggal praktik',''],['Kendaraan','','No. polisi',''],['Kelompok (bila ada)','','Waktu mulai - selesai','']]});
+ gap(8);
+ hd('A. Tujuan pembelajaran');list(L.tujuan);y+=3;
+ hd('B. Keselamatan kerja (K3)');list(L.k3,'-');y+=3;
+ hd('C. Petunjuk');
+ list(['Kenakan wearpack, sepatu kerja, dan APD sebelum mulai bekerja.','Baca buku manual atau SOP pekerjaan, lalu siapkan dan periksa alat dan bahan.','Kerjakan langkah kerja secara berurutan dalam waktu '+j.menit+' menit.','Isi kolom Selesai dan catat temuan pada tabel. Tanyakan kepada guru bila ragu.']);y+=3;
+ hd('D. Alat dan bahan');
+ var ab=[],q;L.alat.forEach(function(a){ab.push([ab.length+1,a,'Alat','',''])});L.bahan.forEach(function(a){ab.push([ab.length+1,a,'Bahan','',''])});ab.push([ab.length+1,'','','','']);
+ doc.autoTable(Object.assign({startY:y,head:[['No','Nama alat atau bahan','Jenis','Jumlah','Kondisi (baik / tidak)']],body:ab,columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:85},2:{cellWidth:18},3:{cellWidth:20},4:{cellWidth:50}}},TB));
+ gap(8);
+ hd('E. Langkah kerja');
+ doc.autoTable(Object.assign({startY:y,head:[['No','Langkah kerja','Wajib','Selesai','Catatan atau temuan siswa']],body:j.steps.map(function(s,n){return [n+1,s[0],s[1]?'Wajib':'','','']}),columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:82},2:{cellWidth:14,halign:'center',fontStyle:'bold'},3:{cellWidth:16},4:{cellWidth:61}},styles:{fontSize:9,cellPadding:2.2,minCellHeight:11,valign:'middle'}},{theme:'grid',headStyles:TH}));
+ gap(8);
+ var ms=[];j.items.forEach(function(i,n){if(i.m)ms.push([n+1,i.t,'','','',''])});
+ if(ms.length){hd('F. Data hasil ukur');
+  doc.autoTable(Object.assign({startY:y,head:[['No','Butir pengukuran','Hasil ukur','Spesifikasi','Satuan','Sesuai / tidak']],body:ms,columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:66},2:{cellWidth:26},3:{cellWidth:30},4:{cellWidth:20},5:{cellWidth:31}},styles:{fontSize:9,cellPadding:2.2,minCellHeight:11,valign:'middle'}},{theme:'grid',headStyles:TH}));
+  gap(8)}
+ hd((ms.length?'G':'F')+'. Pertanyaan refleksi');
+ L.tanya.forEach(function(t,n){var l=doc.splitTextToSize((n+1)+'. '+t,176);if(y+l.length*4.6+16>H-18){doc.addPage();y=22}doc.text(l,16,y);y+=l.length*4.6+1;lines(2,7);y+=1});
+ y+=2;hd((ms.length?'H':'G')+'. Kesimpulan dan tindak lanjut');lines(3,7);y+=3;
+ hd((ms.length?'I':'H')+'. Lembar penilaian (diisi guru atau asesor)');
  var rows=[],no=0;
- Object.keys(ASPEK).forEach(function(a){
-  var its=j.items.filter(function(i){return i.a===a});if(!its.length)return;
-  rows.push([{content:ASPEK[a].n+' (bobot '+ASPEK[a].w+'%)',colSpan:6,styles:{fillColor:[226,242,233],fontStyle:'bold',textColor:[6,78,43]}}]);
-  its.forEach(function(i){no++;rows.push([no,i.t,i.k?'Wajib':'','','',''])});
- });
- doc.autoTable({startY:y+22,theme:'grid',styles:{fontSize:9,cellPadding:2.2,minCellHeight:9,valign:'middle'},headStyles:TH,head:[['No','Butir pekerjaan','Wajib','Terpenuhi','Belum','Keterangan']],body:rows,
-  columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:78},2:{cellWidth:14,halign:'center',fontStyle:'bold'},3:{cellWidth:20},4:{cellWidth:16},5:{cellWidth:45}}});
- var ms=[];j.items.forEach(function(i,n){if(i.m)ms.push([n+1,i.t,'','',''])});
- if(ms.length){
-  doc.setFont('helvetica','bold').setFontSize(10);var ty=doc.lastAutoTable.finalY+8;if(ty>H-50){doc.addPage();ty=22}
-  doc.text('Data hasil ukur',14,ty);
-  doc.autoTable({startY:ty+3,theme:'grid',styles:{fontSize:9,cellPadding:2.2,minCellHeight:10,valign:'middle'},headStyles:TH,head:[['No','Butir pengukuran','Hasil ukur','Spesifikasi','Satuan']],body:ms,columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:83},2:{cellWidth:32},3:{cellWidth:36},4:{cellWidth:22}}});
- }
- var cy=doc.lastAutoTable.finalY+8;if(cy>H-70){doc.addPage();cy=22}
- doc.setFont('helvetica','bold').setFontSize(10).text('Catatan atau temuan',14,cy);
- doc.setDrawColor(170);for(var m=1;m<=3;m++)doc.line(14,cy+m*7,W-14,cy+m*7);
- ttd(doc,cy+32,[['Peserta didik'],['Guru / Asesor']]);
+ Object.keys(ASPEK).forEach(function(a){var its=j.items.filter(function(i){return i.a===a});if(!its.length)return;
+  rows.push([{content:ASPEK[a].n+' (bobot '+ASPEK[a].w+'%)',colSpan:5,styles:{fillColor:[226,242,233],fontStyle:'bold',textColor:[6,78,43]}}]);
+  its.forEach(function(i){no++;rows.push([no,i.t,i.k?'Wajib':'','',''])})});
+ doc.autoTable(Object.assign({startY:y,head:[['No','Butir penilaian','Wajib','Terpenuhi','Belum']],body:rows,columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:112},2:{cellWidth:16,halign:'center',fontStyle:'bold'},3:{cellWidth:23},4:{cellWidth:22}}},TB));
+ y=doc.lastAutoTable.finalY+7;if(y>H-70){doc.addPage();y=22}
+ doc.setFontSize(9.5).setFont('helvetica','normal').text('Skor akhir: ........../100        Hasil (lingkari):  KOMPETEN  /  BELUM KOMPETEN',14,y);
+ var kt=doc.splitTextToSize('Kompeten bila semua butir Wajib terpenuhi dan skor >= KKM '+S.kkm+'.',180);doc.setFontSize(8.5).setTextColor(100).text(kt,14,y+5).setTextColor(0);
+ doc.setFontSize(9.5).text('Catatan guru:',14,y+12);doc.setDrawColor(170).line(14,y+20,W-14,y+20).line(14,y+27,W-14,y+27);
+ ttd(doc,y+36,[['Peserta didik'],['Guru / Asesor']]);
  foot(doc);doc.save('LKPD_Fase_'+k.fase+'_Kelas_'+j.kelas+'_'+j.id+'.pdf');
 }
