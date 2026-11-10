@@ -9,7 +9,7 @@ function anyChecked(){return Object.keys(V.cks||{}).some(function(k){return Obje
 function stashNote(){var ct=$('#catatan');if(ct&&V.mode==='result')V.notes[noteKey()]=ct.value.trim();V.catatan=V.notes[noteKey()]||''}
 function startExam(id,keep){
   stopTimer();
-  var j=jobById(id);
+  var j=jobById(id);if(kelasBoleh().indexOf(j.kelas)<0){toast('Unit ini bukan untuk kelas kamu');return}
   var ro=S.roster.filter(function(r){return r.kelas===j.kelas});
   var first=isStaff()?(ro[0]?ro[0].nama:''):S.siswaName;
   V={mode:'exam',job:j,checks:{},peserta:first,catatan:'',sec:0,running:false,res:null,group:first?[first]:[],kel:false,cks:{},notes:{},items:null,rc:0};

@@ -1,4 +1,5 @@
 function viewKatalog(){
+  var kb=kelasBoleh();if(kb.indexOf(S.kelas)<0)S.kelas=kb[0];
   var k=KELAS[S.kelas];
   var jobs=JOBS.filter(function(j){return j.kelas===S.kelas}).map(function(j){
     var l=lastFor(j.id),st='<span class="pill plain">Belum dicoba</span>';
@@ -10,7 +11,7 @@ function viewKatalog(){
       '<div class="row sb">'+st+'<button type="button" class="btn primary small" data-act="start" data-v="'+j.id+'">'+(isStaff()?'Nilai siswa':'Mulai latihan')+'</button></div></article>';
   }).join('');
   return '<div class="row sb"><div><h2>'+k.judul+'</h2><p class="note">'+k.sub+'</p></div><span class="pill plain">'+JOBS.filter(function(j){return j.kelas===S.kelas}).length+' unit</span></div>'+
-    '<p class="note">'+(isStaff()?'Mode guru: menilai siswa dengan rubrik. Hasil tercatat sebagai Penilaian.':'Mode siswa: latihan mandiri dengan pengukur waktu. Hasil tercatat sebagai Latihan.')+' Ganti kelas lewat menu di dasbor.</p><div class="jobs">'+jobs+'</div>';
+    '<p class="note">'+(isStaff()?'Mode guru: menilai siswa dengan rubrik. Hasil tercatat sebagai Penilaian.':'Mode siswa: latihan mandiri dengan pengukur waktu. Hasil tercatat sebagai Latihan.')+' '+(kb.length>1?'Ganti kelas lewat menu di dasbor.':'Unit di sini khusus kelas kamu.')+'</p><div class="jobs">'+jobs+'</div>';
 }
 
 function viewExam(){
@@ -82,7 +83,7 @@ function secHead(ic,t,extra){return '<div class="sechead"><span class="ico g1">'
 function viewBeranda(){
  var list=visibleResults().slice().sort(function(a,b){return b.ts-a.ts}),a=agg(list);
  var tried={};list.forEach(function(r){tried[r.jobId]=1});
- var kc=Object.keys(KELAS).map(function(c){
+ var kc=kelasBoleh().map(function(c){
   var js=JOBS.filter(function(j){return j.kelas===c}),dn=js.filter(function(j){return tried[j.id]}).length,pct=js.length?Math.round(100*dn/js.length):0;
   return '<button type="button" class="kcard" data-act="menu" data-v="kelas:'+c+'"><span class="num" aria-hidden="true">'+c+'</span><span class="kt"><b>'+KELAS[c].judul+'</b><span>'+KELAS[c].sub+'</span><span class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></span><span class="mono kn">'+dn+' dari '+js.length+' unit '+(isStaff()?'sudah dinilai':'sudah dicoba')+'</span></span></button>'}).join('');
  var tl=[['rekap','Rekap nilai','g1','menu']];if(can('akun'))tl.push(['akun','Akun','g3','menu']);tl.push(['acuan','Acuan','g2','menu'],['drawer','Menu','g4','drawer']);
@@ -91,6 +92,6 @@ function viewBeranda(){
   return '<div class="rec"><span class="dot '+(r.kompeten?'ok':'bad')+'"></span><div class="grow"><b>'+esc(j?j.judul:r.jobId)+'</b><div class="note">'+(isStaff()?esc(r.siswa||'Tanpa nama')+' · ':'')+'Kelas '+r.kelas+' · '+tgl(r.ts)+'</div></div><span class="mono sc">'+r.score+'</span></div>'}).join('');
  return '<section class="strip" aria-label="Ringkasan"><div><b class="mono">'+a[0]+'</b><span>'+(isStaff()?'data nilai':'latihan')+'</span></div><div><b class="mono">'+a[1]+'</b><span>rata-rata</span></div><div><b class="mono">'+Math.round(a[2]*100)+'<small>%</small></b><span>kompeten</span></div></section>'+
   secHead('menu','Pintasan')+'<div class="tiles n'+tl.length+'">'+tiles+'</div>'+
-  secHead('kelas','Pilih kelas')+'<div class="kcards">'+kc+'</div>'+
+  secHead('kelas',isStaff()?'Pilih kelas':'Kelas saya')+'<div class="kcards">'+kc+'</div>'+
   '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari unit pertama.</p>')+'</section>';
 }
