@@ -4,7 +4,7 @@ function viewKatalog(){
     var l=lastFor(j.id),st='<span class="pill plain">Belum dicoba</span>';
     if(l)st='<span class="pill '+(l.kompeten?'ok':'bad')+'">'+(l.kompeten?'Kompeten':'Belum kompeten')+' · '+l.score+'</span>';
     var wajib=j.items.filter(function(i){return i.k}).length;
-    return '<article class="card job"><div class="row sb"><h3 class="grow">'+esc(j.judul)+'</h3></div>'+
+    return '<article class="card job '+(l?(l.kompeten?'st-ok':'st-bad'):'')+'"><div class="row sb"><h3 class="grow">'+esc(j.judul)+'</h3></div>'+
       '<div class="meta"><span>'+esc(j.unit)+'</span><span class="mono">'+j.menit+' menit</span><span>'+j.items.length+' butir, '+wajib+' wajib</span></div>'+
       (j.skkni?'<div><span class="pill plain mono" title="Kode unit SKKNI">SKKNI '+j.skkni+'</span></div>':'')+
       '<div class="row sb">'+st+'<button type="button" class="btn primary small" data-act="start" data-v="'+j.id+'">'+(isStaff()?'Nilai siswa':'Mulai latihan')+'</button></div></article>';
@@ -73,12 +73,13 @@ function viewBeranda(){
  var list=visibleResults().slice().sort(function(a,b){return b.ts-a.ts}),a=agg(list);
  var tried={};list.forEach(function(r){tried[r.jobId]=1});
  var kc=Object.keys(KELAS).map(function(c){
-  var js=JOBS.filter(function(j){return j.kelas===c}),dn=js.filter(function(j){return tried[j.id]}).length;
-  return '<button type="button" class="kcard" data-act="menu" data-v="kelas:'+c+'"><b>'+KELAS[c].judul+'</b><span>'+KELAS[c].sub+'</span><div class="meter" aria-hidden="true"><i style="width:'+(js.length?Math.round(100*dn/js.length):0)+'%"></i></div><span class="mono">'+dn+' dari '+js.length+' unit '+(isStaff()?'sudah dinilai':'sudah dicoba')+'</span></button>'}).join('');
+  var js=JOBS.filter(function(j){return j.kelas===c}),dn=js.filter(function(j){return tried[j.id]}).length,pct=js.length?Math.round(100*dn/js.length):0;
+  return '<button type="button" class="kcard" data-act="menu" data-v="kelas:'+c+'"><span class="num" aria-hidden="true">'+c+'</span><span class="kt"><b>'+KELAS[c].judul+'</b><span>'+KELAS[c].sub+'</span><span class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></span><span class="mono kn">'+dn+' dari '+js.length+' unit '+(isStaff()?'sudah dinilai':'sudah dicoba')+'</span></span></button>'}).join('');
  var rec=list.slice(0,3).map(function(r){var j=jobById(r.jobId);
-  return '<div class="row sb rec"><div class="grow"><b>'+esc(j?j.judul:r.jobId)+'</b><div class="note">'+(isStaff()?esc(r.siswa||'Tanpa nama')+' · ':'')+'Kelas '+r.kelas+' · '+tgl(r.ts)+'</div></div><span class="pill '+(r.kompeten?'ok':'bad')+'">'+r.score+'</span></div>'}).join('');
- return '<section class="hero"><img class="logo" src="'+LOGO+'" alt=""><div><h1>'+sal+', '+esc(String(u.nama).split(' ')[0])+'</h1><p>'+(isStaff()?'Pilih kelas untuk menilai praktik siswa dengan rubrik kompetensi.':'Pilih kelas untuk berlatih unit praktik dengan pengukur waktu.')+'</p></div></section>'+
-  '<div class="stats"><div class="card"><span class="label">'+(isStaff()?'Data nilai':'Latihan saya')+'</span><b class="mono">'+a[0]+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+a[1]+'</b></div><div class="card"><span class="label">Kompeten</span><b class="mono">'+Math.round(a[2]*100)+'%</b></div></div>'+
-  '<h3>Pilih kelas</h3><div class="kcards">'+kc+'</div>'+
-  '<div class="card"><div class="row sb"><h3>Terbaru</h3>'+(list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+'</div>'+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari unit pertama.</p>')+'</div>';
+  return '<div class="rec"><span class="dot '+(r.kompeten?'ok':'bad')+'"></span><div class="grow"><b>'+esc(j?j.judul:r.jobId)+'</b><div class="note">'+(isStaff()?esc(r.siswa||'Tanpa nama')+' · ':'')+'Kelas '+r.kelas+' · '+tgl(r.ts)+'</div></div><span class="mono sc">'+r.score+'</span></div>'}).join('');
+ return '<section class="hero"><svg class="arcs" viewBox="0 0 200 120" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 118A80 80 0 0 1 180 118"/><path d="M42 118A58 58 0 0 1 158 118"/><path d="M64 118A36 36 0 0 1 136 118"/></svg>'+
+  '<p class="hi">'+sal+',</p><h1>'+esc(String(u.nama).split(' ')[0])+'</h1><p class="sub">'+(isStaff()?'Pilih kelas untuk menilai praktik siswa dengan rubrik kompetensi.':'Pilih kelas untuk berlatih unit praktik dengan pengukur waktu.')+'</p></section>'+
+  '<section class="strip" aria-label="Ringkasan"><div><b class="mono">'+a[0]+'</b><span>'+(isStaff()?'data nilai':'latihan')+'</span></div><div><b class="mono">'+a[1]+'</b><span>rata-rata</span></div><div><b class="mono">'+Math.round(a[2]*100)+'<small>%</small></b><span>kompeten</span></div></section>'+
+  '<h2 class="sec">Pilih kelas</h2><div class="kcards">'+kc+'</div>'+
+  '<section class="recent"><div class="row sb"><h2 class="sec">Terbaru</h2>'+(list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+'</div>'+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari unit pertama.</p>')+'</section>';
 }

@@ -103,7 +103,7 @@ function kop(doc,judul){
 }
 function foot(doc){
  var n=doc.getNumberOfPages(),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
- for(var i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(8).setTextColor(120).text('Uji Praktik TBSM - dicetak '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}),14,H-8).text('Halaman '+i+'/'+n,W-14,H-8,{align:'right'})}
+ for(var i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(8).setTextColor(120).text('KBM Praktik TBSM - dicetak '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}),14,H-8).text('Halaman '+i+'/'+n,W-14,H-8,{align:'right'})}
 }
 function ttd(doc,y,labels){
  var W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
@@ -116,7 +116,7 @@ function pdfRekap(){
  if(!needP())return;
  var L=filt().sort(function(a,b){return a.ts-b.ts}),a=agg(L);
  var doc=new window.jspdf.jsPDF({orientation:'l',unit:'mm',format:'a4'});
- kop(doc,'Rekap Nilai Uji Praktik TBSM'+(S.filter==='ALL'?'':' - Kelas '+S.filter));
+ kop(doc,'Rekap Nilai KBM Praktik TBSM'+(S.filter==='ALL'?'':' - Kelas '+S.filter));
  doc.setFontSize(9.5).text('Data: '+a[0]+'   Rata-rata: '+a[1]+'   Kompeten: '+Math.round(a[2]*100)+'%   KKM: '+S.kkm,14,46);
  doc.autoTable({startY:50,theme:'grid',styles:{fontSize:8.5,cellPadding:2},headStyles:TH,
   head:[['No','Tanggal','Kelas','Siswa','Unit praktik','Jenis','Skor','Status']],
@@ -130,7 +130,7 @@ function pdfOne(){
  if(!needP()||!V.res)return;
  var ct=$('#catatan');V.catatan=ct?ct.value.trim():'';
  var j=V.job,c=V.res.calc,doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
- kop(doc,'Lembar Penilaian Uji Praktik');
+ kop(doc,'Lembar Penilaian KBM Praktik');
  doc.autoTable({startY:45,theme:'plain',styles:{fontSize:10,cellPadding:1.2},columnStyles:{0:{cellWidth:38,fontStyle:'bold'}},body:[
   ['Siswa',V.peserta||'-'],['Kelas','Kelas '+j.kelas+' (Fase '+KELAS[j.kelas].fase+')'],['Unit praktik',j.judul],['Kode SKKNI',j.skkni||'-'],['Penilai',isStaff()?S.user.nama:'Latihan mandiri'],['Waktu pengerjaan',mmss(V.sec)+' dari target '+j.menit+' menit'],['KKM',String(S.kkm)]]});
  var y=doc.lastAutoTable.finalY+6;

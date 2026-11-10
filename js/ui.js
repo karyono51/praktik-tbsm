@@ -5,7 +5,7 @@ function opt(arr,sel,lab){return arr.map(function(v){return '<option value="'+v+
 function render(){
  if(!S.user){$('#app').innerHTML=viewLogin();return}
  var u=S.user;
-var head='<header class="top"><div class="brandrow"><button type="button" class="logobtn" data-act="drawer" aria-label="Buka menu" aria-controls="drawer" aria-expanded="false"><img class="logo" src="'+LOGO+'" alt="Logo SMK Medina"></button><div class="brand"><b>Uji Praktik TBSM</b><span>SMKS Medina Bandung</span><div class="netslot" id="netslot" hidden></div></div></div>'+
+var head='<header class="top"><div class="brandrow"><button type="button" class="logobtn" data-act="drawer" aria-label="Buka menu" aria-controls="drawer" aria-expanded="false"><img class="logo" src="'+LOGO+'" alt="Logo SMK Medina"></button><div class="brand"><b>KBM Praktik TBSM</b><span>SMKS Medina Bandung</span><div class="netslot" id="netslot" hidden></div></div></div>'+
   '<div class="who"><div class="whotxt"><b>'+esc(u.nama)+'</b><span class="pill">'+PERAN[u.peran]+'</span></div></div></header>';
  var body;
  if(V.mode==='exam')body=viewExam();else if(V.mode==='result')body=viewResult();
@@ -16,11 +16,11 @@ var head='<header class="top"><div class="brandrow"><button type="button" class=
  var svg=function(d){return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>'};
  var cur=V.mode==='list'?S.tab:'';
  var mb=function(v,t,ic,on,sub){return '<button type="button"'+(sub?' class="sub"':'')+' data-act="menu" data-v="'+v+'"'+(on?' aria-current="page"':'')+'>'+(sub?'':svg(IC[ic]))+'<span>'+t+'</span></button>'};
- var dr='<div class="scrim" data-act="drawerclose"></div><aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Menu utama"><div class="dhead"><img class="logo" src="'+LOGO+'" alt=""><div class="brand"><b>SMKS Medina Bandung</b><span>Uji Praktik TBSM</span></div></div>'+
+ var dr='<div class="scrim" data-act="drawerclose"></div><aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Menu utama"><div class="dhead"><img class="logo" src="'+LOGO+'" alt=""><div class="brand"><b>SMKS Medina Bandung</b><span>KBM Praktik TBSM</span></div></div>'+
   '<div class="duser"><b>'+esc(u.nama)+'</b><span class="pill">'+PERAN[u.peran]+'</span></div>'+
   '<nav class="dnav" aria-label="Menu utama">'+mb('beranda','Beranda','beranda',cur==='beranda')+'<div class="dgroup">'+svg(IC.kelas)+'<span>Unit ujian</span></div>'+Object.keys(KELAS).map(function(c){return mb('kelas:'+c,KELAS[c].judul+' <small>Fase '+KELAS[c].fase+'</small>','',cur==='katalog'&&S.kelas===c,1)}).join('')+after.map(function(t){return mb(t[0],t[1],t[0],cur===t[0])}).join('')+'</nav>'+
   '<div class="dfoot"><button type="button" class="dout" data-act="menulogout">'+svg('<path d="M9 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H9M15 8l4 4-4 4M19 12H9"/>')+'<span>Keluar</span></button></div></aside>';
- var foot='<footer class="school"><img src="'+LOGO+'" alt=""><div><b>SMKS Medina Bandung</b><div class="note">Jl. K.H. Ahmad Dahlan No. 13–15, Kel. Burangrang, Kec. Lengkong, Kota Bandung, Jawa Barat 40262</div></div></footer>';
+ var foot='<footer class="school"><b>SMKS Medina Bandung</b><address><span>Jl. K.H. Ahmad Dahlan No. 13–15,</span> <span>Kel. Burangrang, Kec. Lengkong,</span> <span>Kota Bandung, Jawa Barat 40262</span></address></footer>';
  $('#app').innerHTML=head+'<main class="stack">'+body+foot+'</main>'+dr;
  document.body.classList.toggle('has-bar',V.mode==='exam');
  if(window.netbar)netbar();
@@ -28,7 +28,7 @@ var head='<header class="top"><div class="brandrow"><button type="button" class=
 
 function viewLogin(){
  var reg=Cloud.on&&A.reg;
- return '<div class="auth"><img class="logo big" src="'+LOGO+'" alt="Logo SMK Medina"><h1>Uji Praktik TBSM</h1><p class="muted">SMKS Medina Bandung</p>'+
+ return '<div class="auth"><img class="logo big" src="'+LOGO+'" alt="Logo SMK Medina"><h1>KBM Praktik TBSM</h1><p class="muted">SMKS Medina Bandung</p>'+
  '<form class="card" data-form="'+(reg?'register':'login')+'">'+
  (reg?'<label class="f">Nama lengkap<input name="nama" required autocomplete="name"></label>':'')+
  '<label class="f">'+(Cloud.on?'Email':'Username atau email')+'<input name="id" '+(Cloud.on?'type="email" ':'')+'required autocomplete="username"></label>'+

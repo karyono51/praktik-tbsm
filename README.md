@@ -1,4 +1,4 @@
-# Uji Praktik TBSM
+# KBM Praktik TBSM
 
 Aplikasi penilaian uji praktik Teknik Bisnis Sepeda Motor, SMKS Medina Bandung. Situs statis (HTML, CSS, JS), tanpa build step.
 

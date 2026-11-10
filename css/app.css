@@ -1,9 +1,9 @@
 /* Tema: hijau dan merah dari logo SMKS Medina. Hijau tua sebagai aksen utama, merah untuk tindakan keluar dan peringatan. */
-:root{--bg:#F3F7F4;--surface:#fff;--ink:#14201A;--muted:#5C6C63;--line:#DCE5DF;--accent:#0B6B3A;--accent-soft:#E2F2E9;--deep:#064E2B;--red:#D0101E;--ok:#0B6B3A;--ok-bg:#E2F2E9;--bad:#C4121F;--bad-bg:#FDEBEC;--warn:#A85A00;--warn-bg:#FEF1DC;--onc:#fff;--r:14px;--sh:0 1px 2px rgba(20,32,26,.05),0 12px 28px -16px rgba(20,32,26,.2);--f:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color-scheme:light}
+:root{--bg:#F3F7F4;--surface:#fff;--ink:#14201A;--muted:#5C6C63;--line:#DCE5DF;--accent:#0B6B3A;--accent-soft:#E2F2E9;--deep:#064E2B;--red:#D0101E;--ok:#0B6B3A;--ok-bg:#E2F2E9;--bad:#C4121F;--bad-bg:#FDEBEC;--warn:#A85A00;--warn-bg:#FEF1DC;--onc:#fff;--r:14px;--sh:0 1px 2px rgba(20,32,26,.05),0 12px 28px -16px rgba(20,32,26,.2);--f:'Plus Jakarta Sans','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color-scheme:light}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0B130F;--surface:#121C17;--ink:#E7F0EA;--muted:#9DB0A5;--line:#22322A;--accent:#3DD68C;--accent-soft:#12301F;--deep:#0A2A19;--red:#FF6B76;--ok:#3DD68C;--ok-bg:#112B1D;--bad:#FF7B84;--bad-bg:#2D1417;--warn:#FBBF24;--warn-bg:#2A2008;--onc:#06150D;--sh:none;color-scheme:dark}}
 *{box-sizing:border-box}
 html{scroll-padding-top:80px}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--f);-webkit-font-smoothing:antialiased;padding:0 max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
+body{margin:0;background:radial-gradient(70% 36% at 100% 0,color-mix(in srgb,var(--accent) 11%,transparent),transparent 70%) no-repeat,var(--bg);color:var(--ink);font:15px/1.55 var(--f);-webkit-font-smoothing:antialiased;padding:0 max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
 body.has-bar{padding-bottom:112px}
 body.dr-open{overflow:hidden}
 .wrap{max-width:880px;margin:0 auto}
@@ -112,11 +112,36 @@ body.dr-open .drawer{transform:none;visibility:visible}
 .dgroup{display:flex;align-items:center;gap:14px;padding:14px 14px 4px;font-size:12px;font-weight:600;color:var(--muted)}
 .dnav button.sub{padding:10px 14px 10px 48px;font-size:14px;justify-content:space-between}
 .dnav button.sub small{font-size:12px;font-weight:500;opacity:.7}
-.hero{display:flex;align-items:center;gap:16px;padding:20px;border-radius:var(--r);background:var(--deep);color:#fff;border-bottom:4px solid var(--red)}
-.hero .logo{width:56px;height:56px;border-radius:16px}.hero h1{font-size:22px;color:#fff}.hero p{margin-top:4px;font-size:14px;color:rgba(255,255,255,.8)}
-.kcards{display:grid;grid-template-columns:1fr;gap:10px}
-@media(min-width:620px){.kcards{grid-template-columns:repeat(3,1fr)}}
-.kcard{display:flex;flex-direction:column;gap:8px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)}
-.kcard b{font-size:18px;font-weight:650}.kcard span{font-size:13px;color:var(--muted)}
-.kcard:active{background:var(--accent-soft)}
-.rec{padding:8px 0;border-top:1px solid var(--line)}.rec:first-of-type{border-top:0}
+
+h2.sec{font-size:15px;font-weight:700;letter-spacing:0;margin-top:6px}
+.hero{position:relative;overflow:hidden;padding:26px 22px 24px;border-radius:26px 26px 26px 8px;background:linear-gradient(155deg,#0A6A3A 0%,var(--deep) 70%);color:#fff;isolation:isolate}
+.hero .arcs{position:absolute;right:-18px;top:-10px;width:210px;color:#fff;opacity:.16;z-index:-1}
+.hero .hi{font-size:15px;color:rgba(255,255,255,.78);font-weight:500}
+.hero h1{font-size:34px;font-weight:800;letter-spacing:-.03em;color:#fff;margin-top:2px}
+.hero .sub{margin-top:10px;max-width:30ch;font-size:14px;line-height:1.5;color:rgba(255,255,255,.82)}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh)}
+.strip div{display:flex;flex-direction:column;gap:2px;padding:14px 16px}
+.strip div+div{border-left:1px solid var(--line)}
+.strip b{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1}.strip b small{font-size:15px;font-weight:700;margin-left:1px}
+.strip span{font-size:12px;color:var(--muted)}
+.kcards{display:flex;flex-direction:column;gap:10px}
+@media(min-width:620px){.kcards{display:grid;grid-template-columns:repeat(3,1fr)}}
+.kcard{display:flex;align-items:center;gap:14px;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:12px 16px 12px 12px;box-shadow:var(--sh);transition:transform .12s}
+.kcard:active{transform:scale(.985)}
+.kcard .num{flex:none;display:grid;place-items:center;width:64px;height:64px;border-radius:18px 18px 18px 6px;background:var(--accent-soft);color:var(--accent);font-size:24px;font-weight:800;letter-spacing:-.02em}
+.kcard:nth-child(2) .num{background:var(--deep);color:#fff}
+.kcard:nth-child(3) .num{background:var(--accent);color:var(--onc)}
+.kt{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.kt b{font-size:17px;font-weight:700}.kt>span{font-size:13px;color:var(--muted)}
+.kt .meter{display:block;margin-top:4px}.kt .kn{font-size:12px}
+.recent{display:flex;flex-direction:column;gap:2px}
+.rec{display:flex;align-items:center;gap:12px;padding:12px 2px;border-top:1px solid var(--line)}
+.rec b{font-size:14px;font-weight:600}
+.rec .dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--ok)}.rec .dot.bad{background:var(--bad)}
+.rec .sc{font-size:18px;font-weight:800}
+.job.st-ok{border-left:4px solid var(--ok)}.job.st-bad{border-left:4px solid var(--bad)}
+footer.school{display:block;padding:18px 2px 4px;border-top:0;margin-top:14px}
+footer.school b{display:block;font-size:14px;font-weight:700}
+footer.school address{font-style:normal;margin-top:4px;font-size:13px;line-height:1.55;color:var(--muted)}
+footer.school address span{display:block}
+@media(min-width:620px){footer.school address span{display:inline}}
