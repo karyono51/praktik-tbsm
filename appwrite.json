@@ -1,0 +1,39 @@
+{
+  "projectId": "GANTI_PROJECT_ID",
+  "projectName": "Uji Praktik TBSM",
+  "databases": [{ "$id": "tbsm", "name": "tbsm", "enabled": true }],
+  "collections": [
+    {
+      "$id": "akun", "databaseId": "tbsm", "name": "akun", "enabled": true, "documentSecurity": false,
+      "$permissions": ["create(\"users\")", "read(\"users\")", "update(\"label:admin\")", "delete(\"label:admin\")"],
+      "attributes": [
+        { "key": "nama", "type": "string", "size": 128, "required": true, "array": false },
+        { "key": "username", "type": "string", "size": 64, "required": true, "array": false },
+        { "key": "email", "type": "string", "size": 128, "required": true, "array": false },
+        { "key": "peran", "type": "string", "size": 16, "required": true, "array": false },
+        { "key": "kelas", "type": "string", "size": 8, "required": false, "array": false },
+        { "key": "aktif", "type": "boolean", "required": false, "array": false }
+      ],
+      "indexes": [{ "key": "idx_email", "type": "unique", "attributes": ["email"], "orders": ["ASC"] }]
+    },
+    {
+      "$id": "hasil", "databaseId": "tbsm", "name": "hasil", "enabled": true, "documentSecurity": false,
+      "$permissions": ["create(\"users\")", "read(\"users\")", "update(\"label:admin\")", "delete(\"label:admin\")"],
+      "attributes": [
+        { "key": "ts", "type": "integer", "min": 0, "max": 9007199254740991, "required": true, "array": false },
+        { "key": "jobId", "type": "string", "size": 16, "required": true, "array": false },
+        { "key": "kelas", "type": "string", "size": 8, "required": true, "array": false },
+        { "key": "siswa", "type": "string", "size": 128, "required": false, "array": false },
+        { "key": "tipe", "type": "string", "size": 16, "required": true, "array": false },
+        { "key": "score", "type": "integer", "min": 0, "max": 100, "required": true, "array": false },
+        { "key": "kompeten", "type": "boolean", "required": true, "array": false },
+        { "key": "catatan", "type": "string", "size": 1000, "required": false, "array": false },
+        { "key": "detik", "type": "integer", "min": 0, "max": 86400, "required": false, "array": false },
+        { "key": "oleh", "type": "string", "size": 64, "required": false, "array": false },
+        { "key": "penilai", "type": "string", "size": 128, "required": false, "array": false },
+        { "key": "sid", "type": "string", "size": 36, "required": false, "array": false }
+      ],
+      "indexes": [{ "key": "idx_sid", "type": "key", "attributes": ["sid"], "orders": ["ASC"] }]
+    }
+  ]
+}
