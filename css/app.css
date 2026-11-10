@@ -225,3 +225,10 @@ fieldset.roles legend{font-size:13px;font-weight:500;color:var(--muted);padding:
 .sprofile b{font-size:clamp(13px,3.9vw,15px);line-height:1.25}
 .sprofile .note{font-size:clamp(11px,3.2vw,12.5px);line-height:1.3}
 .sprofile .pill{align-self:flex-start;margin-top:2px}
+
+.top .hello{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top.big .hello span{display:inline;margin:0;font-size:clamp(18px,5.6vw,24px);font-weight:600}
+.top.big .hello b{display:inline;font-size:clamp(20px,6.4vw,27px)}
+.top:not(.big) .hello b{display:inline}
+.addr span{white-space:nowrap}
+.addr{font-size:clamp(10px,3.05vw,12px)}
