@@ -46,6 +46,7 @@ function netbar(){
      for(var k=0;k<arr.length;k++){var o=arr[k];if(o.r&&!o.d)continue;
       try{
        if(!o.r){
+        if(col==='akun'&&!o.email)o.email=(o.username||o.id)+'@tanpa-email.local';
         try{await this.db.createDocument(CFG.DB,col,o.id,pick(o,F))}
         catch(e1){if(e1&&(e1.code===409||/already exists|unique/i.test(e1.message||''))){await this.db.updateDocument(CFG.DB,col,o.id,pick(o,F))}else throw e1}
         o.r=1;o.d=0}
