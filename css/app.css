@@ -1,9 +1,11 @@
-/* Tema: minimalis modern. Netral dingin, satu aksen teal, ruang lega, garis tipis. */
-:root{--bg:#F6F7F9;--surface:#fff;--ink:#172033;--muted:#667085;--line:#E4E7EC;--accent:#0F766E;--accent-soft:#E6F4F1;--ok:#047857;--ok-bg:#E8F7EF;--bad:#B42318;--bad-bg:#FDECEA;--warn:#B54708;--warn-bg:#FEF3E2;--onc:#fff;--r:14px;--sh:0 1px 2px rgba(23,32,51,.05),0 12px 28px -16px rgba(23,32,51,.18);--f:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color-scheme:light}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0D1117;--surface:#161B22;--ink:#E6EDF3;--muted:#9AA7B5;--line:#263041;--accent:#2DD4BF;--accent-soft:#12302D;--ok:#34D399;--ok-bg:#10281F;--bad:#F87171;--bad-bg:#2B1514;--warn:#FBBF24;--warn-bg:#2A2008;--onc:#0D1117;--sh:none;color-scheme:dark}}
+/* Tema: hijau dan merah dari logo SMKS Medina. Hijau tua sebagai aksen utama, merah untuk tindakan keluar dan peringatan. */
+:root{--bg:#F3F7F4;--surface:#fff;--ink:#14201A;--muted:#5C6C63;--line:#DCE5DF;--accent:#0B6B3A;--accent-soft:#E2F2E9;--deep:#064E2B;--red:#D0101E;--ok:#0B6B3A;--ok-bg:#E2F2E9;--bad:#C4121F;--bad-bg:#FDEBEC;--warn:#A85A00;--warn-bg:#FEF1DC;--onc:#fff;--r:14px;--sh:0 1px 2px rgba(20,32,26,.05),0 12px 28px -16px rgba(20,32,26,.2);--f:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0B130F;--surface:#121C17;--ink:#E7F0EA;--muted:#9DB0A5;--line:#22322A;--accent:#3DD68C;--accent-soft:#12301F;--deep:#0A2A19;--red:#FF6B76;--ok:#3DD68C;--ok-bg:#112B1D;--bad:#FF7B84;--bad-bg:#2D1417;--warn:#FBBF24;--warn-bg:#2A2008;--onc:#06150D;--sh:none;color-scheme:dark}}
 *{box-sizing:border-box}
 html{scroll-padding-top:80px}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--f);-webkit-font-smoothing:antialiased;padding:0 max(16px,env(safe-area-inset-right)) 112px max(16px,env(safe-area-inset-left))}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--f);-webkit-font-smoothing:antialiased;padding:0 max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
+body.has-bar{padding-bottom:112px}
+body.dr-open{overflow:hidden}
 .wrap{max-width:880px;margin:0 auto}
 h1,h2,h3{font-family:var(--f);margin:0;letter-spacing:-.02em;line-height:1.25;text-wrap:balance}
 h1{font-size:28px;font-weight:700}h2{font-size:22px;font-weight:650}h3{font-size:16px;font-weight:600}
@@ -85,3 +87,25 @@ footer.school img{width:34px;height:34px;border-radius:10px;background:#fff;bord
 .netslot .ns{font-style:normal;font-size:11px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
 .netslot .ns.off{background:var(--warn-bg);color:var(--warn)}
 .netslot .btn.small{padding:3px 10px;font-size:11px}
+
+/* Header: logo sebagai tombol dasbor */
+header.top{border-bottom:2px solid transparent;border-image:linear-gradient(90deg,var(--accent) 0 72%,var(--red) 72% 100%) 1}
+.logobtn{position:relative;flex:none;border:0;background:none;padding:0;border-radius:14px;line-height:0}
+.logobtn::after{content:'';position:absolute;right:-5px;bottom:-5px;width:18px;height:18px;border-radius:50%;background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M5 6h8M5 9h8M5 12h8'/%3E%3C/svg%3E") center/18px no-repeat;border:2px solid var(--bg)}
+.logobtn:active .logo{transform:scale(.96)}
+/* Dasbor kiri */
+.scrim{position:fixed;inset:0;z-index:30;background:rgba(6,20,12,.5);opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s}
+.drawer{position:fixed;top:0;bottom:0;left:0;z-index:31;width:min(84vw,320px);display:flex;flex-direction:column;background:var(--surface);box-shadow:8px 0 32px -12px rgba(0,0,0,.35);transform:translateX(-102%);visibility:hidden;transition:transform .24s cubic-bezier(.2,.8,.2,1),visibility .24s;padding-bottom:env(safe-area-inset-bottom)}
+body.dr-open .scrim{opacity:1;visibility:visible}
+body.dr-open .drawer{transform:none;visibility:visible}
+.dhead{display:flex;align-items:center;gap:12px;padding:calc(18px + env(safe-area-inset-top)) 18px 16px;background:var(--deep);color:#fff;border-bottom:3px solid var(--red)}
+.dhead .brand b{color:#fff}.dhead .brand span{color:rgba(255,255,255,.72)}
+.duser{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.duser b{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dnav{display:flex;flex-direction:column;gap:4px;padding:12px;flex:1;overflow-y:auto}
+.dnav button,.dout{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;background:none;padding:13px 14px;border-radius:12px;font-weight:550;font-size:15px;color:var(--ink)}
+.dnav button:hover,.dout:hover{background:var(--accent-soft)}
+.dnav button[aria-current=page]{background:var(--accent);color:var(--onc)}
+.dfoot{padding:12px;border-top:1px solid var(--line)}
+.dout{color:var(--bad)}.dout:hover{background:var(--bad-bg)}
+@media(prefers-reduced-motion:reduce){.drawer,.scrim{transition:none}}

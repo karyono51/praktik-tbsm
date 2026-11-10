@@ -111,7 +111,7 @@ function ttd(doc,y,labels){
  doc.setFontSize(10).setTextColor(0);
  labels.forEach(function(l,i){var x=labels.length===1?W-50:(i?W-50:50);doc.text(i===labels.length-1?'Bandung, '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'',x,y,{align:'center'});doc.text(l[0],x,y+5,{align:'center'});doc.text(l[1]||'(................................)',x,y+28,{align:'center'})});
 }
-var TH={fillColor:[15,118,110],textColor:255,fontStyle:'bold'};
+var TH={fillColor:[11,107,58],textColor:255,fontStyle:'bold'};
 function pdfRekap(){
  if(!needP())return;
  var L=filt().sort(function(a,b){return a.ts-b.ts}),a=agg(L);
