@@ -7,7 +7,7 @@ var LKM={edit:null,d:null,reveal:{},sub:null};
 document.head.appendChild(st)})();
 
 /* ---- Konfigurasi modul ---- */
-function lkmCfg(m){return {mode:m&&m.mode==='latihan'?'latihan':'ujian',maxTry:Math.max(0,parseInt(m&&m.maxTry,10)||0),showKey:!m||m.showKey!==false,buka:(m&&m.buka)||'',tutup:(m&&m.tutup)||''}}
+function lkmCfg(m){return {mode:m&&m.mode==='latihan'?'latihan':'ujian',maxTry:Math.max(0,parseInt(m&&m.maxTry,10)||0),showKey:!m||m.showKey!==false,hideTeori:!m||m.hideTeori!==false,hideLangkah:!m||m.hideLangkah!==false,hidePetunjuk:!m||m.hidePetunjuk!==false,buka:(m&&m.buka)||'',tutup:(m&&m.tutup)||''}}
 function lkmT(s){var t=s?new Date(s).getTime():0;return isNaN(t)?0:t}
 function lkmFmt(s){var t=lkmT(s);return t?new Date(t).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}
 function lkmLock(m){var c=lkmCfg(m),n=Date.now(),b=lkmT(c.buka),t=lkmT(c.tutup);if(b&&n<b)return 'Belum dibuka. Dibuka '+lkmFmt(c.buka);if(t&&n>t)return 'Sudah ditutup sejak '+lkmFmt(c.tutup);return ''}
@@ -65,14 +65,14 @@ function lkmPanel(){
   '<label class="lk-check"><input type="checkbox" data-lkm="tampil"'+(d.tampil?' checked':'')+'><span><b>Tampilkan ke siswa</b><small>Matikan untuk menyembunyikan modul (jadi draft).</small></span></label>'+
   '<div><span class="label">Mode</span><div class="seg" role="group" aria-label="Mode LKPD"><button type="button" data-act="lkm-mode" data-v="latihan" aria-pressed="'+(d.mode==='latihan')+'">Latihan</button><button type="button" data-act="lkm-mode" data-v="ujian" aria-pressed="'+(d.mode==='ujian')+'">Ujian</button></div></div>'+
   '<p class="note">'+lkEsc(info)+'</p>'+
-  (d.mode==='ujian'?'<label class="f">Kesempatan mengirim<select data-lkm="maxTry">'+tries+'</select></label>':'<label class="lk-check"><input type="checkbox" data-lkm="showKey"'+(d.showKey?' checked':'')+'><span><b>Tampilkan kunci dan pembahasan</b><small>Siswa bisa memeriksa jawaban soal di tab Evaluasi.</small></span></label>')+
+  (d.mode==='ujian'?'<label class="f">Kesempatan mengirim<select data-lkm="maxTry">'+tries+'</select></label><span class="label">Isi yang disembunyikan saat Ujian</span>'+[['hideTeori','Teori ringkas','Siswa tidak melihat materi teori di tab Materi.'],['hideLangkah','Penjelasan langkah prosedur','Hanya judul dan durasi langkah yang tampil.'],['hidePetunjuk','Petunjuk komponen di Lembar Kerja','Keterangan di bawah nama komponen disembunyikan.']].map(function(o){return '<label class="lk-check"><input type="checkbox" data-lkm="'+o[0]+'"'+(d[o[0]]?' checked':'')+'><span><b>'+o[1]+'</b><small>'+o[2]+'</small></span></label>'}).join('')+'<p class="note">Soal evaluasi, K3, alat dan bahan, serta lembar kerja tetap tampil. Pratinjau menampilkan versi siswa.</p>':'<label class="lk-check"><input type="checkbox" data-lkm="showKey"'+(d.showKey?' checked':'')+'><span><b>Tampilkan kunci dan pembahasan</b><small>Siswa bisa memeriksa jawaban soal di tab Evaluasi.</small></span></label>')+
   '<div class="two"><label class="f">Dibuka (opsional)<input type="datetime-local" data-lkm="buka" value="'+lkEsc(d.buka)+'"></label><label class="f">Ditutup (opsional)<input type="datetime-local" data-lkm="tutup" value="'+lkEsc(d.tutup)+'"></label></div>'+
   '<div><button type="button" class="btn small" data-act="lkm-clear">Kosongkan jadwal</button></div>'+
   '<label class="lk-check"><input type="checkbox" data-lkm="semua"'+(d.semua?' checked':'')+'><span><b>Terapkan mode, kesempatan, dan pembahasan ke semua modul '+lkEsc(lkcKelasInfo(S.kelas).judul)+'</b><small>Status tampil dan jadwal tidak ikut diubah.</small></span></label>'+
   '<div class="row"><button type="button" class="btn" data-act="lkm-cancel">Batal</button><button type="button" class="btn primary grow" data-act="lkm-save">Simpan pengaturan</button></div></section>';
 }
 function lkmApply(src,d,full){
- var cp=lkSerialize(src);cp.mode=d.mode;cp.maxTry=Math.max(0,parseInt(d.maxTry,10)||0);cp.showKey=!!d.showKey;
+ var cp=lkSerialize(src);cp.mode=d.mode;cp.maxTry=Math.max(0,parseInt(d.maxTry,10)||0);cp.showKey=!!d.showKey;cp.hideTeori=!!d.hideTeori;cp.hideLangkah=!!d.hideLangkah;cp.hidePetunjuk=!!d.hidePetunjuk;
  if(full){cp.status=d.tampil?'published':'draft';cp.active=!!d.tampil;if(d.buka)cp.buka=d.buka;else delete cp.buka;if(d.tutup)cp.tutup=d.tutup;else delete cp.tutup}
  lkModuleStore(cp);
 }
@@ -99,7 +99,7 @@ document.addEventListener('click',function(e){
  if(a==='lkm-reveal'){var cm=lkmCur();if(cm){LKM.reveal[cm.id]=!LKM.reveal[cm.id];render()}return}
  if(a.indexOf('lkm-')!==0||!isStaff())return;
  e.stopPropagation();
- if(a==='lkm-open'){var m=LKPD_MODULES.find(function(x){return x.id===v});if(!m)return;var c=lkmCfg(m);LKM.edit=v;LKM.d={tampil:lkmPub(m),mode:c.mode,maxTry:c.maxTry,showKey:c.showKey,buka:c.buka,tutup:c.tutup,semua:false};render();window.scrollTo(0,0)}
+ if(a==='lkm-open'){var m=LKPD_MODULES.find(function(x){return x.id===v});if(!m)return;var c=lkmCfg(m);LKM.edit=v;LKM.d={tampil:lkmPub(m),mode:c.mode,maxTry:c.maxTry,showKey:c.showKey,hideTeori:c.hideTeori,hideLangkah:c.hideLangkah,hidePetunjuk:c.hidePetunjuk,buka:c.buka,tutup:c.tutup,semua:false};render();window.scrollTo(0,0)}
  else if(a==='lkm-cancel'){LKM.edit=null;LKM.d=null;render()}
  else if(a==='lkm-mode'&&LKM.d){LKM.d.mode=v;render()}
  else if(a==='lkm-clear'&&LKM.d){LKM.d.buka='';LKM.d.tutup='';render()}
@@ -113,6 +113,18 @@ document.addEventListener('change',function(e){
 });
 
 /* ---- Tampilan modul: spanduk mode dan pembahasan latihan ---- */
+function lkmFilter(h,c){
+ if(c.mode!=='ujian')return h;
+ try{
+  if(LK.tab==='materi'){
+   if(c.hideTeori)h=h.replace(/<h3>Teori ringkas<\/h3>[\s\S]*?(?=<div class="note">Gunakan manual)/,'<p class="note">Teori ringkas tidak ditampilkan pada mode Ujian.</p>');
+   if(c.hideLangkah)h=h.replace(/(<label class="lk-step">[\s\S]*?<\/b>)<small>[\s\S]*?<\/small>/g,'$1');
+  }else if(LK.tab==='kerja'&&c.hidePetunjuk){
+   h=h.replace(/(<td data-label="Komponen">[^<]*)<small>[\s\S]*?<\/small>/g,'$1');
+  }
+ }catch(e){}
+ return h;
+}
 var _lkmView=viewLKPD;
 viewLKPD=function(){
  var h=_lkmView();
@@ -122,6 +134,9 @@ viewLKPD=function(){
  if(c.mode==='latihan')t='<b>Mode Latihan</b> · boleh diulang tanpa batas, nilai tidak masuk rekap'+(c.showKey?', pembahasan bisa dilihat di tab Evaluasi.':'.');
  else t='<b>Mode Ujian</b> · nilai masuk rekap dan dikoreksi guru'+(c.maxTry?'. Kesempatan mengirim '+c.maxTry+' kali'+(isStaff()?'':' (terpakai '+lkmUsed(m)+')'):'')+(c.tutup?'. Ditutup '+lkEsc(lkmFmt(c.tutup)):'')+'.';
  if(lock)t+=' <b>'+lkEsc(lock)+'.</b>';
+ var siswaView=!isStaff()||LK.preview;
+ if(siswaView)h=lkmFilter(h,c);
+ else if(c.mode==='ujian')t+=' Siswa melihat versi ringkas (teori, penjelasan langkah, dan petunjuk komponen dapat disembunyikan). Pakai Pratinjau untuk melihatnya.';
  var ban='<div class="card lkm-banner" data-m="'+c.mode+'">'+t+'</div>',i=h.indexOf('<div class="chips">');
  h=i>-1?h.slice(0,i)+ban+h.slice(i):ban+h;
  if(LK.tab==='evaluasi'&&c.mode==='latihan'&&c.showKey){
@@ -168,6 +183,6 @@ persist=function(){if(LKM.sub)lkmPatchLast();return _lkmPersist.apply(this,argum
 var _lkmBuild=lkBuildModule;
 lkBuildModule=function(v){
  var m=_lkmBuild(v),o=(LKPD_MODULES||[]).find(function(x){return x.id===m.id});
- if(o)['mode','maxTry','showKey','buka','tutup'].forEach(function(k){if(o[k]!==undefined)m[k]=o[k]});
+ if(o)['mode','maxTry','showKey','hideTeori','hideLangkah','hidePetunjuk','buka','tutup'].forEach(function(k){if(o[k]!==undefined)m[k]=o[k]});
  return m;
 };
