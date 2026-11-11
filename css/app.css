@@ -253,3 +253,23 @@ fieldset.roles legend{font-size:13px;font-weight:500;color:var(--muted);padding:
 /* Editor modul LKPD guru */
 .lk-module-row{padding:14px 0;border-top:1px solid var(--line);display:grid;gap:10px}.lk-module-row .note{margin:4px 0}.lk-modules{padding:5px 0}.lk-modules button{max-width:80vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.formgrid .wide{grid-column:1/-1}.formgrid .f{min-width:0}.formgrid textarea{width:100%;min-height:74px;resize:vertical}.formgrid input[type=checkbox]{width:auto;min-height:auto}.formgrid .row{align-items:center;flex-wrap:wrap}
 @media(max-width:560px){.formgrid .wide{grid-column:auto}.lk-module-row .row{align-items:flex-start}}
+
+/* LKPD: tampilan HP — checkbox tidak boleh melebar, teks tidak terpotong */
+.lk-check,.lk-step,.lk-option{font-size:14px;font-weight:400;color:var(--ink);line-height:1.5;min-width:0}
+.lk-check>span,.lk-step>span,.lk-option>span{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.lk-check input[type=checkbox],.lk-step input[type=checkbox],.lk-option input,.tablewrap input[type=checkbox]{width:22px;height:22px;min-width:22px;flex:0 0 22px;padding:0;margin:1px 0 0;accent-color:var(--accent)}
+.lk-step small{font-size:13px;font-weight:400}
+.tablewrap td input[type=checkbox]{margin:0}
+@media(max-width:640px){
+ .tablewrap{overflow:visible}
+ .tablewrap table{min-width:0;width:100%;border-collapse:separate}
+ .tablewrap thead{display:none}
+ .tablewrap tbody,.tablewrap tr,.tablewrap td{display:block;width:100%}
+ .tablewrap tr{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:var(--surface,#fff)}
+ .tablewrap td{border:0;padding:5px 0}
+ .tablewrap td:first-child{font-weight:600;color:var(--ink);padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:4px}
+ .tablewrap td[data-label]:not(:first-child)::before{content:attr(data-label);display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:3px}
+ .tablewrap td.tdchk{display:flex;align-items:center;gap:10px}
+ .tablewrap td.tdchk::before{margin:0!important}
+ .tablewrap td.tdchk{flex-direction:row-reverse;justify-content:flex-end}
+}
