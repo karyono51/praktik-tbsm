@@ -1,6 +1,6 @@
 /* service-worker.js: cache cangkang aplikasi agar bisa dibuka offline. Data Appwrite tidak pernah di-cache. */
-var CACHE='tbsm-v20';
-var LOCAL=['./','index.html','manifest.json','css/app.css','assets/logo.jpg','assets/icon-192.png','assets/icon-512.png','js/config.js','js/logo.js','js/data.js','js/util.js','js/core.js','js/export.js','js/views.js','js/lkpd-modul.js','js/lkpd.js','js/ui.js','js/actions.js','js/nilai.js','js/pwa.js','js/lkpd-kelas.js','js/nav.js'];
+var CACHE='tbsm-v21';
+var LOCAL=['./','index.html','manifest.json','css/app.css','assets/logo.jpg','assets/icon-192.png','assets/icon-512.png','js/config.js','js/logo.js','js/data.js','js/util.js','js/core.js','js/export.js','js/views.js','js/lkpd-modul.js','js/lkpd.js','js/ui.js','js/actions.js','js/nilai.js','js/pwa.js','js/lkpd-kelas.js','js/lkpd-timer.js','js/nav.js'];
 var CDN=['https://cdn.jsdelivr.net/npm/appwrite@16.0.2/dist/iife/sdk.js','https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js','https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'];
 var CDNHOST=['cdn.jsdelivr.net','cdnjs.cloudflare.com','fonts.googleapis.com','fonts.gstatic.com'];
 self.addEventListener('install',function(e){

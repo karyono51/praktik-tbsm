@@ -309,3 +309,10 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 .updbar span{flex:1;min-width:150px;font-weight:600;font-size:14px}
 @keyframes tbspin{to{transform:rotate(360deg)}}
 .refreshing [data-act="refresh"] svg{animation:tbspin .8s linear infinite}
+.lk-actions{gap:6px}
+.lk-timer{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.lk-clock{font-size:20px;font-weight:700;line-height:1.1}.lk-clock.over{color:var(--bad)}
+.lk-timer .note{margin:0;font-size:12px}
+.lk-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;flex-wrap:nowrap}
+.lk-prog{font-size:11px;padding:3px 2px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.lk-actions .btn{font-size:14px}
