@@ -25,3 +25,8 @@ Tambah satu akun siswa dengan email dan sandi, lalu masuk dengan akun itu di per
 ## Catatan
 - Impor Excel belum mengatur sandi. Untuk akun hasil impor, isi sandi lewat Ubah akun atau minta siswa Daftar sendiri.
 - Email siswa harus valid dan unik, termasuk bila admin yang mengisi sandinya.
+
+## Tanpa fungsi akun-admin (v30+)
+Bila fungsi `akun-admin` belum dipasang, kolom **Sandi login** di form akun tetap bekerja untuk email yang belum punya akun login: aplikasi membuatkan akun login baru dengan sandi itu, sehingga siswa bisa langsung Masuk. Impor Excel juga begitu: isi kolom Sandi (minimal 8 karakter) untuk membuat akun login massal.
+- Email yang sudah punya akun login tidak diubah sandinya (aplikasi memberi tahu). Ubah lewat Console: Auth > Users, atau pasang fungsi `akun-admin`.
+- Appwrite membatasi sekitar 10 akun baru per jam per jaringan. Impor yang lebih banyak berhenti di batas itu dan sisanya ditandai di berkas Hasil_Impor_Akun; ulangi setelah satu jam.

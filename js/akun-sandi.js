@@ -1,10 +1,27 @@
 /* akun-sandi.js: admin mengatur sandi akun (lewat Appwrite Function akun-admin) dan semua pengguna dapat mengganti sandinya */
 if(Cloud.on){
+ /* Membuat akun login langsung dari aplikasi tanpa fungsi server: permintaan tamu ke POST /account (tanpa cookie sesi admin).
+    Tidak bisa mengubah sandi akun yang sudah ada; untuk itu perlu fungsi akun-admin atau Console. Batas Appwrite: sekitar 10 akun baru per jam per jaringan. */
+ Cloud.buatLogin=async function(email,pw,nama){
+  var res;
+  try{res=await fetch(CFG.APPWRITE_ENDPOINT+'/account',{method:'POST',headers:{'Content-Type':'application/json','X-Appwrite-Project':CFG.APPWRITE_PROJECT},body:JSON.stringify({userId:'unique()',email:email,password:pw,name:nama||email})})}
+  catch(e){throw new Error('Tidak bisa terhubung ke Appwrite. Periksa internet.')}
+  var j={};try{j=await res.json()}catch(e2){}
+  if(res.ok)return {ok:true,created:true};
+  if(res.status===409)return {ok:false,exists:true};
+  if(res.status===429)throw new Error('Terlalu banyak akun dibuat dalam satu jam (batas Appwrite). Coba lagi nanti.');
+  throw new Error(j.message||('Gagal membuat akun login (kode '+res.status+')'));
+ };
  Cloud.setPw=async function(email,pw,nama){
   var cl=(this.acc&&this.acc.client)||new Appwrite.Client().setEndpoint(CFG.APPWRITE_ENDPOINT).setProject(CFG.APPWRITE_PROJECT);
-  var fn=new Appwrite.Functions(cl),ex;
+  var fn=new Appwrite.Functions(cl),ex,tanpaFn=false;
   try{ex=await fn.createExecution(CFG.FN_AKUN||'akun-admin',JSON.stringify({action:'setpw',email:email,password:pw,name:nama}),false,'/','POST',{'content-type':'application/json'})}
-  catch(e){if(e&&(e.code===404||/not found/i.test(e.message||'')))throw new Error('Fungsi akun-admin belum dipasang di Appwrite. Lihat docs-SANDI-AKUN.md.');throw e}
+  catch(e){if(e&&(e.code===404||/not found/i.test(e.message||'')))tanpaFn=true;else throw e}
+  if(tanpaFn){
+   var r=await this.buatLogin(email,pw,nama);
+   if(r.exists)throw new Error('Email ini sudah punya akun login, jadi sandinya tidak bisa diubah dari aplikasi. Ubah di Appwrite Console (Auth > Users > Update password), atau pasang fungsi akun-admin (docs-SANDI-AKUN.md).');
+   return r;
+  }
   var out={};try{out=JSON.parse(ex.responseBody||'{}')}catch(e2){}
   if(!out.ok)throw new Error(out.error||('Fungsi akun-admin gagal (kode '+ex.responseStatusCode+')'));
   return out;

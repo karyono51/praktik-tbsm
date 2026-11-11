@@ -31,6 +31,7 @@ async function parseAkun(f){
   var peran=normPeran(r.peran),isSw=hasRole({peran:peran},'siswa'),kelas=isSw?normKelas(r.kelas):'';
   if(isSw&&!kelas)return bad('Kelas siswa harus X, XI, atau XII');
   if(r.pw&&!Cloud.on&&r.pw.length<6)return bad('Sandi minimal 6 karakter');
+  if(r.pw&&Cloud.on&&r.pw.length<8)return bad('Sandi minimal 8 karakter');
   var keys=[un,email].filter(Boolean);
   if(keys.some(function(k){return seen[k]}))return bad('Duplikat di dalam file: '+(email||un));
   keys.forEach(function(k){seen[k]=1});
@@ -41,9 +42,9 @@ async function parseAkun(f){
  return {ok:ok,err:err};
 }
 async function applyImport(){
- var out=[],hasGen=false;
+ var out=[],hasGen=false,nl=0,stopL=false;
  for(var i=0;i<A.imp.ok.length;i++){
-  var r=A.imp.ok[i],u=r.id&&S.users.find(function(x){return x.id===r.id}),gen='';
+  var r=A.imp.ok[i],u=r.id&&S.users.find(function(x){return x.id===r.id}),gen='',st='';
   if(u){
    if(u.id===S.user.id){r.peran=u.peran;r.aktif=true}
    Object.assign(u,{nama:r.nama,email:r.email||u.email,peran:r.peran,kelas:r.kelas,aktif:r.aktif});u.d=1;
@@ -53,11 +54,16 @@ async function applyImport(){
    if(!Cloud.on){gen=r.pw?'':genPw();if(gen)hasGen=true;await setPw(u,r.pw||gen)}
    S.users.push(u);
   }
-  out.push([r.nama,u.username,u.email,peranLabel(u.peran),u.kelas,r.id?'Diperbarui':'Baru',gen||(Cloud.on?'(daftar sendiri dengan email ini)':'(sesuai file)')]);
+  if(Cloud.on&&r.pw){
+   if(stopL)st='login dilewati (batas Appwrite)';
+   else try{var lr=await Cloud.buatLogin(u.email,r.pw,u.nama);if(lr.exists)st='login sudah ada, sandi tidak diubah';else{st='login dibuat';nl++}}catch(lx){st='login GAGAL: '+((lx&&lx.message)||lx);if(/Terlalu banyak/.test(st))stopL=true}
+  }
+  out.push([r.nama,u.username,u.email,peranLabel(u.peran),u.kelas,r.id?'Diperbarui':'Baru',gen||(Cloud.on?(st||'(daftar sendiri dengan email ini)'):'(sesuai file)')]);
  }
  var n=A.imp.ok.length;A.imp=null;persist();
  if(hasGen&&needX())book([['Hasil impor',[['Nama','Username','Email','Peran','Kelas','Status','Sandi awal']].concat(out),[26,18,28,9,7,12,30]]],'Hasil_Impor_Akun');
- toast(n+' akun diproses'+(hasGen?', daftar sandi awal diunduh':''));
+ if(Cloud.on&&out.some(function(o){return /GAGAL|dilewati/.test(o[6])})&&needX())book([['Hasil impor',[['Nama','Username','Email','Peran','Kelas','Status','Login']].concat(out),[26,18,28,9,7,12,40]]],'Hasil_Impor_Akun');
+ toast(n+' akun diproses'+(hasGen?', daftar sandi awal diunduh':'')+(nl?', '+nl+' akun login dibuat':''));
 }
 
 /* ---------- Akun: ekspor dan template ---------- */
@@ -69,7 +75,7 @@ function xlsAkun(){
 function tplAkun(){
  if(!needX())return;
  book([['Akun',[['Nama','Username','Email','Sandi','Peran','Kelas','Status'],['Contoh Siswa','contoh.siswa','contoh.siswa@sekolah.sch.id','','siswa','X','aktif'],['Contoh Guru','contoh.guru','contoh.guru@sekolah.sch.id','','guru','','aktif']],[26,18,30,14,9,8,9]],
-  ['Petunjuk',[['Kolom','Aturan'],['Nama','Wajib.'],['Username','Boleh kosong, otomatis dari email atau nama. Harus unik.'],['Email','Wajib jika memakai Appwrite. Harus unik.'],['Sandi','Mode lokal: minimal 6 karakter. Kosong = dibuatkan otomatis dan diunduh setelah impor. Mode Appwrite: diabaikan.'],['Peran','admin, guru, atau siswa. Kosong = siswa.'],['Kelas','Wajib untuk siswa: X, XI, atau XII.'],['Status','aktif atau nonaktif. Kosong = aktif.'],['Catatan','Akun yang usernamenya atau emailnya sudah ada akan diperbarui, bukan digandakan. Hapus dua baris contoh sebelum impor.']],[12,100]]],'Template_Impor_Akun');
+  ['Petunjuk',[['Kolom','Aturan'],['Nama','Wajib.'],['Username','Boleh kosong, otomatis dari email atau nama. Harus unik.'],['Email','Wajib jika memakai Appwrite. Harus unik.'],['Sandi','Mode lokal: minimal 6 karakter. Kosong = dibuatkan otomatis dan diunduh setelah impor. Mode Appwrite: dipakai membuat akun login baru (minimal 8 karakter); email yang sudah punya login tidak diubah.'],['Peran','admin, guru, atau siswa. Kosong = siswa.'],['Kelas','Wajib untuk siswa: X, XI, atau XII.'],['Status','aktif atau nonaktif. Kosong = aktif.'],['Catatan','Akun yang usernamenya atau emailnya sudah ada akan diperbarui, bukan digandakan. Hapus dua baris contoh sebelum impor.']],[12,100]]],'Template_Impor_Akun');
 }
 
 /* ---------- Rekap: Excel ---------- */
