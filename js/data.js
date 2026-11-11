@@ -96,7 +96,10 @@ JOBS.forEach(function(j){
   COMMON_S.forEach(function(c){it.push({id:j.id+'-'+(n++),a:'S',t:c,k:false})});
   j.items=it;
 });
-function jobById(id){return JOBS.filter(function(j){return j.id===id})[0]}
+/* Unit uji dihapus dari katalog: daftar lama disimpan di JOBS_ARSIP hanya agar nilai lama dan kode SKKNI LKPD tetap bisa diberi nama.
+   Untuk memulihkan katalog, hapus baris 'JOBS=[]' di bawah. */
+var JOBS_ARSIP=JOBS;JOBS=[];
+function jobById(id){return JOBS.filter(function(j){return j.id===id})[0]||JOBS_ARSIP.filter(function(j){return j.id===id})[0]}
 
 /* ===== Penilaian: kompeten bila semua butir wajib terpenuhi dan skor >= KKM ===== */
 function calc(job,checks,kkm){

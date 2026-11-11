@@ -48,7 +48,7 @@ function applyNilai(){
  A.impn=null;persist();toast(n+' nilai diimpor');}
 function tplNilai(){
  if(!needX())return;
- var j1=JOBS[0],today=new Date().toISOString().slice(0,10);
+ var j1=JOBS[0]||{kelas:'X',id:'(kode unit)'},today=new Date().toISOString().slice(0,10);
  book([['Nilai',[['Tanggal','Kelas','Siswa','Kode unit','Skor','Status','Jenis','Penilai','Catatan'],[today,j1.kelas,'Contoh Siswa',j1.id,85,'Kompeten','Penilaian','',''],[today,j1.kelas,'Contoh Siswa Dua',j1.id,60,'Belum kompeten','Penilaian','','Perlu mengulang']],[12,8,26,11,7,16,11,20,36]],
   ['Daftar unit',[['Kode unit','Kelas','Unit praktik']].concat(JOBS.map(function(j){return [j.id,j.kelas,j.judul]})),[11,8,60]],
   ['Petunjuk',[['Kolom','Aturan'],['Tanggal','YYYY-MM-DD atau dd/mm/yyyy. Kosong = hari ini.'],['Kelas','X, XI, atau XII. Kosong = ikut unit.'],['Siswa','Wajib. Jika sama persis dengan nama akun siswa, nilai tampil di akun siswa itu.'],['Kode unit','Wajib. Lihat sheet Daftar unit. Judul unit juga diterima.'],['Skor','Angka 0 sampai 100.'],['Status','Kompeten atau Belum kompeten. Kosong = dihitung dari KKM.'],['Jenis','Penilaian atau Latihan. Kosong = Penilaian.'],['Catatan','Nilai yang sama (siswa, unit, tanggal, skor) dilewati, tidak digandakan. Hapus dua baris contoh sebelum impor. File Ekspor Excel Rekap juga bisa diimpor.']],[12,100]]],'Template_Impor_Nilai');
