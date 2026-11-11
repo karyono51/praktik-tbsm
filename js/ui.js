@@ -33,7 +33,7 @@ function render(){
  if(V.mode==='exam')body=viewExam();else if(V.mode==='result')body=viewResult();
  else if(S.tab==='beranda')body=viewBeranda();else if(S.tab==='rekap')body=viewRekap();else if(S.tab==='akun'&&can('akun'))body=viewAkun();else if(S.tab==='acuan')body=viewAcuan();else if(S.tab==='lkpd')body=viewLKPD();else body=viewKatalog();
  var cur=V.mode==='list'?S.tab:'';
- var row=function(v,t,sub,ic,on,tone){return '<button type="button" class="srow'+(tone?' '+tone:'')+'" data-act="'+(v==='keluar'?'menulogout':v==='segarkan'?'refresh':v==='perbarui'?'updateapp':'menu')+'" data-v="'+v+'"'+(on?' aria-current="page"':'')+'><span class="ico">'+svg(ICO[ic],22)+'</span><span class="st"><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+svg(ICO.chev,18)+'</button>'};
+ var row=function(v,t,sub,ic,on,tone){return '<button type="button" class="srow'+(tone?' '+tone:'')+'" data-act="'+(v==='keluar'?'menulogout':v==='segarkan'?'refresh':v==='perbarui'?'updateapp':v==='gantisandi'?'mypw':'menu')+'" data-v="'+v+'"'+(on?' aria-current="page"':'')+'><span class="ico">'+svg(ICO[ic],22)+'</span><span class="st"><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+svg(ICO.chev,18)+'</button>'};
  var kr=kelasBoleh().map(function(c){return row('lkpd:'+c,KELAS[c].judul,KELAS[c].sub,'kelas',cur==='lkpd'&&S.kelas===c)}).join('');
  var sh='<div class="scrim" data-act="drawerclose"></div><aside class="sheet" id="drawer" role="dialog" aria-modal="true" aria-label="Menu"><div class="grab" data-act="drawerclose" aria-hidden="true"><i></i></div><div class="sbody">'+
   '<div class="sbrand"><img class="logo ring" src="'+LOGO+'" alt=""><b>SMKS Medina Bandung</b><address class="addr"><span>Jl. K.H. Ahmad Dahlan No. 13–15, Kel. Burangrang,</span><span>Kec. Lengkong, Kota Bandung, Jawa Barat 40262</span></address><span class="bar2"></span></div>'+
@@ -45,7 +45,7 @@ function render(){
   row('kelas:'+kelasBoleh()[0],'Unit ujian','Akan digantikan LKPD praktik','acuan',cur==='katalog')+
   (can('akun')?row('akun','Akun','Kelola akun, impor, dan KKM','akun',cur==='akun'):'')+
   row('acuan','Acuan','Rubrik dan standar penilaian','acuan',cur==='acuan')+
-  '<div class="chip">'+svg(ICO.keluar,16)+'Sesi</div>'+row('segarkan','Segarkan data','Ambil data terbaru dari server','refresh',false)+row('perbarui','Perbarui aplikasi','<span id="appver">Cek pembaruan aplikasi</span>','refresh',false)+row('keluar','Keluar','Akhiri sesi di perangkat ini','keluar',false,'danger')+
+  '<div class="chip">'+svg(ICO.keluar,16)+'Sesi</div>'+row('gantisandi','Ganti sandi','Ubah sandi akun ini','akun',false)+row('segarkan','Segarkan data','Ambil data terbaru dari server','refresh',false)+row('perbarui','Perbarui aplikasi','<span id="appver">Cek pembaruan aplikasi</span>','refresh',false)+row('keluar','Keluar','Akhiri sesi di perangkat ini','keluar',false,'danger')+
   '</div></aside>';
  var foot='<footer class="school"><span>© 2026 SMKS Medina Bandung</span><i aria-hidden="true">|</i><span>supported by @pakar1501</span></footer>';
  var open=document.body.classList.contains('dr-open');
@@ -92,7 +92,7 @@ function viewAkun(){
   '<label class="f">Nama<input name="nama" required value="'+esc(e.nama)+'"></label>'+
   '<div class="two"><label class="f">Username<input name="username" value="'+esc(e.username)+'" placeholder="otomatis"></label><label class="f">Email<input name="email" type="email" value="'+esc(e.email)+'"'+(Cloud.on?' required':'')+'></label></div>'+
   '<fieldset class="roles"><legend>Peran (boleh lebih dari satu)</legend>'+URUT.map(function(r){return '<label class="chk"><input type="checkbox" name="peran" value="'+r+'"'+(hasRole(e,r)?' checked':'')+'> '+PERAN[r]+'</label>'}).join('')+'</fieldset><label class="f">Kelas (jika siswa)<select name="kelas">'+opt(KLS,e.kelas||'X')+'</select></label>'+
-  (Cloud.on?'':'<label class="f">Sandi'+(e.id?' (kosongkan jika tidak diubah)':'')+'<input name="pw" type="password" autocomplete="new-password"'+(e.id?'':' required')+' minlength="6"></label>')+
+  (Cloud.on?'<label class="f">Sandi login (opsional, minimal 8 karakter)'+(e.id?' · kosongkan jika tidak diubah':'')+'<input name="pw" type="password" autocomplete="new-password" minlength="8"></label><p class="note">Diisi: sandi diatur admin lewat fungsi server. Dikosongkan: pengguna membuat sandi sendiri lewat Daftar memakai email di atas.</p>':'<label class="f">Sandi'+(e.id?' (kosongkan jika tidak diubah)':'')+'<input name="pw" type="password" autocomplete="new-password"'+(e.id?'':' required')+' minlength="6"></label>')+
   '<label class="chk"><input type="checkbox" name="aktif"'+(e.aktif!==false?' checked':'')+'> Akun aktif</label>'+
   (A.err?'<p class="err" role="alert">'+esc(A.err)+'</p>':'')+
   '<div class="row"><button type="button" class="btn" data-act="akuncancel">Batal</button><button type="submit" class="btn primary grow">Simpan akun</button></div></form>':'';
@@ -120,10 +120,12 @@ async function saveAkun(d){
  var o=e.id?S.users.find(function(u){return u.id===e.id}):{id:uid(),dibuat:Date.now()};
  if(o.id===S.user.id&&(pr.indexOf('admin')<0||!d.aktif))throw new Error('Akun Anda sendiri tidak bisa diturunkan atau dinonaktifkan.');
  if(!Cloud.on&&d.pw&&d.pw.length<6)throw new Error('Sandi minimal 6 karakter.');
+ if(Cloud.on&&d.pw&&d.pw.length<8)throw new Error('Sandi minimal 8 karakter.');
  Object.assign(o,{nama:nama,username:un,email:em,peran:pr.join(','),kelas:pr.indexOf('siswa')>-1?d.kelas:'',aktif:!!d.aktif});
  if(!Cloud.on&&d.pw)await setPw(o,d.pw);
  if(e.id)o.d=1;else S.users.push(o);
- A.edit=null;persist();toast('Akun disimpan');
+ A.edit=null;persist();
+ if(Cloud.on&&d.pw){try{await Cloud.setPw(em,d.pw,nama);toast('Akun dan sandi disimpan')}catch(x){toast('Akun disimpan, sandi gagal: '+((x&&x.message)||x))}}else toast('Akun disimpan');
 }
 
 document.addEventListener('submit',async function(e){
