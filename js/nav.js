@@ -1,12 +1,16 @@
 /* nav.js: posisi halaman bertahan saat reload, tombol segarkan data, dan pembaruan aplikasi (cache) */
-var NAV={restore:false,busy:false,hadCtl:false,updated:false};
+var NAV={restore:false,entered:false,busy:false,hadCtl:false,updated:false};
 var NAVK='tbsm-nav',NAVTTL=24*3600*1000;
 var NAVTABS=['beranda','katalog','rekap','akun','acuan','lkpd'];
 
 /* ---- Simpan dan pulihkan posisi halaman ---- */
 function navSave(){
- if(NAV.restore||!S.user||V.mode!=='list')return; /* NAV.restore=true selama boot: S.user sudah terisi tetapi tab belum dipulihkan, jangan timpa posisi tersimpan */
- try{localStorage.setItem(NAVK,JSON.stringify({u:S.user.id,t:Date.now(),tab:S.tab,kelas:S.kelas,lm:LK.module,lt:LK.tab,lo:!!LK.open,kf:LK.kf||''}))}catch(e){}
+ /* NAV.restore=true selama boot dan NAV.entered=false bila data belum selesai dimuat: jangan timpa posisi tersimpan */
+ if(NAV.restore||!NAV.entered||!S.user)return;
+ if(V.mode!=='list'&&V.mode!=='exam')return; /* halaman hasil tidak dipulihkan; posisi sebelumnya tetap */
+ var o={u:S.user.id,t:Date.now(),tab:S.tab,kelas:S.kelas,lm:LK.module,lt:LK.tab,lo:!!LK.open,kf:LK.kf||''};
+ if(V.mode==='exam'&&V.job)o.ex={job:V.job.id,group:V.group,kel:!!V.kel,cks:V.cks,peserta:V.peserta,sec:V.sec,notes:V.notes||{}};
+ try{localStorage.setItem(NAVK,JSON.stringify(o))}catch(e){}
 }
 function navApply(u){
  var j;try{j=JSON.parse(localStorage.getItem(NAVK)||'null')}catch(e){j=null}
@@ -18,12 +22,33 @@ function navApply(u){
   if(j.lm)LK.module=j.lm;LK.kf=j.kf||'';LK.open=!!j.lo;
   if(['materi','kerja','evaluasi','riwayat'].indexOf(j.lt)>-1)LK.tab=j.lt;
  }
+ if(j.ex&&j.ex.job){
+  var jb;try{jb=jobById(j.ex.job)}catch(e){jb=null}
+  if(jb&&kelasBoleh().indexOf(jb.kelas)>-1){
+   var g=(j.ex.group&&j.ex.group.length)?j.ex.group:[j.ex.peserta||''];
+   V={mode:'exam',job:jb,checks:{},peserta:j.ex.peserta||g[0]||'',catatan:'',sec:+j.ex.sec||0,running:false,res:null,group:g,kel:!!j.ex.kel,cks:j.ex.cks||{},notes:j.ex.notes||{},items:null,rc:0};
+   if(g.indexOf(V.peserta)<0)V.peserta=g[0]||'';
+   V.checks=curChecks();
+  }
+ }
 }
 (function(){
  var render0=render;render=function(){render0();navSave();navFillVer()};
- var enter0=enter;enter=function(u){enter0(u);if(NAV.restore)navApply(u)};
- var boot0=boot;boot=async function(){NAV.restore=true;try{await boot0()}finally{NAV.restore=false;navSave()}};
+ var enter0=enter;enter=function(u){enter0(u);NAV.entered=true;if(NAV.restore)navApply(u)};
+ var boot0=boot;boot=async function(){
+  NAV.restore=true;
+  try{
+   await boot0();
+   /* Pemuatan dari server gagal di tengah jalan (S.user terisi, enter() belum jalan): pakai snapshot lokal agar posisi tetap dipulihkan */
+   if(S.user&&!NAV.entered){
+    if(typeof loadSnap==='function'&&loadSnap()){render();toast('Server belum terjangkau. Memakai data tersimpan.')}
+    else if(A.err)toast('Gagal memuat data: '+A.err);
+   }
+  }finally{NAV.restore=false;navSave()}
+ };
  window.addEventListener('pagehide',navSave);
+ document.addEventListener('visibilitychange',function(){if(document.hidden)navSave()});
+ setInterval(function(){if(V.mode==='exam')navSave()},5000);
 })();
 
 /* ---- Segarkan data dari Appwrite tanpa pindah halaman ---- */

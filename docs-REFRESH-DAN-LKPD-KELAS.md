@@ -1,4 +1,9 @@
-# Refresh dan LKPD per kelas (cache tbsm-v24)
+# Refresh dan LKPD per kelas (cache tbsm-v25)
+
+## Perbaikan v25: refresh loncat ke Beranda
+- Penilaian yang sedang berjalan (Unit ujian) kini ikut dipulihkan setelah refresh: unit, siswa atau kelompok, isian, catatan, dan waktu (timer berhenti, ketuk Lanjut). Disimpan tiap 5 detik, saat aplikasi disembunyikan, dan saat ditutup. Halaman hasil tidak dipulihkan.
+- Bila pemuatan dari server gagal di tengah jalan, aplikasi memakai data tersimpan di perangkat dan tetap memulihkan posisi (muncul pemberitahuan), tidak lagi jatuh ke tab bawaan.
+- Posisi tersimpan tidak pernah ditimpa selama data belum selesai dimuat.
 
 ## Perbaikan v24: refresh selalu loncat ke Unit ujian
 - Penyebab: saat data masih dimuat dari Appwrite, `S.user` sudah terisi tetapi tab masih bawaan lama (`katalog` = Unit ujian). Bila halaman dimuat ulang atau ditinggalkan pada saat itu, `navSave` menimpa posisi tersimpan dengan Unit ujian, sehingga reload berikutnya selalu ke sana.
