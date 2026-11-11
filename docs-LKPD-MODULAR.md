@@ -4,7 +4,7 @@ Mesin LKPD terpisah dari inti aplikasi. Autentikasi, peran, roster, navigasi, re
 
 ## Modul bawaan
 
-`X-1` — Pemeriksaan Baterai dan Sistem Starter, Fase E Kelas X, 45 menit. Modul ini tetap disertakan sebagai contoh dan dapat diedit. Data pengumpulan lama tidak dihapus saat modul diedit atau dihapus.
+21 modul bawaan, satu untuk setiap unit ujian praktik: `X-1` sampai `X-6` (Fase E), `XI-1` sampai `XI-8`, dan `XII-1` sampai `XII-7` (Fase F). `X-1` ada di `js/lkpd.js` sebagai acuan format; `X-2` sampai `XII-7` ada di `js/lkpd-modul.js`. Durasi, kelas, dan kode SKKNI mengikuti data unit ujian di `js/data.js`. Angka spesifikasi (torsi, celah, tekanan, tegangan) sengaja tidak ditulis; siswa wajib membaca buku manual servis unit yang dipakai. Posisi opsi soal diputar otomatis agar kunci jawaban tersebar merata. Modul bawaan dapat diedit atau diduplikasi; hasil edit disimpan sebagai salinan di penyimpanan modul dan tidak mengubah berkas bawaan. Modul bawaan tidak dapat dihapus, hanya dijadikan draft. Data pengumpulan lama tidak dihapus saat modul diedit.
 
 ## Menggunakan Editor LKPD Guru
 
@@ -30,7 +30,7 @@ Setiap modul memiliki `id`, `title`, `fase`, `kelas`, `unit`, `duration`, `skkni
 
 - **Mode lokal:** modul disimpan di `localStorage` dengan key `tbsm-lkpd-modules`. Data hanya tersedia pada browser/perangkat yang sama.
 - **Mode Appwrite:** modul disimpan pada koleksi `lkpd_modules`, terpisah dari koleksi pengumpulan `lkpd`. Konten lengkap berada pada atribut `payload`; atribut metadata digunakan untuk indeks dan status.
-- **Offline:** perubahan modul yang belum tersinkron dimasukkan ke antrean PWA dan dikirim saat koneksi kembali. Cache service worker saat ini `tbsm-v14`.
+- **Offline:** perubahan modul yang belum tersinkron dimasukkan ke antrean PWA dan dikirim saat koneksi kembali. Cache service worker saat ini `tbsm-v18`.
 - **Pengumpulan:** tetap masuk ke koleksi `lkpd` dan rekap nilai `hasil` dengan `jobId` sama dengan ID modul.
 
 ## Migrasi Appwrite dan izin server
