@@ -91,8 +91,16 @@ function viewBeranda(){
  var tiles=tl.map(function(t){return '<button type="button" class="tile" data-act="'+t[3]+'"'+(t[3]==='menu'?' data-v="'+t[0]+'"':'')+'><span class="ico '+t[2]+'">'+svg(ICO[t[0]==='drawer'?'menu':t[0]],26)+'</span><span>'+t[1]+'</span></button>'}).join('');
  var rec=list.slice(0,3).map(function(r){var j=jobById(r.jobId);
   return '<div class="rec"><span class="dot '+(r.kompeten?'ok':'bad')+'"></span><div class="grow"><b>'+esc(j?j.judul:r.jobId)+'</b><div class="note">'+(isStaff()?esc(r.siswa||'Tanpa nama')+' · ':'')+'Kelas '+r.kelas+' · '+tgl(r.ts)+'</div></div><span class="mono sc">'+r.score+'</span></div>'}).join('');
+ var ob='';
+ if(can('observasi')&&typeof obsVisible==='function'){
+  var os=obsVisible('siswa'),og=obsVisible('guru');
+  var oa=function(L){return L.length?Math.round(L.reduce(function(t,r){return t+(+r.skor||0)},0)/L.length):0};
+  var ot=os.map(function(r){return {r:r,t:'Praktik siswa'}}).concat(og.map(function(r){return {r:r,t:'Guru'}})).sort(function(a,b){return String(b.r.tanggal).localeCompare(String(a.r.tanggal))||b.r.ts-a.r.ts}).slice(0,3);
+  var orc=ot.map(function(x){var r=x.r;return '<div class="rec"><span class="dot '+(obsKatCls(r.kategori)==='ok'?'ok':'bad')+'"></span><div class="grow"><b>'+esc(r.guru)+'</b><div class="note">'+x.t+' · '+esc(r.mapel)+' · Kelas '+esc(r.kelas)+' · '+esc(obsTgl(r.tanggal))+'</div></div><span class="mono sc">'+(+r.skor||0)+'</span></div>'}).join('');
+  ob='<section class="recent">'+secHead('observasi-siswa','Observasi','<button type="button" class="link" data-act="menu" data-v="observasi-siswa">Buka</button>')+'<p class="note">Praktik siswa: <b class="mono">'+os.length+'</b> observasi, rata-rata <b class="mono">'+oa(os)+'</b> · Guru: <b class="mono">'+og.length+'</b> observasi, rata-rata <b class="mono">'+oa(og)+'</b></p>'+(orc||'<p class="muted">Belum ada observasi.</p>')+'</section>';
+ }
  return '<section class="strip" aria-label="Ringkasan"><div><b class="mono">'+a[0]+'</b><span>'+(isStaff()?'data nilai':'latihan')+'</span></div><div><b class="mono">'+a[1]+'</b><span>rata-rata</span></div><div><b class="mono">'+Math.round(a[2]*100)+'<small>%</small></b><span>kompeten</span></div></section>'+
   secHead('menu','Pintasan')+'<div class="tiles n'+tl.length+'">'+tiles+'</div>'+
   secHead('kelas',kelasBoleh().length>1?'Pilih kelas':'Kelas saya')+'<div class="kcards">'+kc+'</div>'+
-  '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari modul LKPD pertama.</p>')+'</section>';
+  '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari modul LKPD pertama.</p>')+'</section>'+ob;
 }
