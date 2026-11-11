@@ -3,7 +3,7 @@ var CFG=window.APP_CONFIG||{};
 var KEY='tbsm-uji-v2',SES='tbsm-sesi';
 var PERAN={admin:'Admin',guru:'Guru',siswa:'Siswa'};
 var PERM={admin:['akun','kkm','hapus','nilai'],guru:['nilai'],siswa:[]};
-var S={role:'siswa',tab:'katalog',kelas:'X',kkm:+localStorage.getItem('tbsm-kkm')||75,siswaName:'',filter:'ALL',user:null,users:[],roster:[],results:[],lkpd:[],lkpdModules:[]};
+var S={role:'siswa',tab:'beranda',kelas:'X',kkm:+localStorage.getItem('tbsm-kkm')||75,siswaName:'',filter:'ALL',user:null,users:[],roster:[],results:[],lkpd:[],lkpdModules:[]};
 var V={mode:'list',job:null,checks:{},peserta:'',catatan:'',sec:0,running:false,res:null},timer=null;
 var CLOUD_ON=!!(CFG.APPWRITE_ENDPOINT&&CFG.APPWRITE_PROJECT&&window.Appwrite);
 if(!CLOUD_ON){try{var d0=JSON.parse(localStorage.getItem(KEY)||'null');if(d0){S.users=d0.users||[];S.results=d0.results||[]}try{S.lkpd=JSON.parse(localStorage.getItem('tbsm-lkpd-records')||'[]')}catch(e2){S.lkpd=[]}try{S.lkpdModules=JSON.parse(localStorage.getItem('tbsm-lkpd-modules')||'[]')}catch(e3){S.lkpdModules=[]}}catch(e){}}

@@ -5,7 +5,7 @@ var NAVTABS=['beranda','katalog','rekap','akun','acuan','lkpd'];
 
 /* ---- Simpan dan pulihkan posisi halaman ---- */
 function navSave(){
- if(!S.user||V.mode!=='list')return;
+ if(NAV.restore||!S.user||V.mode!=='list')return; /* NAV.restore=true selama boot: S.user sudah terisi tetapi tab belum dipulihkan, jangan timpa posisi tersimpan */
  try{localStorage.setItem(NAVK,JSON.stringify({u:S.user.id,t:Date.now(),tab:S.tab,kelas:S.kelas,lm:LK.module,lt:LK.tab,lo:!!LK.open,kf:LK.kf||''}))}catch(e){}
 }
 function navApply(u){
@@ -22,7 +22,7 @@ function navApply(u){
 (function(){
  var render0=render;render=function(){render0();navSave();navFillVer()};
  var enter0=enter;enter=function(u){enter0(u);if(NAV.restore)navApply(u)};
- var boot0=boot;boot=async function(){NAV.restore=true;try{await boot0()}finally{NAV.restore=false}};
+ var boot0=boot;boot=async function(){NAV.restore=true;try{await boot0()}finally{NAV.restore=false;navSave()}};
  window.addEventListener('pagehide',navSave);
 })();
 

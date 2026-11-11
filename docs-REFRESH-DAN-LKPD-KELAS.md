@@ -1,4 +1,9 @@
-# Refresh dan LKPD per kelas (cache tbsm-v20)
+# Refresh dan LKPD per kelas (cache tbsm-v24)
+
+## Perbaikan v24: refresh selalu loncat ke Unit ujian
+- Penyebab: saat data masih dimuat dari Appwrite, `S.user` sudah terisi tetapi tab masih bawaan lama (`katalog` = Unit ujian). Bila halaman dimuat ulang atau ditinggalkan pada saat itu, `navSave` menimpa posisi tersimpan dengan Unit ujian, sehingga reload berikutnya selalu ke sana.
+- Perbaikan: `navSave` tidak menyimpan selama boot (nav.js), posisi disimpan sekali setelah boot selesai, tab bawaan kini `beranda` (core.js), dan tab tidak dikenal atau tanpa izin jatuh ke Beranda, bukan Unit ujian (ui.js).
+
 
 ## Refresh
 - Posisi halaman (menu, kelas, modul LKPD, tab) disimpan dan dipulihkan setelah reload, berlaku 24 jam. Login baru tetap ke Beranda. Penilaian yang sedang berjalan tidak dipulihkan.

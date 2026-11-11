@@ -31,7 +31,7 @@ function render(){
   '<header class="top">'+logoBtn+who+'</header>';
  var body;
  if(V.mode==='exam')body=viewExam();else if(V.mode==='result')body=viewResult();
- else if(S.tab==='beranda')body=viewBeranda();else if(S.tab==='rekap')body=viewRekap();else if(S.tab==='akun'&&can('akun'))body=viewAkun();else if(S.tab==='acuan')body=viewAcuan();else if(S.tab==='lkpd')body=viewLKPD();else body=viewKatalog();
+ else if(S.tab==='beranda')body=viewBeranda();else if(S.tab==='rekap')body=viewRekap();else if(S.tab==='akun'&&can('akun'))body=viewAkun();else if(S.tab==='acuan')body=viewAcuan();else if(S.tab==='lkpd')body=viewLKPD();else if(S.tab==='katalog')body=viewKatalog();else{S.tab='beranda';body=viewBeranda()}
  var cur=V.mode==='list'?S.tab:'';
  var row=function(v,t,sub,ic,on,tone){return '<button type="button" class="srow'+(tone?' '+tone:'')+'" data-act="'+(v==='keluar'?'menulogout':v==='segarkan'?'refresh':v==='perbarui'?'updateapp':v==='gantisandi'?'mypw':'menu')+'" data-v="'+v+'"'+(on?' aria-current="page"':'')+'><span class="ico">'+svg(ICO[ic],22)+'</span><span class="st"><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+svg(ICO.chev,18)+'</button>'};
  var kr=kelasBoleh().map(function(c){return row('lkpd:'+c,KELAS[c].judul,KELAS[c].sub,'kelas',cur==='lkpd'&&S.kelas===c)}).join('');
