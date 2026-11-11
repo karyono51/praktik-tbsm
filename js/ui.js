@@ -106,7 +106,7 @@ function viewAkun(){
   '<div class="row sb"><span class="note">'+(u.kelas?'Kelas '+u.kelas+' · ':'')+(u.aktif===false?'Nonaktif':'Aktif')+'</span><div class="row"><button type="button" class="btn small" data-act="akunedit" data-v="'+u.id+'">Ubah</button>'+(u.id!==S.user.id?'<button type="button" class="btn small danger" data-act="akundel" data-v="'+u.id+'">Hapus</button>':'')+'</div></div></div>'}).join('');
  return '<div class="row sb"><h2>Akun</h2><button type="button" class="btn small primary" data-act="akunnew">Tambah akun</button></div>'+
   '<div class="row"><label class="btn small filebtn">Impor Excel<input id="impfile" type="file" accept=".xlsx,.xls,.csv" hidden></label><button type="button" class="btn small" data-act="akuntpl">Template</button><button type="button" class="btn small" data-act="akunxls">Ekspor Excel</button></div>'+
-  im+form+'<input id="akunq" type="search" placeholder="Cari nama, username, atau email" value="'+esc(A.q)+'" aria-label="Cari akun"><div class="chips" role="group" aria-label="Filter peran">'+chips+'</div>'+
+  (A.msg?'<div class="card job '+(A.msg.ok?'st-ok':'st-bad')+'" role="status"><p>'+esc(A.msg.m)+'</p><button type="button" class="btn small" data-act="akunmsg">Tutup</button></div>':'')+im+form+'<input id="akunq" type="search" placeholder="Cari nama, username, atau email" value="'+esc(A.q)+'" aria-label="Cari akun"><div class="chips" role="group" aria-label="Filter peran">'+chips+'</div>'+
   (rows||'<div class="card"><p class="muted">Tidak ada akun yang cocok.</p></div>')+
   '<p class="note">'+(Cloud.on?'Akun login dibuat pengguna lewat Daftar atau Google. Impor menyiapkan peran dan kelas berdasarkan email.':'Mode lokal: sandi disimpan sebagai hash di peramban ini.')+' Admin: kelola akun dan KKM. Guru: menilai dan melihat semua rekap. Siswa: latihan dan melihat nilai sendiri.</p>';
 }
@@ -125,7 +125,7 @@ async function saveAkun(d){
  if(!Cloud.on&&d.pw)await setPw(o,d.pw);
  if(e.id)o.d=1;else S.users.push(o);
  A.edit=null;persist();
- if(Cloud.on&&d.pw){try{await Cloud.setPw(em,d.pw,nama);toast('Akun dan sandi disimpan')}catch(x){toast('Akun disimpan, sandi gagal: '+((x&&x.message)||x))}}else toast('Akun disimpan');
+ if(Cloud.on&&d.pw){try{await Cloud.setPw(em,d.pw,nama);A.msg={ok:true,m:'Akun '+nama+' disimpan dan sandi login berhasil diatur. Akun ini sudah bisa masuk dengan email '+em+'.'};toast('Akun dan sandi disimpan')}catch(x){A.msg={ok:false,m:'Akun '+nama+' disimpan, tetapi sandi GAGAL diatur: '+((x&&x.message)||x)};toast('Sandi gagal diatur')}}else{A.msg={ok:true,m:'Akun '+nama+' disimpan'+(Cloud.on?' tanpa sandi. Pengguna membuat sandi sendiri lewat Daftar dengan email '+em+'.':'.')};toast('Akun disimpan')}
 }
 
 document.addEventListener('submit',async function(e){
@@ -150,8 +150,9 @@ document.addEventListener('click',async function(e){
  if(a==='logout')await doLogout();
  else if(a==='google')Cloud.google();
  else if(a==='togglereg'){A.reg=!A.reg;A.err='';render()}
- else if(a==='akunnew'){A.edit={peran:'siswa',kelas:'X',aktif:true};A.err='';render()}
- else if(a==='akunedit'){A.edit=Object.assign({},S.users.find(function(u){return u.id===v}));A.err='';render()}
+ else if(a==='akunmsg'){A.msg=null;render()}
+ else if(a==='akunnew'){A.msg=null;A.edit={peran:'siswa',kelas:'X',aktif:true};A.err='';render()}
+ else if(a==='akunedit'){A.msg=null;A.edit=Object.assign({},S.users.find(function(u){return u.id===v}));A.err='';render()}
  else if(a==='akuncancel'){A.edit=null;A.err='';render()}
  else if(a==='akundel'){
   var u=S.users.find(function(x){return x.id===v});

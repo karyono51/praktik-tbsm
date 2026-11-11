@@ -5,11 +5,11 @@
 - Tombol **Segarkan** di header dan baris **Segarkan data** di dasbor: mengirim data yang menunggu sinkron, lalu mengambil ulang hasil, LKPD, dan modul dari Appwrite tanpa pindah halaman.
 - Baris **Perbarui aplikasi** di dasbor: memeriksa versi baru. Bila sudah terbaru, ada pilihan bersihkan cache dan muat ulang paksa (perlu internet).
 - Bila versi baru terdeteksi, muncul bilah "Versi baru aplikasi sudah siap" dengan tombol Muat ulang.
-- Penyebab tampilan lama: berkas service-worker.js ikut di-cache peramban. Kini didaftarkan dengan `updateViaCache:'none'`, berkas index.html memakai `?v=22`, dan aplikasi memeriksa pembaruan saat dibuka kembali, saat online, dan tiap 30 menit.
+- Penyebab tampilan lama: berkas service-worker.js ikut di-cache peramban. Kini didaftarkan dengan `updateViaCache:'none'`, berkas index.html memakai `?v=23`, dan aplikasi memeriksa pembaruan saat dibuka kembali, saat online, dan tiap 30 menit.
 
 ## Setiap rilis berikutnya
 1. Naikkan `CACHE` di service-worker.js (misalnya tbsm-v22).
-2. Ganti `?v=22` di index.html dengan nomor yang sama.
+2. Ganti `?v=23` di index.html dengan nomor yang sama.
 
 ## LKPD Praktik per kelas (pengganti Unit Ujian)
 - Dasbor: bagian **LKPD praktik** berisi Kelas X, XI, XII. Beranda juga menghitung modul LKPD per kelas.
