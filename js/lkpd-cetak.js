@@ -34,7 +34,7 @@ var st=document.createElement('style');st.textContent=CSS;document.head.appendCh
 function bagian(tab){
  LK.tab=tab;
  var box=document.createElement('div');box.innerHTML=viewLKPD();
- return Array.prototype.filter.call(box.children,function(x){return x.tagName==='SECTION'}).map(function(x){return x.outerHTML}).join('');
+ return Array.prototype.filter.call(box.children,function(x){return x.tagName==='SECTION'&&!x.hasAttribute('data-lkm')}).map(function(x){return x.outerHTML}).join('');
 }
 function semester(){
  var t=new Date(),bln=t.getMonth()+1,y=t.getFullYear();
