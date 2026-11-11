@@ -1,48 +1,61 @@
 /* observasi.js: Form Observasi Kinerja Guru (supervisi pembelajaran). Untuk Admin dan Guru.
    Admin melihat semua observasi. Guru hanya melihat observasi yang ia isi sendiri. */
-var OBS_GRUP=[
- {g:'A. Perencanaan Pembelajaran',t:['Tujuan pembelajaran dirumuskan dengan jelas','Kesesuaian materi dengan kompetensi dasar','Kesiapan media, alat, dan bahan praktik']},
- {g:'B. Pembukaan',t:['Apersepsi dan motivasi siswa','Penyampaian tujuan dan alur kegiatan']},
- {g:'C. Kegiatan Inti',t:['Penguasaan materi dan kebenaran konsep','Penggunaan metode yang variatif dan sesuai','Demonstrasi keterampilan praktik yang benar dan aman','Keterlibatan siswa dalam kegiatan','Pengelolaan kelas dan bengkel praktik','Penerapan K3 dan prosedur keselamatan kerja','Pemberian bimbingan dan umpan balik kepada siswa','Penggunaan bahasa dan komunikasi yang efektif','Pemanfaatan waktu pembelajaran']},
- {g:'D. Penutup',t:['Penarikan kesimpulan dan refleksi bersama siswa','Evaluasi atau penilaian hasil belajar']}
-];
-var OBS_FLAT=[];(function(){var n=0;OBS_GRUP.forEach(function(g){g.items=g.t.map(function(t){n++;var it={id:'o'+n,no:n,t:t,g:g.g};OBS_FLAT.push(it);return it})})})();
-var OBS_N=OBS_FLAT.length;
+var OBS_DEF={
+ guru:{judul:'Observasi guru',sub:'Supervisi pembelajaran di kelas dan bengkel praktik.',nama:'Nama guru',namaMan:'Nama guru (manual)',pdf:'Form Observasi Kinerja Guru',diamati:'Guru yang diamati',pengamat:'Pengamat',unit:'Guru',
+  mapelLab:'Mata pelajaran / kompetensi keahlian',jenisLab:'Jenis pembelajaran',materiLab:'Materi / kompetensi dasar',jenis:['Praktik di bengkel','Teori di kelas','Teori dan praktik'],
+  grup:[
+  {g:'A. Perencanaan Pembelajaran',t:['Tujuan pembelajaran dirumuskan dengan jelas','Kesesuaian materi dengan kompetensi dasar','Kesiapan media, alat, dan bahan praktik']},
+  {g:'B. Pembukaan',t:['Apersepsi dan motivasi siswa','Penyampaian tujuan dan alur kegiatan']},
+  {g:'C. Kegiatan Inti',t:['Penguasaan materi dan kebenaran konsep','Penggunaan metode yang variatif dan sesuai','Demonstrasi keterampilan praktik yang benar dan aman','Keterlibatan siswa dalam kegiatan','Pengelolaan kelas dan bengkel praktik','Penerapan K3 dan prosedur keselamatan kerja','Pemberian bimbingan dan umpan balik kepada siswa','Penggunaan bahasa dan komunikasi yang efektif','Pemanfaatan waktu pembelajaran']},
+  {g:'D. Penutup',t:['Penarikan kesimpulan dan refleksi bersama siswa','Evaluasi atau penilaian hasil belajar']}]},
+ siswa:{judul:'Observasi praktik siswa',sub:'Pengamatan proses dan sikap kerja siswa saat praktik.',nama:'Nama siswa',namaMan:'Nama siswa (manual)',pdf:'Form Observasi Praktik Siswa',diamati:'Siswa yang diamati',pengamat:'Guru pengamat',unit:'Siswa',
+  mapelLab:'Unit / pekerjaan praktik',jenisLab:'Tempat praktik',materiLab:'Kompetensi / jobsheet',jenis:['Bengkel sekolah','Teaching factory','Industri (PKL)'],
+  grup:[
+  {g:'A. Persiapan Kerja',t:['Memakai APD dan pakaian praktik lengkap dan benar','Menyiapkan alat dan bahan sesuai kebutuhan pekerjaan','Membaca dan memahami instruksi kerja (jobsheet/SOP)']},
+  {g:'B. Proses Kerja',t:['Mengikuti urutan langkah kerja sesuai SOP','Memilih dan menggunakan alat dengan benar','Ketepatan pemeriksaan dan pengukuran','Menerapkan K3 selama bekerja','Ketelitian dan kerapian kerja','Efisiensi penggunaan waktu']},
+  {g:'C. Hasil Kerja',t:['Hasil kerja sesuai standar dan spesifikasi','Merapikan dan membersihkan area kerja serta mengembalikan alat','Mengisi lembar kerja atau laporan dengan lengkap']},
+  {g:'D. Sikap Kerja',t:['Disiplin dan tanggung jawab','Kerja sama dalam tim','Kemandirian dan inisiatif','Komunikasi dan sikap saat bekerja']}]}
+};
+Object.keys(OBS_DEF).forEach(function(k){var d=OBS_DEF[k],n=0;d.flat=[];d.grup.forEach(function(g){g.items=g.t.map(function(t){n++;var it={id:'o'+n,no:n,t:t,g:g.g};d.flat.push(it);return it})})});
+function obsDef(t){return OBS_DEF[t]||OBS_DEF.guru}
+function obsTipe(r){return r&&r.tipe==='siswa'?'siswa':'guru'}
 var OBS_SKALA={4:'Sangat baik',3:'Baik',2:'Cukup',1:'Kurang'};
-var OBS_JENIS=['Praktik di bengkel','Teori di kelas','Teori dan praktik'];
-var OB={mode:'list',d:null,view:null,q:''};
+var OB={mode:'list',d:null,view:null,q:'',tipe:'guru'};
+ICO['observasi-siswa']='<circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5M9.5 20.5l1.8 1.8 3.5-3.8"/>';
 ICO.observasi='<path d="M9 4.5h6a1 1 0 0 1 1 1V6h2a1 1 0 0 1 1 1v12.5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h2v-.5a1 1 0 0 1 1-1z"/><path d="m9 13.5 2 2 4-4.5"/>';
 
 function obsKat(r){return r>=3.5?'Sangat Baik':r>=2.5?'Baik':r>=1.5?'Cukup':'Kurang'}
 function obsKatCls(k){return k==='Sangat Baik'||k==='Baik'?'ok':k==='Cukup'?'warn':'bad'}
-function obsHitung(nl){
- var tot=0,done=0;
- OBS_FLAT.forEach(function(i){var v=nl&&nl[i.id];if(v>=1&&v<=4){tot+=v;done++}});
+function obsHitung(nl,t){
+ var fl=obsDef(t).flat,N=fl.length,tot=0,done=0;
+ fl.forEach(function(i){var v=nl&&nl[i.id];if(v>=1&&v<=4){tot+=v;done++}});
  var rata=done?tot/done:0;
- return {done:done,n:OBS_N,tot:tot,max:OBS_N*4,rata:Math.round(rata*100)/100,nilai:Math.round(tot/(OBS_N*4)*100),kat:obsKat(rata)};
+ return {done:done,n:N,tot:tot,max:N*4,rata:Math.round(rata*100)/100,nilai:Math.round(tot/(N*4)*100),kat:obsKat(rata)};
 }
 function obsPay(r){try{var p=JSON.parse(r.payload||'{}');p.nilai=p.nilai||{};p.cat=p.cat||{};return p}catch(e){return {nilai:{},cat:{}}}}
 function obsBoleh(r){return can('observasi-semua')||(!!S.user&&r.pengamatId===S.user.id)}
-function obsVisible(){
- var L=(S.observasi||[]).filter(function(r){return can('observasi-semua')||r.pengamatId===S.user.id});
+function obsVisible(t){
+ var L=(S.observasi||[]).filter(function(r){return obsTipe(r)===t&&(can('observasi-semua')||r.pengamatId===S.user.id)});
  return L.sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))||b.ts-a.ts});
 }
 function obsTgl(s){var p=String(s||'').split('-');if(p.length!==3)return s||'-';return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}
-function obsBaru(){return {id:'',guruSel:'',guruNama:'',mapel:'',kelas:Object.keys(KELAS)[0],tanggal:ymd(Date.now()),jam:'',materi:'',jenis:OBS_JENIS[0],nilai:{},cat:{},kekuatan:'',perbaikan:'',tindak:''}}
+function obsBaru(t){return {id:'',tipe:t,guruSel:'',guruNama:'',mapel:'',kelas:Object.keys(KELAS)[0],tanggal:ymd(Date.now()),jam:'',materi:'',jenis:obsDef(t).jenis[0],nilai:{},cat:{},kekuatan:'',perbaikan:'',tindak:''}}
 function obsDraftDari(r){
  var p=obsPay(r),sel=(r.guruId&&S.users.some(function(u){return u.id===r.guruId}))?r.guruId:'__lain';
- return {id:r.id,guruSel:sel,guruNama:sel==='__lain'?r.guru:'',mapel:r.mapel||'',kelas:r.kelas||Object.keys(KELAS)[0],tanggal:r.tanggal||ymd(Date.now()),jam:p.jam||'',materi:p.materi||'',jenis:p.jenis||OBS_JENIS[0],nilai:p.nilai,cat:p.cat,kekuatan:p.kekuatan||'',perbaikan:p.perbaikan||'',tindak:p.tindak||''};
+ return {id:r.id,tipe:obsTipe(r),guruSel:sel,guruNama:sel==='__lain'?r.guru:'',mapel:r.mapel||'',kelas:r.kelas||Object.keys(KELAS)[0],tanggal:r.tanggal||ymd(Date.now()),jam:p.jam||'',materi:p.materi||'',jenis:p.jenis||obsDef(obsTipe(r)).jenis[0],nilai:p.nilai,cat:p.cat,kekuatan:p.kekuatan||'',perbaikan:p.perbaikan||'',tindak:p.tindak||''};
 }
-function obsGuruList(){return S.users.filter(function(u){return hasRole(u,'guru')&&u.aktif!==false}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama))})}
+function obsOrang(t){var role=t==='siswa'?'siswa':'guru';return S.users.filter(function(u){return hasRole(u,role)&&u.aktif!==false}).sort(function(a,b){return (t==='siswa'?String(a.kelas).localeCompare(String(b.kelas)):0)||String(a.nama).localeCompare(String(b.nama))})}
 
 /* ---- Tampilan ---- */
 function viewObservasi(){
+ var t0=S.tab==='observasi-siswa'?'siswa':'guru';
+ if(OB.tipe!==t0){OB.tipe=t0;OB.mode='list';OB.d=null;OB.view=null;OB.q=''}
  if(OB.mode==='form'&&OB.d)return obsFormView();
  if(OB.mode==='view'&&OB.view)return obsDetailView();
  return obsListView();
 }
 function obsListView(){
- var L=obsVisible(),q=OB.q.toLowerCase(),admin=can('observasi-semua');
+ var T=OB.tipe,D=obsDef(T),L=obsVisible(T),q=OB.q.toLowerCase(),admin=can('observasi-semua');
  var F=L.filter(function(r){return !q||(r.guru+' '+r.mapel+' '+r.kelas+' '+(r.pengamat||'')).toLowerCase().indexOf(q)>-1});
  var avg=L.length?Math.round(L.reduce(function(t,r){return t+(+r.skor||0)},0)/L.length):0;
  var gset={};L.forEach(function(r){gset[r.guru]=1});
@@ -50,23 +63,23 @@ function obsListView(){
   var kc=obsKatCls(r.kategori);
   return '<article class="card job"><div class="row sb"><h3 class="grow">'+esc(r.guru)+'</h3><span class="pill '+kc+'">'+esc(r.kategori)+'</span></div>'+
    '<div class="meta"><span>'+esc(r.mapel)+'</span><span>Kelas '+esc(r.kelas)+'</span><span>'+esc(obsTgl(r.tanggal))+'</span></div>'+
-   '<div class="row sb"><span class="note">'+(admin?'Pengamat: '+esc(r.pengamat||'-'):'Observasi saya')+'</span><span class="mono" style="font-weight:600">Nilai '+(+r.skor||0)+'</span></div>'+
+   '<div class="row sb"><span class="note">'+(admin?D.pengamat+': '+esc(r.pengamat||'-'):'Observasi saya')+'</span><span class="mono" style="font-weight:600">Nilai '+(+r.skor||0)+'</span></div>'+
    '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="ob-view" data-v="'+esc(r.id)+'">Lihat</button><button type="button" class="btn small" data-act="ob-pdf" data-v="'+esc(r.id)+'">PDF</button>'+
    (obsBoleh(r)?'<button type="button" class="btn small" data-act="ob-edit" data-v="'+esc(r.id)+'">Ubah</button><button type="button" class="btn small danger" data-act="ob-del" data-v="'+esc(r.id)+'">Hapus</button>':'')+'</div></article>';
  }).join('');
- return '<div class="row sb"><div><h2>Observasi guru</h2><p class="note">Supervisi pembelajaran di kelas dan bengkel praktik.</p></div></div>'+
-  '<div class="stats"><div class="card"><span class="label">Observasi</span><b class="mono">'+L.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div><div class="card"><span class="label">Guru</span><b class="mono">'+Object.keys(gset).length+'</b></div></div>'+
+ return '<div class="row sb"><div><h2>'+D.judul+'</h2><p class="note">'+D.sub+'</p></div></div>'+
+  '<div class="stats"><div class="card"><span class="label">Observasi</span><b class="mono">'+L.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div><div class="card"><span class="label">'+D.unit+'</span><b class="mono">'+Object.keys(gset).length+'</b></div></div>'+
   '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="ob-new">+ Observasi baru</button>'+(L.length?'<button type="button" class="btn small" data-act="ob-xls">Unduh Excel</button>':'')+'</div>'+
-  (L.length>3?'<label class="f">Cari<input id="obq" type="search" value="'+esc(OB.q)+'" placeholder="Nama guru, mata pelajaran, kelas"></label>':'')+
+  (L.length>3?'<label class="f">Cari<input id="obq" type="search" value="'+esc(OB.q)+'" placeholder="Nama, mata pelajaran/unit, kelas"></label>':'')+
   '<div class="jobs">'+(cards||'<div class="card"><p class="muted">'+(L.length?'Tidak ada observasi yang cocok.':'Belum ada observasi. Ketuk <b>+ Observasi baru</b> untuk mulai.')+'</p></div>')+'</div>'+
   '<p class="note">'+(admin?'Admin melihat semua observasi.':'Anda hanya melihat observasi yang Anda isi sendiri.')+' '+(Cloud.on?'Data tersinkron ke Appwrite.':'Data tersimpan di peramban ini.')+'</p>';
 }
 function obsFormView(){
- var d=OB.d,h=obsHitung(d.nilai);
- var gopt='<option value="">Pilih guru</option>'+obsGuruList().map(function(u){return '<option value="'+esc(u.id)+'"'+(d.guruSel===u.id?' selected':'')+'>'+esc(u.nama)+'</option>'}).join('')+'<option value="__lain"'+(d.guruSel==='__lain'?' selected':'')+'>Lainnya (ketik nama)</option>';
+ var d=OB.d,D=obsDef(d.tipe),h=obsHitung(d.nilai,d.tipe);
+ var gopt='<option value="">Pilih '+(d.tipe==='siswa'?'siswa':'guru')+'</option>'+obsOrang(d.tipe).map(function(u){return '<option value="'+esc(u.id)+'"'+(d.guruSel===u.id?' selected':'')+'>'+esc(u.nama)+(d.tipe==='siswa'?' ('+esc(u.kelas||'-')+')':'')+'</option>'}).join('')+'<option value="__lain"'+(d.guruSel==='__lain'?' selected':'')+'>Lainnya (ketik nama)</option>';
  var kopt=Object.keys(KELAS).map(function(k){return '<option value="'+k+'"'+(d.kelas===k?' selected':'')+'>Kelas '+k+'</option>'}).join('');
- var jopt=OBS_JENIS.map(function(j){return '<option'+(d.jenis===j?' selected':'')+'>'+j+'</option>'}).join('');
- var items=OBS_GRUP.map(function(g){
+ var jopt=D.jenis.map(function(j){return '<option'+(d.jenis===j?' selected':'')+'>'+j+'</option>'}).join('');
+ var items=D.grup.map(function(g){
   return '<h3 class="obs-group">'+esc(g.g)+'</h3>'+g.items.map(function(it){
    var v=d.nilai[it.id]||'';
    return '<div class="item" data-s="'+v+'"><div class="t"><b>'+it.no+'. '+esc(it.t)+'</b></div><div class="seg rate" role="group" aria-label="Skor butir '+it.no+'">'+
@@ -74,51 +87,51 @@ function obsFormView(){
     '<input class="obs-cat" data-id="'+it.id+'" maxlength="300" placeholder="Catatan (opsional)" value="'+esc(d.cat[it.id]||'')+'"></div>';
   }).join('');
  }).join('');
- return '<div class="row sb"><h2>'+(d.id?'Ubah observasi':'Observasi baru')+'</h2><button type="button" class="btn small" data-act="ob-cancel">Batal</button></div>'+
+ return '<div class="row sb"><h2>'+(d.id?'Ubah: ':'Baru: ')+D.judul+'</h2><button type="button" class="btn small" data-act="ob-cancel">Batal</button></div>'+
   '<form class="card" data-form="obs-noop" onsubmit="return false">'+
-  '<label class="f">Nama guru<select data-ob="guruSel">'+gopt+'</select></label>'+
-  (d.guruSel==='__lain'?'<label class="f">Nama guru (manual)<input data-ob="guruNama" maxlength="120" value="'+esc(d.guruNama)+'"></label>':'')+
-  '<label class="f">Mata pelajaran / kompetensi keahlian<input data-ob="mapel" maxlength="120" value="'+esc(d.mapel)+'"></label>'+
+  '<label class="f">'+D.nama+'<select data-ob="guruSel">'+gopt+'</select></label>'+
+  (d.guruSel==='__lain'?'<label class="f">'+D.namaMan+'<input data-ob="guruNama" maxlength="120" value="'+esc(d.guruNama)+'"></label>':'')+
+  '<label class="f">'+D.mapelLab+'<input data-ob="mapel" maxlength="120" value="'+esc(d.mapel)+'"></label>'+
   '<div class="two"><label class="f">Kelas<select data-ob="kelas">'+kopt+'</select></label><label class="f">Tanggal<input type="date" data-ob="tanggal" value="'+esc(d.tanggal)+'"></label></div>'+
-  '<div class="two"><label class="f">Jenis pembelajaran<select data-ob="jenis">'+jopt+'</select></label><label class="f">Jam ke-<input data-ob="jam" maxlength="20" value="'+esc(d.jam)+'"></label></div>'+
-  '<label class="f">Materi / kompetensi dasar<input data-ob="materi" maxlength="200" value="'+esc(d.materi)+'"></label></form>'+
+  '<div class="two"><label class="f">'+D.jenisLab+'<select data-ob="jenis">'+jopt+'</select></label><label class="f">Jam ke-<input data-ob="jam" maxlength="20" value="'+esc(d.jam)+'"></label></div>'+
+  '<label class="f">'+D.materiLab+'<input data-ob="materi" maxlength="200" value="'+esc(d.materi)+'"></label></form>'+
   '<p class="note">Skor: 4 Sangat baik, 3 Baik, 2 Cukup, 1 Kurang.</p>'+items+
-  '<div class="card"><div class="row sb"><span class="note">Terisi</span><b class="mono"><span id="obprog">'+h.done+'</span> / '+OBS_N+'</b></div><div class="row sb"><span class="note">Nilai · kategori</span><b class="mono" id="obnilai">'+(h.done?h.nilai+' · '+h.kat:'-')+'</b></div></div>'+
+  '<div class="card"><div class="row sb"><span class="note">Terisi</span><b class="mono"><span id="obprog">'+h.done+'</span> / '+h.n+'</b></div><div class="row sb"><span class="note">Nilai · kategori</span><b class="mono" id="obnilai">'+(h.done?h.nilai+' · '+h.kat:'-')+'</b></div></div>'+
   '<div class="card"><label class="f">Kekuatan yang teramati<textarea data-ob="kekuatan" maxlength="800">'+esc(d.kekuatan)+'</textarea></label>'+
   '<label class="f">Hal yang perlu ditingkatkan<textarea data-ob="perbaikan" maxlength="800">'+esc(d.perbaikan)+'</textarea></label>'+
   '<label class="f">Rekomendasi tindak lanjut<textarea data-ob="tindak" maxlength="800">'+esc(d.tindak)+'</textarea></label></div>'+
   '<div class="row"><button type="button" class="btn" data-act="ob-cancel">Batal</button><button type="button" class="btn primary grow" data-act="ob-save">Simpan observasi</button></div>';
 }
 function obsDetailView(){
- var r=OB.view,p=obsPay(r),h=obsHitung(p.nilai);
- var rows=OBS_GRUP.map(function(g){
+ var r=OB.view,T=obsTipe(r),D=obsDef(T),p=obsPay(r),h=obsHitung(p.nilai,T);
+ var rows=D.grup.map(function(g){
   return '<h3 class="obs-group">'+esc(g.g)+'</h3>'+g.items.map(function(it){var v=p.nilai[it.id];
    return '<div class="card" style="gap:4px"><div class="row sb"><span>'+it.no+'. '+esc(it.t)+'</span><span class="pill plain mono">'+(v||'-')+'</span></div>'+(p.cat[it.id]?'<div class="note">'+esc(p.cat[it.id])+'</div>':'')+'</div>'}).join('');
  }).join('');
  var tx=function(j,t){return t?'<div class="card"><b>'+j+'</b><p>'+esc(t).replace(/\n/g,'<br>')+'</p></div>':''};
  return '<div class="row sb"><h2>Detail observasi</h2><button type="button" class="btn small" data-act="ob-back">Kembali</button></div>'+
   '<div class="card"><h3>'+esc(r.guru)+'</h3><div class="meta"><span>'+esc(r.mapel)+'</span><span>Kelas '+esc(r.kelas)+'</span><span>'+esc(obsTgl(r.tanggal))+'</span></div>'+
-  '<div class="note">'+esc(p.jenis||'')+(p.jam?' · Jam ke-'+esc(p.jam):'')+(p.materi?' · '+esc(p.materi):'')+'</div><div class="note">Pengamat: '+esc(r.pengamat||'-')+'</div>'+
+  '<div class="note">'+esc(p.jenis||'')+(p.jam?' · Jam ke-'+esc(p.jam):'')+(p.materi?' · '+esc(p.materi):'')+'</div><div class="note">'+D.pengamat+': '+esc(r.pengamat||'-')+'</div>'+
   '<div class="row sb"><span class="pill '+obsKatCls(r.kategori)+'">'+esc(r.kategori)+'</span><b class="mono">Nilai '+(+r.skor||0)+' · skor '+h.tot+'/'+h.max+'</b></div></div>'+rows+
   tx('Kekuatan yang teramati',p.kekuatan)+tx('Hal yang perlu ditingkatkan',p.perbaikan)+tx('Rekomendasi tindak lanjut',p.tindak)+
   '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn primary" data-act="ob-pdf" data-v="'+esc(r.id)+'">Unduh PDF</button>'+(obsBoleh(r)?'<button type="button" class="btn" data-act="ob-edit" data-v="'+esc(r.id)+'">Ubah</button>':'')+'</div>';
 }
 function obsSync(){
- if(!OB.d)return;var h=obsHitung(OB.d.nilai),a=$('#obprog'),b=$('#obnilai');
+ if(!OB.d)return;var h=obsHitung(OB.d.nilai,OB.d.tipe),a=$('#obprog'),b=$('#obnilai');
  if(a)a.textContent=h.done;if(b)b.textContent=h.done?h.nilai+' · '+h.kat:'-';
 }
 
 /* ---- Simpan, hapus ---- */
 function obsSave(){
- var d=OB.d,h=obsHitung(d.nilai),guru='',gid='';
+ var d=OB.d,D=obsDef(d.tipe),h=obsHitung(d.nilai,d.tipe),guru='',gid='';
  if(d.guruSel==='__lain'){guru=String(d.guruNama||'').trim()}
  else if(d.guruSel){var u=S.users.find(function(x){return x.id===d.guruSel});if(u){guru=u.nama;gid=u.id}}
- if(!guru){toast('Pilih atau isi nama guru');return}
- if(!String(d.mapel||'').trim()){toast('Isi mata pelajaran atau kompetensi keahlian');return}
+ if(!guru){toast('Pilih atau isi '+D.nama.toLowerCase());return}
+ if(!String(d.mapel||'').trim()){toast('Isi '+D.mapelLab.toLowerCase());return}
  if(!d.tanggal){toast('Isi tanggal observasi');return}
- if(h.done<OBS_N){toast('Lengkapi skor semua butir ('+h.done+' dari '+OBS_N+')');return}
+ if(h.done<h.n){toast('Lengkapi skor semua butir ('+h.done+' dari '+h.n+')');return}
  var payload=JSON.stringify({jenis:d.jenis,jam:String(d.jam||'').trim(),materi:String(d.materi||'').trim(),nilai:d.nilai,cat:d.cat,kekuatan:String(d.kekuatan||'').trim(),perbaikan:String(d.perbaikan||'').trim(),tindak:String(d.tindak||'').trim()});
- var f={guruId:gid,guru:guru.slice(0,120),mapel:String(d.mapel).trim().slice(0,120),kelas:d.kelas,tanggal:d.tanggal,skor:h.nilai,kategori:h.kat,payload:payload};
+ var f={tipe:d.tipe,guruId:gid,guru:guru.slice(0,120),mapel:String(d.mapel).trim().slice(0,120),kelas:d.kelas,tanggal:d.tanggal,skor:h.nilai,kategori:h.kat,payload:payload};
  S.observasi=S.observasi||[];
  var rec=d.id?S.observasi.find(function(x){return x.id===d.id}):null;
  if(rec){Object.assign(rec,f);if(rec.r)rec.d=1}
@@ -135,11 +148,11 @@ async function obsDelete(id){
 /* ---- Ekspor ---- */
 function obsPdf(id){
  var r=(S.observasi||[]).find(function(x){return x.id===id});if(!r||!needP())return;
- var p=obsPay(r),h=obsHitung(p.nilai),doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
- kop(doc,'Form Observasi Kinerja Guru');
- doc.autoTable({startY:45,theme:'plain',styles:{fontSize:10,cellPadding:1.2},columnStyles:{0:{cellWidth:50,fontStyle:'bold'}},body:[['Nama guru',r.guru],['Mata pelajaran / kompetensi',r.mapel],['Kelas',r.kelas],['Jenis pembelajaran',p.jenis||'-'],['Tanggal observasi',obsTgl(r.tanggal)],['Jam ke-',p.jam||'-'],['Materi / kompetensi dasar',p.materi||'-'],['Pengamat',r.pengamat||'-']]});
+ var T=obsTipe(r),D=obsDef(T),p=obsPay(r),h=obsHitung(p.nilai,T),doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+ kop(doc,D.pdf);
+ doc.autoTable({startY:45,theme:'plain',styles:{fontSize:10,cellPadding:1.2},columnStyles:{0:{cellWidth:50,fontStyle:'bold'}},body:[[D.nama,r.guru],[D.mapelLab,r.mapel],['Kelas',r.kelas],[D.jenisLab,p.jenis||'-'],['Tanggal observasi',obsTgl(r.tanggal)],['Jam ke-',p.jam||'-'],[D.materiLab,p.materi||'-'],[D.pengamat,r.pengamat||'-']]});
  var body=[];
- OBS_GRUP.forEach(function(g){body.push([{content:g.g,colSpan:4,styles:{fontStyle:'bold',fillColor:[232,240,235]}}]);g.items.forEach(function(it){body.push([it.no,it.t,String(p.nilai[it.id]||'-'),p.cat[it.id]||''])})});
+ D.grup.forEach(function(g){body.push([{content:g.g,colSpan:4,styles:{fontStyle:'bold',fillColor:[232,240,235]}}]);g.items.forEach(function(it){body.push([it.no,it.t,String(p.nilai[it.id]||'-'),p.cat[it.id]||''])})});
  doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9,cellPadding:1.8},headStyles:TH,head:[['No','Aspek yang diamati','Skor','Catatan']],body:body,columnStyles:{0:{cellWidth:10,halign:'center'},2:{cellWidth:14,halign:'center'}}});
  var y=doc.lastAutoTable.finalY+7,H=doc.internal.pageSize.getHeight();
  if(y>H-40){doc.addPage();y=22}
@@ -150,26 +163,26 @@ function obsPdf(id){
   if(y+6+lines.length*4.6>H-20){doc.addPage();y=22}
   doc.setFontSize(10).setFont('helvetica','bold').text(t[0],14,y);doc.setFont('helvetica','normal').text(lines,14,y+5);y+=9+lines.length*4.6;
  });
- ttd(doc,y+4,[['Pengamat',r.pengamat||''],['Guru yang diamati',r.guru]]);
- foot(doc);doc.save('Observasi_'+slug(r.guru||'guru')+'_'+r.tanggal+'.pdf');
+ ttd(doc,y+4,[[D.pengamat,r.pengamat||''],[D.diamati,r.guru]]);
+ foot(doc);doc.save((T==='siswa'?'Observasi_praktik_':'Observasi_')+slug(r.guru||'nama')+'_'+r.tanggal+'.pdf');
 }
 function obsXls(){
- if(!needX())return;var L=obsVisible().slice().sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))||a.ts-b.ts});
- var head=['No','Tanggal','Guru','Mata pelajaran','Kelas','Jenis','Pengamat'].concat(OBS_FLAT.map(function(i){return i.no+'. '+i.t})).concat(['Total skor','Rata-rata','Nilai','Kategori','Kekuatan','Perlu ditingkatkan','Tindak lanjut']);
- var aoa=[head].concat(L.map(function(r,i){var p=obsPay(r),h=obsHitung(p.nilai);
-  return [i+1,r.tanggal,r.guru,r.mapel,r.kelas,p.jenis||'',r.pengamat||''].concat(OBS_FLAT.map(function(it){return p.nilai[it.id]||''})).concat([h.tot,h.rata,r.skor,r.kategori,p.kekuatan||'',p.perbaikan||'',p.tindak||''])}));
- book([['Rekap Observasi',aoa,head.map(function(x,i){return i===2||i===3?24:i>6&&i<7+OBS_N?10:i>=7+OBS_N+4?36:14})]],'Rekap_Observasi_Guru');
+ if(!needX())return;var T=OB.tipe,D=obsDef(T),L=obsVisible(T).slice().sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))||a.ts-b.ts});
+ var head=['No','Tanggal',D.unit,D.mapelLab,'Kelas',D.jenisLab,D.pengamat].concat(D.flat.map(function(i){return i.no+'. '+i.t})).concat(['Total skor','Rata-rata','Nilai','Kategori','Kekuatan','Perlu ditingkatkan','Tindak lanjut']);
+ var aoa=[head].concat(L.map(function(r,i){var p=obsPay(r),h=obsHitung(p.nilai,T);
+  return [i+1,r.tanggal,r.guru,r.mapel,r.kelas,p.jenis||'',r.pengamat||''].concat(D.flat.map(function(it){return p.nilai[it.id]||''})).concat([h.tot,h.rata,r.skor,r.kategori,p.kekuatan||'',p.perbaikan||'',p.tindak||''])}));
+ book([[T==='siswa'?'Rekap Praktik Siswa':'Rekap Observasi Guru',aoa,head.map(function(x,i){return i===2||i===3?24:i>6&&i<7+D.flat.length?10:i>=7+D.flat.length+4?36:14})]],T==='siswa'?'Rekap_Observasi_Praktik_Siswa':'Rekap_Observasi_Guru');
 }
 
 /* ---- Aksi ---- */
 document.addEventListener('click',function(e){
  var b=e.target.closest('[data-act]');if(!b)return;var a=b.dataset.act,v=b.dataset.v;if(a.indexOf('ob-')!==0)return;
  if(!can('observasi'))return;
- if(a==='ob-new'){OB.d=obsBaru();OB.mode='form';render();window.scrollTo(0,0)}
+ if(a==='ob-new'){OB.d=obsBaru(OB.tipe);OB.mode='form';render();window.scrollTo(0,0)}
  else if(a==='ob-edit'){var r=(S.observasi||[]).find(function(x){return x.id===v});if(!r||!obsBoleh(r))return;OB.d=obsDraftDari(r);OB.mode='form';render();window.scrollTo(0,0)}
  else if(a==='ob-view'){var r2=(S.observasi||[]).find(function(x){return x.id===v});if(!r2)return;OB.view=r2;OB.mode='view';render();window.scrollTo(0,0)}
  else if(a==='ob-back'){OB.mode='list';OB.view=null;render();window.scrollTo(0,0)}
- else if(a==='ob-cancel'){if(OB.d&&obsHitung(OB.d.nilai).done&&!confirm('Batalkan? Isian yang belum disimpan akan hilang.'))return;OB.mode='list';OB.d=null;render();window.scrollTo(0,0)}
+ else if(a==='ob-cancel'){if(OB.d&&obsHitung(OB.d.nilai,OB.d.tipe).done&&!confirm('Batalkan? Isian yang belum disimpan akan hilang.'))return;OB.mode='list';OB.d=null;render();window.scrollTo(0,0)}
  else if(a==='ob-rate'){var s=parseInt(v,10),card=b.closest('.item');OB.d.nilai[b.dataset.id]=s;card.dataset.s=s;$$('button',card).forEach(function(x){x.setAttribute('aria-pressed',String(parseInt(x.dataset.v,10)===s))});obsSync()}
  else if(a==='ob-save')obsSave();
  else if(a==='ob-del')obsDelete(v);
@@ -186,5 +199,5 @@ document.addEventListener('change',function(e){
  if(t.id==='obq'){OB.q=t.value;render();return}
  if(!OB.d||OB.mode!=='form'||!t.dataset||!t.dataset.ob)return;
  OB.d[t.dataset.ob]=t.value;
- if(t.dataset.ob==='guruSel')render();
+ if(t.dataset.ob==='guruSel'){if(OB.d.tipe==='siswa'){var u=S.users.find(function(x){return x.id===t.value});if(u&&u.kelas&&KELAS[u.kelas])OB.d.kelas=u.kelas}render()}
 });

@@ -562,6 +562,13 @@
           "max": 9007199254740991
         },
         {
+          "key": "tipe",
+          "type": "string",
+          "size": 8,
+          "required": false,
+          "array": false
+        },
+        {
           "key": "guruId",
           "type": "string",
           "required": false,

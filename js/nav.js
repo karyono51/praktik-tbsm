@@ -1,7 +1,7 @@
 /* nav.js: posisi halaman bertahan saat reload, tombol segarkan data, dan pembaruan aplikasi (cache) */
 var NAV={restore:false,busy:false,hadCtl:false,updated:false};
 var NAVK='tbsm-nav',NAVTTL=24*3600*1000;
-var NAVTABS=['beranda','katalog','rekap','akun','acuan','lkpd','observasi'];
+var NAVTABS=['beranda','katalog','rekap','akun','acuan','lkpd','observasi','observasi-siswa'];
 
 /* ---- Simpan dan pulihkan posisi halaman ---- */
 function navSave(){
@@ -11,7 +11,7 @@ function navSave(){
 function navApply(u){
  var j;try{j=JSON.parse(localStorage.getItem(NAVK)||'null')}catch(e){j=null}
  if(!j||j.u!==u.id||Date.now()-j.t>NAVTTL)return;
- if(NAVTABS.indexOf(j.tab)<0||(j.tab==='akun'&&!can('akun'))||(j.tab==='observasi'&&!can('observasi')))return;
+ if(NAVTABS.indexOf(j.tab)<0||(j.tab==='akun'&&!can('akun'))||((j.tab==='observasi'||j.tab==='observasi-siswa')&&!can('observasi')))return;
  if(kelasBoleh().indexOf(j.kelas)>-1)S.kelas=j.kelas;
  S.tab=j.tab;
  if(j.tab==='lkpd'){

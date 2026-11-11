@@ -42,7 +42,7 @@ var FA=['nama','username','email','peran','kelas','aktif'];
 var FH=['ts','jobId','kelas','siswa','tipe','score','kompeten','catatan','detik','oleh','penilai','sid'];
 var FL=['ts','moduleId','moduleTitle','kelas','siswa','sid','score','practice','theory','kompeten','payload','oleh','koreksi','umpan','verifOleh','verifTs'];
 var FB=['lkpdId','sid','moduleId','ts','label','data'];
-var FO=['ts','guruId','guru','mapel','kelas','tanggal','pengamat','pengamatId','skor','kategori','payload'];
+var FO=['ts','tipe','guruId','guru','mapel','kelas','tanggal','pengamat','pengamatId','skor','kategori','payload'];
 var FLM=['moduleId','title','kelas','fase','duration','status','active','payload','updatedAt','updatedBy'];
 function pick(o,F){var x={};F.forEach(function(k){if(o[k]!==undefined&&o[k]!==null)x[k]=o[k]});return x}
 function fromDoc(d){var o={id:d.$id};Object.keys(d).forEach(function(k){if(k[0]!=='$')o[k]=d[k]});o.r=1;return o}
