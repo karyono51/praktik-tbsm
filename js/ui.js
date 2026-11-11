@@ -66,7 +66,7 @@ function viewLogin(){
  '<label class="f">Kata sandi<input name="pw" type="password" required minlength="'+(reg?8:1)+'" autocomplete="'+(reg?'new-password':'current-password')+'"></label>'+
  (A.err?'<p class="err" role="alert">'+esc(A.err)+'</p>':'')+
  '<button class="btn primary" type="submit">'+(reg?'Daftar':'Masuk')+'</button>'+
- (Cloud.on?'<button type="button" class="btn" data-act="google">Lanjut dengan Google</button><button type="button" class="link" data-act="togglereg">'+(reg?'Sudah punya akun? Masuk':'Belum punya akun? Daftar')+'</button>':'')+
+ (Cloud.on?'<button type="button" class="link" data-act="togglereg">'+(reg?'Sudah punya akun? Masuk':'Belum punya akun? Daftar')+'</button>':'')+
  '</form>'+(Cloud.on?'':'<p class="note center">Mode lokal, data tersimpan di peramban ini. Akun awal: <b>admin</b> / <b>admin123</b>. Ganti sandinya di menu Akun.</p>')+'</div>';
 }
 
@@ -138,7 +138,10 @@ document.addEventListener('submit',async function(e){
    else{var u=await localLogin(d.id.trim(),d.pw);if(!u)throw new Error('Username atau sandi salah.');localStorage.setItem(SES,u.id);enter(u)}
   }else if(k==='register'){await Cloud.register(d.nama.trim(),d.id.trim(),d.pw);await Cloud.enter(await Cloud.me())}
   else if(k==='akun')await saveAkun(d);
- }catch(err){A.err=err&&err.message?err.message:String(err)}
+ }catch(err){A.err=err&&err.message?err.message:String(err);
+  if(/invalid credentials/i.test(A.err))A.err='Email atau kata sandi salah, atau akun login belum dibuat. Jika belum pernah mendaftar, ketuk Daftar dan pakai email yang sama dengan yang dicatat guru.';
+  else if(/user.*already exists|same id, email, or phone/i.test(A.err))A.err='Email ini sudah terdaftar. Ketuk Masuk, bukan Daftar.';
+  else if(/password must be/i.test(A.err))A.err='Kata sandi minimal 8 karakter.'}
  render();
 });
 async function doLogout(){
