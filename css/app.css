@@ -291,3 +291,9 @@ fieldset.roles legend{font-size:13px;font-weight:500;color:var(--muted);padding:
  textarea,input,select{border:0!important;background:transparent!important;padding:0!important;width:auto!important;height:auto!important}
  .lk-check,.lk-step,.lk-option{border:0!important;padding:2px 0!important}
 }
+
+/* LKPD: pengelompokan per kelas */
+.lk-group{display:flex;flex-direction:column;gap:4px;margin:4px 0}
+.lk-grouplabel{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.03em;text-transform:uppercase}
+h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
+.lk-kf{margin:6px 0}
