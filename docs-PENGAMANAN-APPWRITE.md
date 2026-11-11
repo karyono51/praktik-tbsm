@@ -6,7 +6,7 @@ Berkas `appwrite.json` pada versi ini **memperketat izin** koleksi `lkpd` dan me
 Appwrite Console > Auth > Users > pilih pengguna > Labels.
 - Semua guru: label `guru`
 - Admin: label `admin` (sudah dipakai di izin lama)
-- Guru yang boleh mengelola modul LKPD: label `lkpd-editor`
+- Guru yang boleh mengelola modul LKPD: label `lkpdeditor`
 
 Label adalah izin server. Kolom peran di aplikasi hanya mengatur tampilan.
 

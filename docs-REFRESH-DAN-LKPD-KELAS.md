@@ -1,4 +1,7 @@
-# Refresh dan LKPD per kelas (cache tbsm-v27)
+# Refresh dan LKPD per kelas (cache tbsm-v28)
+
+## v28: nama label editor modul
+- Appwrite hanya menerima label huruf dan angka, sehingga `lkpd-editor` ditolak. Nama label diganti menjadi `lkpdeditor` (tanpa tanda hubung) di js/pwa.js, appwrite.json, dan dokumen. Beri label ini ke akun yang boleh mengelola modul LKPD.
 
 ## v27: koleksi lkpd hilang dan nilai akun terhapus
 - Penyebab notifikasi "Server belum terjangkau (Collection ... 'lkpd' could not be found)": koleksi `lkpd` belum ada di database Appwrite, sehingga pemuatan awal selalu gagal. Kini koleksi yang belum ada dilewati (dianggap kosong) dan aplikasi memuat normal. Agar LKPD siswa bisa tersimpan di server, buat koleksi `lkpd` (dan `lkpd_bukti`) sesuai appwrite.json.
