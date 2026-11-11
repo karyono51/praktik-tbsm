@@ -74,6 +74,15 @@ function tplAkun(){
 
 /* ---------- Rekap: Excel ---------- */
 function filt(){return visibleResults().filter(function(r){return S.filter==='ALL'||r.kelas===S.filter})}
+/* Observasi praktik siswa di Rekap nilai (hanya Admin dan Guru; mengikuti filter kelas) */
+function obsRekapList(){return (can('observasi')&&typeof obsVisible==='function')?obsVisible('siswa').filter(function(r){return S.filter==='ALL'||r.kelas===S.filter}):[]}
+function obsRekapHtml(){
+ var L=obsRekapList();if(!L.length)return '';
+ var avg=Math.round(L.reduce(function(t,r){return t+(+r.skor||0)},0)/L.length);
+ return '<h3>Observasi praktik siswa</h3><div class="stats"><div class="card"><span class="label">Observasi</span><b class="mono">'+L.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div></div>'+
+  L.map(function(r){return '<div class="card" style="gap:6px"><div class="row sb"><b>'+esc(r.guru)+'</b><span class="pill '+obsKatCls(r.kategori)+'">'+esc(r.kategori)+'</span></div><div class="note">'+esc(r.mapel)+'</div><div class="row sb"><span class="note">Kelas '+esc(r.kelas)+' · '+esc(obsTgl(r.tanggal))+(r.pengamat?' · '+esc(r.pengamat):'')+'</span><span class="mono" style="font-weight:600">'+(+r.skor||0)+'</span></div></div>'}).join('')
+}
+function obsRekapUrut(){return obsRekapList().slice().sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))||a.ts-b.ts})}
 function agg(list){var n=list.length;return [n,n?Math.round(list.reduce(function(s,r){return s+r.score},0)/n):0,n?Math.round(100*list.filter(function(r){return r.kompeten}).length/n)/100:0]}
 function xlsRekap(){
  if(!needX())return;
@@ -88,6 +97,8 @@ function xlsRekap(){
  var sw=[['Siswa','Kelas','Jumlah data','Rata-rata','Persen kompeten']].concat(Object.keys(by).sort().map(function(key){var p=key.split('|');return [p[0],p[1]].concat(agg(by[key]))}));
  var ss=sheet(sw,[28,8,13,11,16]);for(var m=2;m<=sw.length;m++)if(ss['E'+m])ss['E'+m].z='0%';
  XLSX.utils.book_append_sheet(wb,ss,'Per siswa');
+ var O=obsRekapUrut();
+ if(O.length){var orows=[['No','Tanggal','Kelas','Siswa','Unit praktik','Jam ke-','Kompetensi/jobsheet','Nilai','Kategori','Pengamat']].concat(O.map(function(r,i){var p=obsPay(r);return [i+1,obsTgl(r.tanggal),r.kelas,r.guru,r.mapel,p.jam||'',p.materi||'',+r.skor||0,r.kategori,r.pengamat||'']}));XLSX.utils.book_append_sheet(wb,sheet(orows,[5,18,8,26,40,8,34,7,14,22]),'Observasi siswa')}
  dl(wb,'Rekap_Uji_Praktik_TBSM');
 }
 
@@ -123,6 +134,11 @@ function pdfRekap(){
   body:L.map(function(r,i){var j=jobById(r.jobId);return [i+1,new Date(r.ts).toLocaleDateString('id-ID'),r.kelas,r.siswa||'-',j?j.judul:r.jobId,r.tipe,r.score,r.kompeten?'Kompeten':'Belum kompeten']}),
   columnStyles:{0:{cellWidth:10},1:{cellWidth:24},2:{cellWidth:14},6:{cellWidth:14,halign:'center'},7:{cellWidth:32}},
   didParseCell:function(d){if(d.section==='body'&&d.column.index===7)d.cell.styles.textColor=d.cell.raw==='Kompeten'?[4,120,87]:[185,28,28]}});
+ var O=obsRekapUrut();
+ if(O.length){var y0=doc.lastAutoTable.finalY+10;if(y0>doc.internal.pageSize.getHeight()-40){doc.addPage();y0=20}
+  doc.setFont('helvetica','bold').setFontSize(11).text('Observasi Praktik Siswa ('+O.length+' observasi, rata-rata '+Math.round(O.reduce(function(t,r){return t+(+r.skor||0)},0)/O.length)+')',14,y0);doc.setFont('helvetica','normal');
+  doc.autoTable({startY:y0+3,theme:'grid',styles:{fontSize:8.5,cellPadding:2},headStyles:TH,head:[['No','Tanggal','Kelas','Siswa','Unit praktik','Nilai','Kategori']],
+   body:O.map(function(r,i){return [i+1,obsTgl(r.tanggal),r.kelas,r.guru,r.mapel,+r.skor||0,r.kategori]}),columnStyles:{0:{cellWidth:10},1:{cellWidth:30},2:{cellWidth:14},5:{cellWidth:14,halign:'center'},6:{cellWidth:28}}})}
  ttd(doc,doc.lastAutoTable.finalY+14,[[isStaff()?'Guru Mata Pelajaran':'Siswa',S.user.nama]]);
  foot(doc);doc.save('Rekap_Uji_Praktik_TBSM_'+new Date().toISOString().slice(0,10)+'.pdf');
 }

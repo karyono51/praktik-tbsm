@@ -81,7 +81,7 @@ function viewRekap(){
   '<div class="stats"><div class="card"><span class="label">Data</span><b class="mono">'+n+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+a[1]+'</b></div><div class="card"><span class="label">Kompeten</span><b class="mono">'+Math.round(a[2]*100)+'%</b></div></div>'+
   '<div class="row"><button type="button" class="btn small" data-act="xlsrekap">Unduh Excel</button><button type="button" class="btn small primary" data-act="pdfrekap">Unduh PDF</button>'+(can('hapus')&&!Cloud.on?'<button type="button" class="btn small danger" data-act="rmall">Hapus semua</button>':'')+'</div>'+
   imporNilaiHtml()+
-  (rows||'<div class="card"><p class="muted">Belum ada data untuk filter ini. Mulai dari tab Unit ujian.</p></div>')+
+  (rows||(obsRekapList().length?'':'<div class="card"><p class="muted">Belum ada data untuk filter ini.</p></div>'))+obsRekapHtml()+
   '<p class="note">'+(Cloud.on?'Data tersinkron ke Appwrite.':'Data tersimpan di peramban ini. Unduh Excel atau PDF untuk arsip.')+'</p>';
 }
 
