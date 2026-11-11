@@ -1,39 +1,4 @@
 /* ---- Penilaian lebih dari satu siswa: per siswa (rubrik sendiri-sendiri) atau kelompok (satu rubrik untuk semua anggota) ---- */
-/* ---- Form identitas & data unit, serta isian rinci per butir (hasil ukur, spesifikasi, satuan, temuan) ---- */
-function p2(n){return (n<10?'0':'')+n}
-function todayISO(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
-function tsFromTgl(){var m=String(V.tgl||'').match(/^(\d{4})-(\d{2})-(\d{2})$/),n=new Date();if(!m)return Date.now();return new Date(+m[1],+m[2]-1,+m[3],n.getHours(),n.getMinutes(),n.getSeconds()).getTime()}
-function fmtTgl(iso){var m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):''}
-function idnOf(k){V.idn=V.idn||{};return V.idn[k]||(V.idn[k]={})}
-function fdKey(){return V.kel?'*':V.peserta}
-function fdPeek(id){var a=(V.fd||{})[fdKey()];return (a&&a[id])||{}}
-function fdOf(id){V.fd=V.fd||{};var k=fdKey();V.fd[k]=V.fd[k]||{};return V.fd[k][id]||(V.fd[k][id]={})}
-function fdHtml(i){
-  var d=fdPeek(i.id),has=!!(d.v||d.s||d.k),open=!!(V.open&&V.open[i.id]);
-  var meas=i.m?'<div class="three"><label class="f">Hasil ukur<input data-fd="'+i.id+'" data-f="v" inputmode="decimal" maxlength="24" value="'+esc(d.v||'')+'"></label><label class="f">Spesifikasi<input data-fd="'+i.id+'" data-f="s" maxlength="32" value="'+esc(d.s||'')+'" placeholder="mis. 12,6 - 13"></label><label class="f">Satuan<input data-fd="'+i.id+'" data-f="u" maxlength="12" value="'+esc(d.u||'')+'" placeholder="V, mm"></label></div>':'';
-  return '<button type="button" class="fdt" data-act="fdtoggle" data-id="'+i.id+'" aria-expanded="'+open+'">'+(i.m?'Isi hasil ukur &amp; temuan':'Isi temuan')+(has?' <span class="fdd">terisi</span>':'')+'</button>'+
-    '<div class="fdp" id="fdp-'+i.id+'"'+(open?'':' hidden')+'>'+meas+'<label class="f">Keterangan / temuan<textarea data-fd="'+i.id+'" data-f="k" rows="2" maxlength="300" placeholder="Kondisi, kerusakan, atau tindakan yang dilakukan">'+esc(d.k||'')+'</textarea></label></div>';
-}
-function idnHtml(){
-  var staff=isStaff(),names=staff&&V.group.length?V.group:[V.peserta],kel=staff&&V.kel&&names.length>1,k=kel?'*':V.peserta,sh=idnOf(k);
-  var nis=kel?names.map(function(n){return '<label class="f">NIS '+esc(n)+'<input data-idn="nis" data-n="'+esc(n)+'" inputmode="numeric" maxlength="20" value="'+esc(idnOf(n).nis||'')+'"></label>'}).join('')
-    :'<label class="f">NIS<input data-idn="nis" data-n="'+esc(k)+'" inputmode="numeric" maxlength="20" value="'+esc(sh.nis||'')+'" placeholder="Nomor induk siswa"></label>';
-  return '<div class="card"><h3>Identitas &amp; data unit</h3>'+
-    (staff&&!kel&&names.length>1?'<p class="note">Diisi untuk: <b>'+esc(V.peserta)+'</b>. Ganti siswa lewat tab nama untuk mengisi data siswa lain.</p>':'')+
-    '<label class="f">Tanggal praktik<input id="fd-tgl" type="date" value="'+esc(V.tgl||'')+'"></label>'+nis+
-    '<div class="two"><label class="f">Kendaraan (merek &amp; tipe)<input data-idn="kend" data-n="'+esc(k)+'" maxlength="40" value="'+esc(sh.kend||'')+'" placeholder="mis. Honda Beat 2019"></label><label class="f">No. polisi<input data-idn="nopol" data-n="'+esc(k)+'" maxlength="14" value="'+esc(sh.nopol||'')+'" placeholder="mis. D 1234 AB"></label></div>'+
-    '<p class="note">Semua kolom boleh dikosongkan. Isian rinci tiap butir ada di tombol di bawah butir.</p></div>';
-}
-function dataFor(name){
-  var key=V.kel?'*':name,id=(V.idn||{})[name]||{},sh=V.kel?((V.idn||{})['*']||{}):id,t=function(x){return String(x==null?'':x).trim()};
-  var o={nis:t(id.nis),kend:t(sh.kend),nopol:t(sh.nopol),tgl:V.tgl||''},f={},src=(V.fd||{})[key]||{};
-  V.job.items.forEach(function(i,n){var x=src[i.id];if(x&&(t(x.v)||t(x.s)||t(x.k)))f[i.id]={n:n+1,t:i.t,v:t(x.v),s:t(x.s),u:t(x.u),k:t(x.k)}});
-  if(Object.keys(f).length)o.f=f;return o}
-function infoText(d){
-  var a=[];if(d.nis)a.push('NIS '+d.nis);if(d.kend)a.push('Kendaraan '+d.kend);if(d.nopol)a.push('No. polisi '+d.nopol);
-  var s=a.length?'Data unit: '+a.join(', ')+'.':'',u=[],k=[];
-  Object.keys(d.f||{}).forEach(function(i){var x=d.f[i];if(x.v)u.push('#'+x.n+' '+x.v+(x.u?' '+x.u:'')+(x.s?' (std '+x.s+')':''));if(x.k)k.push('#'+x.n+' '+x.k)});
-  if(u.length)s+=' Ukur: '+u.join('; ')+'.';if(k.length)s+=' Temuan: '+k.join('; ')+'.';return s.trim()}
 function noteKey(){return V.kel?'*':V.peserta}
 function curChecks(){var k=V.kel?'*':V.peserta;return V.cks[k]||(V.cks[k]={})}
 function nameList(){return V.group&&V.group.length?V.group:[V.peserta||'']}
@@ -47,9 +12,9 @@ function startExam(id,keep){
   var j=jobById(id);if(kelasBoleh().indexOf(j.kelas)<0){toast('Unit ini bukan untuk kelas kamu');return}
   var ro=S.roster.filter(function(r){return r.kelas===j.kelas});
   var first=isStaff()?(ro[0]?ro[0].nama:''):S.siswaName;
-  V={mode:'exam',job:j,checks:{},peserta:first,catatan:'',sec:0,running:false,res:null,group:first?[first]:[],kel:false,cks:{},notes:{},items:null,rc:0,fd:{},idn:{},open:{},tgl:todayISO()};
+  V={mode:'exam',job:j,checks:{},peserta:first,catatan:'',sec:0,running:false,res:null,group:first?[first]:[],kel:false,cks:{},notes:{},items:null,rc:0};
   V.cks[first]=V.checks;
-  if(keep&&isStaff()){V.group=keep.group.slice();V.kel=keep.kel;V.peserta=V.group[0]||'';V.cks={};V.group.forEach(function(n){V.cks[n]={}});V.cks['*']={};V.cks[V.peserta]=V.cks[V.peserta]||{};V.checks=curChecks();if(keep.idn){V.idn=keep.idn;V.tgl=keep.tgl||V.tgl}}
+  if(keep&&isStaff()){V.group=keep.group.slice();V.kel=keep.kel;V.peserta=V.group[0]||'';V.cks={};V.group.forEach(function(n){V.cks[n]={}});V.cks['*']={};V.cks[V.peserta]=V.cks[V.peserta]||{};V.checks=curChecks()}
   render();window.scrollTo(0,0);
 }
 function addMember(n){
@@ -92,7 +57,6 @@ document.addEventListener('click',function(e){
     $$('button',card).forEach(function(x){x.setAttribute('aria-pressed',String(parseInt(x.dataset.v,10)===val))});
     syncProg();
   }
-  else if(a==='fdtoggle'){var oid=b.dataset.id;V.open=V.open||{};V.open[oid]=!V.open[oid];var pn=document.getElementById('fdp-'+oid);if(pn)pn.hidden=!V.open[oid];b.setAttribute('aria-expanded',String(!!V.open[oid]))}
   else if(a==='timer'){if(V.running){stopTimer();b.textContent='Lanjut'}else{startTimer();b.textContent='Jeda'}}
   else if(a==='addsiswa'){
     var inp=$('#newsiswa'),nm=inp.value.trim();if(!nm){inp.focus();return}
@@ -107,15 +71,14 @@ document.addEventListener('click',function(e){
     V.rc=0;V.peserta=V.items[0].nama;V.res={calc:V.items[0].calc};V.catatan=V.notes[noteKey()]||'';
     V.mode='result';render();window.scrollTo(0,0);
   }
-  else if(a==='redo'){var j=V.job,keep={group:nameList().slice(),kel:!!V.kel,idn:V.idn,tgl:V.tgl};startExam(j.id,keep)}
+  else if(a==='redo'){var j=V.job,keep={group:nameList().slice(),kel:!!V.kel};startExam(j.id,keep)}
   else if(a==='save'){
     stashNote();
-    var t0=tsFromTgl(),n=V.items.length;
+    var t0=Date.now(),n=V.items.length;
     V.items.forEach(function(it,k){
-      var nt=V.notes[V.kel?'*':it.nama]||'',dd=dataFor(it.nama),head=[(V.kel&&n>1)?'Penilaian kelompok ('+n+' siswa).':'',infoText(dd)].filter(Boolean).join(' ').slice(0,700);
-      var rec={id:uid(),ts:t0+k,jobId:V.job.id,kelas:V.job.kelas,siswa:it.nama,tipe:isStaff()?'Penilaian':'Latihan',score:it.calc.score,kompeten:it.calc.kompeten,catatan:(head+' '+nt).trim().slice(0,1000),detik:V.sec,oleh:S.user.username,penilai:S.user.nama,sid:sidOf(it.nama)};
-      if(dd.nis||dd.kend||dd.nopol||dd.f)rec.data=JSON.stringify(dd);
-      S.results.push(rec);
+      var nt=V.notes[V.kel?'*':it.nama]||'';
+      if(V.kel&&n>1)nt=('Penilaian kelompok ('+n+' siswa). '+nt).trim().slice(0,1000);
+      S.results.push({id:uid(),ts:t0+k,jobId:V.job.id,kelas:V.job.kelas,siswa:it.nama,tipe:isStaff()?'Penilaian':'Latihan',score:it.calc.score,kompeten:it.calc.kompeten,catatan:nt,detik:V.sec,oleh:S.user.username,penilai:S.user.nama,sid:sidOf(it.nama)});
     });
     persist();resetV();S.tab='rekap';render();window.scrollTo(0,0);toast(n>1?n+' hasil tersimpan':'Hasil tersimpan');
   }
@@ -137,11 +100,5 @@ document.addEventListener('change',function(e){
   if(e.target.id==='peserta'&&V.mode==='exam')V.peserta=e.target.value;
   if(e.target.id==='kkm'){var n=parseInt(e.target.value,10);if(n>=60&&n<=100){S.kkm=n;persist();toast('KKM '+n)}else{e.target.value=S.kkm}}
 });
-document.addEventListener('input',function(e){
-  var t=e.target;if(V.mode!=='exam')return;
-  if(t.id==='peserta')V.peserta=t.value;
-  else if(t.dataset&&t.dataset.fd){fdOf(t.dataset.fd)[t.dataset.f]=t.value;var bt=document.querySelector('.fdt[data-id="'+t.dataset.fd+'"]'),d=fdPeek(t.dataset.fd);if(bt){var on=!!(d.v||d.s||d.k),sp=bt.querySelector('.fdd');if(on&&!sp)bt.insertAdjacentHTML('beforeend',' <span class="fdd">terisi</span>');else if(!on&&sp)sp.remove()}}
-  else if(t.dataset&&t.dataset.idn)idnOf(t.dataset.n)[t.dataset.idn]=t.value;
-  else if(t.id==='fd-tgl')V.tgl=t.value;
-});
+document.addEventListener('input',function(e){if(e.target.id==='peserta'&&V.mode==='exam')V.peserta=e.target.value});
 boot();

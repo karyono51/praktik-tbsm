@@ -246,11 +246,3 @@ fieldset.roles legend{font-size:13px;font-weight:500;color:var(--muted);padding:
 .ptab .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}.ptab .dot.bad{background:var(--bad)}
 .ptab .px{border:0;border-left:1px solid var(--line);background:none;padding:0 11px;font-size:18px;line-height:1;color:var(--muted)}
 .ptab .px:active{color:var(--bad)}
-
-/* Form identitas dan isian rinci per butir */
-.fdt{align-self:flex-start;background:none;border:0;padding:2px 0;font:inherit;font-size:12.5px;font-weight:600;color:var(--accent);cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
-.fdd{display:inline-block;margin-left:4px;padding:0 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-size:11px;text-decoration:none}
-.fdp{display:flex;flex-direction:column;gap:10px;padding-top:10px;border-top:1px dashed var(--line)}.fdp[hidden]{display:none}
-.three{display:grid;grid-template-columns:1fr 1fr .7fr;gap:8px}@media(max-width:380px){.three{grid-template-columns:1fr 1fr}.three label:last-child{grid-column:1/-1}}
-input[type=date]{min-height:42px}
-.lkpd{margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
