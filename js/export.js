@@ -56,7 +56,7 @@ async function applyImport(){
   }
   if(Cloud.on&&r.pw){
    if(stopL)st='login dilewati (batas Appwrite)';
-   else try{var lr=await Cloud.buatLogin(u.email,r.pw,u.nama);if(lr.exists)st='login sudah ada, sandi tidak diubah';else{st='login dibuat';nl++}}catch(lx){st='login GAGAL: '+((lx&&lx.message)||lx);if(/Terlalu banyak/.test(st))stopL=true}
+   else try{var lr=await Cloud.setPw(u.email,r.pw,u.nama);if(lr.created===false)st='sandi login diganti (fungsi akun-admin)';else{st='login dibuat';nl++}}catch(lx){if(/sudah punya akun login/.test((lx&&lx.message)||''))st='login sudah ada, sandi tidak diubah';else{st='login GAGAL: '+((lx&&lx.message)||lx);if(/Terlalu banyak/.test(st))stopL=true}}
   }
   out.push([r.nama,u.username,u.email,peranLabel(u.peran),u.kelas,r.id?'Diperbarui':'Baru',gen||(Cloud.on?(st||'(daftar sendiri dengan email ini)'):'(sesuai file)')]);
  }

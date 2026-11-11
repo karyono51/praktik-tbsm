@@ -23,7 +23,7 @@ Bila ID fungsi berbeda, tambahkan `FN_AKUN:'id-anda'` di `js/config.js`.
 Tambah satu akun siswa dengan email dan sandi, lalu masuk dengan akun itu di perangkat lain. Bila muncul "Fungsi akun-admin belum dipasang", periksa Function ID dan Execute access.
 
 ## Catatan
-- Impor Excel belum mengatur sandi. Untuk akun hasil impor, isi sandi lewat Ubah akun atau minta siswa Daftar sendiri.
+- Impor Excel (v32+): kolom Sandi memakai fungsi `akun-admin` bila terpasang, jadi tanpa batas 10 akun per jam dan sandi akun yang sudah ada ikut diganti.
 - Email siswa harus valid dan unik, termasuk bila admin yang mengisi sandinya.
 
 ## Tanpa fungsi akun-admin (v30+)

@@ -14,17 +14,17 @@ if(Cloud.on){
  };
  Cloud.setPw=async function(email,pw,nama){
   var cl=(this.acc&&this.acc.client)||new Appwrite.Client().setEndpoint(CFG.APPWRITE_ENDPOINT).setProject(CFG.APPWRITE_PROJECT);
-  var fn=new Appwrite.Functions(cl),ex,tanpaFn=false;
-  try{ex=await fn.createExecution(CFG.FN_AKUN||'akun-admin',JSON.stringify({action:'setpw',email:email,password:pw,name:nama}),false,'/','POST',{'content-type':'application/json'})}
-  catch(e){if(e&&(e.code===404||/not found/i.test(e.message||'')))tanpaFn=true;else throw e}
+  var fn=new Appwrite.Functions(cl),ex,tanpaFn=this.tanpaFn===true;
+  if(!tanpaFn)try{ex=await fn.createExecution(CFG.FN_AKUN||'akun-admin',JSON.stringify({action:'setpw',email:email,password:pw,name:nama}),false,'/','POST',{'content-type':'application/json'})}
+  catch(e){if(e&&(e.code===404||/not found/i.test(e.message||''))){tanpaFn=true;this.tanpaFn=true}else throw e}
   if(tanpaFn){
    var r=await this.buatLogin(email,pw,nama);
    if(r.exists)throw new Error('Email ini sudah punya akun login, jadi sandinya tidak bisa diubah dari aplikasi. Ubah di Appwrite Console (Auth > Users > Update password), atau pasang fungsi akun-admin (docs-SANDI-AKUN.md).');
-   return r;
+   r.via='bawaan';return r;
   }
   var out={};try{out=JSON.parse(ex.responseBody||'{}')}catch(e2){}
   if(!out.ok)throw new Error(out.error||('Fungsi akun-admin gagal (kode '+ex.responseStatusCode+')'));
-  return out;
+  out.via='fungsi';return out;
  };
 }
 async function changeMyPw(){
