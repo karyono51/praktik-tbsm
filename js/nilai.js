@@ -10,7 +10,7 @@ function parseTgl(v){
 function findJob(v){
  var k=String(v||'').trim().toLowerCase();if(!k)return null;
  return JOBS.filter(function(j){return j.id.toLowerCase()===k})[0]||JOBS.filter(function(j){return j.judul.toLowerCase()===k})[0]||null}
-function dupKey(r){return [r.jobId,String(r.siswa||'').toLowerCase(),r.kelas,new Date(r.ts).toISOString().slice(0,10),r.score].join('|')}
+function dupKey(r){return [r.jobId,String(r.siswa||'').toLowerCase(),r.kelas,ymd(r.ts),r.score].join('|')}
 async function parseNilai(f){
  if(!needX())throw new Error('Pustaka Excel belum termuat.');
  var wb=XLSX.read(await f.arrayBuffer(),{type:'array'});

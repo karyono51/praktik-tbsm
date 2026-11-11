@@ -7,3 +7,5 @@ function uid(){return 'x'+Date.now().toString(36)+Math.random().toString(36).sli
 function toast(m){var t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove()},2200)}
 function stopTimer(){if(timer){clearInterval(timer);timer=null}V.running=false}
 function startTimer(){if(timer)return;V.running=true;timer=setInterval(function(){V.sec++;var el=$('#clock');if(el){el.textContent=mmss(V.sec);var lim=V.job.menit*60;el.style.color=V.sec>lim?'var(--bad)':''}},1000)}
+
+function ymd(ts){var t=new Date(ts);return t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2)}
