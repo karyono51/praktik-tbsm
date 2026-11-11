@@ -45,3 +45,6 @@ Kolom: `Nama, Username, Email, Sandi, Peran, Kelas, Status`. Unduh contoh dari t
 - Hapus akun dan hapus nilai hanya berlaku jika online.
 - Keluar menghapus salinan data di perangkat. Data antrean yang belum terkirim tetap disimpan sampai berhasil dikirim.
 - Setelah mengubah berkas aplikasi, naikkan `CACHE` di `service-worker.js` (misalnya `tbsm-v2`) agar perangkat memuat versi baru.
+
+## Modul LKPD modular
+Menu **LKPD praktik** memuat modul pertama Fase E Kelas X: Pemeriksaan Baterai dan Sistem Starter (45 menit). Siswa dapat menyimpan draf, mengisi K3/prosedur, hasil pemeriksaan, analisis dan evaluasi, lalu mengirim pengumpulan. Guru dapat melihat rekap dan detail. Mode lokal menyimpan pada perangkat; Appwrite menggunakan koleksi `lkpd` dan PWA mengantrekan pengumpulan saat offline. Periksa `appwrite.json`, lalu jalankan `appwrite push collections` untuk menyiapkan koleksi baru. Lihat `docs-LKPD-MODULAR.md` untuk kontrak modul.

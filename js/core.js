@@ -3,12 +3,12 @@ var CFG=window.APP_CONFIG||{};
 var KEY='tbsm-uji-v2',SES='tbsm-sesi';
 var PERAN={admin:'Admin',guru:'Guru',siswa:'Siswa'};
 var PERM={admin:['akun','kkm','hapus','nilai'],guru:['nilai'],siswa:[]};
-var S={role:'siswa',tab:'katalog',kelas:'X',kkm:+localStorage.getItem('tbsm-kkm')||75,siswaName:'',filter:'ALL',user:null,users:[],roster:[],results:[]};
+var S={role:'siswa',tab:'katalog',kelas:'X',kkm:+localStorage.getItem('tbsm-kkm')||75,siswaName:'',filter:'ALL',user:null,users:[],roster:[],results:[],lkpd:[]};
 var V={mode:'list',job:null,checks:{},peserta:'',catatan:'',sec:0,running:false,res:null},timer=null;
 var CLOUD_ON=!!(CFG.APPWRITE_ENDPOINT&&CFG.APPWRITE_PROJECT&&window.Appwrite);
-if(!CLOUD_ON){try{var d0=JSON.parse(localStorage.getItem(KEY)||'null');if(d0){S.users=d0.users||[];S.results=d0.results||[]}}catch(e){}}
+if(!CLOUD_ON){try{var d0=JSON.parse(localStorage.getItem(KEY)||'null');if(d0){S.users=d0.users||[];S.results=d0.results||[]}try{S.lkpd=JSON.parse(localStorage.getItem('tbsm-lkpd-records')||'[]')}catch(e2){S.lkpd=[]}}catch(e){}}
 
-function save(){try{localStorage.setItem('tbsm-kkm',S.kkm);if(!CLOUD_ON)localStorage.setItem(KEY,JSON.stringify({users:S.users,results:S.results}))}catch(e){}}
+function save(){try{localStorage.setItem('tbsm-kkm',S.kkm);if(!CLOUD_ON)localStorage.setItem(KEY,JSON.stringify({users:S.users,results:S.results}));localStorage.setItem('tbsm-lkpd-records',JSON.stringify(S.lkpd||[]))}catch(e){}}
 function persist(){syncRoster();save();Cloud.flush()}
 /* Peran ganda: kolom peran menyimpan daftar dipisah koma (mis. 'guru,siswa', maksimal 16 karakter). Peran aktif dipilih di header. */
 var URUT=['admin','guru','siswa'];
@@ -40,6 +40,7 @@ function quickSiswa(nama,kelas){var u={id:uid(),nama:nama,username:slug(nama)+'.
 /* ---- Appwrite ---- */
 var FA=['nama','username','email','peran','kelas','aktif'];
 var FH=['ts','jobId','kelas','siswa','tipe','score','kompeten','catatan','detik','oleh','penilai','sid'];
+var FL=['ts','moduleId','moduleTitle','kelas','siswa','sid','score','practice','theory','kompeten','payload','oleh'];
 function pick(o,F){var x={};F.forEach(function(k){if(o[k]!==undefined&&o[k]!==null)x[k]=o[k]});return x}
 function fromDoc(d){var o={id:d.$id};Object.keys(d).forEach(function(k){if(k[0]!=='$')o[k]=d[k]});o.r=1;return o}
 var Cloud={on:CLOUD_ON,busy:false,
@@ -58,12 +59,12 @@ var Cloud={on:CLOUD_ON,busy:false,
   await this.db.createDocument(CFG.DB,'akun',p.id,pick(p,FA));p.r=1;return p},
  enter:async function(me){var p=await this.resolve(me);if(p.aktif===false){await this.logout();throw new Error('Akun dinonaktifkan. Hubungi admin.')}
   S.user=p;S.users=[p];
-  if(roleList(p).some(function(r){return r!=='siswa'})){S.users=(await this.list('akun')).map(fromDoc);S.results=(await this.list('hasil')).map(fromDoc)}
-  else S.results=(await this.list('hasil',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);
+  if(roleList(p).some(function(r){return r!=='siswa'})){S.users=(await this.list('akun')).map(fromDoc);S.results=(await this.list('hasil')).map(fromDoc);S.lkpd=(await this.list('lkpd')).map(fromDoc)}
+  else {S.results=(await this.list('hasil',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpd=(await this.list('lkpd',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc)}
   enter(S.users.find(function(u){return u.id===p.id})||p)},
  flush:async function(){
   if(!this.on||!S.user||this.busy)return;this.busy=true;
-  try{var jobs=[[S.users,'akun',FA],[S.results,'hasil',FH]];
+  try{var jobs=[[S.users,'akun',FA],[S.results,'hasil',FH],[S.lkpd||[],'lkpd',FL]];
    for(var i=0;i<jobs.length;i++){var arr=jobs[i][0],col=jobs[i][1],F=jobs[i][2];
     for(var k=0;k<arr.length;k++){var o=arr[k];
      if(!o.r){await this.db.createDocument(CFG.DB,col,o.id,pick(o,F));o.r=1;o.d=0}

@@ -30,7 +30,7 @@ function render(){
   '<header class="top">'+logoBtn+who+'</header>';
  var body;
  if(V.mode==='exam')body=viewExam();else if(V.mode==='result')body=viewResult();
- else if(S.tab==='beranda')body=viewBeranda();else if(S.tab==='rekap')body=viewRekap();else if(S.tab==='akun'&&can('akun'))body=viewAkun();else if(S.tab==='acuan')body=viewAcuan();else body=viewKatalog();
+ else if(S.tab==='beranda')body=viewBeranda();else if(S.tab==='rekap')body=viewRekap();else if(S.tab==='akun'&&can('akun'))body=viewAkun();else if(S.tab==='acuan')body=viewAcuan();else if(S.tab==='lkpd')body=viewLKPD();else body=viewKatalog();
  var cur=V.mode==='list'?S.tab:'';
  var row=function(v,t,sub,ic,on,tone){return '<button type="button" class="srow'+(tone?' '+tone:'')+'" data-act="'+(v==='keluar'?'menulogout':'menu')+'" data-v="'+v+'"'+(on?' aria-current="page"':'')+'><span class="ico">'+svg(ICO[ic],22)+'</span><span class="st"><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+svg(ICO.chev,18)+'</button>'};
  var kr=kelasBoleh().map(function(c){return row('kelas:'+c,KELAS[c].judul,KELAS[c].sub,'kelas',cur==='katalog'&&S.kelas===c)}).join('');
@@ -41,6 +41,7 @@ function render(){
   '<div class="chip">'+svg(ICO.kelas,16)+(kelasBoleh().length>1?'Unit ujian':'Unit ujian kelas saya')+'</div>'+kr+
   '<div class="chip">'+svg(ICO.menu,16)+'Lainnya</div>'+
   row('rekap','Rekap nilai','Nilai, ekspor Excel dan PDF','rekap',cur==='rekap')+
+  row('lkpd','LKPD praktik','Modul dan pengumpulan lembar kerja','acuan',cur==='lkpd')+
   (can('akun')?row('akun','Akun','Kelola akun, impor, dan KKM','akun',cur==='akun'):'')+
   row('acuan','Acuan','Rubrik dan standar penilaian','acuan',cur==='acuan')+
   '<div class="chip">'+svg(ICO.keluar,16)+'Sesi</div>'+row('keluar','Keluar','Akhiri sesi di perangkat ini','keluar',false,'danger')+
@@ -138,7 +139,7 @@ document.addEventListener('submit',async function(e){
 });
 async function doLogout(){
  stopTimer();
- if(Cloud.on){await Cloud.logout();dropSnap();S.users=[];S.results=[]}else localStorage.removeItem(SES);
+ if(Cloud.on){await Cloud.logout();dropSnap();S.users=[];S.results=[];S.lkpd=[]}else localStorage.removeItem(SES);
  S.user=null;A.edit=null;A.imp=null;A.impn=null;A.err='';resetV();render();
 }
 document.addEventListener('click',async function(e){

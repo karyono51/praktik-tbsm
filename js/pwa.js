@@ -1,22 +1,22 @@
 /* pwa.js: pendaftaran service worker, tombol pasang, status jaringan di header, antrean sinkron Appwrite */
 var QK='tbsm-queue',SK='tbsm-snap';
 function pendingList(){
- var u=S.users.filter(function(o){return !o.r||o.d}),h=S.results.filter(function(o){return !o.r||o.d});
- return {akun:u,hasil:h}}
-function pendingCount(){var p=pendingList();return p.akun.length+p.hasil.length}
+ var u=S.users.filter(function(o){return !o.r||o.d}),h=S.results.filter(function(o){return !o.r||o.d}),l=(S.lkpd||[]).filter(function(o){return !o.r||o.d});
+ return {akun:u,hasil:h,lkpd:l}}
+function pendingCount(){var p=pendingList();return p.akun.length+p.hasil.length+p.lkpd.length}
 function savePending(){
  try{var p=pendingList();if(p.akun.length||p.hasil.length)localStorage.setItem(QK,JSON.stringify(p));else localStorage.removeItem(QK)}catch(e){}}
 function saveSnap(){
- try{if(Cloud.on&&S.user&&pendingCount()===0)localStorage.setItem(SK,JSON.stringify({user:S.user,users:S.users,results:S.results,ts:Date.now()}))}catch(e){}}
+ try{if(Cloud.on&&S.user&&pendingCount()===0)localStorage.setItem(SK,JSON.stringify({user:S.user,users:S.users,results:S.results,lkpd:S.lkpd||[],ts:Date.now()}))}catch(e){}}
 function restorePending(){
  try{var q=JSON.parse(localStorage.getItem(QK)||'null');if(!q)return;
-  [[q.akun||[],S.users],[q.hasil||[],S.results]].forEach(function(pair){
+  [[q.akun||[],S.users],[q.hasil||[],S.results],[q.lkpd||[],S.lkpd||(S.lkpd=[])]].forEach(function(pair){
    pair[0].forEach(function(o){var i=pair[1].findIndex(function(x){return x.id===o.id});
     if(i<0)pair[1].push(o);else if(o.d){pair[1][i]=o}})});
   syncRoster()}catch(e){}}
 function loadSnap(){
  try{var s=JSON.parse(localStorage.getItem(SK)||'null');if(!s||!s.user)return false;
-  S.users=s.users||[s.user];S.results=s.results||[];S.user=s.user;restorePending();
+  S.users=s.users||[s.user];S.results=s.results||[];S.lkpd=s.lkpd||[];S.user=s.user;restorePending();
   var me=S.users.find(function(u){return u.id===s.user.id})||s.user;enter(me);return true}catch(e){return false}}
 function dropSnap(){try{localStorage.removeItem(SK)}catch(e){}}
 
@@ -41,7 +41,7 @@ function netbar(){
    if(navigator.onLine===false){netbar();toast('Offline: data disimpan di perangkat, disinkronkan saat online');return}
    this.busy=true;var fails=[];
    try{
-    var jobs=[[S.users,'akun',FA],[S.results,'hasil',FH]];
+    var jobs=[[S.users,'akun',FA],[S.results,'hasil',FH],[S.lkpd||[],'lkpd',FL]];
     for(var i=0;i<jobs.length;i++){var arr=jobs[i][0],col=jobs[i][1],F=jobs[i][2];
      for(var k=0;k<arr.length;k++){var o=arr[k];if(o.r&&!o.d)continue;
       try{
