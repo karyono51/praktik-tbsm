@@ -83,9 +83,10 @@ function secHead(ic,t,extra){return '<div class="sechead"><span class="ico g1">'
 function viewBeranda(){
  var list=visibleResults().slice().sort(function(a,b){return b.ts-a.ts}),a=agg(list);
  var tried={};list.forEach(function(r){tried[r.jobId]=1});
+ lkRefreshModules();var mine={};(S.lkpd||[]).forEach(function(x){if(isStaff()||x.sid===S.user.id)mine[x.moduleId]=1});
  var kc=kelasBoleh().map(function(c){
-  var js=JOBS.filter(function(j){return j.kelas===c}),dn=js.filter(function(j){return tried[j.id]}).length,pct=js.length?Math.round(100*dn/js.length):0;
-  return '<button type="button" class="kcard" data-act="menu" data-v="kelas:'+c+'"><span class="num" aria-hidden="true">'+c+'</span><span class="kt"><b>'+KELAS[c].judul+'</b><span>'+KELAS[c].sub+'</span><span class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></span><span class="mono kn">'+dn+' dari '+js.length+' unit '+(isStaff()?'sudah dinilai':'sudah dicoba')+'</span></span></button>'}).join('');
+  var ms=LKPD_MODULES.filter(function(m){return m.kelas===c&&(isStaff()||(m.status==='published'&&m.active!==false))}),dn=ms.filter(function(m){return mine[m.id]}).length,pct=ms.length?Math.round(100*dn/ms.length):0;
+  return '<button type="button" class="kcard" data-act="menu" data-v="lkpd:'+c+'"><span class="num" aria-hidden="true">'+c+'</span><span class="kt"><b>'+KELAS[c].judul+'</b><span>'+KELAS[c].sub+'</span><span class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></span><span class="mono kn">'+dn+' dari '+ms.length+' modul LKPD '+(isStaff()?'sudah ada pengumpulan':'sudah dikerjakan')+'</span></span></button>'}).join('');
  var tl=[['rekap','Rekap nilai','g1','menu']];if(can('akun'))tl.push(['akun','Akun','g3','menu']);tl.push(['acuan','Acuan','g2','menu'],['drawer','Menu','g4','drawer']);
  var tiles=tl.map(function(t){return '<button type="button" class="tile" data-act="'+t[3]+'"'+(t[3]==='menu'?' data-v="'+t[0]+'"':'')+'><span class="ico '+t[2]+'">'+svg(ICO[t[0]==='drawer'?'menu':t[0]],26)+'</span><span>'+t[1]+'</span></button>'}).join('');
  var rec=list.slice(0,3).map(function(r){var j=jobById(r.jobId);
@@ -93,5 +94,5 @@ function viewBeranda(){
  return '<section class="strip" aria-label="Ringkasan"><div><b class="mono">'+a[0]+'</b><span>'+(isStaff()?'data nilai':'latihan')+'</span></div><div><b class="mono">'+a[1]+'</b><span>rata-rata</span></div><div><b class="mono">'+Math.round(a[2]*100)+'<small>%</small></b><span>kompeten</span></div></section>'+
   secHead('menu','Pintasan')+'<div class="tiles n'+tl.length+'">'+tiles+'</div>'+
   secHead('kelas',kelasBoleh().length>1?'Pilih kelas':'Kelas saya')+'<div class="kcards">'+kc+'</div>'+
-  '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari unit pertama.</p>')+'</section>';
+  '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari modul LKPD pertama.</p>')+'</section>';
 }

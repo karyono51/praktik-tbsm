@@ -78,4 +78,4 @@ window.addEventListener('appinstalled',function(){deferredInstall=null;netbar();
 document.addEventListener('click',function(e){
  var b=e.target.closest('[data-act="pwainstall"]');if(!b||!deferredInstall)return;
  deferredInstall.prompt();deferredInstall.userChoice.then(function(){deferredInstall=null;netbar()})});
-if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js').catch(function(){})});
+if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js',{updateViaCache:'none'}).catch(function(){})});

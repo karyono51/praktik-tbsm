@@ -12,7 +12,8 @@ var ICO={
  keluar:'<path d="M9 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H9M15 8l4 4-4 4M19 12H9"/>',
  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
  chev:'<path d="m9 6 6 6-6 6"/>',
- swap:'<path d="M7 4 3.5 7.5 7 11M3.5 7.5H18M17 13l3.5 3.5L17 20M20.5 16.5H6"/>'
+ swap:'<path d="M7 4 3.5 7.5 7 11M3.5 7.5H18M17 13l3.5 3.5L17 20M20.5 16.5H6"/>',
+ refresh:'<path d="M20 11a8 8 0 0 0-14.5-4.4L4 8.5M4 4v4.5h4.5M4 13a8 8 0 0 0 14.5 4.4L20 15.5M20 20v-4.5h-4.5"/>'
 };
 function svg(d,n){n=n||20;return '<svg viewBox="0 0 24 24" width="'+n+'" height="'+n+'" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>'}
 
@@ -22,7 +23,7 @@ function render(){
  var logoBtn='<button type="button" class="logobtn" data-act="drawer" aria-label="Buka menu" aria-controls="drawer" aria-expanded="false"><img class="logo" src="'+LOGO+'" alt="Logo SMK Medina"></button>';
  var rolePill=multi?'<button type="button" class="pill glass role" data-act="switchrole" aria-label="Peran aktif '+PERAN[act]+'. Ketuk untuk berganti peran">'+PERAN[act]+svg(ICO.swap,14)+'</button>':'<span class="pill glass">'+PERAN[act]+'</span>';
  var kls=act==='siswa'&&u.kelas?'<span class="pill glass">Kelas '+esc(u.kelas)+'</span>':'';
- var who='<div class="hi"><p class="hello"><span>Halo,</span> <b>'+esc(String(u.nama).trim().split(/\s+/)[0])+'</b></p><p class="mail">'+esc(u.email||u.username||'')+'</p><div class="hmeta">'+rolePill+kls+'</div>'+(home?'':'<div class="netslot" id="netslot" hidden></div>')+'</div>';
+ var who='<div class="hi"><p class="hello"><span>Halo,</span> <b>'+esc(String(u.nama).trim().split(/\s+/)[0])+'</b></p><p class="mail">'+esc(u.email||u.username||'')+'</p><div class="hmeta">'+rolePill+kls+'<button type="button" class="pill glass role" data-act="refresh" aria-label="Segarkan data">'+svg(ICO.refresh,14)+'Segarkan</button></div>'+(home?'':'<div class="netslot" id="netslot" hidden></div>')+'</div>';
  var moto='<svg class="moto" viewBox="0 0 170 96" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="32" cy="66" r="19"/><circle cx="138" cy="66" r="19"/><circle cx="32" cy="66" r="5"/><circle cx="138" cy="66" r="5"/><path d="M32 66 56 42h40l14 24M96 42l12-22h16M108 20 138 66M60 42l-6-8h24M62 66h32l8-14"/></svg>';
  var head=home?
   '<header class="top big"><svg class="rings" viewBox="0 0 220 220" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="150" cy="70" r="30"/><circle cx="150" cy="70" r="60"/><circle cx="150" cy="70" r="90"/></svg>'+moto+
@@ -32,19 +33,19 @@ function render(){
  if(V.mode==='exam')body=viewExam();else if(V.mode==='result')body=viewResult();
  else if(S.tab==='beranda')body=viewBeranda();else if(S.tab==='rekap')body=viewRekap();else if(S.tab==='akun'&&can('akun'))body=viewAkun();else if(S.tab==='acuan')body=viewAcuan();else if(S.tab==='lkpd')body=viewLKPD();else body=viewKatalog();
  var cur=V.mode==='list'?S.tab:'';
- var row=function(v,t,sub,ic,on,tone){return '<button type="button" class="srow'+(tone?' '+tone:'')+'" data-act="'+(v==='keluar'?'menulogout':'menu')+'" data-v="'+v+'"'+(on?' aria-current="page"':'')+'><span class="ico">'+svg(ICO[ic],22)+'</span><span class="st"><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+svg(ICO.chev,18)+'</button>'};
- var kr=kelasBoleh().map(function(c){return row('kelas:'+c,KELAS[c].judul,KELAS[c].sub,'kelas',cur==='katalog'&&S.kelas===c)}).join('');
+ var row=function(v,t,sub,ic,on,tone){return '<button type="button" class="srow'+(tone?' '+tone:'')+'" data-act="'+(v==='keluar'?'menulogout':v==='segarkan'?'refresh':v==='perbarui'?'updateapp':'menu')+'" data-v="'+v+'"'+(on?' aria-current="page"':'')+'><span class="ico">'+svg(ICO[ic],22)+'</span><span class="st"><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+svg(ICO.chev,18)+'</button>'};
+ var kr=kelasBoleh().map(function(c){return row('lkpd:'+c,KELAS[c].judul,KELAS[c].sub,'kelas',cur==='lkpd'&&S.kelas===c)}).join('');
  var sh='<div class="scrim" data-act="drawerclose"></div><aside class="sheet" id="drawer" role="dialog" aria-modal="true" aria-label="Menu"><div class="grab" data-act="drawerclose" aria-hidden="true"><i></i></div><div class="sbody">'+
   '<div class="sbrand"><img class="logo ring" src="'+LOGO+'" alt=""><b>SMKS Medina Bandung</b><address class="addr"><span>Jl. K.H. Ahmad Dahlan No. 13–15, Kel. Burangrang,</span><span>Kec. Lengkong, Kota Bandung, Jawa Barat 40262</span></address><span class="bar2"></span></div>'+
   '<div class="sprofile"><span class="av" aria-hidden="true">'+esc(String(u.nama).trim().charAt(0).toUpperCase())+'</span><div class="grow"><b>'+esc(u.nama)+'</b><div class="note">'+esc(u.email||u.username||'')+'</div></div>'+(multi?'<button type="button" class="pill role" data-act="switchrole" aria-label="Peran aktif '+PERAN[act]+'. Ketuk untuk berganti peran">'+PERAN[act]+svg(ICO.swap,14)+'</button>':'<span class="pill">'+PERAN[act]+'</span>')+'</div>'+
   row('beranda','Beranda','Ringkasan dan pintasan','beranda',cur==='beranda')+
-  '<div class="chip">'+svg(ICO.kelas,16)+(kelasBoleh().length>1?'Unit ujian':'Unit ujian kelas saya')+'</div>'+kr+
+  '<div class="chip">'+svg(ICO.kelas,16)+(kelasBoleh().length>1?'LKPD praktik':'LKPD praktik kelas saya')+'</div>'+kr+
   '<div class="chip">'+svg(ICO.menu,16)+'Lainnya</div>'+
   row('rekap','Rekap nilai','Nilai, ekspor Excel dan PDF','rekap',cur==='rekap')+
-  row('lkpd','LKPD praktik','Modul dan pengumpulan lembar kerja','acuan',cur==='lkpd')+
+  row('kelas:'+kelasBoleh()[0],'Unit ujian','Akan digantikan LKPD praktik','acuan',cur==='katalog')+
   (can('akun')?row('akun','Akun','Kelola akun, impor, dan KKM','akun',cur==='akun'):'')+
   row('acuan','Acuan','Rubrik dan standar penilaian','acuan',cur==='acuan')+
-  '<div class="chip">'+svg(ICO.keluar,16)+'Sesi</div>'+row('keluar','Keluar','Akhiri sesi di perangkat ini','keluar',false,'danger')+
+  '<div class="chip">'+svg(ICO.keluar,16)+'Sesi</div>'+row('segarkan','Segarkan data','Ambil data terbaru dari server','refresh',false)+row('perbarui','Perbarui aplikasi','<span id="appver">Cek pembaruan aplikasi</span>','refresh',false)+row('keluar','Keluar','Akhiri sesi di perangkat ini','keluar',false,'danger')+
   '</div></aside>';
  var foot='<footer class="school"><span>© 2026 SMKS Medina Bandung</span><i aria-hidden="true">|</i><span>supported by @pakar1501</span></footer>';
  var open=document.body.classList.contains('dr-open');
@@ -201,6 +202,7 @@ document.addEventListener('click',async function(e){
  var b=e.target.closest('[data-act]');if(!b)return;var a=b.dataset.act;
  if(a==='drawer')drOpen(!drIsOpen());
  else if(a==='drawerclose')drOpen(false);
+ else if(a==='menu'&&String(b.dataset.v).indexOf('lkpd:')===0){drOpen(false);var kc=b.dataset.v.slice(5);if(kelasBoleh().indexOf(kc)<0){toast('Kelas ini bukan kelas kamu');return}if(!leaveExam())return;S.kelas=kc;S.tab='lkpd';LK.open=false;LK.detail=null;LK.editor=null;LK.preview=false;LK.tab='materi';LK.kf='';render();window.scrollTo(0,0)}
  else if(a==='menu'){drOpen(false);var v=b.dataset.v;if(v.indexOf('kelas:')===0&&kelasBoleh().indexOf(v.slice(6))<0){toast('Kelas ini bukan kelas kamu');return}if(!leaveExam())return;if(v.indexOf('kelas:')===0){S.kelas=v.slice(6);S.tab='katalog';persist()}else S.tab=v;render();window.scrollTo(0,0)}
  else if(a==='switchrole'){var rl=roleList(S.user),nx=rl[(rl.indexOf(actRole())+1)%rl.length];if(!leaveExam())return;setAct(nx);if(nx==='siswa'&&S.user.kelas)S.kelas=S.user.kelas;S.tab='beranda';render();window.scrollTo(0,0);toast('Peran aktif: '+PERAN[nx])}
  else if(a==='menulogout'){drOpen(false);if(!leaveExam())return;await doLogout()}

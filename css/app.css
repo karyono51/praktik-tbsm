@@ -304,3 +304,8 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 .lk-foto img{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);display:block}
 .lk-foto figcaption{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 @media print{.lk-fotos{grid-template-columns:repeat(3,1fr)}.lk-foto img{max-height:7cm;object-fit:contain}}
+
+.updbar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:70;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--sh)}
+.updbar span{flex:1;min-width:150px;font-weight:600;font-size:14px}
+@keyframes tbspin{to{transform:rotate(360deg)}}
+.refreshing [data-act="refresh"] svg{animation:tbspin .8s linear infinite}
