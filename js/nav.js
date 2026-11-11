@@ -61,8 +61,8 @@ if(Cloud.on){
  Cloud.refresh=async function(){
   var p=S.user,Q=Appwrite.Query,staff=roleList(p).some(function(r){return r!=='siswa'});
   var res,lk,us=null;
-  if(staff){us=(await this.list('akun')).map(fromDoc);res=(await this.list('hasil')).map(fromDoc);lk=(await this.list('lkpd')).map(fromDoc)}
-  else{res=(await this.list('hasil',[Q.equal('sid',[p.id])])).map(fromDoc);lk=(await this.list('lkpd',[Q.equal('sid',[p.id])])).map(fromDoc)}
+  if(staff){us=(await this.list('akun')).map(fromDoc);res=(await this.list('hasil')).map(fromDoc);lk=(await this.listSafe('lkpd')).map(fromDoc)}
+  else{res=(await this.list('hasil',[Q.equal('sid',[p.id])])).map(fromDoc);lk=(await this.listSafe('lkpd',[Q.equal('sid',[p.id])])).map(fromDoc)}
   var mods=await loadLKPDModuleDocs(this);
   if(us){S.users=us;S.user=us.find(function(u){return u.id===p.id})||p}
   S.results=res;S.lkpd=lk;S.lkpdModules=mods;

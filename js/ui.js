@@ -78,7 +78,7 @@ function viewRekap(){
   (r.catatan?'<div class="note">'+esc(r.catatan)+'</div>':'')+'</div>'}).join('');
  return '<h2>Rekap nilai</h2><div class="chips" role="group" aria-label="Filter kelas">'+chips+'</div>'+
   '<div class="stats"><div class="card"><span class="label">Data</span><b class="mono">'+n+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+a[1]+'</b></div><div class="card"><span class="label">Kompeten</span><b class="mono">'+Math.round(a[2]*100)+'%</b></div></div>'+
-  '<div class="row"><button type="button" class="btn small" data-act="xlsrekap">Unduh Excel</button><button type="button" class="btn small primary" data-act="pdfrekap">Unduh PDF</button>'+(can('hapus')&&!Cloud.on?'<button type="button" class="btn small danger" data-act="rmall">Hapus semua</button>':'')+'</div>'+
+  '<div class="row"><button type="button" class="btn small" data-act="xlsrekap">Unduh Excel</button><button type="button" class="btn small primary" data-act="pdfrekap">Unduh PDF</button>'+(can('hapus')&&!Cloud.on?'<button type="button" class="btn small danger" data-act="rmall">Hapus semua</button>':'')+(can('hapus')&&hasilYatim().length?'<button type="button" class="btn small danger" data-act="rmyatim">Bersihkan nilai tanpa akun ('+hasilYatim().length+')</button>':'')+'</div>'+
   imporNilaiHtml()+
   (rows||'<div class="card"><p class="muted">Belum ada data untuk filter ini. Mulai dari tab Unit ujian.</p></div>')+
   '<p class="note">'+(Cloud.on?'Data tersinkron ke Appwrite.':'Data tersimpan di peramban ini. Unduh Excel atau PDF untuk arsip.')+'</p>';
@@ -157,8 +157,12 @@ document.addEventListener('click',async function(e){
  else if(a==='akundel'){
   var u=S.users.find(function(x){return x.id===v});
   if(hasRole(u,'admin')&&S.users.filter(function(x){return hasRole(x,'admin')&&x.aktif!==false&&x.id!==v}).length<1){toast('Harus tersisa satu admin aktif');return}
-  if(!confirm('Hapus akun '+u.nama+'? Data nilai tetap tersimpan.'))return;
-  S.users=S.users.filter(function(x){return x.id!==v});Cloud.remove('akun',v);persist();render();toast('Akun dihapus');
+  if(!confirm('Hapus akun '+u.nama+'?'))return;
+  var mine=S.results.filter(function(r){return r.sid===v||(!r.sid&&String(r.siswa||'').trim().toLowerCase()===String(u.nama||'').trim().toLowerCase())});
+  var dropNilai=mine.length&&can('hapus')&&confirm('Hapus juga '+mine.length+' nilai milik '+u.nama+'?\nOK = nilai ikut dihapus. Batal = nilai tetap tersimpan.');
+  S.users=S.users.filter(function(x){return x.id!==v});Cloud.remove('akun',v);
+  if(dropNilai){var n0=await hapusHasil(mine);toast('Akun dihapus, '+n0+' nilai dihapus')}else toast('Akun dihapus');
+  persist();render();
  }
  else if(a==='akunfilter'){A.peran=v;render()}
  else if(a==='akuntpl')tplAkun();

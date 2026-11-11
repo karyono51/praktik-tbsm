@@ -1,4 +1,9 @@
-# Refresh dan LKPD per kelas (cache tbsm-v26)
+# Refresh dan LKPD per kelas (cache tbsm-v27)
+
+## v27: koleksi lkpd hilang dan nilai akun terhapus
+- Penyebab notifikasi "Server belum terjangkau (Collection ... 'lkpd' could not be found)": koleksi `lkpd` belum ada di database Appwrite, sehingga pemuatan awal selalu gagal. Kini koleksi yang belum ada dilewati (dianggap kosong) dan aplikasi memuat normal. Agar LKPD siswa bisa tersimpan di server, buat koleksi `lkpd` (dan `lkpd_bukti`) sesuai appwrite.json.
+- Hapus akun (peran Admin): setelah konfirmasi akun, ditawarkan juga menghapus nilai milik akun itu.
+- Rekap (peran Admin): tombol **Bersihkan nilai tanpa akun (N)** menghapus nilai yang akun siswanya sudah tidak ada, dengan konfirmasi dan daftar nama.
 
 ## v26: pemberitahuan saat refresh
 - Bila pemuatan awal dari server gagal, aplikasi memakai data tersimpan lalu mencoba lagi diam-diam. Pemberitahuan hanya muncul jika server tetap gagal, dan memuat penyebabnya (kode atau pesan galat).

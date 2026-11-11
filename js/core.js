@@ -54,6 +54,7 @@ var Cloud={on:CLOUD_ON,busy:false,
  google:function(){this.acc.createOAuth2Session('google',location.href,location.href)},
  logout:async function(){try{await this.acc.deleteSession('current')}catch(e){}},
  list:async function(col,extra){var out=[],cur=null;for(;;){var q=[Appwrite.Query.limit(100)].concat(extra||[]);if(cur)q.push(Appwrite.Query.cursorAfter(cur));var r=await this.db.listDocuments(CFG.DB,col,q);out=out.concat(r.documents);if(r.documents.length<100)return out;cur=r.documents[r.documents.length-1].$id}},
+ listSafe:async function(col,extra){try{return await this.list(col,extra)}catch(e){if(e&&(e.code===404||/could not be found/i.test(e.message||'')))return [];throw e}},
  resolve:async function(me){
   var em=me.email.toLowerCase(),f=await this.list('akun',[Appwrite.Query.equal('email',[em])]);
   if(f[0])return fromDoc(f[0]);
@@ -63,8 +64,8 @@ var Cloud={on:CLOUD_ON,busy:false,
   await this.db.createDocument(CFG.DB,'akun',p.id,pick(p,FA));p.r=1;return p},
  enter:async function(me){var p=await this.resolve(me);this.authId=me.$id;try{localStorage.setItem('tbsm-auth',JSON.stringify({sid:p.id,auth:me.$id}))}catch(e){}if(p.aktif===false){await this.logout();throw new Error('Akun dinonaktifkan. Hubungi admin.')}
   S.user=p;S.users=[p];
-  if(roleList(p).some(function(r){return r!=='siswa'})){S.users=(await this.list('akun')).map(fromDoc);S.results=(await this.list('hasil')).map(fromDoc);S.lkpd=(await this.list('lkpd')).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}
-  else {S.results=(await this.list('hasil',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpd=(await this.list('lkpd',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}
+  if(roleList(p).some(function(r){return r!=='siswa'})){S.users=(await this.list('akun')).map(fromDoc);S.results=(await this.list('hasil')).map(fromDoc);S.lkpd=(await this.listSafe('lkpd')).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}
+  else {S.results=(await this.list('hasil',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpd=(await this.listSafe('lkpd',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}
   enter(S.users.find(function(u){return u.id===p.id})||p)},
  flush:async function(){
   if(!this.on||!S.user||this.busy)return;this.busy=true;
