@@ -139,7 +139,7 @@ document.addEventListener('submit',async function(e){
 });
 async function doLogout(){
  stopTimer();
- if(Cloud.on){await Cloud.logout();dropSnap();S.users=[];S.results=[];S.lkpd=[]}else localStorage.removeItem(SES);
+ if(Cloud.on){await Cloud.logout();dropSnap();S.users=[];S.results=[];S.lkpd=[];S.lkpdBukti=[]}else localStorage.removeItem(SES);
  S.user=null;A.edit=null;A.imp=null;A.impn=null;A.err='';resetV();render();
 }
 document.addEventListener('click',async function(e){

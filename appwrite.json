@@ -86,6 +86,7 @@
       "$permissions": [
         "create(\"users\")",
         "read(\"users\")",
+        "update(\"label:guru\")",
         "update(\"label:admin\")",
         "delete(\"label:admin\")"
       ],
@@ -195,10 +196,12 @@
       "databaseId": "tbsm",
       "name": "lkpd",
       "enabled": true,
-      "documentSecurity": false,
+      "documentSecurity": true,
       "$permissions": [
         "create(\"users\")",
-        "read(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
         "update(\"label:admin\")",
         "delete(\"label:admin\")"
       ],
@@ -287,6 +290,36 @@
           "key": "oleh",
           "type": "string",
           "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "koreksi",
+          "type": "integer",
+          "min": 0,
+          "max": 100,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "umpan",
+          "type": "string",
+          "size": 1000,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "verifOleh",
+          "type": "string",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "verifTs",
+          "type": "integer",
+          "min": 0,
+          "max": 9007199254740991,
           "required": false,
           "array": false
         }
@@ -427,6 +460,78 @@
           "type": "key",
           "attributes": [
             "kelas"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "lkpd_bukti",
+      "databaseId": "tbsm",
+      "name": "lkpd_bukti",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "lkpdId",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "moduleId",
+          "type": "string",
+          "size": 32,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "min": 0,
+          "max": 9007199254740991,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "label",
+          "type": "string",
+          "size": 100,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "data",
+          "type": "string",
+          "size": 300000,
+          "required": true,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_bukti_lkpd",
+          "type": "key",
+          "attributes": [
+            "lkpdId"
           ],
           "orders": [
             "ASC"

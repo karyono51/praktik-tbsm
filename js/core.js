@@ -40,7 +40,8 @@ function quickSiswa(nama,kelas){var u={id:uid(),nama:nama,username:slug(nama)+'.
 /* ---- Appwrite ---- */
 var FA=['nama','username','email','peran','kelas','aktif'];
 var FH=['ts','jobId','kelas','siswa','tipe','score','kompeten','catatan','detik','oleh','penilai','sid'];
-var FL=['ts','moduleId','moduleTitle','kelas','siswa','sid','score','practice','theory','kompeten','payload','oleh'];
+var FL=['ts','moduleId','moduleTitle','kelas','siswa','sid','score','practice','theory','kompeten','payload','oleh','koreksi','umpan','verifOleh','verifTs'];
+var FB=['lkpdId','sid','moduleId','ts','label','data'];
 var FLM=['moduleId','title','kelas','fase','duration','status','active','payload','updatedAt','updatedBy'];
 function pick(o,F){var x={};F.forEach(function(k){if(o[k]!==undefined&&o[k]!==null)x[k]=o[k]});return x}
 function fromDoc(d){var o={id:d.$id};Object.keys(d).forEach(function(k){if(k[0]!=='$')o[k]=d[k]});o.r=1;return o}
@@ -57,9 +58,10 @@ var Cloud={on:CLOUD_ON,busy:false,
   var em=me.email.toLowerCase(),f=await this.list('akun',[Appwrite.Query.equal('email',[em])]);
   if(f[0])return fromDoc(f[0]);
   var adm=em===String(CFG.ADMIN_EMAIL||'').toLowerCase();
+  if(!adm&&CFG.PENDAFTARAN_TERBUKA===false){await this.logout();throw new Error('Email ini belum terdaftar. Minta guru atau admin menambahkan akun Anda terlebih dahulu.')}
   var p={id:uid(),nama:me.name||em,username:em.split('@')[0],email:em,peran:adm?'admin':'siswa',kelas:'X',aktif:true};
   await this.db.createDocument(CFG.DB,'akun',p.id,pick(p,FA));p.r=1;return p},
- enter:async function(me){var p=await this.resolve(me);if(p.aktif===false){await this.logout();throw new Error('Akun dinonaktifkan. Hubungi admin.')}
+ enter:async function(me){var p=await this.resolve(me);this.authId=me.$id;try{localStorage.setItem('tbsm-auth',JSON.stringify({sid:p.id,auth:me.$id}))}catch(e){}if(p.aktif===false){await this.logout();throw new Error('Akun dinonaktifkan. Hubungi admin.')}
   S.user=p;S.users=[p];
   if(roleList(p).some(function(r){return r!=='siswa'})){S.users=(await this.list('akun')).map(fromDoc);S.results=(await this.list('hasil')).map(fromDoc);S.lkpd=(await this.list('lkpd')).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}
   else {S.results=(await this.list('hasil',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpd=(await this.list('lkpd',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}

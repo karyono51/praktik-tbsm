@@ -30,7 +30,7 @@ Setiap modul memiliki `id`, `title`, `fase`, `kelas`, `unit`, `duration`, `skkni
 
 - **Mode lokal:** modul disimpan di `localStorage` dengan key `tbsm-lkpd-modules`. Data hanya tersedia pada browser/perangkat yang sama.
 - **Mode Appwrite:** modul disimpan pada koleksi `lkpd_modules`, terpisah dari koleksi pengumpulan `lkpd`. Konten lengkap berada pada atribut `payload`; atribut metadata digunakan untuk indeks dan status.
-- **Offline:** perubahan modul yang belum tersinkron dimasukkan ke antrean PWA dan dikirim saat koneksi kembali. Cache service worker saat ini `tbsm-v18`.
+- **Offline:** perubahan modul yang belum tersinkron dimasukkan ke antrean PWA dan dikirim saat koneksi kembali. Cache service worker saat ini `tbsm-v19`.
 - **Pengumpulan:** tetap masuk ke koleksi `lkpd` dan rekap nilai `hasil` dengan `jobId` sama dengan ID modul.
 
 ## Migrasi Appwrite dan izin server
@@ -48,3 +48,9 @@ Setiap modul memiliki `id`, `title`, `fase`, `kelas`, `unit`, `duration`, `skkni
 ## Penilaian dan batasan
 
 Nilai otomatis bersifat formatif sesuai bobot modul. Guru harus memverifikasi bukti praktik dan standar manual servis. Kode SKKNI harus dicocokkan dengan dokumen unit kompetensi resmi sebelum dipakai sebagai klaim sertifikasi. Editor saat ini mengelola soal pilihan ganda dalam JSON; bank soal visual, upload bukti foto, rubrik observasi per butir, dan pengaturan penugasan per rombel dapat dikembangkan pada tahap berikutnya.
+
+## Nilai koreksi guru dan foto bukti
+
+- Guru/Admin membuka **Rekap LKPD > Detail**, mengisi **Nilai koreksi (0–100)** dan umpan balik. Nilai guru menggantikan nilai otomatis di rekap dan di koleksi `hasil`. Pengumpulan tanpa koreksi ditandai "belum diverifikasi".
+- Siswa dapat melampirkan maksimal 3 foto bukti di tab Lembar Kerja. Foto dikecilkan (sisi terpanjang 1024 px, JPEG) dan disimpan di koleksi `lkpd_bukti`; guru memuatnya saat membuka Detail.
+- Pengaturan izin dan atribut baru: lihat `docs-PENGAMANAN-APPWRITE.md`.

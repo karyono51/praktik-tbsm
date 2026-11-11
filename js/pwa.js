@@ -1,16 +1,16 @@
 /* pwa.js: pendaftaran service worker, tombol pasang, status jaringan di header, antrean sinkron Appwrite */
 var QK='tbsm-queue',SK='tbsm-snap';
 function pendingList(){
- var u=S.users.filter(function(o){return !o.r||o.d}),h=S.results.filter(function(o){return !o.r||o.d}),l=(S.lkpd||[]).filter(function(o){return !o.r||o.d}),m=(S.lkpdModules||[]).filter(function(o){return !o.r||o.d});
- return {akun:u,hasil:h,lkpd:l,lkpd_modules:m}}
-function pendingCount(){var p=pendingList();return p.akun.length+p.hasil.length+p.lkpd.length+(p.lkpd_modules||[]).length}
+ var u=S.users.filter(function(o){return !o.r||o.d}),h=S.results.filter(function(o){return !o.r||o.d}),l=(S.lkpd||[]).filter(function(o){return !o.r||o.d}),m=(S.lkpdModules||[]).filter(function(o){return !o.r||o.d}),b=(S.lkpdBukti||[]).filter(function(o){return !o.r||o.d});
+ return {akun:u,hasil:h,lkpd:l,lkpd_modules:m,lkpd_bukti:b}}
+function pendingCount(){var p=pendingList();return p.akun.length+p.hasil.length+p.lkpd.length+(p.lkpd_modules||[]).length+(p.lkpd_bukti||[]).length}
 function savePending(){
- try{var p=pendingList();if(p.akun.length||p.hasil.length||p.lkpd.length||(p.lkpd_modules||[]).length)localStorage.setItem(QK,JSON.stringify(p));else localStorage.removeItem(QK)}catch(e){}}
+ try{var p=pendingList();if(p.akun.length||p.hasil.length||p.lkpd.length||(p.lkpd_modules||[]).length||(p.lkpd_bukti||[]).length)localStorage.setItem(QK,JSON.stringify(p));else localStorage.removeItem(QK)}catch(e){}}
 function saveSnap(){
  try{if(Cloud.on&&S.user&&pendingCount()===0)localStorage.setItem(SK,JSON.stringify({user:S.user,users:S.users,results:S.results,lkpd:S.lkpd||[],lkpdModules:S.lkpdModules||[],ts:Date.now()}))}catch(e){}}
 function restorePending(){
  try{var q=JSON.parse(localStorage.getItem(QK)||'null');if(!q)return;
-  [[q.akun||[],S.users],[q.hasil||[],S.results],[q.lkpd||[],S.lkpd||(S.lkpd=[])],[q.lkpd_modules||[],S.lkpdModules||(S.lkpdModules=[])]].forEach(function(pair){
+  [[q.akun||[],S.users],[q.hasil||[],S.results],[q.lkpd||[],S.lkpd||(S.lkpd=[])],[q.lkpd_modules||[],S.lkpdModules||(S.lkpdModules=[])],[q.lkpd_bukti||[],S.lkpdBukti||(S.lkpdBukti=[])]].forEach(function(pair){
    pair[0].forEach(function(o){var i=pair[1].findIndex(function(x){return x.id===o.id});
     if(i<0)pair[1].push(o);else if(o.d){pair[1][i]=o}})});
   syncRoster()}catch(e){}}
@@ -19,6 +19,17 @@ function loadSnap(){
   S.users=s.users||[s.user];S.results=s.results||[];S.lkpd=s.lkpd||[];S.lkpdModules=s.lkpdModules||[];S.user=s.user;restorePending();
   var me=S.users.find(function(u){return u.id===s.user.id})||s.user;enter(me);return true}catch(e){return false}}
 function dropSnap(){try{localStorage.removeItem(SK)}catch(e){}}
+
+/* Izin per dokumen: LKPD dan foto bukti milik siswa dapat dibaca pemiliknya. Guru/admin membaca lewat izin koleksi (label). */
+function ownerPerms(col,o){
+ if((col!=='lkpd'&&col!=='lkpd_bukti')||!S.user||o.sid!==S.user.id)return null;
+ var id=Cloud.authId;
+ if(!id){try{var j=JSON.parse(localStorage.getItem('tbsm-auth')||'null');if(j&&j.sid===S.user.id)id=j.auth}catch(e){}}
+ return id?[Appwrite.Permission.read(Appwrite.Role.user(id))]:null}
+async function createOwned(db,col,o,F){
+ var pm=ownerPerms(col,o);
+ if(pm){try{return await db.createDocument(CFG.DB,col,o.id,pick(o,F),pm)}catch(e){if(e&&e.code===409)throw e}}
+ return db.createDocument(CFG.DB,col,o.id,pick(o,F))}
 
 /* status jaringan dan tombol pasang: tampil di header, di bawah judul (elemen #netslot dibuat oleh render) */
 var deferredInstall=null;
@@ -41,13 +52,13 @@ function netbar(){
    if(navigator.onLine===false){netbar();toast('Offline: data disimpan di perangkat, disinkronkan saat online');return}
    this.busy=true;var fails=[];
    try{
-    var jobs=[[S.users,'akun',FA],[S.results,'hasil',FH],[S.lkpd||[],'lkpd',FL]];
+    var jobs=[[S.users,'akun',FA],[S.results,'hasil',FH],[S.lkpd||[],'lkpd',FL],[S.lkpdBukti||[],'lkpd_bukti',FB]];
     for(var i=0;i<jobs.length;i++){var arr=jobs[i][0],col=jobs[i][1],F=jobs[i][2];
      for(var k=0;k<arr.length;k++){var o=arr[k];if(o.r&&!o.d)continue;
       try{
        if(!o.r){
         if(col==='akun'&&!o.email)o.email=(o.username||o.id)+'@tanpa-email.local';
-        try{await this.db.createDocument(CFG.DB,col,o.id,pick(o,F))}
+        try{await createOwned(this.db,col,o,F)}
         catch(e1){if(e1&&(e1.code===409||/already exists|unique/i.test(e1.message||''))){await this.db.updateDocument(CFG.DB,col,o.id,pick(o,F))}else throw e1}
         o.r=1;o.d=0}
        else{await this.db.updateDocument(CFG.DB,col,o.id,pick(o,F));o.d=0}
