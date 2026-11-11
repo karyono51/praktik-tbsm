@@ -41,8 +41,13 @@ function navApply(u){
    await boot0();
    /* Pemuatan dari server gagal di tengah jalan (S.user terisi, enter() belum jalan): pakai snapshot lokal agar posisi tetap dipulihkan */
    if(S.user&&!NAV.entered){
-    if(typeof loadSnap==='function'&&loadSnap()){render();toast('Server belum terjangkau. Memakai data tersimpan.')}
-    else if(A.err)toast('Gagal memuat data: '+A.err);
+    var why=A.err||'';
+    if(typeof loadSnap==='function'&&loadSnap()){
+     render();
+     /* coba lagi diam-diam; pemberitahuan hanya muncul bila server memang tetap gagal, lengkap dengan penyebabnya */
+     if(Cloud.on&&navigator.onLine!==false)Cloud.refresh().then(function(){if(pendingCount())Cloud.flush();render()}).catch(function(e){toast('Server belum terjangkau ('+(((e&&e.message)||why||'tidak diketahui')+'').slice(0,80)+'). Memakai data tersimpan.')});
+     else toast('Offline. Memakai data tersimpan.');
+    }else if(why)toast('Gagal memuat data: '+why);
    }
   }finally{NAV.restore=false;navSave()}
  };

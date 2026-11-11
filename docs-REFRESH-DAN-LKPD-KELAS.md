@@ -1,4 +1,7 @@
-# Refresh dan LKPD per kelas (cache tbsm-v25)
+# Refresh dan LKPD per kelas (cache tbsm-v26)
+
+## v26: pemberitahuan saat refresh
+- Bila pemuatan awal dari server gagal, aplikasi memakai data tersimpan lalu mencoba lagi diam-diam. Pemberitahuan hanya muncul jika server tetap gagal, dan memuat penyebabnya (kode atau pesan galat).
 
 ## Perbaikan v25: refresh loncat ke Beranda
 - Penilaian yang sedang berjalan (Unit ujian) kini ikut dipulihkan setelah refresh: unit, siswa atau kelompok, isian, catatan, dan waktu (timer berhenti, ketuk Lanjut). Disimpan tiap 5 detik, saat aplikasi disembunyikan, dan saat ditutup. Halaman hasil tidak dipulihkan.
