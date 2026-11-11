@@ -31,7 +31,7 @@ function render(){
   '<header class="top">'+logoBtn+who+'</header>';
  var body;
  if(V.mode==='exam')body=viewExam();else if(V.mode==='result')body=viewResult();
- else if(S.tab==='beranda')body=viewBeranda();else if(S.tab==='rekap')body=viewRekap();else if(S.tab==='akun'&&can('akun'))body=viewAkun();else if(S.tab==='acuan')body=viewAcuan();else if(S.tab==='lkpd')body=viewLKPD();else if(S.tab==='katalog')body=viewKatalog();else{S.tab='beranda';body=viewBeranda()}
+ else if(S.tab==='beranda')body=viewBeranda();else if(S.tab==='rekap')body=viewRekap();else if(S.tab==='akun'&&can('akun'))body=viewAkun();else if(S.tab==='acuan')body=viewAcuan();else if(S.tab==='lkpd')body=viewLKPD();else if(S.tab==='observasi'&&can('observasi'))body=viewObservasi();else body=viewKatalog();
  var cur=V.mode==='list'?S.tab:'';
  var row=function(v,t,sub,ic,on,tone){return '<button type="button" class="srow'+(tone?' '+tone:'')+'" data-act="'+(v==='keluar'?'menulogout':v==='segarkan'?'refresh':v==='perbarui'?'updateapp':v==='gantisandi'?'mypw':'menu')+'" data-v="'+v+'"'+(on?' aria-current="page"':'')+'><span class="ico">'+svg(ICO[ic],22)+'</span><span class="st"><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+svg(ICO.chev,18)+'</button>'};
  var kr=kelasBoleh().map(function(c){return row('lkpd:'+c,KELAS[c].judul,KELAS[c].sub,'kelas',cur==='lkpd'&&S.kelas===c)}).join('');
@@ -42,6 +42,7 @@ function render(){
   '<div class="chip">'+svg(ICO.kelas,16)+(kelasBoleh().length>1?'LKPD praktik':'LKPD praktik kelas saya')+'</div>'+kr+
   '<div class="chip">'+svg(ICO.menu,16)+'Lainnya</div>'+
   row('rekap','Rekap nilai','Nilai, ekspor Excel dan PDF','rekap',cur==='rekap')+
+  (can('observasi')?row('observasi','Observasi guru','Supervisi pembelajaran','observasi',cur==='observasi'):'')+
   row('kelas:'+kelasBoleh()[0],'Unit ujian','Akan digantikan LKPD praktik','acuan',cur==='katalog')+
   (can('akun')?row('akun','Akun','Kelola akun, impor, dan KKM','akun',cur==='akun'):'')+
   row('acuan','Acuan','Rubrik dan standar penilaian','acuan',cur==='acuan')+
@@ -78,7 +79,7 @@ function viewRekap(){
   (r.catatan?'<div class="note">'+esc(r.catatan)+'</div>':'')+'</div>'}).join('');
  return '<h2>Rekap nilai</h2><div class="chips" role="group" aria-label="Filter kelas">'+chips+'</div>'+
   '<div class="stats"><div class="card"><span class="label">Data</span><b class="mono">'+n+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+a[1]+'</b></div><div class="card"><span class="label">Kompeten</span><b class="mono">'+Math.round(a[2]*100)+'%</b></div></div>'+
-  '<div class="row"><button type="button" class="btn small" data-act="xlsrekap">Unduh Excel</button><button type="button" class="btn small primary" data-act="pdfrekap">Unduh PDF</button>'+(can('hapus')&&!Cloud.on?'<button type="button" class="btn small danger" data-act="rmall">Hapus semua</button>':'')+(can('hapus')&&hasilYatim().length?'<button type="button" class="btn small danger" data-act="rmyatim">Bersihkan nilai tanpa akun ('+hasilYatim().length+')</button>':'')+'</div>'+
+  '<div class="row"><button type="button" class="btn small" data-act="xlsrekap">Unduh Excel</button><button type="button" class="btn small primary" data-act="pdfrekap">Unduh PDF</button>'+(can('hapus')&&!Cloud.on?'<button type="button" class="btn small danger" data-act="rmall">Hapus semua</button>':'')+'</div>'+
   imporNilaiHtml()+
   (rows||'<div class="card"><p class="muted">Belum ada data untuk filter ini. Mulai dari tab Unit ujian.</p></div>')+
   '<p class="note">'+(Cloud.on?'Data tersinkron ke Appwrite.':'Data tersimpan di peramban ini. Unduh Excel atau PDF untuk arsip.')+'</p>';
@@ -142,7 +143,7 @@ document.addEventListener('submit',async function(e){
 });
 async function doLogout(){
  stopTimer();
- if(Cloud.on){await Cloud.logout();dropSnap();S.users=[];S.results=[];S.lkpd=[];S.lkpdBukti=[]}else localStorage.removeItem(SES);
+ if(Cloud.on){await Cloud.logout();dropSnap();S.users=[];S.results=[];S.lkpd=[];S.lkpdBukti=[];S.observasi=[];OB.mode='list';OB.d=null;OB.view=null}else localStorage.removeItem(SES);
  S.user=null;A.edit=null;A.imp=null;A.impn=null;A.err='';resetV();render();
 }
 document.addEventListener('click',async function(e){
@@ -157,12 +158,8 @@ document.addEventListener('click',async function(e){
  else if(a==='akundel'){
   var u=S.users.find(function(x){return x.id===v});
   if(hasRole(u,'admin')&&S.users.filter(function(x){return hasRole(x,'admin')&&x.aktif!==false&&x.id!==v}).length<1){toast('Harus tersisa satu admin aktif');return}
-  if(!confirm('Hapus akun '+u.nama+'?'))return;
-  var mine=S.results.filter(function(r){return r.sid===v||(!r.sid&&String(r.siswa||'').trim().toLowerCase()===String(u.nama||'').trim().toLowerCase())});
-  var dropNilai=mine.length&&can('hapus')&&confirm('Hapus juga '+mine.length+' nilai milik '+u.nama+'?\nOK = nilai ikut dihapus. Batal = nilai tetap tersimpan.');
-  S.users=S.users.filter(function(x){return x.id!==v});Cloud.remove('akun',v);
-  if(dropNilai){var n0=await hapusHasil(mine);toast('Akun dihapus, '+n0+' nilai dihapus')}else toast('Akun dihapus');
-  persist();render();
+  if(!confirm('Hapus akun '+u.nama+'? Data nilai tetap tersimpan.'))return;
+  S.users=S.users.filter(function(x){return x.id!==v});Cloud.remove('akun',v);persist();render();toast('Akun dihapus');
  }
  else if(a==='akunfilter'){A.peran=v;render()}
  else if(a==='akuntpl')tplAkun();

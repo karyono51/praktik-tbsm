@@ -101,31 +101,4 @@ document.addEventListener('change',function(e){
   if(e.target.id==='kkm'){var n=parseInt(e.target.value,10);if(n>=60&&n<=100){S.kkm=n;persist();toast('KKM '+n)}else{e.target.value=S.kkm}}
 });
 document.addEventListener('input',function(e){if(e.target.id==='peserta'&&V.mode==='exam')V.peserta=e.target.value});
-/* Nilai tanpa akun: akun siswanya sudah dihapus (tidak ada akun dengan ID atau nama yang sama) */
-function hasilYatim(){
- if(!S.users||!S.users.length||!S.results)return [];
- var ids={},nm={};S.users.forEach(function(u){ids[u.id]=1;nm[String(u.nama||'').trim().toLowerCase()]=1});
- return S.results.filter(function(r){return !(r.sid&&ids[r.sid])&&!nm[String(r.siswa||'').trim().toLowerCase()]});
-}
-/* Hapus nilai di server (bila sudah tersinkron) dan di perangkat. Mengembalikan jumlah yang terhapus. */
-async function hapusHasil(list){
- var gone={},n=0;
- for(var i=0;i<list.length;i++){
-  var r=list[i];
-  if(Cloud.on&&r.r){
-   try{await Cloud.db.deleteDocument(CFG.DB,'hasil',r.id)}
-   catch(e){if(!(e&&e.code===404)){toast('Gagal menghapus nilai di server: '+((e&&e.message)||e));break}}
-  }
-  gone[r.id]=1;n++;
- }
- S.results=S.results.filter(function(r){return !gone[r.id]});
- return n;
-}
-document.addEventListener('click',async function(e){
- var b=e.target.closest('[data-act="rmyatim"]');if(!b||!can('hapus'))return;
- var L=hasilYatim();if(!L.length){toast('Tidak ada nilai tanpa akun');return}
- var nm=[],seen={};L.forEach(function(r){var k=r.siswa||'Tanpa nama';if(!seen[k]){seen[k]=1;nm.push(k)}});
- if(!confirm('Hapus '+L.length+' nilai yang akun siswanya sudah tidak ada?\n\n'+nm.slice(0,8).join(', ')+(nm.length>8?' dan '+(nm.length-8)+' lainnya':'')+'\n\nNilai hasil impor untuk siswa tanpa akun juga ikut terhapus. Tindakan ini tidak bisa dibatalkan.'))return;
- var n=await hapusHasil(L);persist();render();toast(n+' nilai dihapus');
-});
 boot();

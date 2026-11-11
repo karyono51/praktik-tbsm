@@ -354,10 +354,10 @@
       "enabled": true,
       "documentSecurity": true,
       "$permissions": [
-        "create(\"label:lkpdeditor\")",
-        "read(\"label:lkpdeditor\")",
-        "update(\"label:lkpdeditor\")",
-        "delete(\"label:lkpdeditor\")"
+        "create(\"label:lkpd-editor\")",
+        "read(\"label:lkpd-editor\")",
+        "update(\"label:lkpd-editor\")",
+        "delete(\"label:lkpd-editor\")"
       ],
       "attributes": [
         {
@@ -535,6 +535,123 @@
           ],
           "orders": [
             "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "observasi",
+      "databaseId": "tbsm",
+      "name": "observasi",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "read(\"label:admin\")",
+        "update(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "guruId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "guru",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 120
+        },
+        {
+          "key": "mapel",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 120
+        },
+        {
+          "key": "kelas",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "tanggal",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 10
+        },
+        {
+          "key": "pengamat",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 120
+        },
+        {
+          "key": "pengamatId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "skor",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 100
+        },
+        {
+          "key": "kategori",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 16
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 20000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_obs_pengamat",
+          "type": "key",
+          "attributes": [
+            "pengamatId"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_obs_ts",
+          "type": "key",
+          "attributes": [
+            "ts"
+          ],
+          "orders": [
+            "DESC"
           ]
         }
       ]

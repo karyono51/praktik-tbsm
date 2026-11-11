@@ -1,25 +1,4 @@
-# Refresh dan LKPD per kelas (cache tbsm-v28)
-
-## v28: nama label editor modul
-- Appwrite hanya menerima label huruf dan angka, sehingga `lkpd-editor` ditolak. Nama label diganti menjadi `lkpdeditor` (tanpa tanda hubung) di js/pwa.js, appwrite.json, dan dokumen. Beri label ini ke akun yang boleh mengelola modul LKPD.
-
-## v27: koleksi lkpd hilang dan nilai akun terhapus
-- Penyebab notifikasi "Server belum terjangkau (Collection ... 'lkpd' could not be found)": koleksi `lkpd` belum ada di database Appwrite, sehingga pemuatan awal selalu gagal. Kini koleksi yang belum ada dilewati (dianggap kosong) dan aplikasi memuat normal. Agar LKPD siswa bisa tersimpan di server, buat koleksi `lkpd` (dan `lkpd_bukti`) sesuai appwrite.json.
-- Hapus akun (peran Admin): setelah konfirmasi akun, ditawarkan juga menghapus nilai milik akun itu.
-- Rekap (peran Admin): tombol **Bersihkan nilai tanpa akun (N)** menghapus nilai yang akun siswanya sudah tidak ada, dengan konfirmasi dan daftar nama.
-
-## v26: pemberitahuan saat refresh
-- Bila pemuatan awal dari server gagal, aplikasi memakai data tersimpan lalu mencoba lagi diam-diam. Pemberitahuan hanya muncul jika server tetap gagal, dan memuat penyebabnya (kode atau pesan galat).
-
-## Perbaikan v25: refresh loncat ke Beranda
-- Penilaian yang sedang berjalan (Unit ujian) kini ikut dipulihkan setelah refresh: unit, siswa atau kelompok, isian, catatan, dan waktu (timer berhenti, ketuk Lanjut). Disimpan tiap 5 detik, saat aplikasi disembunyikan, dan saat ditutup. Halaman hasil tidak dipulihkan.
-- Bila pemuatan dari server gagal di tengah jalan, aplikasi memakai data tersimpan di perangkat dan tetap memulihkan posisi (muncul pemberitahuan), tidak lagi jatuh ke tab bawaan.
-- Posisi tersimpan tidak pernah ditimpa selama data belum selesai dimuat.
-
-## Perbaikan v24: refresh selalu loncat ke Unit ujian
-- Penyebab: saat data masih dimuat dari Appwrite, `S.user` sudah terisi tetapi tab masih bawaan lama (`katalog` = Unit ujian). Bila halaman dimuat ulang atau ditinggalkan pada saat itu, `navSave` menimpa posisi tersimpan dengan Unit ujian, sehingga reload berikutnya selalu ke sana.
-- Perbaikan: `navSave` tidak menyimpan selama boot (nav.js), posisi disimpan sekali setelah boot selesai, tab bawaan kini `beranda` (core.js), dan tab tidak dikenal atau tanpa izin jatuh ke Beranda, bukan Unit ujian (ui.js).
-
+# Refresh dan LKPD per kelas (cache tbsm-v20)
 
 ## Refresh
 - Posisi halaman (menu, kelas, modul LKPD, tab) disimpan dan dipulihkan setelah reload, berlaku 24 jam. Login baru tetap ke Beranda. Penilaian yang sedang berjalan tidak dipulihkan.

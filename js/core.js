@@ -2,13 +2,13 @@
 var CFG=window.APP_CONFIG||{};
 var KEY='tbsm-uji-v2',SES='tbsm-sesi';
 var PERAN={admin:'Admin',guru:'Guru',siswa:'Siswa'};
-var PERM={admin:['akun','kkm','hapus','nilai'],guru:['nilai'],siswa:[]};
-var S={role:'siswa',tab:'beranda',kelas:'X',kkm:+localStorage.getItem('tbsm-kkm')||75,siswaName:'',filter:'ALL',user:null,users:[],roster:[],results:[],lkpd:[],lkpdModules:[]};
+var PERM={admin:['akun','kkm','hapus','nilai','observasi','observasi-semua'],guru:['nilai','observasi'],siswa:[]};
+var S={role:'siswa',tab:'katalog',kelas:'X',kkm:+localStorage.getItem('tbsm-kkm')||75,siswaName:'',filter:'ALL',user:null,users:[],roster:[],results:[],lkpd:[],lkpdModules:[],observasi:[]};
 var V={mode:'list',job:null,checks:{},peserta:'',catatan:'',sec:0,running:false,res:null},timer=null;
 var CLOUD_ON=!!(CFG.APPWRITE_ENDPOINT&&CFG.APPWRITE_PROJECT&&window.Appwrite);
-if(!CLOUD_ON){try{var d0=JSON.parse(localStorage.getItem(KEY)||'null');if(d0){S.users=d0.users||[];S.results=d0.results||[]}try{S.lkpd=JSON.parse(localStorage.getItem('tbsm-lkpd-records')||'[]')}catch(e2){S.lkpd=[]}try{S.lkpdModules=JSON.parse(localStorage.getItem('tbsm-lkpd-modules')||'[]')}catch(e3){S.lkpdModules=[]}}catch(e){}}
+if(!CLOUD_ON){try{var d0=JSON.parse(localStorage.getItem(KEY)||'null');if(d0){S.users=d0.users||[];S.results=d0.results||[]}try{S.lkpd=JSON.parse(localStorage.getItem('tbsm-lkpd-records')||'[]')}catch(e2){S.lkpd=[]}try{S.lkpdModules=JSON.parse(localStorage.getItem('tbsm-lkpd-modules')||'[]')}catch(e3){S.lkpdModules=[]}try{S.observasi=JSON.parse(localStorage.getItem('tbsm-observasi')||'[]')}catch(e4){S.observasi=[]}}catch(e){}}
 
-function save(){try{localStorage.setItem('tbsm-kkm',S.kkm);if(!CLOUD_ON)localStorage.setItem(KEY,JSON.stringify({users:S.users,results:S.results}));localStorage.setItem('tbsm-lkpd-records',JSON.stringify(S.lkpd||[]));localStorage.setItem('tbsm-lkpd-modules',JSON.stringify(S.lkpdModules||[]))}catch(e){}}
+function save(){try{localStorage.setItem('tbsm-kkm',S.kkm);if(!CLOUD_ON)localStorage.setItem(KEY,JSON.stringify({users:S.users,results:S.results}));localStorage.setItem('tbsm-lkpd-records',JSON.stringify(S.lkpd||[]));localStorage.setItem('tbsm-lkpd-modules',JSON.stringify(S.lkpdModules||[]));localStorage.setItem('tbsm-observasi',JSON.stringify(S.observasi||[]))}catch(e){}}
 function persist(){syncRoster();save();Cloud.flush()}
 /* Peran ganda: kolom peran menyimpan daftar dipisah koma (mis. 'guru,siswa', maksimal 16 karakter). Peran aktif dipilih di header. */
 var URUT=['admin','guru','siswa'];
@@ -42,9 +42,11 @@ var FA=['nama','username','email','peran','kelas','aktif'];
 var FH=['ts','jobId','kelas','siswa','tipe','score','kompeten','catatan','detik','oleh','penilai','sid'];
 var FL=['ts','moduleId','moduleTitle','kelas','siswa','sid','score','practice','theory','kompeten','payload','oleh','koreksi','umpan','verifOleh','verifTs'];
 var FB=['lkpdId','sid','moduleId','ts','label','data'];
+var FO=['ts','guruId','guru','mapel','kelas','tanggal','pengamat','pengamatId','skor','kategori','payload'];
 var FLM=['moduleId','title','kelas','fase','duration','status','active','payload','updatedAt','updatedBy'];
 function pick(o,F){var x={};F.forEach(function(k){if(o[k]!==undefined&&o[k]!==null)x[k]=o[k]});return x}
 function fromDoc(d){var o={id:d.$id};Object.keys(d).forEach(function(k){if(k[0]!=='$')o[k]=d[k]});o.r=1;return o}
+async function loadObsDocs(cloud){try{return (await cloud.list('observasi')).map(fromDoc)}catch(e){console.warn('Koleksi observasi belum dapat dibaca:',e);return []}}
 async function loadLKPDModuleDocs(cloud){try{return (await cloud.list('lkpd_modules')).map(function(d){var o=fromDoc(d);try{var x=JSON.parse(o.payload||'{}');o=Object.assign(o,x)}catch(e){}o.id=d.$id;o.r=1;o.d=0;return o})}catch(e){console.warn('Koleksi lkpd_modules belum dapat dibaca:',e);return []}}
 var Cloud={on:CLOUD_ON,busy:false,
  init:function(){var c=new Appwrite.Client().setEndpoint(CFG.APPWRITE_ENDPOINT).setProject(CFG.APPWRITE_PROJECT);this.acc=new Appwrite.Account(c);this.db=new Appwrite.Databases(c)},
@@ -54,7 +56,6 @@ var Cloud={on:CLOUD_ON,busy:false,
  google:function(){this.acc.createOAuth2Session('google',location.href,location.href)},
  logout:async function(){try{await this.acc.deleteSession('current')}catch(e){}},
  list:async function(col,extra){var out=[],cur=null;for(;;){var q=[Appwrite.Query.limit(100)].concat(extra||[]);if(cur)q.push(Appwrite.Query.cursorAfter(cur));var r=await this.db.listDocuments(CFG.DB,col,q);out=out.concat(r.documents);if(r.documents.length<100)return out;cur=r.documents[r.documents.length-1].$id}},
- listSafe:async function(col,extra){try{return await this.list(col,extra)}catch(e){if(e&&(e.code===404||/could not be found/i.test(e.message||'')))return [];throw e}},
  resolve:async function(me){
   var em=me.email.toLowerCase(),f=await this.list('akun',[Appwrite.Query.equal('email',[em])]);
   if(f[0])return fromDoc(f[0]);
@@ -64,8 +65,8 @@ var Cloud={on:CLOUD_ON,busy:false,
   await this.db.createDocument(CFG.DB,'akun',p.id,pick(p,FA));p.r=1;return p},
  enter:async function(me){var p=await this.resolve(me);this.authId=me.$id;try{localStorage.setItem('tbsm-auth',JSON.stringify({sid:p.id,auth:me.$id}))}catch(e){}if(p.aktif===false){await this.logout();throw new Error('Akun dinonaktifkan. Hubungi admin.')}
   S.user=p;S.users=[p];
-  if(roleList(p).some(function(r){return r!=='siswa'})){S.users=(await this.list('akun')).map(fromDoc);S.results=(await this.list('hasil')).map(fromDoc);S.lkpd=(await this.listSafe('lkpd')).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}
-  else {S.results=(await this.list('hasil',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpd=(await this.listSafe('lkpd',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}
+  if(roleList(p).some(function(r){return r!=='siswa'})){S.users=(await this.list('akun')).map(fromDoc);S.results=(await this.list('hasil')).map(fromDoc);S.lkpd=(await this.list('lkpd')).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}
+  else {S.results=(await this.list('hasil',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpd=(await this.list('lkpd',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}
   enter(S.users.find(function(u){return u.id===p.id})||p)},
  flush:async function(){
   if(!this.on||!S.user||this.busy)return;this.busy=true;

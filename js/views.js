@@ -87,7 +87,7 @@ function viewBeranda(){
  var kc=kelasBoleh().map(function(c){
   var ms=LKPD_MODULES.filter(function(m){return m.kelas===c&&(isStaff()||(m.status==='published'&&m.active!==false))}),dn=ms.filter(function(m){return mine[m.id]}).length,pct=ms.length?Math.round(100*dn/ms.length):0;
   return '<button type="button" class="kcard" data-act="menu" data-v="lkpd:'+c+'"><span class="num" aria-hidden="true">'+c+'</span><span class="kt"><b>'+KELAS[c].judul+'</b><span>'+KELAS[c].sub+'</span><span class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></span><span class="mono kn">'+dn+' dari '+ms.length+' modul LKPD '+(isStaff()?'sudah ada pengumpulan':'sudah dikerjakan')+'</span></span></button>'}).join('');
- var tl=[['rekap','Rekap nilai','g1','menu']];if(can('akun'))tl.push(['akun','Akun','g3','menu']);tl.push(['acuan','Acuan','g2','menu'],['drawer','Menu','g4','drawer']);
+ var tl=[['rekap','Rekap nilai','g1','menu']];if(can('observasi'))tl.push(['observasi','Observasi guru','g1','menu']);if(can('akun'))tl.push(['akun','Akun','g3','menu']);tl.push(['acuan','Acuan','g2','menu'],['drawer','Menu','g4','drawer']);
  var tiles=tl.map(function(t){return '<button type="button" class="tile" data-act="'+t[3]+'"'+(t[3]==='menu'?' data-v="'+t[0]+'"':'')+'><span class="ico '+t[2]+'">'+svg(ICO[t[0]==='drawer'?'menu':t[0]],26)+'</span><span>'+t[1]+'</span></button>'}).join('');
  var rec=list.slice(0,3).map(function(r){var j=jobById(r.jobId);
   return '<div class="rec"><span class="dot '+(r.kompeten?'ok':'bad')+'"></span><div class="grow"><b>'+esc(j?j.judul:r.jobId)+'</b><div class="note">'+(isStaff()?esc(r.siswa||'Tanpa nama')+' · ':'')+'Kelas '+r.kelas+' · '+tgl(r.ts)+'</div></div><span class="mono sc">'+r.score+'</span></div>'}).join('');

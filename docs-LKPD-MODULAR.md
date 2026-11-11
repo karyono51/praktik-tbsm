@@ -37,13 +37,13 @@ Setiap modul memiliki `id`, `title`, `fase`, `kelas`, `unit`, `duration`, `skkni
 
 1. Backup database Appwrite terlebih dahulu.
 2. Tinjau `appwrite.json`, lalu jalankan `appwrite push collections` (atau buat koleksi `lkpd_modules` manual dengan atribut dan indeks yang sama). Jangan jalankan deployment sebelum koleksi tersedia.
-3. Di Appwrite Console > Auth > Users > Labels, buat label `lkpdeditor`.
-4. Berikan label `lkpdeditor` hanya kepada akun Guru/Admin yang memang boleh mengelola modul. Label ini adalah izin server; peran yang hanya tersimpan di kolom `akun.peran` tidak otomatis memberi hak tulis Appwrite.
-5. Koleksi `lkpd_modules` mengaktifkan document security. Izin koleksi membatasi CRUD ke label `lkpdeditor`. Dokumen Draft hanya dapat dibaca label tersebut. Dokumen Terbit dan aktif diberi izin baca untuk pengguna yang login (`Role.users`), sementara ubah/hapus tetap untuk label editor.
+3. Di Appwrite Console > Auth > Users > Labels, buat label `lkpd-editor`.
+4. Berikan label `lkpd-editor` hanya kepada akun Guru/Admin yang memang boleh mengelola modul. Label ini adalah izin server; peran yang hanya tersimpan di kolom `akun.peran` tidak otomatis memberi hak tulis Appwrite.
+5. Koleksi `lkpd_modules` mengaktifkan document security. Izin koleksi membatasi CRUD ke label `lkpd-editor`. Dokumen Draft hanya dapat dibaca label tersebut. Dokumen Terbit dan aktif diberi izin baca untuk pengguna yang login (`Role.users`), sementara ubah/hapus tetap untuk label editor.
 6. Uji menggunakan akun siswa dan guru terpisah: siswa hanya dapat membaca modul terbit; siswa tidak dapat membuat, mengubah, menerbitkan, atau menghapus modul. Guru/Admin berlabel dapat mengelola modul. Jika kebutuhan role lebih kompleks, gunakan Appwrite Function sebagai API tepercaya untuk memeriksa role di server dan menulis dokumen.
 7. Setelah deploy, uji login, daftar modul, penerbitan, perubahan izin, dan sinkronisasi offline. Jika Appwrite menolak izin/atribut, jangan menganggap data sudah tersinkron.
 
-**Catatan keamanan penting:** filter UI bukan pengamanan server. Perlindungan modul pada Appwrite mengandalkan document security dan label `lkpdeditor`. Pastikan label hanya diberikan kepada staf berwenang. Koleksi pengumpulan `lkpd` yang sudah ada memiliki skema/izin lama; privasi nilai siswa masih perlu diaudit terpisah. Jangan menyatakan data pengumpulan aman secara server-side hanya karena layar siswa memfilter `sid`.
+**Catatan keamanan penting:** filter UI bukan pengamanan server. Perlindungan modul pada Appwrite mengandalkan document security dan label `lkpd-editor`. Pastikan label hanya diberikan kepada staf berwenang. Koleksi pengumpulan `lkpd` yang sudah ada memiliki skema/izin lama; privasi nilai siswa masih perlu diaudit terpisah. Jangan menyatakan data pengumpulan aman secara server-side hanya karena layar siswa memfilter `sid`.
 
 ## Penilaian dan batasan
 

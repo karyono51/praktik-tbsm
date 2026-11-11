@@ -11,12 +11,12 @@
 ## Belum dapat diverifikasi
 
 - Uji browser end-to-end pada Chromium tidak dapat dijalankan di lingkungan kerja ini karena kebijakan lingkungan memblokir navigasi ke `localhost` maupun `file://`. Karena itu interaksi UI di browser nyata belum dinyatakan lulus.
-- Tidak dilakukan deployment ke project Appwrite sebenarnya. Pembuatan koleksi, label `lkpdeditor`, autentikasi, izin per dokumen, dan sinkronisasi online harus diuji pada project sekolah sebelum digunakan.
+- Tidak dilakukan deployment ke project Appwrite sebenarnya. Pembuatan koleksi, label `lkpd-editor`, autentikasi, izin per dokumen, dan sinkronisasi online harus diuji pada project sekolah sebelum digunakan.
 - Uji multi-pengguna/perangkat dan uji offline PWA secara fisik belum dilakukan.
 
 ## Checklist uji setelah deployment
 
-1. Login sebagai admin/guru berlabel `lkpdeditor`; buat modul draft, edit, duplikasi, pratinjau, terbitkan, nonaktifkan, dan hapus.
+1. Login sebagai admin/guru berlabel `lkpd-editor`; buat modul draft, edit, duplikasi, pratinjau, terbitkan, nonaktifkan, dan hapus.
 2. Login sebagai siswa; pastikan hanya modul terbit/aktif terlihat dan semua operasi editor ditolak oleh Appwrite.
 3. Buat pengumpulan siswa dan pastikan nilai tampil di menu Rekap nilai serta detail LKPD.
 4. Matikan jaringan, edit modul yang sudah ada atau buat modul baru, pulihkan jaringan, lalu pastikan antrean sinkron selesai.

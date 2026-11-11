@@ -316,3 +316,10 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 .lk-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;flex-wrap:nowrap}
 .lk-prog{font-size:11px;padding:3px 2px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .lk-actions .btn{font-size:14px}
+
+/* observasi guru */
+.seg.rate{grid-template-columns:repeat(4,1fr)}
+.item[data-s="3"],.item[data-s="4"]{border-color:var(--ok)}.item[data-s="1"]{border-color:var(--bad)}
+.obs-group{margin:10px 0 0;font-size:13px;font-weight:700;color:var(--accent)}
+.obs-cat{font-size:13px}
+.tiles.n5{grid-template-columns:repeat(5,1fr);gap:6px}.tiles.n5 .tile{padding:12px 0 10px;font-size:11px;border-radius:16px}.tiles.n5 .ico{width:40px;height:40px;border-radius:13px}

@@ -1,59 +1,29 @@
 /* nav.js: posisi halaman bertahan saat reload, tombol segarkan data, dan pembaruan aplikasi (cache) */
-var NAV={restore:false,entered:false,busy:false,hadCtl:false,updated:false};
+var NAV={restore:false,busy:false,hadCtl:false,updated:false};
 var NAVK='tbsm-nav',NAVTTL=24*3600*1000;
-var NAVTABS=['beranda','katalog','rekap','akun','acuan','lkpd'];
+var NAVTABS=['beranda','katalog','rekap','akun','acuan','lkpd','observasi'];
 
 /* ---- Simpan dan pulihkan posisi halaman ---- */
 function navSave(){
- /* NAV.restore=true selama boot dan NAV.entered=false bila data belum selesai dimuat: jangan timpa posisi tersimpan */
- if(NAV.restore||!NAV.entered||!S.user)return;
- if(V.mode!=='list'&&V.mode!=='exam')return; /* halaman hasil tidak dipulihkan; posisi sebelumnya tetap */
- var o={u:S.user.id,t:Date.now(),tab:S.tab,kelas:S.kelas,lm:LK.module,lt:LK.tab,lo:!!LK.open,kf:LK.kf||''};
- if(V.mode==='exam'&&V.job)o.ex={job:V.job.id,group:V.group,kel:!!V.kel,cks:V.cks,peserta:V.peserta,sec:V.sec,notes:V.notes||{}};
- try{localStorage.setItem(NAVK,JSON.stringify(o))}catch(e){}
+ if(!S.user||V.mode!=='list')return;
+ try{localStorage.setItem(NAVK,JSON.stringify({u:S.user.id,t:Date.now(),tab:S.tab,kelas:S.kelas,lm:LK.module,lt:LK.tab,lo:!!LK.open,kf:LK.kf||''}))}catch(e){}
 }
 function navApply(u){
  var j;try{j=JSON.parse(localStorage.getItem(NAVK)||'null')}catch(e){j=null}
  if(!j||j.u!==u.id||Date.now()-j.t>NAVTTL)return;
- if(NAVTABS.indexOf(j.tab)<0||(j.tab==='akun'&&!can('akun')))return;
+ if(NAVTABS.indexOf(j.tab)<0||(j.tab==='akun'&&!can('akun'))||(j.tab==='observasi'&&!can('observasi')))return;
  if(kelasBoleh().indexOf(j.kelas)>-1)S.kelas=j.kelas;
  S.tab=j.tab;
  if(j.tab==='lkpd'){
   if(j.lm)LK.module=j.lm;LK.kf=j.kf||'';LK.open=!!j.lo;
   if(['materi','kerja','evaluasi','riwayat'].indexOf(j.lt)>-1)LK.tab=j.lt;
  }
- if(j.ex&&j.ex.job){
-  var jb;try{jb=jobById(j.ex.job)}catch(e){jb=null}
-  if(jb&&kelasBoleh().indexOf(jb.kelas)>-1){
-   var g=(j.ex.group&&j.ex.group.length)?j.ex.group:[j.ex.peserta||''];
-   V={mode:'exam',job:jb,checks:{},peserta:j.ex.peserta||g[0]||'',catatan:'',sec:+j.ex.sec||0,running:false,res:null,group:g,kel:!!j.ex.kel,cks:j.ex.cks||{},notes:j.ex.notes||{},items:null,rc:0};
-   if(g.indexOf(V.peserta)<0)V.peserta=g[0]||'';
-   V.checks=curChecks();
-  }
- }
 }
 (function(){
  var render0=render;render=function(){render0();navSave();navFillVer()};
- var enter0=enter;enter=function(u){enter0(u);NAV.entered=true;if(NAV.restore)navApply(u)};
- var boot0=boot;boot=async function(){
-  NAV.restore=true;
-  try{
-   await boot0();
-   /* Pemuatan dari server gagal di tengah jalan (S.user terisi, enter() belum jalan): pakai snapshot lokal agar posisi tetap dipulihkan */
-   if(S.user&&!NAV.entered){
-    var why=A.err||'';
-    if(typeof loadSnap==='function'&&loadSnap()){
-     render();
-     /* coba lagi diam-diam; pemberitahuan hanya muncul bila server memang tetap gagal, lengkap dengan penyebabnya */
-     if(Cloud.on&&navigator.onLine!==false)Cloud.refresh().then(function(){if(pendingCount())Cloud.flush();render()}).catch(function(e){toast('Server belum terjangkau ('+(((e&&e.message)||why||'tidak diketahui')+'').slice(0,80)+'). Memakai data tersimpan.')});
-     else toast('Offline. Memakai data tersimpan.');
-    }else if(why)toast('Gagal memuat data: '+why);
-   }
-  }finally{NAV.restore=false;navSave()}
- };
+ var enter0=enter;enter=function(u){enter0(u);if(NAV.restore)navApply(u)};
+ var boot0=boot;boot=async function(){NAV.restore=true;try{await boot0()}finally{NAV.restore=false}};
  window.addEventListener('pagehide',navSave);
- document.addEventListener('visibilitychange',function(){if(document.hidden)navSave()});
- setInterval(function(){if(V.mode==='exam')navSave()},5000);
 })();
 
 /* ---- Segarkan data dari Appwrite tanpa pindah halaman ---- */
@@ -61,9 +31,10 @@ if(Cloud.on){
  Cloud.refresh=async function(){
   var p=S.user,Q=Appwrite.Query,staff=roleList(p).some(function(r){return r!=='siswa'});
   var res,lk,us=null;
-  if(staff){us=(await this.list('akun')).map(fromDoc);res=(await this.list('hasil')).map(fromDoc);lk=(await this.listSafe('lkpd')).map(fromDoc)}
-  else{res=(await this.list('hasil',[Q.equal('sid',[p.id])])).map(fromDoc);lk=(await this.listSafe('lkpd',[Q.equal('sid',[p.id])])).map(fromDoc)}
+  if(staff){us=(await this.list('akun')).map(fromDoc);res=(await this.list('hasil')).map(fromDoc);lk=(await this.list('lkpd')).map(fromDoc)}
+  else{res=(await this.list('hasil',[Q.equal('sid',[p.id])])).map(fromDoc);lk=(await this.list('lkpd',[Q.equal('sid',[p.id])])).map(fromDoc)}
   var mods=await loadLKPDModuleDocs(this);
+  if(staff)S.observasi=await loadObsDocs(this);
   if(us){S.users=us;S.user=us.find(function(u){return u.id===p.id})||p}
   S.results=res;S.lkpd=lk;S.lkpdModules=mods;
   LK.remote={};
