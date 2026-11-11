@@ -81,7 +81,7 @@ function viewAcuan(){
 
 function secHead(ic,t,extra){return '<div class="sechead"><span class="ico g1">'+svg(ICO[ic],18)+'</span><h2>'+t+'</h2>'+(extra||'')+'</div>'}
 function viewBeranda(){
- var list=visibleResults().slice().sort(function(a,b){return b.ts-a.ts}),a=agg(list);
+ var list=visibleResults().slice().sort(function(a,b){return b.ts-a.ts}),osx=(can('observasi')&&typeof obsVisible==='function')?obsVisible('siswa').map(function(r){var v=+r.skor||0;return {score:v,kompeten:v>=S.kkm}}):[],a=agg(list.concat(osx));
  var tried={};list.forEach(function(r){tried[r.jobId]=1});
  lkRefreshModules();var mine={};(S.lkpd||[]).forEach(function(x){if(isStaff()||x.sid===S.user.id)mine[x.moduleId]=1});
  var kc=kelasBoleh().map(function(c){
