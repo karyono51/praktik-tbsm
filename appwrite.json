@@ -313,6 +313,126 @@
           ]
         }
       ]
+    },
+    {
+      "$id": "lkpd_modules",
+      "databaseId": "tbsm",
+      "name": "lkpd_modules",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"label:lkpd-editor\")",
+        "read(\"label:lkpd-editor\")",
+        "update(\"label:lkpd-editor\")",
+        "delete(\"label:lkpd-editor\")"
+      ],
+      "attributes": [
+        {
+          "key": "moduleId",
+          "type": "string",
+          "size": 32,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "size": 180,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "kelas",
+          "type": "string",
+          "size": 16,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "fase",
+          "type": "string",
+          "size": 8,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "duration",
+          "type": "integer",
+          "min": 1,
+          "max": 600,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "size": 16,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "active",
+          "type": "boolean",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 500000,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "updatedAt",
+          "type": "integer",
+          "min": 0,
+          "max": 9007199254740991,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "updatedBy",
+          "type": "string",
+          "size": 64,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_lkpd_modules_id",
+          "type": "unique",
+          "attributes": [
+            "moduleId"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_lkpd_modules_status",
+          "type": "key",
+          "attributes": [
+            "status",
+            "active"
+          ],
+          "orders": [
+            "ASC",
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_lkpd_modules_kelas",
+          "type": "key",
+          "attributes": [
+            "kelas"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
     }
   ]
 }

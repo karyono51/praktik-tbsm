@@ -1,22 +1,22 @@
 /* pwa.js: pendaftaran service worker, tombol pasang, status jaringan di header, antrean sinkron Appwrite */
 var QK='tbsm-queue',SK='tbsm-snap';
 function pendingList(){
- var u=S.users.filter(function(o){return !o.r||o.d}),h=S.results.filter(function(o){return !o.r||o.d}),l=(S.lkpd||[]).filter(function(o){return !o.r||o.d});
- return {akun:u,hasil:h,lkpd:l}}
-function pendingCount(){var p=pendingList();return p.akun.length+p.hasil.length+p.lkpd.length}
+ var u=S.users.filter(function(o){return !o.r||o.d}),h=S.results.filter(function(o){return !o.r||o.d}),l=(S.lkpd||[]).filter(function(o){return !o.r||o.d}),m=(S.lkpdModules||[]).filter(function(o){return !o.r||o.d});
+ return {akun:u,hasil:h,lkpd:l,lkpd_modules:m}}
+function pendingCount(){var p=pendingList();return p.akun.length+p.hasil.length+p.lkpd.length+(p.lkpd_modules||[]).length}
 function savePending(){
- try{var p=pendingList();if(p.akun.length||p.hasil.length)localStorage.setItem(QK,JSON.stringify(p));else localStorage.removeItem(QK)}catch(e){}}
+ try{var p=pendingList();if(p.akun.length||p.hasil.length||p.lkpd.length||(p.lkpd_modules||[]).length)localStorage.setItem(QK,JSON.stringify(p));else localStorage.removeItem(QK)}catch(e){}}
 function saveSnap(){
- try{if(Cloud.on&&S.user&&pendingCount()===0)localStorage.setItem(SK,JSON.stringify({user:S.user,users:S.users,results:S.results,lkpd:S.lkpd||[],ts:Date.now()}))}catch(e){}}
+ try{if(Cloud.on&&S.user&&pendingCount()===0)localStorage.setItem(SK,JSON.stringify({user:S.user,users:S.users,results:S.results,lkpd:S.lkpd||[],lkpdModules:S.lkpdModules||[],ts:Date.now()}))}catch(e){}}
 function restorePending(){
  try{var q=JSON.parse(localStorage.getItem(QK)||'null');if(!q)return;
-  [[q.akun||[],S.users],[q.hasil||[],S.results],[q.lkpd||[],S.lkpd||(S.lkpd=[])]].forEach(function(pair){
+  [[q.akun||[],S.users],[q.hasil||[],S.results],[q.lkpd||[],S.lkpd||(S.lkpd=[])],[q.lkpd_modules||[],S.lkpdModules||(S.lkpdModules=[])]].forEach(function(pair){
    pair[0].forEach(function(o){var i=pair[1].findIndex(function(x){return x.id===o.id});
     if(i<0)pair[1].push(o);else if(o.d){pair[1][i]=o}})});
   syncRoster()}catch(e){}}
 function loadSnap(){
  try{var s=JSON.parse(localStorage.getItem(SK)||'null');if(!s||!s.user)return false;
-  S.users=s.users||[s.user];S.results=s.results||[];S.lkpd=s.lkpd||[];S.user=s.user;restorePending();
+  S.users=s.users||[s.user];S.results=s.results||[];S.lkpd=s.lkpd||[];S.lkpdModules=s.lkpdModules||[];S.user=s.user;restorePending();
   var me=S.users.find(function(u){return u.id===s.user.id})||s.user;enter(me);return true}catch(e){return false}}
 function dropSnap(){try{localStorage.removeItem(SK)}catch(e){}}
 
@@ -52,6 +52,7 @@ function netbar(){
         o.r=1;o.d=0}
        else{await this.db.updateDocument(CFG.DB,col,o.id,pick(o,F));o.d=0}
       }catch(e2){fails.push(col+': '+((e2&&e2.message)||e2))}}}
+    for(var j=0;j<(S.lkpdModules||[]).length;j++){var m=S.lkpdModules[j];if(m.r&&!m.d)continue;try{var data={moduleId:m.id,title:m.title,kelas:m.kelas,fase:m.fase,duration:m.duration,status:m.status||'draft',active:m.active!==false,payload:JSON.stringify((function(x){var y=Object.assign({},x);delete y.r;delete y.d;return y})(m)),updatedAt:m.updatedAt||Date.now(),updatedBy:m.updatedBy||S.user.username||S.user.id};var perms=[Appwrite.Permission.read(Appwrite.Role.label('lkpd-editor')),Appwrite.Permission.update(Appwrite.Role.label('lkpd-editor')),Appwrite.Permission.delete(Appwrite.Role.label('lkpd-editor'))];if(data.status==='published'&&data.active)perms.push(Appwrite.Permission.read(Appwrite.Role.users()));if(!m.r){try{await this.db.createDocument(CFG.DB,'lkpd_modules',m.id,data,perms)}catch(ex){if(ex&&ex.code===409)await this.db.updateDocument(CFG.DB,'lkpd_modules',m.id,data,perms);else throw ex}}else await this.db.updateDocument(CFG.DB,'lkpd_modules',m.id,data,perms);m.r=1;m.d=0}catch(me){fails.push('lkpd_modules: '+((me&&me.message)||me))}}
    }catch(e){fails.push(String((e&&e.message)||e))}
    this.busy=false;savePending();saveSnap();netbar();
    if(fails.length)toast('Sinkronisasi gagal ('+fails.length+'): '+fails[0]);

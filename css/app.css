@@ -249,3 +249,7 @@ fieldset.roles legend{font-size:13px;font-weight:500;color:var(--muted);padding:
 
 /* LKPD modular */
 .lk-checks{display:grid;gap:8px;margin:10px 0}.lk-check,.lk-step,.lk-option{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface,white)}.lk-check input,.lk-step input,.lk-option input{margin-top:4px;flex:0 0 auto}.lk-step small{display:block;color:var(--muted);margin-top:4px}.lk-json{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface-2,#f4f6f8);padding:12px;border-radius:10px;font-size:12px}.lk-option{margin:6px 0}.lk-step{margin:7px 0}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tablewrap{overflow:auto}.tablewrap table{min-width:760px}.tablewrap td small{display:block;color:var(--muted)}@media(max-width:560px){.formgrid{grid-template-columns:1fr}}
+
+/* Editor modul LKPD guru */
+.lk-module-row{padding:14px 0;border-top:1px solid var(--line);display:grid;gap:10px}.lk-module-row .note{margin:4px 0}.lk-modules{padding:5px 0}.lk-modules button{max-width:80vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.formgrid .wide{grid-column:1/-1}.formgrid .f{min-width:0}.formgrid textarea{width:100%;min-height:74px;resize:vertical}.formgrid input[type=checkbox]{width:auto;min-height:auto}.formgrid .row{align-items:center;flex-wrap:wrap}
+@media(max-width:560px){.formgrid .wide{grid-column:auto}.lk-module-row .row{align-items:flex-start}}
