@@ -82,10 +82,11 @@
       "databaseId": "tbsm",
       "name": "hasil",
       "enabled": true,
-      "documentSecurity": false,
+      "documentSecurity": true,
       "$permissions": [
         "create(\"users\")",
-        "read(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
         "update(\"label:guru\")",
         "update(\"label:admin\")",
         "delete(\"label:admin\")"
@@ -999,6 +1000,47 @@
           ],
           "orders": [
             "DESC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "uid_map",
+      "databaseId": "tbsm",
+      "name": "uid_map",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "sid",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "email",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 128
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_sid",
+          "type": "key",
+          "attributes": [
+            "sid"
+          ],
+          "orders": [
+            "ASC"
           ]
         }
       ]

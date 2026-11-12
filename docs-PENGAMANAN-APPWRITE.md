@@ -45,6 +45,20 @@ Aplikasi memberi setiap dokumen `lkpd` dan `lkpd_bukti` baru izin baca untuk pem
 ## Yang berubah dan yang belum aman
 - **Data LKPD lama** tidak punya izin pemilik. Guru/admin tetap melihatnya, tetapi siswa tidak lagi melihat riwayat LKPD lama mereka. Nilainya di koleksi `hasil` tetap tampil.
 - **Nilai masih dihitung di perangkat siswa.** Siswa yang paham teknis masih bisa mengirim skor sembarang. Karena itu gunakan **nilai guru** (koreksi) untuk rapor; pengumpulan tanpa koreksi berstatus "belum diverifikasi".
-- **Koleksi `hasil` dan `akun` masih dapat dibaca semua pengguna login** (nama, nilai, email). Mengamankannya butuh pemetaan akun aplikasi ke ID pengguna Appwrite, belum dikerjakan.
+- **Koleksi `akun` masih dapat dibaca semua pengguna login** (nama, email). Koleksi `hasil` sudah dikunci, lihat bagian di bawah.
 - **Kunci jawaban soal** ada di data modul yang dibaca siswa. Solusi tuntas: Appwrite Function untuk menilai di server.
 - Pembuatan akun oleh siswa ke koleksi `akun` masih diizinkan; peran aplikasi tidak menggantikan label server.
+
+
+## Pengamanan koleksi `hasil` (v56)
+Sebelumnya semua pengguna login bisa membaca seluruh nilai. Sekarang `hasil` memakai keamanan per dokumen: guru/admin membaca lewat label, siswa hanya membaca dokumennya sendiri.
+
+**Urutan (jangan dibalik):**
+1. Pastikan semua guru berlabel `guru` dan admin berlabel `admin` (Auth > Users > Labels).
+2. Tambahkan koleksi baru `uid_map` (atribut `sid` string 64 dan `email` string 128, wajib; indeks key `sid`). Izin: Create `users`, Read `label:guru` dan `label:admin`, Delete `label:admin`. Dokumen Security mati. Atau jalankan `appwrite push collections`.
+3. Di koleksi `hasil`, nyalakan **Document security** dan ubah izin: Create `users`; Read `label:guru`, `label:admin`; Update `label:guru`, `label:admin`; Delete `label:admin`. Hapus Read `users`.
+4. Deploy zip ini. Login sebagai guru/admin sekali: aplikasi memberi izin baca pemilik ke nilai lama secara otomatis.
+
+**Cara kerja:** saat siswa login, aplikasi mencatat ID login Appwrite-nya ke `uid_map`. Saat guru menyimpan nilai, aplikasi memberi izin baca ke ID itu. Siswa yang belum pernah login nilainya baru terlihat setelah ia login lalu guru/admin membuka aplikasi (izin diberikan otomatis, paling cepat tiap 2 menit saat sinkron).
+
+**Batasan:** pencatatan `uid_map` dilakukan dari aplikasi siswa, jadi siswa yang paham API bisa mencatat dirinya sebagai siswa lain. Aplikasi hanya memakai catatan yang emailnya sama dengan email akun, tetapi email di `uid_map` ditulis siswa sendiri. Risikonya jauh lebih kecil daripada sebelumnya (semua nilai terbuka), tetapi tidak mutlak. Penutup penuh membutuhkan Appwrite Function.
