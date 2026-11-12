@@ -175,7 +175,7 @@ function obsPickChange(t){
  var d=OB.d,k=t.dataset.obpick,on=t.checked,i=d.pilih.indexOf(k);
  if(!on&&i>-1){
   var dn=obsDoneOf(d,k);
-  if(dn&&!confirm('Hapus skor siswa ini ('+dn+' butir sudah diisi)?')){t.checked=true;return}
+  if(dn&&!uiOk('obpick:'+k,'Hapus skor siswa ini?\n'+dn+' butir sudah diisi.',t,{ok:'Hapus',danger:true})){t.checked=true;return}
  }
  obsFlush(d);
  if(on&&i<0)d.pilih.push(k);
@@ -286,7 +286,7 @@ function obsSave(){
 }
 async function obsDelete(id){
  var r=(S.observasi||[]).find(function(x){return x.id===id});if(!r||!obsBoleh(r))return;
- if(!confirm('Hapus observasi '+r.guru+' ('+obsTgl(r.tanggal)+')? Tindakan ini tidak dapat dibatalkan.'))return;
+ if(!(await uiConfirm('Hapus observasi '+r.guru+' ('+obsTgl(r.tanggal)+')?\nTindakan ini tidak dapat dibatalkan.',{ok:'Hapus',danger:true})))return;
  if(Cloud.on&&r.r){if(navigator.onLine===false){toast('Hapus hanya bisa saat online');return}if(!(await Cloud.remove('observasi',id)))return}
  S.observasi=S.observasi.filter(function(x){return x.id!==id});persist();OB.mode='list';OB.view=null;render();toast('Observasi dihapus');
 }
@@ -328,12 +328,12 @@ document.addEventListener('click',function(e){
  else if(a==='ob-edit'){var r=(S.observasi||[]).find(function(x){return x.id===v});if(!r||!obsBoleh(r))return;OB.sq='';OB.d=obsDraftDari(r);OB.mode='form';render();window.scrollTo(0,0)}
  else if(a==='ob-view'){var r2=(S.observasi||[]).find(function(x){return x.id===v});if(!r2)return;OB.view=r2;OB.mode='view';render();window.scrollTo(0,0)}
  else if(a==='ob-back'){OB.mode='list';OB.view=null;render();window.scrollTo(0,0)}
- else if(a==='ob-cancel'){if(OB.d&&obsAnyDone(OB.d)&&!confirm('Batalkan? Isian yang belum disimpan akan hilang.'))return;OB.mode='list';OB.d=null;render();window.scrollTo(0,0)}
+ else if(a==='ob-cancel'){if(OB.d&&obsAnyDone(OB.d)&&!uiOk('obcancel','Batalkan observasi?\nIsian yang belum disimpan akan hilang.',b,{ok:'Batalkan',cancel:'Kembali',danger:true}))return;OB.mode='list';OB.d=null;render();window.scrollTo(0,0)}
  else if(a==='ob-rate'){var s=parseInt(v,10),card=b.closest('.item');OB.d.nilai[b.dataset.id]=s;card.dataset.s=s;$$('button',card).forEach(function(x){x.setAttribute('aria-pressed',String(parseInt(x.dataset.v,10)===s))});obsSync()}
  else if(a==='ob-pick'&&OB.d){obsFlush(OB.d);obsLoad(OB.d,v);obsStuRefresh(true)}
  else if(a==='ob-next'&&OB.d){obsFlush(OB.d);var ix=OB.d.pilih.indexOf(OB.d.cur);if(ix>-1&&ix<OB.d.pilih.length-1){obsLoad(OB.d,OB.d.pilih[ix+1]);obsStuRefresh(true)}}
  else if(a==='ob-all'&&OB.d){obsFlush(OB.d);obsVisibleRows(OB.d).forEach(function(x){if(OB.d.pilih.indexOf(x.key)<0)OB.d.pilih.push(x.key)});obsEnsure(OB.d);obsStuRefresh()}
- else if(a==='ob-none'&&OB.d){if(obsAnyDone(OB.d)&&!confirm('Kosongkan pilihan? Skor yang sudah diisi akan hilang.'))return;OB.d.pilih=[];OB.d.man=[];OB.d.per={};OB.d.cur='';obsEnsure(OB.d);obsStuRefresh()}
+ else if(a==='ob-none'&&OB.d){if(obsAnyDone(OB.d)&&!uiOk('obnone','Kosongkan pilihan?\nSkor yang sudah diisi akan hilang.',b,{ok:'Kosongkan',danger:true}))return;OB.d.pilih=[];OB.d.man=[];OB.d.per={};OB.d.cur='';obsEnsure(OB.d);obsStuRefresh()}
  else if(a==='ob-addman'&&OB.d){var inp=$('#obman'),nm=inp?inp.value.trim():'';if(!nm){toast('Ketik nama siswa');return}obsFlush(OB.d);var mk='m'+Date.now().toString(36)+Math.floor(Math.random()*1e3);OB.d.man.push({key:mk,nama:nm.slice(0,120),kelas:OB.d.kelas});OB.d.pilih.push(mk);obsEnsure(OB.d);inp.value='';obsStuRefresh()}
  else if(a==='ob-copy'&&OB.d){obsFlush(OB.d);var src=OB.d.nilai,cnt=0;OB.d.pilih.forEach(function(k){if(k===OB.d.cur)return;var pp=OB.d.per[k]||(OB.d.per[k]={nilai:{},cat:{},kekuatan:'',perbaikan:'',tindak:''});if(!obsHitung(pp.nilai,'siswa').done){pp.nilai=Object.assign({},src);cnt++}});obsStuRefresh();toast(cnt?'Skor disalin ke '+cnt+' siswa. Periksa dan ubah per siswa.':'Semua siswa lain sudah punya skor')}
  else if(a==='ob-save')obsSave();

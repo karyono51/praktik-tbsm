@@ -313,6 +313,7 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 .lk-timer{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .lk-clock{font-size:20px;font-weight:700;line-height:1.1}.lk-clock.over{color:var(--bad)}
 .lk-timer .note{margin:0;font-size:12px}
+.lk-timer>div{min-width:0;flex:1 1 auto}.lk-timer .btn{flex:0 0 auto;white-space:nowrap;max-width:46%;overflow:hidden;text-overflow:ellipsis}
 .lk-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;flex-wrap:nowrap}
 .lk-prog{font-size:11px;padding:3px 2px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .lk-actions .btn{font-size:14px}

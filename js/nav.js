@@ -85,7 +85,7 @@ function navManualUpdate(){
  toast('Memeriksa pembaruan…');
  navCheckUpdate().then(function(){return new Promise(function(r){setTimeout(r,2500)})}).then(function(){
   if(NAV.updated){navShowUpdate();return}
-  return navVersion().then(function(v){if(confirm('Aplikasi sudah versi terbaru'+(v?' ('+v+')':'')+'.\nJika tampilan masih lama, bersihkan cache dan muat ulang paksa?'))navForce()});
+  return navVersion().then(function(v){return uiConfirm('Aplikasi sudah versi terbaru'+(v?' ('+v+')':'')+'.\nJika tampilan masih lama, bersihkan cache dan muat ulang paksa?',{ok:'Muat ulang paksa'}).then(function(ok){if(ok)navForce()})});
  });
 }
 if('serviceWorker' in navigator){

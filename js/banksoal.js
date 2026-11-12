@@ -572,7 +572,7 @@ document.addEventListener('click',function(e){
   if(BS.D.hasil.some(function(x){return x.sid===S.user.id&&x.sesiId===s.id&&x.mode==='ujian'})){toast('Kamu sudah mengerjakan sesi ini');return}
   if(BS.run){toast('Selesaikan pengerjaan yang sedang berjalan dahulu');return}
   var run2=bsMake('ujian',s);if(!run2.ids.length){toast('Sesi ini belum memiliki soal');return}
-  if(confirm('Mulai ujian "'+s.judul+'"?\n'+run2.ids.length+' soal, '+s.durasi+' menit. Waktu berjalan terus meskipun aplikasi ditutup, dan hanya bisa dikerjakan sekali.'))bsStartRun(run2);
+  uiConfirm('Mulai ujian "'+s.judul+'"?\n'+run2.ids.length+' soal, '+s.durasi+' menit.\nWaktu berjalan terus meskipun aplikasi ditutup.\nUjian hanya bisa dikerjakan sekali.',{ok:'Mulai'}).then(function(ok){if(ok&&!BS.run)bsStartRun(run2)});
  }
  else if(a==='ans'&&r){
   var q=bsSoalById(qid);if(!q||r.chk[qid])return;var ov=+v;
@@ -590,7 +590,7 @@ document.addEventListener('click',function(e){
  else if(a==='prev'&&r){if(r.cur>0){r.cur--;bsRunSave();render();window.scrollTo(0,0)}}
  else if(a==='selesai'&&r){
   var un=r.ids.filter(function(x){var s2=bsSoalById(x);return !s2||!bsAnswered(s2,r.ans[x])}).length;
-  if(confirm(un?un+' soal belum dijawab. Kirim sekarang?':'Kirim jawaban sekarang?'))bsFinish(false);
+  uiConfirm(un?'Kirim jawaban sekarang?\n'+un+' soal belum dijawab.':'Kirim jawaban sekarang?',{ok:'Kirim'}).then(function(ok){if(ok&&BS.run===r)bsFinish(false)});
  }
  /* guru */
  else if(a==='tab'){bsFormRead();bsSfRead();BS.tab=v;BS.form=null;BS.sf=null;render()}
@@ -601,7 +601,7 @@ document.addEventListener('click',function(e){
  else if(a==='salin'||a==='ubah'){
   var so=bsSoalById(qid);if(!so)return;var f=bsNewForm(so);if(a==='salin')f.id='';BS.form=f;render();window.scrollTo(0,0);
  }
- else if(a==='hapussoal'){if(confirm('Hapus soal ini? Soal yang sudah dipakai tidak akan tampil di riwayat siswa.')){bsDel('soal',qid).then(function(){render()})}}
+ else if(a==='hapussoal'){uiConfirm('Hapus soal ini?\nSoal yang sudah dipakai tidak akan tampil di riwayat siswa.',{ok:'Hapus',danger:true}).then(function(ok){if(ok)bsDel('soal',qid).then(function(){render()})})}
  else if(a==='batalform'){BS.form=null;render()}
  else if(a==='ftipe'){bsFormRead();BS.form.tipe=v;if(v==='pg'&&BS.form.kunci.length>1)BS.form.kunci=[BS.form.kunci[0]];render()}
  else if(a==='simpansoal')bsFormSave();
@@ -612,9 +612,9 @@ document.addEventListener('click',function(e){
  else if(a==='sfmapel'){bsSfRead();var mf=BS.sf.mapelF,ix=mf.indexOf(v);if(ix>-1)mf.splice(ix,1);else mf.push(v);render()}
  else if(a==='sesiaktif'){var sa=BS.D.sesi.filter(function(x){return x.id===qid})[0];if(sa){sa.aktif=sa.aktif===false;bsPut('sesi',sa).then(function(){render()});render()}}
  else if(a==='sesihasil'){BS.hs=qid;BS.tab='hasil';render();window.scrollTo(0,0)}
- else if(a==='sesihapus'){if(confirm('Hapus sesi ini? Hasil siswa yang sudah masuk tidak ikut terhapus.'))bsDel('sesi',qid).then(function(){render()})}
+ else if(a==='sesihapus'){uiConfirm('Hapus sesi ini?\nHasil siswa yang sudah masuk tidak ikut terhapus.',{ok:'Hapus',danger:true}).then(function(ok){if(ok)bsDel('sesi',qid).then(function(){render()})})}
  else if(a==='ekspor')bsExport();
- else if(a==='hapushasil'){if(confirm('Hapus hasil ini? Siswa bisa mengerjakan sesi ujian itu lagi.'))bsDel('hasil',v).then(function(){render()})}
+ else if(a==='hapushasil'){uiConfirm('Hapus hasil ini?\nSiswa bisa mengerjakan sesi ujian itu lagi.',{ok:'Hapus',danger:true}).then(function(ok){if(ok)bsDel('hasil',v).then(function(){render()})})}
 });
 document.addEventListener('change',function(e){
  var t=e.target;

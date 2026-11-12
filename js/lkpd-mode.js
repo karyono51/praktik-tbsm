@@ -93,10 +93,12 @@ function lkmSave(){
 }
 function lkmBulk(show){
  var ms=lkcModules(S.kelas,true);if(!ms.length)return;
- if(!confirm((show?'Tampilkan':'Sembunyikan')+' semua '+ms.length+' modul '+lkcKelasInfo(S.kelas).judul+' untuk siswa?'))return;
- ms.forEach(function(m){var cp=lkSerialize(m);cp.status=show?'published':'draft';cp.active=show;lkModuleStore(cp)});
- render();toast(show?'Semua modul ditampilkan':'Semua modul disembunyikan');
- setTimeout(function(){try{if(Cloud.on)Cloud.flush()}catch(e){}},1500);
+ uiConfirm((show?'Tampilkan':'Sembunyikan')+' semua '+ms.length+' modul '+lkcKelasInfo(S.kelas).judul+' untuk siswa?',{ok:show?'Tampilkan':'Sembunyikan'}).then(function(ok){
+  if(!ok)return;
+  ms.forEach(function(m){var cp=lkSerialize(m);cp.status=show?'published':'draft';cp.active=show;lkModuleStore(cp)});
+  render();toast(show?'Semua modul ditampilkan':'Semua modul disembunyikan');
+  setTimeout(function(){try{if(Cloud.on)Cloud.flush()}catch(e){}},1500);
+ });
 }
 
 /* ---- Aksi ---- */

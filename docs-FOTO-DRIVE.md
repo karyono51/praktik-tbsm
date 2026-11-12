@@ -50,3 +50,9 @@ Paket Appwrite gratis hanya mengizinkan 2 fungsi per project: `akun-admin` dan `
 - **Kamera saja**: tombol Ambil foto membuka kamera langsung di aplikasi, tanpa pilihan galeri. Bila izin kamera ditolak atau peramban tidak mendukung, tombol cadangan membuka aplikasi kamera perangkat (`capture`). Perlu HTTPS.
 - **Foto wajib**: Guru/Admin buka modul > Pengaturan > *Foto bukti wajib per komponen*, centang komponen, lalu simpan. Siswa tidak bisa mengirim LKPD sebelum semua foto wajib terisi. Tersimpan di modul sebagai `fotoWajib` (daftar indeks), tanpa perubahan skema Appwrite.
 - **Timer**: mode Ujian, tombol Jeda terkunci dan waktu berbasis jam dinding (tetap berjalan walau halaman ditutup, berhenti saat LKPD dikirim). Mode Latihan, timer otomatis jalan lagi saat siswa mengisi LKPD.
+
+## Pembaruan v51
+- **Foto di baris item**: di detail LKPD (guru dan siswa), foto bukti tampil sebagai miniatur di bawah nama komponen pada tabel Hasil pemeriksaan. Ketuk miniatur untuk memperbesar, ketuk lagi atau tekan Esc untuk menutup. Bagian *Foto tambahan* di bawah hanya memuat foto tambahan (atau foto item yang sudah tidak ada di modul).
+- **Ukuran**: foto dikecilkan ke sisi 800 px dengan batas sekitar 100 KB (`LD.SIDE` dan `LD.MAXC` di `js/lkpd-drive.js`). Foto lama tetap tampil.
+- **Kamera**: tombol memakai ikon (ambil foto, foto ulang, hapus, batal, balik kamera, buka kamera perangkat). Perbaikan: tombol cadangan *Buka kamera* tidak lagi ikut tampil saat kamera langsung bekerja.
+- Tidak ada perubahan pada fungsi `foto-drive` maupun skema Appwrite.

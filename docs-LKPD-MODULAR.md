@@ -54,3 +54,21 @@ Nilai otomatis bersifat formatif sesuai bobot modul. Guru harus memverifikasi bu
 - Guru/Admin membuka **Rekap LKPD > Detail**, mengisi **Nilai koreksi (0–100)** dan umpan balik. Nilai guru menggantikan nilai otomatis di rekap dan di koleksi `hasil`. Pengumpulan tanpa koreksi ditandai "belum diverifikasi".
 - Siswa dapat melampirkan maksimal 3 foto bukti di tab Lembar Kerja. Foto dikecilkan (sisi terpanjang 1024 px, JPEG) dan disimpan di koleksi `lkpd_bukti`; guru memuatnya saat membuka Detail.
 - Pengaturan izin dan atribut baru: lihat `docs-PENGAMANAN-APPWRITE.md`.
+
+## Soal evaluasi bentuk TKA (v51)
+
+Modul bawaan memakai 10 soal dari bank soal unit (`js/soal-lkpd/<unit>.js`, id `lk<unit>-NN`): 6 PG, 2 PG kompleks, 2 PG kategori, diurutkan PG lebih dulu. Soal dipilih merata dari 40 PG, 10 kompleks, dan 10 kategori pada bank unit tersebut. Ubah komposisi di `LKQ.MIX` (`js/lkpd-soal.js`).
+
+Format `quiz` pada modul (PG lama tetap berlaku):
+
+- PG: `{"q":"...","o":["...","..."],"a":0,"e":"pembahasan"}`
+- PG kompleks: `{"t":"kompleks","q":"...","o":["...","...","..."],"a":[0,2],"e":"..."}`
+- PG kategori: `{"t":"kategori","q":"...","rows":[["pernyataan",true],["pernyataan",false]],"e":"..."}`
+
+Jawaban siswa di payload: PG berupa angka, kompleks berupa daftar indeks, kategori berupa objek `{"0":true,"1":false}`. Skor: PG 1 atau 0; kompleks (benar terpilih dikurangi salah terpilih) dibagi jumlah kunci, minimal 0; kategori jumlah pernyataan tepat dibagi jumlah pernyataan. Nilai teori adalah rata-rata skor soal dikali 100.
+
+Catatan migrasi:
+- Salinan tersimpan dari modul bawaan (hasil Pengaturan atau toggle) yang belum bertanda `quizV` otomatis memakai soal baru. Modul yang disimpan lewat Editor LKPD diberi `quizV:2` dan tidak ditimpa lagi.
+- Draf siswa dengan jawaban untuk soal lama dibuang otomatis (dibandingkan lewat `qsig`).
+- Pengumpulan lama tetap tersimpan beserta nilainya. Detailnya menampilkan keterangan bahwa soal sudah diperbarui, jawaban lama tidak dipetakan ke soal baru.
+- Modul buatan guru (bukan bawaan) tidak diubah. Editor JSON menerima ketiga bentuk soal.

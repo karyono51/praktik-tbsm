@@ -44,7 +44,7 @@ document.addEventListener('click',function(e){
   else if(a==='padd'){var sel=$('#addpes');if(sel&&sel.value)addMember(sel.value)}
   else if(a==='prm'){
     var rn=b.dataset.n;if(V.group.length<2){toast('Minimal satu siswa');return}
-    if(!V.kel&&doneOf(rn)&&!confirm('Keluarkan '+rn+'? Isian penilaiannya akan hilang.'))return;
+    if(!V.kel&&doneOf(rn)&&!uiOk('prm:'+rn,'Keluarkan '+rn+'?\nIsian penilaiannya akan hilang.',b,{ok:'Keluarkan',danger:true}))return;
     V.group=V.group.filter(function(x){return x!==rn});delete V.cks[rn];
     if(V.peserta===rn||V.kel)V.peserta=V.group[0];
     V.checks=curChecks();render();

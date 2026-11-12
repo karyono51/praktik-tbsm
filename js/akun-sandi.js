@@ -30,12 +30,12 @@ if(Cloud.on){
 async function changeMyPw(){
  if(!S.user)return;
  if(Cloud.on){
-  var o=prompt('Sandi lama (kosongkan bila masuk lewat Google):');if(o===null)return;
-  var n=prompt('Sandi baru (minimal 8 karakter):');if(n===null)return;
+  var o=await uiPrompt('Sandi lama (kosongkan bila masuk lewat Google).',{title:'Ganti sandi',type:'password',label:'Sandi lama',ok:'Lanjut'});if(o===null)return;
+  var n=await uiPrompt('Sandi baru, minimal 8 karakter.',{title:'Ganti sandi',type:'password',label:'Sandi baru',ok:'Simpan'});if(n===null)return;
   if(n.length<8){toast('Sandi minimal 8 karakter');return}
   try{await Cloud.acc.updatePassword(n,o||undefined);toast('Sandi diganti')}catch(e){toast('Gagal mengganti sandi: '+((e&&e.message)||e))}
  }else{
-  var n2=prompt('Sandi baru (minimal 6 karakter):');if(n2===null)return;
+  var n2=await uiPrompt('Sandi baru, minimal 6 karakter.',{title:'Ganti sandi',type:'password',label:'Sandi baru',ok:'Simpan'});if(n2===null)return;
   if(n2.length<6){toast('Sandi minimal 6 karakter');return}
   var u=S.users.find(function(x){return x.id===S.user.id});if(!u)return;
   await setPw(u,n2);u.d=1;save();toast('Sandi diganti');

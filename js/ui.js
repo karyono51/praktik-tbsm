@@ -161,7 +161,7 @@ document.addEventListener('click',async function(e){
  else if(a==='akundel'){
   var u=S.users.find(function(x){return x.id===v});
   if(hasRole(u,'admin')&&S.users.filter(function(x){return hasRole(x,'admin')&&x.aktif!==false&&x.id!==v}).length<1){toast('Harus tersisa satu admin aktif');return}
-  if(!confirm('Hapus akun '+u.nama+'? Data nilai tetap tersimpan.'))return;
+  if(!(await uiConfirm('Hapus akun '+u.nama+'?\nData nilai tetap tersimpan.',{ok:'Hapus',danger:true})))return;
   S.users=S.users.filter(function(x){return x.id!==v});Cloud.remove('akun',v);persist();render();toast('Akun dihapus');
  }
  else if(a==='akunfilter'){A.peran=v;render()}
@@ -200,18 +200,18 @@ function drOpen(on){
  else{drSet(false);if(history.state&&history.state.sheet)history.back()}
 }
 window.addEventListener('popstate',function(){if(drIsOpen())drSet(false)});
-function leaveExam(){
+function leaveExam(el){
  if(V.mode==='list')return true;
- if(V.mode==='exam'&&anyChecked()&&!confirm('Tinggalkan penilaian ini? Isian yang belum disimpan akan hilang.'))return false;
+ if(V.mode==='exam'&&anyChecked()&&!uiOk('leave','Tinggalkan penilaian ini?\nIsian yang belum disimpan akan hilang.',el,{ok:'Tinggalkan',danger:true}))return false;
  stopTimer();V.mode='list';return true;
 }
 document.addEventListener('click',async function(e){
  var b=e.target.closest('[data-act]');if(!b)return;var a=b.dataset.act;
  if(a==='drawer')drOpen(!drIsOpen());
  else if(a==='drawerclose')drOpen(false);
- else if(a==='menu'&&String(b.dataset.v).indexOf('lkpd:')===0){drOpen(false);var kc=b.dataset.v.slice(5);if(kelasBoleh().indexOf(kc)<0){toast('Kelas ini bukan kelas kamu');return}if(!leaveExam())return;S.kelas=kc;S.tab='lkpd';LK.open=false;LK.detail=null;LK.editor=null;LK.preview=false;LK.tab='materi';LK.kf='';render();window.scrollTo(0,0)}
- else if(a==='menu'){drOpen(false);var v=b.dataset.v;if(v.indexOf('kelas:')===0&&kelasBoleh().indexOf(v.slice(6))<0){toast('Kelas ini bukan kelas kamu');return}if(!leaveExam())return;if(v.indexOf('kelas:')===0){S.kelas=v.slice(6);S.tab='katalog';persist()}else S.tab=v;render();window.scrollTo(0,0)}
- else if(a==='switchrole'){var rl=roleList(S.user),nx=rl[(rl.indexOf(actRole())+1)%rl.length];if(!leaveExam())return;setAct(nx);if(nx==='siswa'&&S.user.kelas)S.kelas=S.user.kelas;S.tab='beranda';render();window.scrollTo(0,0);toast('Peran aktif: '+PERAN[nx])}
- else if(a==='menulogout'){drOpen(false);if(!leaveExam())return;await doLogout()}
+ else if(a==='menu'&&String(b.dataset.v).indexOf('lkpd:')===0){drOpen(false);var kc=b.dataset.v.slice(5);if(kelasBoleh().indexOf(kc)<0){toast('Kelas ini bukan kelas kamu');return}if(!leaveExam(b))return;S.kelas=kc;S.tab='lkpd';LK.open=false;LK.detail=null;LK.editor=null;LK.preview=false;LK.tab='materi';LK.kf='';render();window.scrollTo(0,0)}
+ else if(a==='menu'){drOpen(false);var v=b.dataset.v;if(v.indexOf('kelas:')===0&&kelasBoleh().indexOf(v.slice(6))<0){toast('Kelas ini bukan kelas kamu');return}if(!leaveExam(b))return;if(v.indexOf('kelas:')===0){S.kelas=v.slice(6);S.tab='katalog';persist()}else S.tab=v;render();window.scrollTo(0,0)}
+ else if(a==='switchrole'){var rl=roleList(S.user),nx=rl[(rl.indexOf(actRole())+1)%rl.length];if(!leaveExam(b))return;setAct(nx);if(nx==='siswa'&&S.user.kelas)S.kelas=S.user.kelas;S.tab='beranda';render();window.scrollTo(0,0);toast('Peran aktif: '+PERAN[nx])}
+ else if(a==='menulogout'){drOpen(false);if(!leaveExam(b))return;await doLogout()}
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&drIsOpen())drOpen(false)});
