@@ -21,7 +21,7 @@ function kpBangun(){
  function siswa(sid,nama,kelas){
   var u=sid?S.users.filter(function(x){return x.id===sid})[0]:kpAkunByNama(nama,kelas);
   var key=u?'s:'+u.id:'n:'+kpLow(nama)+'|'+(kelas||'');
-  if(!map[key])map[key]={key:key,sid:u?u.id:'',nama:u?u.nama:String(nama||'Tanpa nama'),kelas:u?(u.kelas||kelas||''):(kelas||''),units:{},obs:[]};
+  if(!map[key])map[key]={key:key,sid:u?u.id:'',nama:u?u.nama:String(nama||'Tanpa nama'),kelas:u?(u.kelas||kelas||''):(kelas||''),units:{},obs:[],tka:[]};
   return map[key];
  }
  function unit(s,id,judul,kelas){return s.units[id]||(s.units[id]={id:id,judul:kpUnitJudul(id,judul),kelas:kelas||s.kelas,praktik:null,lkpd:null})}
@@ -41,7 +41,14 @@ function kpBangun(){
   var s=siswa(r.guruId,r.guru,r.kelas);
   s.obs.push({id:r.id,tanggal:r.tanggal,mapel:r.mapel,skor:r.skor,kategori:r.kategori,ts:r.ts});
  });
- var out=Object.keys(map).map(function(k){var s=map[k];s.ids=Object.keys(s.units).sort();s.obs.sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))||b.ts-a.ts});kpHitung(s);return s});
+ var tk={};
+ ((typeof BS!=='undefined'&&BS.D&&BS.D.hasil)||[]).forEach(function(h){
+  if(h.mode!=='ujian')return;
+  var s=siswa(h.sid,h.siswa,h.kelas),k=s.key+'|'+h.sesiId;
+  if(!tk[k]||h.ts>tk[k].h.ts)tk[k]={h:h,s:s};
+ });
+ Object.keys(tk).forEach(function(k){var h=tk[k].h,kk=Number(h.kkm)||S.kkm;tk[k].s.tka.push({id:h.sesiId,judul:h.sesiJudul||'Ujian soal',score:h.score,benar:h.benar,total:h.total,kkm:kk,kompeten:h.score>=kk,ts:h.ts})});
+ var out=Object.keys(map).map(function(k){var s=map[k];s.ids=Object.keys(s.units).sort();s.obs.sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))||b.ts-a.ts});s.tka.sort(function(a,b){return b.ts-a.ts});kpHitung(s);return s});
  var ko=Object.keys(KELAS);
  out.sort(function(a,b){return (ko.indexOf(a.kelas)+1||9)-(ko.indexOf(b.kelas)+1||9)||String(a.nama).localeCompare(String(b.nama))});
  return out;
@@ -50,6 +57,7 @@ function kpUnitStatus(u){var src=[u.praktik,u.lkpd].filter(Boolean);if(!src.leng
 function kpHitung(s){
  var n=0,k=0;s.ids.forEach(function(id){var st=kpUnitStatus(s.units[id]);s.units[id].status=st;if(st!=='kosong'){n++;if(st==='kompeten')k++}});
  s.n=n;s.k=k;s.status=!n?'kosong':(k===n?'kompeten':'belum');
+ s.tkaK=s.tka.filter(function(x){return x.kompeten}).length;
  s.obsAvg=s.obs.length?Math.round(s.obs.reduce(function(t,o){return t+(+o.skor||0)},0)/s.obs.length):null;
 }
 function kpLabel(st){return st==='kompeten'?'Kompeten':st==='belum'?'Belum kompeten':'Belum dinilai'}
@@ -66,12 +74,13 @@ function kpListHtml(list){
  if(!list.length)return '<div class="card"><p class="muted">Tidak ada siswa untuk filter ini.</p></div>';
  return list.map(function(s){
   return '<article class="card" style="gap:6px"><div class="row sb"><b>'+esc(s.nama)+'</b><span class="pill '+kpCls(s.status)+'">'+kpLabel(s.status)+'</span></div>'+
-  '<p class="note">Kelas '+esc(s.kelas||'-')+' · '+(s.n?s.k+' dari '+s.n+' unit kompeten':'belum ada penilaian')+(s.obs.length?' · observasi '+s.obs.length+'× (rata-rata '+s.obsAvg+')':'')+'</p>'+
+  '<p class="note">Kelas '+esc(s.kelas||'-')+' · '+(s.n?s.k+' dari '+s.n+' unit kompeten':'belum ada penilaian')+(s.obs.length?' · observasi '+s.obs.length+'× (rata-rata '+s.obsAvg+')':'')+(s.tka.length?' · ujian soal '+s.tkaK+' dari '+s.tka.length+' sesi kompeten':'')+'</p>'+
   '<div class="row"><button type="button" class="btn small" data-act="kp-open" data-v="'+encodeURIComponent(s.key)+'">Detail</button></div></article>';
  }).join('');
 }
 function viewKompetensi(){
  if(!kpIsStaffNilai())return '<div class="card"><p class="muted">Halaman ini hanya untuk guru dan admin.</p></div>';
+ if(typeof BS!=='undefined'&&!BS.loaded&&!BS.loading&&typeof bsLoad==='function')setTimeout(bsLoad,0);
  var all=kpBangun();
  if(KP.key){var cur=all.filter(function(s){return s.key===KP.key})[0];if(cur)return kpDetailHtml(cur);KP.key=null}
  var list=kpFiltered(all),nK=list.filter(function(s){return s.status==='kompeten'}).length,nB=list.filter(function(s){return s.status==='belum'}).length;
@@ -84,16 +93,18 @@ function viewKompetensi(){
   '<div class="stats"><div class="card"><span class="label">Siswa</span><b class="mono" id="kp-n">'+list.length+'</b></div><div class="card"><span class="label">Kompeten</span><b class="mono" id="kp-k">'+nK+'</b></div><div class="card"><span class="label">Belum</span><b class="mono" id="kp-b">'+nB+'</b></div></div>'+
   '<div class="row"><button type="button" class="btn small" data-act="kp-xls">Unduh Excel</button></div>'+
   '<div id="kp-list" class="stack">'+kpListHtml(list)+'</div>'+
-  '<p class="note">Status unit memakai nilai terbaru dari uji praktik dan LKPD mode Ujian. Unit Kompeten bila semua sumber yang ada Kompeten (LKPD: nilai akhir, termasuk koreksi guru, minimal KKM '+S.kkm+'). Nilai Latihan tidak dihitung. Observasi praktik hanya menjadi bukti pendukung'+(can('observasi-semua')?'.':' dan hanya memuat observasi yang Anda isi sendiri.')+'</p>';
+  '<p class="note">Status unit memakai nilai terbaru dari uji praktik dan LKPD mode Ujian. Unit Kompeten bila semua sumber yang ada Kompeten (LKPD: nilai akhir, termasuk koreksi guru, minimal KKM '+S.kkm+'). Nilai Latihan tidak dihitung. Ujian soal (TKA) dan observasi praktik hanya bukti pendukung dan tidak menentukan status unit'+(can('observasi-semua')?'.':' dan hanya memuat observasi yang Anda isi sendiri.')+'</p>';
 }
 function kpDetailHtml(s){
  var rows=s.ids.map(function(id){var u=s.units[id];
   return '<tr><td data-label="Unit">'+esc(u.judul)+'<small>'+esc(u.id)+'</small></td><td data-label="Praktik">'+kpCell(u.praktik)+'</td><td data-label="LKPD">'+kpCell(u.lkpd)+'</td><td data-label="Status"><span class="pill '+kpCls(u.status)+'">'+kpLabel(u.status)+'</span></td></tr>'}).join('');
+ var tka=s.tka.map(function(t){return '<div class="row sb"><span class="note">'+esc(t.judul)+' · '+esc(tgl(t.ts))+' · '+t.benar+'/'+t.total+'</span><span class="pill '+(t.kompeten?'ok':'bad')+'">'+t.score+' · '+(t.kompeten?'Kompeten':'Belum')+'</span></div>'}).join('');
  var obs=s.obs.map(function(o){return '<div class="row sb"><span class="note">'+esc(obsTgl(o.tanggal))+' · '+esc(o.mapel||'-')+'</span><span class="pill '+obsKatCls(o.kategori)+'">'+o.skor+' · '+esc(o.kategori)+'</span></div>'}).join('');
  return '<div class="row sb"><button type="button" class="btn small" data-act="kp-back">Kembali</button><button type="button" class="btn small primary" data-act="kp-pdf">Unduh PDF</button></div>'+
   '<section class="card"><div class="row sb"><div><h2>'+esc(s.nama)+'</h2><p class="note">Kelas '+esc(s.kelas||'-')+' · KKM '+S.kkm+'</p></div><span class="pill '+kpCls(s.status)+'">'+kpLabel(s.status)+'</span></div>'+
   '<p class="note">'+(s.n?s.k+' dari '+s.n+' unit kompeten.':'Belum ada unit yang dinilai.')+'</p></section>'+
   '<section class="card"><h3>Status per unit</h3>'+(rows?'<div class="tablewrap"><table><thead><tr><th>Unit</th><th>Praktik</th><th>LKPD</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div><p class="note">K = Kompeten, BK = Belum kompeten. Angka adalah nilai terbaru.</p>':'<p class="muted">Belum ada nilai uji praktik atau LKPD Ujian.</p>')+'</section>'+
+  '<section class="card"><h3>Ujian soal (TKA)</h3>'+(tka?tka+'<p class="note">Status sesi dibandingkan dengan KKM sesi. Tidak memengaruhi status unit di atas.</p>':'<p class="muted">Belum ada ujian soal yang dikerjakan.</p>')+'</section>'+
   '<section class="card"><h3>Observasi praktik</h3>'+(obs?obs+'<p class="note">Rata-rata '+s.obsAvg+' dari '+s.obs.length+' observasi.</p>':'<p class="muted">Belum ada observasi praktik yang terlihat oleh akun ini.</p>')+'</section>';
 }
 function kpPdf(){
@@ -105,6 +116,10 @@ function kpPdf(){
  function c(x){return x?x.score+' ('+(x.kompeten?'Kompeten':'Belum')+')':'-'}
  doc.autoTable({startY:doc.lastAutoTable.finalY+5,theme:'grid',styles:{fontSize:9,cellPadding:1.8},headStyles:TH,head:[['No','Unit','Praktik','LKPD','Status']],
   body:s.ids.map(function(id,i){var u=s.units[id];return [i+1,u.judul+' ('+u.id+')',c(u.praktik),c(u.lkpd),kpLabel(u.status)]}),columnStyles:{0:{cellWidth:10,halign:'center'}}});
+ if(s.tka.length){
+  doc.autoTable({startY:doc.lastAutoTable.finalY+6,theme:'grid',styles:{fontSize:9,cellPadding:1.8},headStyles:TH,head:[['Ujian soal','Tanggal','Benar','Nilai','Status']],
+   body:s.tka.map(function(t){return [t.judul,tgl(t.ts),t.benar+'/'+t.total,t.score,t.kompeten?'Kompeten':'Belum']}),columnStyles:{2:{halign:'center'},3:{halign:'center'}}});
+ }
  if(s.obs.length){
   doc.autoTable({startY:doc.lastAutoTable.finalY+6,theme:'grid',styles:{fontSize:9,cellPadding:1.8},headStyles:TH,head:[['Tanggal','Unit/pekerjaan','Nilai','Kategori']],
    body:s.obs.map(function(o){return [obsTgl(o.tanggal),o.mapel||'-',o.skor,o.kategori]}),columnStyles:{2:{cellWidth:16,halign:'center'}}});
@@ -116,13 +131,14 @@ function kpPdf(){
 function kpXls(){
  if(!needX())return;
  var L=kpFiltered(kpBangun());if(!L.length){toast('Tidak ada data untuk diunduh');return}
- var A=[['No','Siswa','Kelas','Unit dinilai','Unit kompeten','Status','Jumlah observasi','Rata-rata observasi']],U=[['Siswa','Kelas','Kode unit','Unit','Praktik: nilai','Praktik: status','LKPD: nilai','LKPD: status','Status unit']],O=[['Siswa','Kelas','Tanggal','Unit/pekerjaan','Nilai','Kategori']];
+ var A=[['No','Siswa','Kelas','Unit dinilai','Unit kompeten','Status','Jumlah observasi','Rata-rata observasi']],U=[['Siswa','Kelas','Kode unit','Unit','Praktik: nilai','Praktik: status','LKPD: nilai','LKPD: status','Status unit']],O=[['Siswa','Kelas','Tanggal','Unit/pekerjaan','Nilai','Kategori']],T=[['Siswa','Kelas','Sesi ujian','Tanggal','Benar','Total','Nilai','KKM sesi','Status']];
  L.forEach(function(s,i){
   A.push([i+1,s.nama,s.kelas,s.n,s.k,kpLabel(s.status),s.obs.length,s.obsAvg==null?'':s.obsAvg]);
   s.ids.forEach(function(id){var u=s.units[id];U.push([s.nama,s.kelas,u.id,u.judul,u.praktik?u.praktik.score:'',u.praktik?(u.praktik.kompeten?'Kompeten':'Belum kompeten'):'',u.lkpd?u.lkpd.score:'',u.lkpd?(u.lkpd.kompeten?'Kompeten':'Belum kompeten'):'',kpLabel(u.status)])});
   s.obs.forEach(function(o){O.push([s.nama,s.kelas,o.tanggal,o.mapel||'',o.skor,o.kategori])});
+  s.tka.forEach(function(t){T.push([s.nama,s.kelas,t.judul,ymd(t.ts),t.benar,t.total,t.score,t.kkm,t.kompeten?'Kompeten':'Belum kompeten'])});
  });
- book([['Ringkasan',A,[5,28,8,12,14,16,16,18]],['Per unit',U,[28,8,10,40,12,16,10,16,16]],['Observasi',O,[28,8,12,30,8,12]]],'Rekap_Kompetensi_Siswa');
+ book([['Ringkasan',A,[5,28,8,12,14,16,16,18]],['Per unit',U,[28,8,10,40,12,16,10,16,16]],['Observasi',O,[28,8,12,30,8,12]],['Ujian soal',T,[28,8,28,12,8,8,8,10,16]]],'Rekap_Kompetensi_Siswa');
 }
 document.addEventListener('click',function(e){
  var b=e.target.closest('[data-act^="kp-"]');if(!b)return;var a=b.dataset.act,v=b.dataset.v;
