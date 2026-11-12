@@ -95,17 +95,20 @@ async function upload(callerId, body) {
   return { ok: true, fileId: j.id };
 }
 
-async function get(callerId, body, client) {
+async function get(callerId, body, client, asUser) {
   const fileId = String(body.fileId || ''), lkpdId = String(body.lkpdId || '');
   if (!ID_RE.test(fileId) || !lkpdId || lkpdId.length > 64) throw new Fail('Permintaan tidak valid.', 400);
-  const users = new Users(client), db = new Databases(client);
-  const caller = await users.get(callerId);
-  const staff = (caller.labels || []).some((l) => l === 'guru' || l === 'admin');
+  const db = new Databases(client);
   const list = await db.listDocuments(process.env.DB_ID || 'tbsm', 'lkpd_bukti', [Query.equal('lkpdId', [lkpdId]), Query.limit(50)]);
   const doc = list.documents.find((d) => d.data === 'drive:' + fileId);
-  if (!doc) throw new Fail('Foto tidak ditemukan.', 404);
-  const own = (doc.$permissions || []).includes('read("user:' + callerId + '")');
-  if (!staff && !own) throw new Fail('Tidak berhak melihat foto ini.', 403);
+  if (!doc) throw new Fail('Foto tidak ditemukan atau Anda tidak berhak melihatnya.', 404);
+  if (!asUser) {
+    // Mode kunci fungsi (cadangan): periksa hak baca secara manual.
+    const caller = await new Users(client).get(callerId);
+    const staff = (caller.labels || []).some((l) => l === 'guru' || l === 'admin');
+    const own = (doc.$permissions || []).includes('read("user:' + callerId + '")');
+    if (!staff && !own) throw new Fail('Tidak berhak melihat foto ini.', 403);
+  }
   const tok = await accessToken();
   const r = await gfetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?alt=media', {}, tok);
   if (!r.ok) throw new Fail('Foto tidak bisa diambil dari Drive (' + r.status + ').', r.status === 404 ? 404 : 502);
@@ -122,11 +125,14 @@ export default async ({ req, res, error }) => {
     try { body = req.bodyJson || JSON.parse(req.bodyText || req.body || '{}'); } catch (e) { return res.json({ ok: false, error: 'Data tidak valid.' }, 400); }
     if (body.action === 'upload') return res.json(await upload(callerId, body));
     if (body.action === 'get') {
+      // Utama: baca dokumen atas nama pengguna (JWT) sehingga izin dokumen Appwrite yang menentukan, tanpa scope tambahan.
+      // Cadangan: kunci dinamis fungsi (butuh scope users.read dan documents.read).
+      const jwt = req.headers['x-appwrite-user-jwt'];
       const client = new Client()
         .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
-        .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
-        .setKey(req.headers['x-appwrite-key']);
-      return res.json(await get(callerId, body, client));
+        .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID);
+      if (jwt) client.setJWT(jwt); else client.setKey(req.headers['x-appwrite-key']);
+      return res.json(await get(callerId, body, client, !!jwt));
     }
     return res.json({ ok: false, error: 'Aksi tidak dikenal.' }, 400);
   } catch (e) {
