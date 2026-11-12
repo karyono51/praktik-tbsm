@@ -6,7 +6,7 @@
        Kompleks  {t:'kompleks', q, o:[..], a:[indeks..], e}
        Kategori  {t:'kategori', q, rows:[[pernyataan, true|false]..], lab:['Benar','Salah'], e}
    - Jawaban siswa di payload: PG = angka; kompleks = daftar indeks; kategori = {nomorBaris: true|false}.
-   - Penilaian sama dengan Bank soal TKA: PG 1/0; kompleks (benar terpilih - salah terpilih) / jumlah kunci, minimal 0;
+   - Penilaian sama dengan Bank soal: PG 1/0; kompleks (benar terpilih - salah terpilih) / jumlah kunci, minimal 0;
      kategori jumlah pernyataan tepat / jumlah pernyataan. Nilai teori = rata-rata skor soal x 100.
    - Pengumpulan menyimpan tanda tangan soal (qsig). Pengumpulan lama (soal lama) tidak dibandingkan dengan soal baru. */
 var LKQ={MIX:{pg:6,kompleks:2,kategori:2},VER:2};

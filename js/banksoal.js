@@ -1,4 +1,4 @@
-/* banksoal.js: Bank soal TKA SMK, terpisah dari LKPD.
+/* banksoal.js: Bank soal per unit LKPD (bentuk soal mengikuti acuan TKA).
    Siswa: Latihan (periksa per soal), Ujian bertimer (sesi dari guru), Riwayat.
    Guru/Admin: Bank soal (peruntukan latihan/ujian/keduanya, soal sendiri), Sesi ujian, Hasil (ekspor Excel).
    Koleksi Appwrite: banksoal, soal_sesi, soal_hasil (lihat appwrite.json). Mode lokal memakai localStorage. */
@@ -519,7 +519,7 @@ function bsExport(){
 /* ---------- Tampilan utama ---------- */
 function viewBankSoal(){
  if(!BS.loaded&&!BS.loading)setTimeout(bsLoad,0);
- var staff=bsEdit(),h='<div class="sechead"><span class="ico">'+svg(ICO.banksoal,18)+'</span><h2>Bank soal TKA</h2></div>';
+ var staff=bsEdit(),h='<div class="sechead"><span class="ico">'+svg(ICO.banksoal,18)+'</span><h2>Bank soal</h2></div>';
  if(!BS.loaded)return h+'<p class="muted center" style="padding:32px 0">Memuat soal…</p>';
  if(BS.err.length)h+='<div class="err">'+BS.err.map(esc).join('<br>')+(BS.err.some(function(e){return /collection|not found|could not be found/i.test(e)})?'<br>Koleksi belum dibuat di Appwrite. Jalankan: node tools/setup-appwrite.mjs --only=banksoal,soal_sesi,soal_hasil':'')+'</div>';
  if(BS.sub==='detail'||BS.sub==='result')return h+bsViewResult();
@@ -541,7 +541,7 @@ render=function(){
   var sb=document.querySelector('.sbody');
   if(sb&&!sb.querySelector('[data-v="banksoal"]')){
    var cur=V.mode==='list'?S.tab:'',rk=sb.querySelector('.srow[data-v="rekap"]');
-   var html='<button type="button" class="srow" data-act="menu" data-v="banksoal"'+(cur==='banksoal'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.banksoal,22)+'</span><span class="st"><b>Bank soal TKA</b><small>Latihan, ujian, dan riwayat soal</small></span>'+svg(ICO.chev,18)+'</button>';
+   var html='<button type="button" class="srow" data-act="menu" data-v="banksoal"'+(cur==='banksoal'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.banksoal,22)+'</span><span class="st"><b>Bank soal</b><small>Soal per unit LKPD, bentuk TKA</small></span>'+svg(ICO.chev,18)+'</button>';
    if(rk)rk.insertAdjacentHTML('afterend',html);else sb.insertAdjacentHTML('beforeend',html);
   }
  }catch(e){}

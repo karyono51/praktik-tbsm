@@ -1,6 +1,6 @@
-# Bank soal TKA (v41)
+# Bank soal (v41, bentuk soal mengikuti acuan TKA)
 
-Fitur terpisah dari LKPD. Menu: **Bank soal TKA** (semua peran).
+Fitur terpisah dari LKPD. Menu: **Bank soal** (semua peran).
 
 ## Siswa
 - **Latihan**: pilih mapel, jenis soal, dan jumlah. Tanpa batas waktu. Tombol *Periksa jawaban* menampilkan benar/salah dan pembahasan per soal. Hasil masuk Riwayat.
