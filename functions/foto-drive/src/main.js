@@ -8,7 +8,7 @@
      upload: {action:'upload', data:'data:image/jpeg;base64,...', nama:'X_Budi_X-1_K03-Terminal_20261112-1345'}  -> {ok:true, fileId}   (semua pengguna login)
      get:    {action:'get', lkpdId, fileId}                          -> {ok:true, data:'data:...'}
              hanya guru/admin (label) atau pemilik foto (izin baca dokumen lkpd_bukti). */
-import { Client, Users, Databases, Query } from 'node-appwrite';
+// Tanpa pustaka node-appwrite: panggilan ke Appwrite memakai fetch bawaan Node (pustaka lama gagal di runtime Node terbaru: "fetch failed").
 
 const FOLDER_NAME = 'TBSM Bukti Praktik';
 const MAX_B64 = 420000;            // batas panjang teks base64 (foto aplikasi <= sekitar 260.000)
@@ -95,16 +95,32 @@ async function upload(callerId, body) {
   return { ok: true, fileId: j.id };
 }
 
-async function get(callerId, body, client, asUser) {
+async function aw(path, headers) {
+  const base = String(process.env.APPWRITE_ENDPOINT || process.env.APPWRITE_FUNCTION_API_ENDPOINT || '').replace(/\/$/, '');
+  if (!base) throw new Fail('Alamat API Appwrite tidak tersedia di fungsi.', 500);
+  let r;
+  try {
+    r = await fetch(base + path, { headers: { 'X-Appwrite-Project': process.env.APPWRITE_FUNCTION_PROJECT_ID || '', ...headers } });
+  } catch (e) {
+    throw new Fail('Tidak dapat menghubungi Appwrite (' + ((e && e.cause && (e.cause.code || e.cause.message)) || (e && e.message) || 'galat jaringan') + ').', 502);
+  }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Fail('Appwrite menolak permintaan (' + r.status + '): ' + String(j.message || '').slice(0, 120), r.status === 401 || r.status === 403 ? 403 : 502);
+  return j;
+}
+
+async function get(callerId, body, auth, asUser) {
   const fileId = String(body.fileId || ''), lkpdId = String(body.lkpdId || '');
   if (!ID_RE.test(fileId) || !lkpdId || lkpdId.length > 64) throw new Fail('Permintaan tidak valid.', 400);
-  const db = new Databases(client);
-  const list = await db.listDocuments(process.env.DB_ID || 'tbsm', 'lkpd_bukti', [Query.equal('lkpdId', [lkpdId]), Query.limit(50)]);
-  const doc = list.documents.find((d) => d.data === 'drive:' + fileId);
+  const q = new URLSearchParams();
+  q.append('queries[]', JSON.stringify({ method: 'equal', attribute: 'lkpdId', values: [lkpdId] }));
+  q.append('queries[]', JSON.stringify({ method: 'limit', values: [50] }));
+  const list = await aw('/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/lkpd_bukti/documents?' + q.toString(), auth);
+  const doc = (list.documents || []).find((d) => d.data === 'drive:' + fileId);
   if (!doc) throw new Fail('Foto tidak ditemukan atau Anda tidak berhak melihatnya.', 404);
   if (!asUser) {
     // Mode kunci fungsi (cadangan): periksa hak baca secara manual.
-    const caller = await new Users(client).get(callerId);
+    const caller = await aw('/users/' + encodeURIComponent(callerId), auth);
     const staff = (caller.labels || []).some((l) => l === 'guru' || l === 'admin');
     const own = (doc.$permissions || []).includes('read("user:' + callerId + '")');
     if (!staff && !own) throw new Fail('Tidak berhak melihat foto ini.', 403);
@@ -128,11 +144,8 @@ export default async ({ req, res, error }) => {
       // Utama: baca dokumen atas nama pengguna (JWT) sehingga izin dokumen Appwrite yang menentukan, tanpa scope tambahan.
       // Cadangan: kunci dinamis fungsi (butuh scope users.read dan documents.read).
       const jwt = req.headers['x-appwrite-user-jwt'];
-      const client = new Client()
-        .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
-        .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID);
-      if (jwt) client.setJWT(jwt); else client.setKey(req.headers['x-appwrite-key']);
-      return res.json(await get(callerId, body, client, !!jwt));
+      const auth = jwt ? { 'X-Appwrite-JWT': jwt } : { 'X-Appwrite-Key': req.headers['x-appwrite-key'] || '' };
+      return res.json(await get(callerId, body, auth, !!jwt));
     }
     return res.json({ ok: false, error: 'Aksi tidak dikenal.' }, 400);
   } catch (e) {

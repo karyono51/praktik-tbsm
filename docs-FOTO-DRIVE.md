@@ -13,7 +13,7 @@
 - Fungsi menolak berkas yang bukan gambar (cek byte awal berkas) dan foto di atas batas ukuran.
 
 ## Memasang fungsi (sekali saja, di Appwrite Console)
-1. Functions > Create function > Runtime **Node.js 18 atau lebih baru**. Function ID: `foto-drive`.
+1. Functions > Create function > Runtime **Node.js 18 atau lebih baru** (Node 26 juga bisa; fungsi ini tidak memakai pustaka node-appwrite). Function ID: `foto-drive`.
 2. Unggah isi folder `functions/foto-drive` (`src/main.js` dan `package.json`). Entrypoint: `src/main.js`. Build command: `npm install`.
 3. Settings > **Execute access**: Users.
 4. Settings > **Scopes**: `users.read` dan `documents.read`.
