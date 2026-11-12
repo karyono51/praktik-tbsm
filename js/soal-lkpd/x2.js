@@ -2,7 +2,7 @@
 (function(){
 var U='X-2',L=[];
 function id(n){return 'lkx2-'+(n<10?'0':'')+n}
-function P(n,topik,q,o,k,b){L.push({id:id(n),tipe:'pg',mapel:'LKPD X-2 Jangka Sorong dan Mikrometer',topik:topik,unit:U,q:q,opts:o,kunci:k,bahas:b,tujuan:'keduanya',kelas:'X'})}
+function P(n,topik,q,o,k,b){var r=n%4,o2=o.map(function(x,i){return o[(i+r)%4]}),k2=(k-r+4)%4;L.push({id:id(n),tipe:'pg',mapel:'LKPD X-2 Jangka Sorong dan Mikrometer',topik:topik,unit:U,q:q,opts:o2,kunci:k2,bahas:b,tujuan:'keduanya',kelas:'X'})}
 function K(n,topik,q,o,k,b){L.push({id:id(n),tipe:'kompleks',mapel:'LKPD X-2 Jangka Sorong dan Mikrometer',topik:topik,unit:U,q:q,opts:o,kunci:k,bahas:b,tujuan:'keduanya',kelas:'X'})}
 function C(n,topik,q,rows,b){L.push({id:id(n),tipe:'kategori',mapel:'LKPD X-2 Jangka Sorong dan Mikrometer',topik:topik,unit:U,q:q,rows:rows,lab:['Benar','Salah'],bahas:b,tujuan:'keduanya',kelas:'X'})}
 
