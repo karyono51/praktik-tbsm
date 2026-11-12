@@ -1,4 +1,4 @@
-# Foto bukti praktik per item dan penyimpanan Google Drive (v49)
+# Foto bukti praktik per item dan penyimpanan Google Drive (v50)
 
 ## Yang berubah
 - **Kamera per item**: di LKPD, tab Kerja, tabel *Hasil pemeriksaan*, tiap komponen punya tombol **Foto** (ikon kamera). Satu foto per item, bisa dihapus lalu diambil ulang. Foto dikecilkan lebih kecil (sisi 960 px, sekitar 110 KB).
@@ -44,3 +44,9 @@ Paket Appwrite gratis hanya mengizinkan 2 fungsi per project: `akun-admin` dan `
 - Fungsi terpasang tetapi Google gagal (misalnya token kedaluwarsa): foto tetap antre di perangkat siswa dan dicoba lagi pada sinkron berikutnya. Pesan galat muncul sebagai notifikasi.
 - Foto lama (sebelum v49) tetap di database dan tetap tampil. Foto itu tidak dipindahkan otomatis ke Drive.
 - Cetak LKPD: foto dari Drive baru tercetak bila sudah termuat di layar detail. Buka detail dan tunggu foto tampil sebelum mencetak.
+
+## Pembaruan v50
+- **Nama berkas di Drive** kini dapat dikenali: `Kelas_Nama-Siswa_IdModul_K03-Komponen_20261112-1345_xxxx.jpg` (`K<nomor item>`, atau `Tambahan-<keterangan>` untuk foto tambahan). Perlu **deploy ulang fungsi `foto-drive`** (folder `functions/foto-drive`). Fungsi lama tetap jalan, hanya memakai nama lama.
+- **Kamera saja**: tombol Ambil foto membuka kamera langsung di aplikasi, tanpa pilihan galeri. Bila izin kamera ditolak atau peramban tidak mendukung, tombol cadangan membuka aplikasi kamera perangkat (`capture`). Perlu HTTPS.
+- **Foto wajib**: Guru/Admin buka modul > Pengaturan > *Foto bukti wajib per komponen*, centang komponen, lalu simpan. Siswa tidak bisa mengirim LKPD sebelum semua foto wajib terisi. Tersimpan di modul sebagai `fotoWajib` (daftar indeks), tanpa perubahan skema Appwrite.
+- **Timer**: mode Ujian, tombol Jeda terkunci dan waktu berbasis jam dinding (tetap berjalan walau halaman ditutup, berhenti saat LKPD dikirim). Mode Latihan, timer otomatis jalan lagi saat siswa mengisi LKPD.

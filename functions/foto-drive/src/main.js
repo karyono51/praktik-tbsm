@@ -5,7 +5,7 @@
      DB_ID            (opsional, bawaan: tbsm)
      DRIVE_FOLDER_ID  (opsional; kosongkan bila token memakai scope drive.file, folder "TBSM Bukti Praktik" dibuat otomatis)
    Aksi:
-     upload: {action:'upload', data:'data:image/jpeg;base64,...'}  -> {ok:true, fileId}   (semua pengguna login)
+     upload: {action:'upload', data:'data:image/jpeg;base64,...', nama:'X_Budi_X-1_K03-Terminal_20261112-1345'}  -> {ok:true, fileId}   (semua pengguna login)
      get:    {action:'get', lkpdId, fileId}                          -> {ok:true, data:'data:...'}
              hanya guru/admin (label) atau pemilik foto (izin baca dokumen lkpd_bukti). */
 import { Client, Users, Databases, Query } from 'node-appwrite';
@@ -74,7 +74,9 @@ async function upload(callerId, body) {
   const img = decodeImage(body.data);
   const tok = await accessToken();
   const parent = await folderId(tok);
-  const name = callerId.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 36) + '_' + Date.now() + '.' + img.ext;
+  // Nama berkas dari aplikasi (Kelas_Nama_Modul_Item_Waktu), disaring agar aman. Bila kosong, pakai ID pengguna + waktu.
+  const label = String(body.nama || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 150);
+  const name = (label || callerId.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 36) + '_' + Date.now()) + '.' + img.ext;
   const boundary = 'tbsm' + Date.now().toString(36);
   const meta = JSON.stringify({ name, parents: [parent], mimeType: img.mime, appProperties: { uid: callerId } });
   const payload = Buffer.concat([
