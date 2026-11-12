@@ -131,7 +131,9 @@ export default async ({ req, res, error }) => {
     return res.json({ ok: false, error: 'Aksi tidak dikenal.' }, 400);
   } catch (e) {
     if (e instanceof Fail) return res.json({ ok: false, error: e.message }, e.status);
-    error(String((e && e.message) || e));
-    return res.json({ ok: false, error: 'Kesalahan server.' }, 500);
+    const msg = String((e && e.message) || e);
+    error(msg);
+    // Sertakan penyebab singkat agar mudah didiagnosis (mis. scope fungsi belum diberikan). Hanya pengguna login yang bisa memanggil fungsi ini.
+    return res.json({ ok: false, error: 'Kesalahan server: ' + msg.slice(0, 160) }, 500);
   }
 };
