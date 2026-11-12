@@ -72,3 +72,27 @@ Catatan migrasi:
 - Draf siswa dengan jawaban untuk soal lama dibuang otomatis (dibandingkan lewat `qsig`).
 - Pengumpulan lama tetap tersimpan beserta nilainya. Detailnya menampilkan keterangan bahwa soal sudah diperbarui, jawaban lama tidak dipetakan ke soal baru.
 - Modul buatan guru (bukan bawaan) tidak diubah. Editor JSON menerima ketiga bentuk soal.
+
+## Editor terstruktur (v59)
+
+Editor Guru memakai tab dan baris terpisah, bukan lagi satu formulir teks panjang. Semua hasil tetap dibentuk menjadi objek modul yang sama (kontrak data tidak berubah) dan divalidasi `lkValidateModule` sebelum disimpan lewat `lkModuleStore`.
+
+- **Tab**: Info, Tujuan & teori, Alat & K3, Langkah, Pemeriksaan, Soal, Penilaian. Lencana merah di tab menunjukkan jumlah masalah, tanda centang berarti lengkap. Ringkasan di atas menampilkan tiga masalah pertama; ketuk untuk melompat ke tab terkait.
+- **Baris**: tiap butir punya kolom sendiri. Tombol ↑ ↓ ✕ untuk urutan dan hapus. *Tempel banyak* menerima satu butir per baris (nomor atau tanda di awal dibuang). Untuk Teori dan Pemeriksaan pakai `Topik | Penjelasan`, untuk Langkah pakai `Menit | Judul | Instruksi`.
+- **Langkah**: bilah total menit terhadap alokasi waktu, tombol untuk menjadikan total langkah sebagai alokasi modul.
+- **Soal**: ketuk soal untuk membuka. Ganti jenis (PG, PG kompleks, PG kategori) tanpa mengetik ulang; ketuk huruf untuk menandai kunci; duplikat, urutkan, hapus. Mode JSON untuk pengguna lanjutan.
+- **Penilaian**: empat bobot praktik dengan tombol Standar, Bagi rata, dan Sesuaikan ke 100; penggeser praktik/teori (teori otomatis sisanya); isian wajib siswa sebagai kotak centang berlabel.
+- **Draf otomatis**: perubahan disimpan di perangkat (`localStorage`, kunci `tbsm-lkpd-ed-draft`, satu draf, berlaku 14 hari). Saat editor dibuka lagi muncul tombol Pulihkan. Draf dihapus setelah modul disimpan.
+
+## Impor dan ekspor modul LKPD (v59)
+
+Tombol ada di daftar LKPD per kelas (Admin dan Guru). Berkas: `js/lkpd-io.js`, template `templates/Template_Impor_LKPD.xlsx`.
+
+- **Struktur Excel**: sheet `Modul` (satu baris per modul) dan sheet bagian `Tujuan`, `Teori`, `Alat Bahan`, `K3`, `Langkah`, `Pemeriksaan`, `Gejala`, `Soal` (satu baris per butir) yang dihubungkan lewat kolom `ID Modul`. Sheet `Petunjuk` menjelaskan semua kolom.
+- **Ekspor**: Ekspor kelas (modul kelas yang sedang dibuka), Ekspor semua, atau Ekspor di kartu modul. Data pengumpulan siswa tidak diekspor.
+- **Impor**: .xlsx, .xls, atau .csv; maksimal 100 modul dan 5000 baris per sheet. Pratinjau menampilkan baru, diperbarui, tanpa perubahan, dan ditolak beserta sheet, nomor baris, dan alasannya. Modul diproses utuh: satu kesalahan menolak modul itu saja.
+- **ID Modul**: ID baru membuat modul baru (Draft bila Status kosong). ID yang sudah ada memperbarui modul itu. ID bawaan (X-1 dan seterusnya) juga boleh; hasilnya disimpan sebagai salinan dan meminta konfirmasi.
+- **Pembaruan sebagian**: sheet yang ada di berkas menggantikan bagian itu; sheet yang tidak ada membuat bagian itu tidak berubah. Contoh: berkas hanya berisi sheet `Soal` hanya mengganti soal. Kolom kosong di sheet `Modul` berarti tidak berubah (modul baru memakai nilai bawaan).
+- **Pengaturan**: Mode, Kesempatan, Tampilkan kunci, Sembunyikan teori/langkah/petunjuk, Buka, Tutup, dan Foto wajib ikut diekspor dan diimpor. Format jadwal `2026-11-12 08:00` (isi sebagai teks).
+- **Validasi**: sama dengan Editor (`lkValidateModule`, `lkqValid`): jumlah menit langkah = alokasi waktu, bobot tepat 100, format soal, ukuran modul maksimal sekitar 450 KB.
+- **Penyimpanan**: lewat `lkModuleStore`, jalur yang sama dengan Editor Guru. Mode Appwrite tetap memerlukan label `lkpdeditor`; berkas yang sama bisa dipakai untuk memindahkan modul antar akun guru.
