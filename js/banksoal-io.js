@@ -65,7 +65,20 @@ function bsioHelp(){
   ['Pembahasan','Boleh kosong.'],
   ['Catatan','Soal baru yang jenis, mapel, dan teksnya sama persis dengan soal yang sudah ada dilewati, tidak digandakan. Maksimal '+BSIO.MAX+' baris per impor. Hapus baris contoh sebelum impor. File hasil Ekspor Excel bisa diimpor ulang.']];
 }
-function bsioTemplate(){
+async function bsioTemplate(){
+ if(!bsioOk())return;
+ /* Utamakan berkas siap pakai (ada dropdown Jenis, Mapel, Kelas, Peruntukan, Status). Cadangan: dibuat di peramban tanpa dropdown. */
+ try{
+  var res=await fetch('templates/Template_Impor_Bank_Soal.xlsx',{cache:'no-cache'});
+  if(res.ok){
+   var url=URL.createObjectURL(await res.blob()),el=document.createElement('a');
+   el.href=url;el.download='Template_Impor_Bank_Soal.xlsx';document.body.appendChild(el);el.click();el.remove();
+   setTimeout(function(){URL.revokeObjectURL(url)},4000);return;
+  }
+ }catch(e){}
+ bsioTemplateFallback();
+}
+function bsioTemplateFallback(){
  if(!bsioOk())return;
  if(typeof needX==='function'&&!needX())return;
  var e=function(a){while(a.length<BSIO_HEAD.length)a.push('');return a};

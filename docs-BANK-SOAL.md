@@ -40,7 +40,7 @@ Latihan dan ujian yang sedang berjalan tersimpan di perangkat. Hasil yang belum 
 ## Impor dan ekspor soal (v47)
 Hanya Guru dan Admin, di tab **Bank soal** (tombol Impor soal, Template, Ekspor Excel). Berkas: `js/banksoal-io.js`. Tidak ada perubahan koleksi Appwrite.
 - **Ekspor Excel**: mengekspor soal yang sedang tampil sesuai filter (filter kosong = semua soal, termasuk bawaan). Berisi sheet Soal dan Petunjuk. File ini bisa diedit lalu diimpor ulang.
-- **Template**: file contoh berisi tiga soal (PG, PG kompleks, PG kategori) dan petunjuk kolom. Hapus baris contoh sebelum impor.
+- **Template**: file `templates/Template_Impor_Bank_Soal.xlsx` berisi tiga soal contoh dan petunjuk kolom. Kolom Jenis, Kelas, Peruntukan, dan Status berupa dropdown. Kolom Mapel berupa dropdown dari mapel yang ada, tetapi boleh diketik bebas untuk mapel baru. Daftar mapel ada di sheet Daftar; tambahkan di sana bila ingin muncul di dropdown. Hapus baris contoh sebelum impor.
 - **Impor**: .xlsx, .xls, atau .csv, maksimal 500 baris. Pratinjau dulu (baru, diperbarui, dilewati, ditolak beserta alasan per baris), lalu tekan Terapkan.
 - Kolom: ID, Jenis, Mapel, Topik, Kelas, Peruntukan, Status, Soal, A sampai E, Kunci, Label 1, Label 2, Pernyataan 1-6, Kunci 1-6, Pembahasan.
 - ID kosong = soal baru. ID soal sendiri yang sudah ada = soal diperbarui. ID soal bawaan (tka-...) = hanya Peruntukan, Kelas, dan Status yang berubah.
