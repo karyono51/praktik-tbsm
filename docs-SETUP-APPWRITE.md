@@ -24,7 +24,7 @@ Console > **Overview** > **Integrations** > **Platforms** > **Add platform** > *
 
 ## 4. Akun admin pertama
 1. Buka aplikasi, ketuk **Belum punya akun? Daftar**, daftar dengan email admin di `ADMIN_EMAIL` (`js/config.js`). Email ini otomatis jadi Admin.
-2. Console > **Auth** > **Users** > akun tadi > **Labels**: tambahkan `admin`. Untuk guru: label `guru`. Untuk yang boleh mengelola modul LKPD: `lkpd-editor`.
+2. Console > **Auth** > **Users** > akun tadi > **Labels**: tambahkan `admin`. Untuk guru: label `guru`. Untuk yang boleh mengelola modul LKPD: `lkpdeditor`.
 3. Akun lain: admin menambahkan lewat Kelola Akun atau impor Excel, lalu mereka mendaftar dengan email yang sama (`PENDAFTARAN_TERBUKA` masih `false`).
 
 Label adalah izin di server. Tanpa label `admin`, ubah dan hapus data akan ditolak.

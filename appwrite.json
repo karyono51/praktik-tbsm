@@ -355,10 +355,10 @@
       "enabled": true,
       "documentSecurity": true,
       "$permissions": [
-        "create(\"label:lkpd-editor\")",
-        "read(\"label:lkpd-editor\")",
-        "update(\"label:lkpd-editor\")",
-        "delete(\"label:lkpd-editor\")"
+        "create(\"label:lkpdeditor\")",
+        "read(\"label:lkpdeditor\")",
+        "update(\"label:lkpdeditor\")",
+        "delete(\"label:lkpdeditor\")"
       ],
       "attributes": [
         {
