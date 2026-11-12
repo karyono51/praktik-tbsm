@@ -2,50 +2,50 @@
 (function(){
 var U='X-6',L=[];
 function id(n){return 'lkx6-'+(n<10?'0':'')+n}
-function P(n,topik,q,o,k,b){var r=n%4,o2=o.map(function(x,i){return o[(i+r)%4]}),k2=(k-r+4)%4;L.push({id:id(n),tipe:'pg',mapel:'LKPD X-6 Alat Tangan Bengkel',topik:topik,unit:U,q:q,opts:o2,kunci:k2,bahas:b,tujuan:'keduanya',kelas:'X'})}
+function P(n,topik,q,o,k,b){var L5=o.length,t=(n-1)%L5,r=(k-t+L5)%L5,o2=o.map(function(x,i){return o[(i+r)%L5]}),k2=t;L.push({id:id(n),tipe:'pg',mapel:'LKPD X-6 Alat Tangan Bengkel',topik:topik,unit:U,q:q,opts:o2,kunci:k2,bahas:b,tujuan:'keduanya',kelas:'X'})}
 function K(n,topik,q,o,k,b){L.push({id:id(n),tipe:'kompleks',mapel:'LKPD X-6 Alat Tangan Bengkel',topik:topik,unit:U,q:q,opts:o,kunci:k,bahas:b,tujuan:'keduanya',kelas:'X'})}
 function C(n,topik,q,rows,b){L.push({id:id(n),tipe:'kategori',mapel:'LKPD X-6 Alat Tangan Bengkel',topik:topik,unit:U,q:q,rows:rows,lab:['Benar','Salah'],bahas:b,tujuan:'keduanya',kelas:'X'})}
 
-P(1,'Kunci ring dan soket','Kunci yang paling kuat memegang baut adalah ...',['Kunci pas','Kunci ring atau soket','Tang','Obeng'],1,'Ring dan soket mengelilingi kepala baut.');
-P(2,'Kunci pas','Kunci pas yang longgar pada baut dapat menyebabkan ...',['Baut lebih mudah dikencangkan','Kepala baut bundar atau rusak','Tidak ada pengaruh','Baut lebih awet'],1,'Kunci longgar merusak kepala baut.');
-P(3,'Kunci torsi','Kunci torsi digunakan untuk ...',['Mengendurkan baut karat','Mengencangkan baut sesuai torsi spesifikasi','Memukul baut','Memotong baut'],1,'Tujuannya mendapatkan kekencangan yang tepat.');
-P(4,'Kunci torsi','Setelah dipakai, kunci torsi sebaiknya ...',['Dibiarkan pada nilai tinggi','Dikembalikan ke nilai terendah','Dilumasi dengan oli','Dicelupkan air'],1,'Pegas kunci torsi dijaga agar akurat.');
-P(5,'Kunci torsi','Saat mengencangkan dengan kunci torsi, berhenti ketika ...',['Terasa berat saja','Terdengar bunyi klik','Baut mengeluarkan asap','Kunci mulai panas'],1,'Bunyi klik menandakan torsi tercapai.');
-P(6,'Obeng','Obeng tidak boleh dipakai sebagai ...',['Pemutar sekrup','Pencungkil atau tuas','Alat uji sederhana','Penanda'],1,'Pemakaian yang salah dapat merusak obeng dan menyebabkan cedera.');
-P(7,'Tang','Tang bukan pengganti ...',['Kunci','Obeng','Palu','Gunting'],0,'Tang tidak mengencangkan baut seperti kunci.');
-P(8,'Palu','Palu lunak digunakan untuk ...',['Memukul komponen yang mudah rusak','Memotong baut','Mengukur torsi','Mengecat'],0,'Palu lunak menghindari kerusakan permukaan.');
-P(9,'Standar','Sebelum mengerjakan unit di atas dongkrak, pastikan ...',['Dongkrak dilepas','Unit tertopang dan stabil','Mesin dihidupkan','Ban kempes'],1,'Kestabilan mencegah unit jatuh.');
-P(10,'Pipa tambahan','Memperpanjang kunci dengan pipa ...',['Dianjurkan','Berbahaya dan dapat merusak baut atau alat','Tidak ada efek','Membuat kerja lebih cepat'],1,'Gaya berlebih menimbulkan kerusakan dan cedera.');
-P(11,'Arah tarikan','Kunci sebaiknya ditarik ke arah ...',['Badan','Luar tubuh','Kaki','Bawah tanah'],0,'Menarik ke arah badan lebih aman.');
-P(12,'Ukuran kunci','Memilih kunci sesuai ukuran baut bertujuan untuk ...',['Menghindari kerusakan kepala baut','Menambah berat','Menghemat tenaga saja','Tidak ada alasan'],0,'Ukuran pas melindungi kepala baut.');
-P(13,'Obeng','Obeng yang tepat dipilih berdasarkan ...',['Ukuran dan bentuk alur sekrup','Warna gagang','Harga','Merek saja'],0,'Ukuran dan alur harus sesuai.');
-P(14,'Perawatan alat','Alat tangan setelah dipakai sebaiknya ...',['Dibiarkan kotor','Dibersihkan, dilumasi bila perlu, dan disimpan','Dilempar ke lantai','Dibiarkan di tanah'],1,'Perawatan menjaga alat tetap layak.');
-P(15,'Karat alat','Alat yang berkarat sebaiknya ...',['Dipakai tanpa dibersihkan','Dibersihkan atau diganti jika rusak','Dicat tebal','Disembunyikan'],1,'Karat dapat merusak kerja alat.');
-P(16,'Kelengkapan alat','Setelah pekerjaan selesai, semua alat harus ...',['Ditinggal di unit','Kembali ke tempatnya dan terhitung','Dipinjamkan ke luar','Disimpan di saku'],1,'Kelengkapan alat dicek agar tidak hilang.');
-P(17,'Penggunaan kunci','Kunci sebaiknya dipilih yang ...',['Pas dengan kepala baut','Terlalu besar','Terlalu kecil','Berkarat'],0,'Ukuran pas memberi gaya optimal.');
-P(18,'Torsi bertahap','Pengencangan baut dengan kunci torsi dilakukan ...',['Bertahap','Sekali dengan tenaga penuh','Sambil memukul','Tanpa urutan'],0,'Pengencangan bertahap menjaga rata.');
-P(19,'Gejala baut','Baut yang terlalu kencang atau kendur dapat menyebabkan ...',['Kerusakan komponen','Mesin lebih halus','Tidak ada pengaruh','Warna baut berubah'],0,'Torsi tidak sesuai merusak komponen.');
-P(20,'Gejala kunci torsi','Kunci torsi yang tidak berbunyi klik menandakan ...',['Kemungkinan alat perlu diperiksa atau dikalibrasi','Alat sangat baik','Torsi sudah pas','Tidak ada masalah'],0,'Kunci torsi bermasalah perlu diperiksa.');
-P(21,'Standar unit','Standar atau dongkrak harus diletakkan pada ...',['Titik angkat yang benar','Sembarang tempat','Knalpot','Setang'],0,'Titik angkat yang benar mencegah kerusakan dan kecelakaan.');
-P(22,'Keselamatan alat','Alat yang rusak sebaiknya ...',['Tetap digunakan','Dilaporkan dan tidak dipakai sampai diperbaiki','Diperbaiki asal jadi','Dibuang diam-diam'],1,'Alat rusak tidak boleh digunakan.');
-P(23,'Penggunaan palu','Palu yang digunakan di bengkel sebaiknya ...',['Sesuai jenis pekerjaan dan dalam kondisi baik','Asal palu','Berkarat','Patah'],0,'Palu harus sesuai dan layak.');
-P(24,'Penyimpanan','Alat tangan sebaiknya disimpan ...',['Di kotak atau rak yang tertata','Berserakan di lantai','Di luar bengkel','Di dalam oli'],0,'Penataan memudahkan pencarian dan mencegah kehilangan.');
-P(25,'Oli pada alat','Pelumas alat digunakan untuk ...',['Mencegah karat dan menjaga gerakan alat','Menambah berat','Menghitung alat','Mengecat'],0,'Pelumas menjaga alat tetap berfungsi.');
-P(26,'Kunci torsi kembali','Mengembalikan kunci torsi ke nilai terendah bertujuan untuk ...',['Menjaga pegas tetap akurat','Menambah kekencangan','Menghemat listrik','Tidak ada tujuan'],0,'Pegas tetap akurat bila tidak dibebani.');
-P(27,'Gaya','Memakai kunci dengan gaya berlebih dapat ...',['Mengurangi risiko cedera','Merusak alat dan melukai pengguna','Mempercepat kerja tanpa risiko','Tidak berbahaya'],1,'Gaya berlebih berbahaya.');
-P(28,'Pengencangan baut','Baut yang dikencangkan harus ...',['Sesuai torsi spesifikasi','Sekuat mungkin','Sekadar terasa kencang','Dibiarkan longgar'],0,'Torsi spesifikasi memastikan kekencangan yang tepat.');
-P(29,'Mengendurkan baut','Untuk mengendurkan baut yang sangat kencang, alat yang paling tepat adalah ...',['Kunci pas atau ring sesuai ukuran','Kunci torsi','Palu besar','Tang buaya'],0,'Kunci pas atau ring memberi kekuatan lebih.');
-P(30,'Obeng pencungkil','Penggunaan obeng sebagai pencungkil dapat ...',['Membuat ujung obeng rusak dan melukai','Membuat alat lebih awet','Tidak berbahaya','Mempercepat kerja'],0,'Obeng bukan alat pencungkil.');
-P(31,'Kebersihan alat','Alat yang bersih dan terawat ...',['Lebih awet dan akurat','Cepat berkarat','Mudah hilang','Tidak berpengaruh'],0,'Perawatan menjaga umur dan akurasi alat.');
-P(32,'Pemilihan palu','Palu besi digunakan untuk pekerjaan yang ...',['Membutuhkan pukulan kuat dan tidak merusak permukaan keras','Membutuhkan permukaan lembut','Tidak butuh palu','Hanya untuk mengecat'],0,'Palu besi untuk pukulan kuat.');
-P(33,'Sekrup','Sekrup yang alurnya rusak sebaiknya ...',['Dipaksa dengan obeng lain','Diganti atau diperbaiki sesuai prosedur','Dipukul-pukul','Dibiarkan'],1,'Alur rusak harus diganti.');
-P(34,'Keselamatan standar','Saat menopang unit, yang harus diperiksa adalah ...',['Kestabilan dan posisi standar','Warna standar','Merek standar','Berat jok'],0,'Stabilitas adalah kunci keselamatan.');
-P(35,'Alat tangan','Alat tangan yang paling sering digunakan di bengkel sepeda motor antara lain ...',['Kunci pas, ring, soket, dan obeng','Mesin las','Crane','Traktor'],0,'Alat tangan dasar meliputi kunci dan obeng.');
-P(36,'Pengunci','Alat yang dipakai untuk menahan benda kerja agar tidak bergerak ...',['Klem atau penahan yang stabil','Kain lap','Kuas','Sikat'],0,'Penahan mencegah benda bergeser.');
-P(37,'Ukuran baut','Baut ukuran besar memerlukan ...',['Kunci dengan ukuran yang sesuai','Kunci terkecil','Tang saja','Palu'],0,'Ukuran harus sesuai.');
-P(38,'Cek alat','Sebelum digunakan, alat harus diperiksa ...',['Kondisinya dan tidak rusak','Harganya','Warnanya','Merek saja'],0,'Pemeriksaan kondisi mencegah kecelakaan.');
-P(39,'Penggunaan kunci torsi','Kunci torsi tidak boleh digunakan untuk ...',['Mengencangkan baut sesuai torsi','Mengendurkan baut','Mengukur torsi','Memastikan kekencangan'],1,'Kunci torsi tidak untuk mengendurkan baut.');
-P(40,'Kesimpulan','Pemeriksaan alat tangan sebaiknya ditutup dengan ...',['Mengembalikan semua alat dan mencatat temuan','Meninggalkan alat di unit','Membuang alat rusak','Tidak mencatat apa pun'],0,'Penutupan kerja mencakup pengembalian alat dan pencatatan.');
+P(1,'Kunci ring dan soket','Kunci yang paling kuat memegang baut adalah ...',['Kunci pas','Kunci ring atau soket','Tang','Obeng','Kunci inggris'],1,'Ring dan soket mengelilingi kepala baut.');
+P(2,'Kunci pas','Kunci pas yang longgar pada baut dapat menyebabkan ...',['Baut lebih mudah dikencangkan','Kepala baut bundar atau rusak','Tidak ada pengaruh','Baut lebih awet','Torsi naik otomatis'],1,'Kunci longgar merusak kepala baut.');
+P(3,'Kunci torsi','Kunci torsi digunakan untuk ...',['Mengendurkan baut karat','Mengencangkan baut sesuai torsi spesifikasi','Memukul baut','Memotong baut','Memotong pipa'],1,'Tujuannya mendapatkan kekencangan yang tepat.');
+P(4,'Kunci torsi','Setelah dipakai, kunci torsi sebaiknya ...',['Dibiarkan pada nilai tinggi','Dikembalikan ke nilai terendah','Dilumasi dengan oli','Dicelupkan air','Dicuci dengan air panas'],1,'Pegas kunci torsi dijaga agar akurat.');
+P(5,'Kunci torsi','Saat mengencangkan dengan kunci torsi, berhenti ketika ...',['Terasa berat saja','Terdengar bunyi klik','Baut mengeluarkan asap','Kunci mulai panas','Kunci terasa ringan'],1,'Bunyi klik menandakan torsi tercapai.');
+P(6,'Obeng','Obeng tidak boleh dipakai sebagai ...',['Pemutar sekrup','Pencungkil atau tuas','Alat uji sederhana','Penanda','Penanda gambar'],1,'Pemakaian yang salah dapat merusak obeng dan menyebabkan cedera.');
+P(7,'Tang','Tang bukan pengganti ...',['Kunci','Obeng','Palu','Gunting','Kikir'],0,'Tang tidak mengencangkan baut seperti kunci.');
+P(8,'Palu','Palu lunak digunakan untuk ...',['Memukul komponen yang mudah rusak','Memotong baut','Mengukur torsi','Mengecat','Membersihkan oli'],0,'Palu lunak menghindari kerusakan permukaan.');
+P(9,'Standar','Sebelum mengerjakan unit di atas dongkrak, pastikan ...',['Dongkrak dilepas','Unit tertopang dan stabil','Mesin dihidupkan','Ban kempes','Ban diisi angin'],1,'Kestabilan mencegah unit jatuh.');
+P(10,'Pipa tambahan','Memperpanjang kunci dengan pipa ...',['Dianjurkan','Berbahaya dan dapat merusak baut atau alat','Tidak ada efek','Membuat kerja lebih cepat','Dianjurkan produsen'],1,'Gaya berlebih menimbulkan kerusakan dan cedera.');
+P(11,'Arah tarikan','Kunci sebaiknya ditarik ke arah ...',['Badan','Luar tubuh','Kaki','Bawah tanah','Ke samping tanpa kontrol'],0,'Menarik ke arah badan lebih aman.');
+P(12,'Ukuran kunci','Memilih kunci sesuai ukuran baut bertujuan untuk ...',['Menghindari kerusakan kepala baut','Menambah berat','Menghemat tenaga saja','Tidak ada alasan','Menambah berat kunci'],0,'Ukuran pas melindungi kepala baut.');
+P(13,'Obeng','Obeng yang tepat dipilih berdasarkan ...',['Ukuran dan bentuk alur sekrup','Warna gagang','Harga','Merek saja','Panjang gagang saja'],0,'Ukuran dan alur harus sesuai.');
+P(14,'Perawatan alat','Alat tangan setelah dipakai sebaiknya ...',['Dibiarkan kotor','Dibersihkan, dilumasi bila perlu, dan disimpan','Dilempar ke lantai','Dibiarkan di tanah','Dibiarkan di udara terbuka'],1,'Perawatan menjaga alat tetap layak.');
+P(15,'Karat alat','Alat yang berkarat sebaiknya ...',['Dipakai tanpa dibersihkan','Dibersihkan atau diganti jika rusak','Dicat tebal','Disembunyikan','Dicat warna cerah'],1,'Karat dapat merusak kerja alat.');
+P(16,'Kelengkapan alat','Setelah pekerjaan selesai, semua alat harus ...',['Ditinggal di unit','Kembali ke tempatnya dan terhitung','Dipinjamkan ke luar','Disimpan di saku','Disimpan di bagasi motor'],1,'Kelengkapan alat dicek agar tidak hilang.');
+P(17,'Penggunaan kunci','Kunci sebaiknya dipilih yang ...',['Pas dengan kepala baut','Terlalu besar','Terlalu kecil','Berkarat','Ukuran lebih besar selalu'],0,'Ukuran pas memberi gaya optimal.');
+P(18,'Torsi bertahap','Pengencangan baut dengan kunci torsi dilakukan ...',['Bertahap','Sekali dengan tenaga penuh','Sambil memukul','Tanpa urutan','Dikencangkan satu sisi saja'],0,'Pengencangan bertahap menjaga rata.');
+P(19,'Gejala baut','Baut yang terlalu kencang atau kendur dapat menyebabkan ...',['Kerusakan komponen','Mesin lebih halus','Tidak ada pengaruh','Warna baut berubah','Motor lebih cepat'],0,'Torsi tidak sesuai merusak komponen.');
+P(20,'Gejala kunci torsi','Kunci torsi yang tidak berbunyi klik menandakan ...',['Kemungkinan alat perlu diperiksa atau dikalibrasi','Alat sangat baik','Torsi sudah pas','Tidak ada masalah','Torsi pasti tercapai'],0,'Kunci torsi bermasalah perlu diperiksa.');
+P(21,'Standar unit','Standar atau dongkrak harus diletakkan pada ...',['Titik angkat yang benar','Sembarang tempat','Knalpot','Setang','Di bawah knalpot'],0,'Titik angkat yang benar mencegah kerusakan dan kecelakaan.');
+P(22,'Keselamatan alat','Alat yang rusak sebaiknya ...',['Tetap digunakan','Dilaporkan dan tidak dipakai sampai diperbaiki','Diperbaiki asal jadi','Dibuang diam-diam','Dipakai tapi dicat'],1,'Alat rusak tidak boleh digunakan.');
+P(23,'Penggunaan palu','Palu yang digunakan di bengkel sebaiknya ...',['Sesuai jenis pekerjaan dan dalam kondisi baik','Asal palu','Berkarat','Patah','Palu besi tanpa gagang'],0,'Palu harus sesuai dan layak.');
+P(24,'Penyimpanan','Alat tangan sebaiknya disimpan ...',['Di kotak atau rak yang tertata','Berserakan di lantai','Di luar bengkel','Di dalam oli','Di lantai basah'],0,'Penataan memudahkan pencarian dan mencegah kehilangan.');
+P(25,'Oli pada alat','Pelumas alat digunakan untuk ...',['Mencegah karat dan menjaga gerakan alat','Menambah berat','Menghitung alat','Mengecat','Menambah berat alat'],0,'Pelumas menjaga alat tetap berfungsi.');
+P(26,'Kunci torsi kembali','Mengembalikan kunci torsi ke nilai terendah bertujuan untuk ...',['Menjaga pegas tetap akurat','Menambah kekencangan','Menghemat listrik','Tidak ada tujuan','Mempercepat pengencangan'],0,'Pegas tetap akurat bila tidak dibebani.');
+P(27,'Gaya','Memakai kunci dengan gaya berlebih dapat ...',['Mengurangi risiko cedera','Merusak alat dan melukai pengguna','Mempercepat kerja tanpa risiko','Tidak berbahaya','Menambah keselamatan'],1,'Gaya berlebih berbahaya.');
+P(28,'Pengencangan baut','Baut yang dikencangkan harus ...',['Sesuai torsi spesifikasi','Sekuat mungkin','Sekadar terasa kencang','Dibiarkan longgar','Sekadar rapat'],0,'Torsi spesifikasi memastikan kekencangan yang tepat.');
+P(29,'Mengendurkan baut','Untuk mengendurkan baut yang sangat kencang, alat yang paling tepat adalah ...',['Kunci pas atau ring sesuai ukuran','Kunci torsi','Palu besar','Tang buaya','Kunci torsi dengan nilai tinggi'],0,'Kunci pas atau ring memberi kekuatan lebih.');
+P(30,'Obeng pencungkil','Penggunaan obeng sebagai pencungkil dapat ...',['Membuat ujung obeng rusak dan melukai','Membuat alat lebih awet','Tidak berbahaya','Mempercepat kerja','Lebih awet'],0,'Obeng bukan alat pencungkil.');
+P(31,'Kebersihan alat','Alat yang bersih dan terawat ...',['Lebih awet dan akurat','Cepat berkarat','Mudah hilang','Tidak berpengaruh','Tidak terpengaruh'],0,'Perawatan menjaga umur dan akurasi alat.');
+P(32,'Pemilihan palu','Palu besi digunakan untuk pekerjaan yang ...',['Membutuhkan pukulan kuat dan tidak merusak permukaan keras','Membutuhkan permukaan lembut','Tidak butuh palu','Hanya untuk mengecat','Mengetik'],0,'Palu besi untuk pukulan kuat.');
+P(33,'Sekrup','Sekrup yang alurnya rusak sebaiknya ...',['Dipaksa dengan obeng lain','Diganti atau diperbaiki sesuai prosedur','Dipukul-pukul','Dibiarkan','Dicat ulang'],1,'Alur rusak harus diganti.');
+P(34,'Keselamatan standar','Saat menopang unit, yang harus diperiksa adalah ...',['Kestabilan dan posisi standar','Warna standar','Merek standar','Berat jok','Panjang rantai'],0,'Stabilitas adalah kunci keselamatan.');
+P(35,'Alat tangan','Alat tangan yang paling sering digunakan di bengkel sepeda motor antara lain ...',['Kunci pas, ring, soket, dan obeng','Mesin las','Crane','Traktor','Gunting kain'],0,'Alat tangan dasar meliputi kunci dan obeng.');
+P(36,'Pengunci','Alat yang dipakai untuk menahan benda kerja agar tidak bergerak ...',['Klem atau penahan yang stabil','Kain lap','Kuas','Sikat','Alat ukur tegangan'],0,'Penahan mencegah benda bergeser.');
+P(37,'Ukuran baut','Baut ukuran besar memerlukan ...',['Kunci dengan ukuran yang sesuai','Kunci terkecil','Tang saja','Palu','Obeng besar'],0,'Ukuran harus sesuai.');
+P(38,'Cek alat','Sebelum digunakan, alat harus diperiksa ...',['Kondisinya dan tidak rusak','Harganya','Warnanya','Merek saja','Umur alat'],0,'Pemeriksaan kondisi mencegah kecelakaan.');
+P(39,'Penggunaan kunci torsi','Kunci torsi tidak boleh digunakan untuk ...',['Mengencangkan baut sesuai torsi','Mengendurkan baut','Mengukur torsi','Memastikan kekencangan','Mengukur panjang baut'],1,'Kunci torsi tidak untuk mengendurkan baut.');
+P(40,'Kesimpulan','Pemeriksaan alat tangan sebaiknya ditutup dengan ...',['Mengembalikan semua alat dan mencatat temuan','Meninggalkan alat di unit','Membuang alat rusak','Tidak mencatat apa pun','Dibiarkan di meja'],0,'Penutupan kerja mencakup pengembalian alat dan pencatatan.');
 
 K(41,'Jenis kunci','Pilih jenis kunci yang memegang baut dengan baik.',['Kunci ring','Kunci soket','Kunci pas','Tang'],[0,1,2],'Tang kurang cocok untuk memegang baut.');
 K(42,'Kunci torsi','Pilih langkah yang benar saat memakai kunci torsi.',['Mengatur nilai torsi sesuai manual','Menarik perlahan','Berhenti saat berbunyi klik','Mengembalikan ke nilai terendah setelah dipakai'],[0,1,2,3],'Semua langkah itu benar.');
