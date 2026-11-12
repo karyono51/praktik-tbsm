@@ -16,6 +16,7 @@ function bkBack(){
  if(V.mode==='exam'){var bk=document.querySelector('[data-act="back"]');if(leaveExam(bk||null))render();return}
  if(V.mode!=='list'){V.mode='list';render();window.scrollTo(0,0);return}
  if(S.tab==='lkpd'){
+  if(typeof LKA!=='undefined'&&LKA.id){LKA.id=null;render();window.scrollTo(0,0);return}
   if(LK.detail){var lb=document.querySelector('[data-act="lk-back"]');if(lb)lb.click();else{LK.detail=null;render()}return}
   if(LK.editor){
    if(!uiOk('bkeditor','Tutup editor?\nPerubahan yang belum disimpan akan hilang.',function(){bkBack()},{ok:'Tutup',danger:true}))return;
