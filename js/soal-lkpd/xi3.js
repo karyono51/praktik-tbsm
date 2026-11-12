@@ -2,50 +2,50 @@
 (function(){
 var U='XI-3',M='LKPD XI-3 Pembongkaran dan Pemasangan Komponen CVT',L=[];
 function id(n){return 'lkxi3-'+(n<10?'0':'')+n}
-function P(n,topik,q,o,k,b){var r=n%4,o2=o.map(function(x,i){return o[(i+r)%4]}),k2=(k-r+4)%4;L.push({id:id(n),tipe:'pg',mapel:M,topik:topik,unit:U,q:q,opts:o2,kunci:k2,bahas:b,tujuan:'keduanya',kelas:'XI'})}
+function P(n,topik,q,o,k,b){var L5=o.length,t=(n-1)%L5,r=(k-t+L5)%L5,o2=o.map(function(x,i){return o[(i+r)%L5]}),k2=t;L.push({id:id(n),tipe:'pg',mapel:M,topik:topik,unit:U,q:q,opts:o2,kunci:k2,bahas:b,tujuan:'keduanya',kelas:'XI'})}
 function K(n,topik,q,o,k,b){L.push({id:id(n),tipe:'kompleks',mapel:M,topik:topik,unit:U,q:q,opts:o,kunci:k,bahas:b,tujuan:'keduanya',kelas:'XI'})}
 function C(n,topik,q,rows,b){L.push({id:id(n),tipe:'kategori',mapel:M,topik:topik,unit:U,q:q,rows:rows,lab:['Benar','Salah'],bahas:b,tujuan:'keduanya',kelas:'XI'})}
 
-P(1,'Rasio CVT','CVT mengubah rasio secara ...',['Kontinu','Bertingkat','Manual','Tidak berubah'],0,'CVT tidak memakai gigi bertingkat.');
-P(2,'Roller','Gaya yang menggeser roller adalah gaya ...',['Sentrifugal','Magnet','Gravitasi','Listrik statis'],0,'Putaran puli menimbulkan gaya sentrifugal.');
-P(3,'Komponen CVT','Komponen utama CVT antara lain ...',['Puli depan, puli belakang, dan V-belt','Roda, rem, dan kemudi','Kopling kering dan gearbox','Jok dan spion'],0,'Ketiganya termasuk komponen CVT.');
-P(4,'Roller','Roller bergeser karena ...',['Putaran puli','Panas ban','Berat jok','Cahaya lampu'],0,'Putaran memicu gaya pergeseran.');
-P(5,'Belt aus','Belt yang aus menyebabkan ...',['Akselerasi kurang halus dan selip','Mesin lebih senyap','Oli bertambah','Tidak ada efek'],0,'Belt aus mengurangi cengkeraman.');
-P(6,'Kampas kopling','Kampas kopling berfungsi untuk ...',['Menghubungkan tenaga dari puli ke roda belakang','Mengatur rem','Menyaring udara','Menyetel idle'],0,'Kampas menghubungkan tenaga.');
-P(7,'Pegas','Pegas CVT yang melemah dapat ...',['Memengaruhi perpindahan rasio','Menambah tenaga','Mengurangi getaran','Tidak berpengaruh'],0,'Pegas mengatur gaya penahan.');
-P(8,'Sebelum membongkar','Sebelum membongkar CVT, mesin harus ...',['Mati dan kunci kontak dilepas','Hidup pelan','Dalam keadaan panas','Dicuci air'],0,'Keselamatan dulu.');
-P(9,'Mur penahan puli','Mur penahan puli dilepas dengan ...',['Kunci khusus penahan puli','Palu','Tang','Obeng'],0,'Kunci khusus menahan puli.');
-P(10,'Pelumasan','Gemuk atau oli tidak boleh diberikan pada ...',['Belt dan permukaan puli','Bantalan poros','Engsel cover','Baut cover'],0,'Belt dan puli harus kering dari pelumas.');
-P(11,'Urutan','Komponen yang dilepas harus disusun berurutan agar ...',['Tidak tertukar saat pemasangan','Lebih berat','Lebih cepat','Tidak penting'],0,'Urutan memudahkan pemasangan.');
-P(12,'Roller aus','Roller yang aus menyebabkan ...',['Akselerasi lambat dan perpindahan rasio tidak tepat','Rem lebih kuat','Oli lebih cepat habis','Tidak berpengaruh'],0,'Keausan roller memengaruhi rasio.');
-P(13,'Pengukuran belt','Pengukuran lebar belt dilakukan dengan ...',['Jangka sorong dan pemeriksaan fisik','Tachometer','Multimeter','Termometer'],0,'Jangka sorong mengukur lebar.');
-P(14,'Torsi mur','Torsi mur CVT harus ...',['Sesuai spesifikasi','Sekuat tenaga','Tanpa kunci','Dipukul'],0,'Torsi sesuai spesifikasi.');
-P(15,'Belt retak','Belt yang retak dapat menyebabkan ...',['Selip dan kehilangan tenaga','Mesin lebih halus','Rem makin kuat','Tidak berpengaruh'],0,'Belt retak kehilangan daya cengkeram.');
-P(16,'Cover CVT','Cover CVT dibuka dengan melepas ...',['Komponen penghalang dan baut cover','Rangka motor','Setang','Spion'],0,'Cover dilepas setelah penghalang.');
-P(17,'Gejala tersendat','Motor yang tersendat saat jalan dapat disebabkan ...',['Roller, belt, atau kampas bermasalah','Ban penuh','Lampu redup','Klakson rusak'],0,'Komponen CVT memengaruhi jalan.');
-P(18,'Kampas tipis','Kampas kopling yang tipis ...',['Mengurangi daya hubung dan dapat selip','Menambah tenaga','Mengurangi getaran','Tidak berpengaruh'],0,'Kampas tipis mudah selip.');
-P(19,'Puli','Puli depan dan belakang diperiksa ...',['Permukaan dan geraknya','Warna cat','Berat','Panjang kabel'],0,'Permukaan dan gerak puli diperiksa.');
-P(20,'Bunyi kasar','Bunyi kasar dari CVT dapat disebabkan oleh ...',['Bantalan atau komponen yang aus','Oli penuh','Ban kempes','Setang lurus'],0,'Komponen aus menimbulkan bunyi.');
-P(21,'Kampas','Ketebalan kampas dibandingkan dengan ...',['Batas servis manual','Perkiraan','Warna kampas','Merek oli'],0,'Acuan adalah batas servis.');
-P(22,'Uji fungsi','Uji fungsi CVT dilakukan dengan ...',['Menghidupkan dan mengamati perpindahan','Membiarkan mati','Memukul','Mengecat'],0,'Uji fungsi memastikan kerja.');
-P(23,'Rasio','Rasio CVT berubah karena ...',['Gaya sentrifugal menggeser roller','Tekanan ban','Panas knalpot','Warna belt'],0,'Gaya sentrifugal penyebabnya.');
-P(24,'Belt','Belt yang lebar dan tipis harus ...',['Diukur sesuai batas servis','Dipakai bebas','Dipoles','Dicat'],0,'Ukuran belt dicek terhadap batas.');
-P(25,'Pembongkaran','Pembongkaran harus memperhatikan ...',['Urutan dan posisi komponen','Warna cover','Merek alat','Jumlah teman'],0,'Urutan dan posisi penting.');
-P(26,'Torsi pemasangan','Setelah pemasangan, mur dikencangkan dengan ...',['Torsi spesifikasi','Palu','Sekuat tenaga','Tanpa kunci'],0,'Torsi spesifikasi wajib.');
-P(27,'Pegas','Pegas diperiksa dengan cara ...',['Mengukur panjang dan kelenturan','Melihat warnanya','Menimbang saja','Mendengar suaranya'],0,'Panjang dan kelenturan diperiksa.');
-P(28,'Roller bentuk','Roller yang bentuknya tidak rata menandakan ...',['Keausan dan perlu diganti sesuai batas','Oli baru','Belt baru','Tidak ada masalah'],0,'Bentuk tidak rata berarti aus.');
-P(29,'Langkah awal','Langkah pertama pekerjaan CVT adalah ...',['Membaca manual dan mencatat kondisi awal','Membuka cover','Melepas puli','Menguji'],0,'Persiapan dan catatan dulu.');
-P(30,'Pemasangan','Pemasangan kembali dilakukan ...',['Sesuai urutan dan torsi','Asal pasang','Tanpa urutan','Dengan palu'],0,'Urutan dan torsi sesuai manual.');
-P(31,'Kampas kopling','Kampas kopling diukur ketebalan dan ...',['Kebersihannya','Warnanya','Mereknya','Beratnya'],0,'Ketebalan dan kebersihan dicek.');
-P(32,'CVT','CVT dikenal juga sebagai transmisi ...',['Otomatis dengan rasio kontinu','Manual lima percepatan','Hidrolik kaku','Bertingkat tetap'],0,'CVT adalah transmisi otomatis kontinu.');
-P(33,'Puli kotor','Permukaan puli yang kotor oleh gemuk ...',['Mengurangi cengkeraman belt','Menambah cengkeraman','Tidak berpengaruh','Membuat motor cepat'],0,'Gemuk mengurangi cengkeraman.');
-P(34,'Akselerasi lambat','Akselerasi motor matic terasa lambat, penyebab yang mungkin adalah ...',['Roller atau kampas aus','Ban terlalu keras','Rem depan','Kaca spion'],0,'Roller dan kampas memengaruhi akselerasi.');
-P(35,'Torsi mur','Bagian yang dikencangkan dengan torsi tertentu adalah ...',['Mur penahan puli','Spion','Stiker','Lampu'],0,'Mur penahan puli wajib torsi.');
-P(36,'Area kerja','Pekerjaan pada CVT sebaiknya dilakukan di ...',['Area bersih dan terang','Tempat licin oleh oli','Tanah becek','Ruang tertutup tanpa ventilasi'],0,'Area bersih mendukung keselamatan.');
-P(37,'Pegas melemah','Pegas yang melemah menyebabkan ...',['Perpindahan rasio tidak optimal','Mesin mati','Oli bocor','Rem macet'],0,'Pegas memengaruhi rasio.');
-P(38,'Pemeriksaan kampas','Pemeriksaan kampas dapat menemukan ...',['Keausan dan kebersihan','Warna cat','Panjang setang','Bunyi klakson'],0,'Keausan dan kebersihan diperiksa.');
-P(39,'Hasil ukur','Hasil ukur keausan dibandingkan dengan ...',['Batas servis','Ingatan','Harga','Merek'],0,'Batas servis sebagai acuan.');
-P(40,'Kesimpulan','Kesimpulan pekerjaan CVT didasarkan pada ...',['Data pengukuran dan manual','Perkiraan saja','Tidak dicatat','Warna komponen'],0,'Kesimpulan harus berdasarkan data.');
+P(1,'Rasio CVT','CVT mengubah rasio secara ...',['Kontinu','Bertingkat','Manual','Tidak berubah','Berantai'],0,'CVT tidak memakai gigi bertingkat.');
+P(2,'Roller','Gaya yang menggeser roller adalah gaya ...',['Sentrifugal','Magnet','Gravitasi','Listrik statis','Pegas tekan'],0,'Putaran puli menimbulkan gaya sentrifugal.');
+P(3,'Komponen CVT','Komponen utama CVT antara lain ...',['Puli depan, puli belakang, dan V-belt','Roda, rem, dan kemudi','Kopling kering dan gearbox','Jok dan spion','Rem cakram depan'],0,'Ketiganya termasuk komponen CVT.');
+P(4,'Roller','Roller bergeser karena ...',['Putaran puli','Panas ban','Berat jok','Cahaya lampu','Getaran rangka'],0,'Putaran memicu gaya pergeseran.');
+P(5,'Belt aus','Belt yang aus menyebabkan ...',['Akselerasi kurang halus dan selip','Mesin lebih senyap','Oli bertambah','Tidak ada efek','Ban pecah'],0,'Belt aus mengurangi cengkeraman.');
+P(6,'Kampas kopling','Kampas kopling berfungsi untuk ...',['Menghubungkan tenaga dari puli ke roda belakang','Mengatur rem','Menyaring udara','Menyetel idle','Mengatur rem depan'],0,'Kampas menghubungkan tenaga.');
+P(7,'Pegas','Pegas CVT yang melemah dapat ...',['Memengaruhi perpindahan rasio','Menambah tenaga','Mengurangi getaran','Tidak berpengaruh','Menambah suara'],0,'Pegas mengatur gaya penahan.');
+P(8,'Sebelum membongkar','Sebelum membongkar CVT, mesin harus ...',['Mati dan kunci kontak dilepas','Hidup pelan','Dalam keadaan panas','Dicuci air','Diberi kunci ganda'],0,'Keselamatan dulu.');
+P(9,'Mur penahan puli','Mur penahan puli dilepas dengan ...',['Kunci khusus penahan puli','Palu','Tang','Obeng','Kunci ring 17'],0,'Kunci khusus menahan puli.');
+P(10,'Pelumasan','Gemuk atau oli tidak boleh diberikan pada ...',['Belt dan permukaan puli','Bantalan poros','Engsel cover','Baut cover','Permukaan puli luar'],0,'Belt dan puli harus kering dari pelumas.');
+P(11,'Urutan','Komponen yang dilepas harus disusun berurutan agar ...',['Tidak tertukar saat pemasangan','Lebih berat','Lebih cepat','Tidak penting','Agar ringan'],0,'Urutan memudahkan pemasangan.');
+P(12,'Roller aus','Roller yang aus menyebabkan ...',['Akselerasi lambat dan perpindahan rasio tidak tepat','Rem lebih kuat','Oli lebih cepat habis','Tidak berpengaruh','Ban lebih awet'],0,'Keausan roller memengaruhi rasio.');
+P(13,'Pengukuran belt','Pengukuran lebar belt dilakukan dengan ...',['Jangka sorong dan pemeriksaan fisik','Tachometer','Multimeter','Termometer','Feeler gauge'],0,'Jangka sorong mengukur lebar.');
+P(14,'Torsi mur','Torsi mur CVT harus ...',['Sesuai spesifikasi','Sekuat tenaga','Tanpa kunci','Dipukul','Dilas'],0,'Torsi sesuai spesifikasi.');
+P(15,'Belt retak','Belt yang retak dapat menyebabkan ...',['Selip dan kehilangan tenaga','Mesin lebih halus','Rem makin kuat','Tidak berpengaruh','Oli habis'],0,'Belt retak kehilangan daya cengkeram.');
+P(16,'Cover CVT','Cover CVT dibuka dengan melepas ...',['Komponen penghalang dan baut cover','Rangka motor','Setang','Spion','Stiker'],0,'Cover dilepas setelah penghalang.');
+P(17,'Gejala tersendat','Motor yang tersendat saat jalan dapat disebabkan ...',['Roller, belt, atau kampas bermasalah','Ban penuh','Lampu redup','Klakson rusak','Kaca spion'],0,'Komponen CVT memengaruhi jalan.');
+P(18,'Kampas tipis','Kampas kopling yang tipis ...',['Mengurangi daya hubung dan dapat selip','Menambah tenaga','Mengurangi getaran','Tidak berpengaruh','Mempercepat motor'],0,'Kampas tipis mudah selip.');
+P(19,'Puli','Puli depan dan belakang diperiksa ...',['Permukaan dan geraknya','Warna cat','Berat','Panjang kabel','Warna rumah puli'],0,'Permukaan dan gerak puli diperiksa.');
+P(20,'Bunyi kasar','Bunyi kasar dari CVT dapat disebabkan oleh ...',['Bantalan atau komponen yang aus','Oli penuh','Ban kempes','Setang lurus','Lampu redup'],0,'Komponen aus menimbulkan bunyi.');
+P(21,'Kampas','Ketebalan kampas dibandingkan dengan ...',['Batas servis manual','Perkiraan','Warna kampas','Merek oli','Berat kampas'],0,'Acuan adalah batas servis.');
+P(22,'Uji fungsi','Uji fungsi CVT dilakukan dengan ...',['Menghidupkan dan mengamati perpindahan','Membiarkan mati','Memukul','Mengecat','Mengukur oli'],0,'Uji fungsi memastikan kerja.');
+P(23,'Rasio','Rasio CVT berubah karena ...',['Gaya sentrifugal menggeser roller','Tekanan ban','Panas knalpot','Warna belt','Suara klakson'],0,'Gaya sentrifugal penyebabnya.');
+P(24,'Belt','Belt yang lebar dan tipis harus ...',['Diukur sesuai batas servis','Dipakai bebas','Dipoles','Dicat','Dibuang'],0,'Ukuran belt dicek terhadap batas.');
+P(25,'Pembongkaran','Pembongkaran harus memperhatikan ...',['Urutan dan posisi komponen','Warna cover','Merek alat','Jumlah teman','Ukuran baut'],0,'Urutan dan posisi penting.');
+P(26,'Torsi pemasangan','Setelah pemasangan, mur dikencangkan dengan ...',['Torsi spesifikasi','Palu','Sekuat tenaga','Tanpa kunci','Dipukul pelan'],0,'Torsi spesifikasi wajib.');
+P(27,'Pegas','Pegas diperiksa dengan cara ...',['Mengukur panjang dan kelenturan','Melihat warnanya','Menimbang saja','Mendengar suaranya','Merek pegas'],0,'Panjang dan kelenturan diperiksa.');
+P(28,'Roller bentuk','Roller yang bentuknya tidak rata menandakan ...',['Keausan dan perlu diganti sesuai batas','Oli baru','Belt baru','Tidak ada masalah','Roda sejajar'],0,'Bentuk tidak rata berarti aus.');
+P(29,'Langkah awal','Langkah pertama pekerjaan CVT adalah ...',['Membaca manual dan mencatat kondisi awal','Membuka cover','Melepas puli','Menguji','Memukul puli'],0,'Persiapan dan catatan dulu.');
+P(30,'Pemasangan','Pemasangan kembali dilakukan ...',['Sesuai urutan dan torsi','Asal pasang','Tanpa urutan','Dengan palu','Dengan lem'],0,'Urutan dan torsi sesuai manual.');
+P(31,'Kampas kopling','Kampas kopling diukur ketebalan dan ...',['Kebersihannya','Warnanya','Mereknya','Beratnya','Panjangnya'],0,'Ketebalan dan kebersihan dicek.');
+P(32,'CVT','CVT dikenal juga sebagai transmisi ...',['Otomatis dengan rasio kontinu','Manual lima percepatan','Hidrolik kaku','Bertingkat tetap','Rantai roda'],0,'CVT adalah transmisi otomatis kontinu.');
+P(33,'Puli kotor','Permukaan puli yang kotor oleh gemuk ...',['Mengurangi cengkeraman belt','Menambah cengkeraman','Tidak berpengaruh','Membuat motor cepat','Membuat motor berat'],0,'Gemuk mengurangi cengkeraman.');
+P(34,'Akselerasi lambat','Akselerasi motor matic terasa lambat, penyebab yang mungkin adalah ...',['Roller atau kampas aus','Ban terlalu keras','Rem depan','Kaca spion','Oli mesin baru'],0,'Roller dan kampas memengaruhi akselerasi.');
+P(35,'Torsi mur','Bagian yang dikencangkan dengan torsi tertentu adalah ...',['Mur penahan puli','Spion','Stiker','Lampu','Ban'],0,'Mur penahan puli wajib torsi.');
+P(36,'Area kerja','Pekerjaan pada CVT sebaiknya dilakukan di ...',['Area bersih dan terang','Tempat licin oleh oli','Tanah becek','Ruang tertutup tanpa ventilasi','Tempat berdebu'],0,'Area bersih mendukung keselamatan.');
+P(37,'Pegas melemah','Pegas yang melemah menyebabkan ...',['Perpindahan rasio tidak optimal','Mesin mati','Oli bocor','Rem macet','Ban pecah'],0,'Pegas memengaruhi rasio.');
+P(38,'Pemeriksaan kampas','Pemeriksaan kampas dapat menemukan ...',['Keausan dan kebersihan','Warna cat','Panjang setang','Bunyi klakson','Berat motor'],0,'Keausan dan kebersihan diperiksa.');
+P(39,'Hasil ukur','Hasil ukur keausan dibandingkan dengan ...',['Batas servis','Ingatan','Harga','Merek','Iklan'],0,'Batas servis sebagai acuan.');
+P(40,'Kesimpulan','Kesimpulan pekerjaan CVT didasarkan pada ...',['Data pengukuran dan manual','Perkiraan saja','Tidak dicatat','Warna komponen','Kebiasaan'],0,'Kesimpulan harus berdasarkan data.');
 
 K(41,'Komponen CVT','Pilih komponen CVT.',['Puli depan','Puli belakang','V-belt','Kopling kering manual'],[0,1,2],'Kopling kering manual bukan CVT.');
 K(42,'Gejala CVT','Pilih gejala yang perlu pemeriksaan CVT.',['Akselerasi lambat','Motor tersendat','Belt retak','Lampu berkedip'],[0,1,2],'Lampu berkedip tidak berkaitan.');

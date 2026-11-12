@@ -2,50 +2,50 @@
 (function(){
 var U='XI-6',M='LKPD XI-6 Pemeliharaan Sistem Bahan Bakar Bensin',L=[];
 function id(n){return 'lkxi6-'+(n<10?'0':'')+n}
-function P(n,topik,q,o,k,b){var r=n%4,o2=o.map(function(x,i){return o[(i+r)%4]}),k2=(k-r+4)%4;L.push({id:id(n),tipe:'pg',mapel:M,topik:topik,unit:U,q:q,opts:o2,kunci:k2,bahas:b,tujuan:'keduanya',kelas:'XI'})}
+function P(n,topik,q,o,k,b){var L5=o.length,t=(n-1)%L5,r=(k-t+L5)%L5,o2=o.map(function(x,i){return o[(i+r)%L5]}),k2=t;L.push({id:id(n),tipe:'pg',mapel:M,topik:topik,unit:U,q:q,opts:o2,kunci:k2,bahas:b,tujuan:'keduanya',kelas:'XI'})}
 function K(n,topik,q,o,k,b){L.push({id:id(n),tipe:'kompleks',mapel:M,topik:topik,unit:U,q:q,opts:o,kunci:k,bahas:b,tujuan:'keduanya',kelas:'XI'})}
 function C(n,topik,q,rows,b){L.push({id:id(n),tipe:'kategori',mapel:M,topik:topik,unit:U,q:q,rows:rows,lab:['Benar','Salah'],bahas:b,tujuan:'keduanya',kelas:'XI'})}
 
-P(1,'Sistem bahan bakar','Sistem bahan bakar berfungsi untuk ...',['Menyalurkan bensin dari tangki ke karburator atau injektor','Mendinginkan mesin','Mengatur rem','Menyetel katup'],0,'Sistem menyalurkan bensin dengan jumlah tepat.');
-P(2,'Saringan bahan bakar','Saringan bahan bakar berfungsi untuk ...',['Menahan kotoran agar tidak masuk ke karburator atau injektor','Menambah tekanan','Mendinginkan bensin','Mengisi tangki'],0,'Saringan menahan kotoran.');
-P(3,'Bensin mudah terbakar','Bensin harus dijauhkan dari ...',['Api dan percikan','Oli mesin','Air bersih','Kain lap'],0,'Bensin mudah terbakar.');
-P(4,'Ventilasi','Pekerjaan dengan bensin sebaiknya dilakukan di ...',['Tempat berventilasi','Ruang tertutup','Dekat api','Tempat tanpa ventilasi'],0,'Ventilasi membuang uap bensin.');
-P(5,'Tumpahan bensin','Tumpahan bensin harus dilap segera dan kain bekasnya ...',['Disimpan dengan aman','Dibiarkan kering','Dibakar','Disiram air keras'],0,'Kain bekas harus disimpan aman.');
-P(6,'Tekanan injeksi','Pada sistem injeksi, tekanan bahan bakar dilepas sebelum ...',['Membuka selang','Mengisi tangki','Mengecat','Mencuci bodi'],0,'Tekanan bensin dilepas lebih dulu.');
-P(7,'Filter udara','Filter udara dan throttle body berfungsi untuk ...',['Menjaga udara bersih dan jalur udara lancar','Mengisi bensin','Mengatur rem','Mendinginkan oli'],0,'Udara bersih mendukung pembakaran.');
-P(8,'Kran bocor','Kran bahan bakar yang bocor dapat ...',['Menyebabkan kebocoran bensin','Menambah tenaga','Tidak berpengaruh','Menghemat bensin'],0,'Kebocoran bensin berbahaya.');
-P(9,'Pompa bahan bakar','Pemeriksaan pompa bahan bakar meliputi ...',['Kerja dan aliran bensin','Warna pompa','Berat pompa','Panjang pompa'],0,'Kerja dan aliran diperiksa.');
-P(10,'Idle naik-turun','Idle yang naik-turun dapat disebabkan ...',['Campuran atau saluran udara bermasalah','Ban penuh','Lampu terang','Rem belakang'],0,'Campuran dan udara memengaruhi idle.');
-P(11,'Bau bensin','Bau bensin yang menyengat dapat menunjukkan ...',['Kebocoran bensin','Mesin baru','Oli baru','Ban baru'],0,'Bau menyengat berarti bocor.');
-P(12,'Konsumsi boros','Konsumsi bensin yang boros dapat disebabkan oleh ...',['Campuran tidak tepat atau kebocoran','Mesin dingin sebentar','Oli penuh','Tidak ada penyebab'],0,'Campuran tidak tepat membuat boros.');
-P(13,'Saringan kotor','Saringan bahan bakar dibersihkan atau diganti ketika ...',['Kotor atau sesuai kondisi','Mesin hidup','Panas','Tidak perlu'],0,'Mengikuti kondisi saringan.');
-P(14,'Tersendat saat digas','Mesin tersendat saat digas dapat disebabkan oleh ...',['Aliran bensin atau udara tidak lancar','Oli terlalu sedikit selalu','Rem depan','Lampu sein'],0,'Aliran bensin dan udara menentukan.');
-P(15,'Sulit hidup','Mesin sulit hidup dapat disebabkan oleh ...',['Aliran bensin atau busi bermasalah','Ban kempes','Setang bengkok','Spion longgar'],0,'Bensin dan busi memengaruhi penyalaan.');
-P(16,'Penyetelan idle','Campuran dan idle disetel sesuai ...',['Spesifikasi manual','Selera pemilik','Diabaikan','Dengan memukul'],0,'Spesifikasi manual sebagai acuan.');
-P(17,'Tangki bensin','Tangki bensin diperiksa kebocoran dan ...',['Keretakannya','Warna tangki','Merek tangki','Harga tangki'],0,'Retak dan bocor diperiksa.');
-P(18,'Selang retak','Selang bahan bakar yang retak ...',['Harus diganti','Dilakban saja','Dibiarkan','Dicuci'],0,'Selang retak wajib diganti.');
-P(19,'Saringan mampet','Saringan bahan bakar yang mampet ...',['Menghambat aliran bensin','Menambah tenaga','Mengurangi getaran','Tidak berpengaruh'],0,'Aliran terhambat.');
-P(20,'Pompa lemah','Pompa bahan bakar yang lemah menyebabkan ...',['Aliran bensin kurang','Tenaga bertambah','Konsumsi bensin turun','Tidak berpengaruh'],0,'Aliran kurang membuat mesin lemah.');
-P(21,'Pemeriksaan kebocoran','Kebocoran bensin diperiksa dengan ...',['Pemeriksaan visual sesuai prosedur aman','Membakar sambungan','Menyalakan mesin di ruang tertutup','Tanpa melihat'],0,'Pemeriksaan visual yang aman.');
-P(22,'Idle','Penyetelan idle mengikuti ...',['Spesifikasi manual','Selera pemilik','Suara knalpot','Warna kabel'],0,'Acuan manual.');
-P(23,'Jalur bensin','Jalur bensin harus ...',['Bebas kebocoran','Memiliki celah','Berlubang','Dipanaskan'],0,'Jalur bensin harus rapat.');
-P(24,'Pembersihan karburator','Karburator dibersihkan dengan ...',['Pembersih yang sesuai','Api terbuka','Air keras','Tanpa alat'],0,'Pembersih khusus dipakai.');
-P(25,'Uji setelah perawatan','Setelah perawatan, mesin dihidupkan untuk ...',['Memeriksa kebocoran dan idle','Dibiarkan mati','Dipanaskan dengan api','Dipukul'],0,'Uji fungsi.');
-P(26,'Wadah bensin','Bensin disimpan dalam wadah yang ...',['Tertutup dan berlabel','Terbuka','Berada dekat api','Diletakkan di lantai'],0,'Wadah tertutup dan berlabel.');
-P(27,'Tekanan injeksi','Tekanan injeksi dilepas ...',['Sebelum membuka sambungan','Setelah membuka sambungan','Tidak perlu','Saat mesin hidup'],0,'Lepas tekanan sebelum membuka.');
-P(28,'Filter udara kotor','Filter udara yang kotor berdampak pada ...',['Campuran dan tenaga','Ban dan rem','Lampu dan sein','Setang dan spion'],0,'Filter kotor memengaruhi campuran.');
-P(29,'Langkah awal','Langkah awal pemeliharaan adalah ...',['Membaca manual dan menyiapkan alat dan wadah','Membuka tangki','Melepas selang','Menyalakan mesin'],0,'Persiapan dulu.');
-P(30,'Uji fungsi','Uji fungsi dilakukan dengan ...',['Menghidupkan mesin dan memeriksa kebocoran','Mematikan segera','Memukul','Mengecat'],0,'Uji memastikan kerja.');
-P(31,'Konsumsi bahan bakar','Konsumsi bahan bakar dipengaruhi oleh ...',['Campuran dan kebocoran','Warna motor','Merek ban','Tidak berpengaruh'],0,'Campuran dan kebocoran.');
-P(32,'Pemasangan saringan','Saringan bahan bakar dipasang sesuai ...',['Arah aliran bensin','Arah sembarang','Tanpa arah','Di luar tangki'],0,'Arah aliran diperhatikan.');
-P(33,'Bahaya kebocoran','Kebocoran bensin dapat ...',['Menimbulkan bahaya kebakaran','Tidak berbahaya','Menambah tenaga','Membuat mesin dingin'],0,'Bensin mudah terbakar.');
-P(34,'Injeksi dan karburator','Sistem injeksi dan karburator ...',['Sama-sama mengatur campuran bahan bakar dan udara','Tidak ada hubungan','Hanya untuk motor listrik','Tidak perlu dibedakan'],0,'Keduanya mengatur campuran.');
-P(35,'Idle','Idle dipengaruhi oleh ...',['Campuran dan saluran udara','Ban','Lampu','Setang'],0,'Campuran dan udara.');
-P(36,'Selang saat dilepas','Saat melepas selang bahan bakar, mesin sebaiknya ...',['Mati','Hidup','Panas','Berputar'],0,'Mesin mati untuk keselamatan.');
-P(37,'Wadah tumpahan','Tumpahan bensin ditampung dengan ...',['Wadah yang sesuai','Lantai','Tanah','Selokan'],0,'Wadah sesuai mencegah bahaya.');
-P(38,'Kain bekas','Kain bekas bensin disimpan ...',['Di wadah tertutup yang aman','Dibuang sembarangan','Dibakar','Di dekat api'],0,'Penyimpanan aman.');
-P(39,'Keberhasilan','Perawatan dinyatakan berhasil jika ...',['Aliran lancar, idle stabil, dan tidak bocor','Warna cat baru','Berat motor berubah','Harga bensin murah'],0,'Tiga indikator keberhasilan.');
-P(40,'Kesimpulan','Kesimpulan perawatan didasarkan pada ...',['Pemeriksaan dan spesifikasi','Perkiraan','Tidak dicatat','Warna'],0,'Berbasis data.');
+P(1,'Sistem bahan bakar','Sistem bahan bakar berfungsi untuk ...',['Menyalurkan bensin dari tangki ke karburator atau injektor','Mendinginkan mesin','Mengatur rem','Menyetel katup','Menyimpan oli'],0,'Sistem menyalurkan bensin dengan jumlah tepat.');
+P(2,'Saringan bahan bakar','Saringan bahan bakar berfungsi untuk ...',['Menahan kotoran agar tidak masuk ke karburator atau injektor','Menambah tekanan','Mendinginkan bensin','Mengisi tangki','Menambah oli'],0,'Saringan menahan kotoran.');
+P(3,'Bensin mudah terbakar','Bensin harus dijauhkan dari ...',['Api dan percikan','Oli mesin','Air bersih','Kain lap','Kabel listrik'],0,'Bensin mudah terbakar.');
+P(4,'Ventilasi','Pekerjaan dengan bensin sebaiknya dilakukan di ...',['Tempat berventilasi','Ruang tertutup','Dekat api','Tempat tanpa ventilasi','Tanah berumput'],0,'Ventilasi membuang uap bensin.');
+P(5,'Tumpahan bensin','Tumpahan bensin harus dilap segera dan kain bekasnya ...',['Disimpan dengan aman','Dibiarkan kering','Dibakar','Disiram air keras','Dibiarkan menyebar'],0,'Kain bekas harus disimpan aman.');
+P(6,'Tekanan injeksi','Pada sistem injeksi, tekanan bahan bakar dilepas sebelum ...',['Membuka selang','Mengisi tangki','Mengecat','Mencuci bodi','Mengganti oli'],0,'Tekanan bensin dilepas lebih dulu.');
+P(7,'Filter udara','Filter udara dan throttle body berfungsi untuk ...',['Menjaga udara bersih dan jalur udara lancar','Mengisi bensin','Mengatur rem','Mendinginkan oli','Menambah tekanan ban'],0,'Udara bersih mendukung pembakaran.');
+P(8,'Kran bocor','Kran bahan bakar yang bocor dapat ...',['Menyebabkan kebocoran bensin','Menambah tenaga','Tidak berpengaruh','Menghemat bensin','Menambah tekanan'],0,'Kebocoran bensin berbahaya.');
+P(9,'Pompa bahan bakar','Pemeriksaan pompa bahan bakar meliputi ...',['Kerja dan aliran bensin','Warna pompa','Berat pompa','Panjang pompa','Merek pompa'],0,'Kerja dan aliran diperiksa.');
+P(10,'Idle naik-turun','Idle yang naik-turun dapat disebabkan ...',['Campuran atau saluran udara bermasalah','Ban penuh','Lampu terang','Rem belakang','Ban belakang'],0,'Campuran dan udara memengaruhi idle.');
+P(11,'Bau bensin','Bau bensin yang menyengat dapat menunjukkan ...',['Kebocoran bensin','Mesin baru','Oli baru','Ban baru','Sepeda baru'],0,'Bau menyengat berarti bocor.');
+P(12,'Konsumsi boros','Konsumsi bensin yang boros dapat disebabkan oleh ...',['Campuran tidak tepat atau kebocoran','Mesin dingin sebentar','Oli penuh','Tidak ada penyebab','Ban kempes'],0,'Campuran tidak tepat membuat boros.');
+P(13,'Saringan kotor','Saringan bahan bakar dibersihkan atau diganti ketika ...',['Kotor atau sesuai kondisi','Mesin hidup','Panas','Tidak perlu','Setiap hari'],0,'Mengikuti kondisi saringan.');
+P(14,'Tersendat saat digas','Mesin tersendat saat digas dapat disebabkan oleh ...',['Aliran bensin atau udara tidak lancar','Oli terlalu sedikit selalu','Rem depan','Lampu sein','Ban depan'],0,'Aliran bensin dan udara menentukan.');
+P(15,'Sulit hidup','Mesin sulit hidup dapat disebabkan oleh ...',['Aliran bensin atau busi bermasalah','Ban kempes','Setang bengkok','Spion longgar','Lampu rem'],0,'Bensin dan busi memengaruhi penyalaan.');
+P(16,'Penyetelan idle','Campuran dan idle disetel sesuai ...',['Spesifikasi manual','Selera pemilik','Diabaikan','Dengan memukul','Sesuai iklan'],0,'Spesifikasi manual sebagai acuan.');
+P(17,'Tangki bensin','Tangki bensin diperiksa kebocoran dan ...',['Keretakannya','Warna tangki','Merek tangki','Harga tangki','Ukuran tangki'],0,'Retak dan bocor diperiksa.');
+P(18,'Selang retak','Selang bahan bakar yang retak ...',['Harus diganti','Dilakban saja','Dibiarkan','Dicuci','Dibiarkan sementara'],0,'Selang retak wajib diganti.');
+P(19,'Saringan mampet','Saringan bahan bakar yang mampet ...',['Menghambat aliran bensin','Menambah tenaga','Mengurangi getaran','Tidak berpengaruh','Menambah berat'],0,'Aliran terhambat.');
+P(20,'Pompa lemah','Pompa bahan bakar yang lemah menyebabkan ...',['Aliran bensin kurang','Tenaga bertambah','Konsumsi bensin turun','Tidak berpengaruh','Oli bertambah'],0,'Aliran kurang membuat mesin lemah.');
+P(21,'Pemeriksaan kebocoran','Kebocoran bensin diperiksa dengan ...',['Pemeriksaan visual sesuai prosedur aman','Membakar sambungan','Menyalakan mesin di ruang tertutup','Tanpa melihat','Menutup mata'],0,'Pemeriksaan visual yang aman.');
+P(22,'Idle','Penyetelan idle mengikuti ...',['Spesifikasi manual','Selera pemilik','Suara knalpot','Warna kabel','Warna jok'],0,'Acuan manual.');
+P(23,'Jalur bensin','Jalur bensin harus ...',['Bebas kebocoran','Memiliki celah','Berlubang','Dipanaskan','Bercelah kecil'],0,'Jalur bensin harus rapat.');
+P(24,'Pembersihan karburator','Karburator dibersihkan dengan ...',['Pembersih yang sesuai','Api terbuka','Air keras','Tanpa alat','Air mendidih'],0,'Pembersih khusus dipakai.');
+P(25,'Uji setelah perawatan','Setelah perawatan, mesin dihidupkan untuk ...',['Memeriksa kebocoran dan idle','Dibiarkan mati','Dipanaskan dengan api','Dipukul','Dimatikan dari jauh'],0,'Uji fungsi.');
+P(26,'Wadah bensin','Bensin disimpan dalam wadah yang ...',['Tertutup dan berlabel','Terbuka','Berada dekat api','Diletakkan di lantai','Dibiarkan terbuka'],0,'Wadah tertutup dan berlabel.');
+P(27,'Tekanan injeksi','Tekanan injeksi dilepas ...',['Sebelum membuka sambungan','Setelah membuka sambungan','Tidak perlu','Saat mesin hidup','Saat mesin dingin'],0,'Lepas tekanan sebelum membuka.');
+P(28,'Filter udara kotor','Filter udara yang kotor berdampak pada ...',['Campuran dan tenaga','Ban dan rem','Lampu dan sein','Setang dan spion','Kecepatan'],0,'Filter kotor memengaruhi campuran.');
+P(29,'Langkah awal','Langkah awal pemeliharaan adalah ...',['Membaca manual dan menyiapkan alat dan wadah','Membuka tangki','Melepas selang','Menyalakan mesin','Mengisi bensin penuh'],0,'Persiapan dulu.');
+P(30,'Uji fungsi','Uji fungsi dilakukan dengan ...',['Menghidupkan mesin dan memeriksa kebocoran','Mematikan segera','Memukul','Mengecat','Tutup tangki'],0,'Uji memastikan kerja.');
+P(31,'Konsumsi bahan bakar','Konsumsi bahan bakar dipengaruhi oleh ...',['Campuran dan kebocoran','Warna motor','Merek ban','Tidak berpengaruh','Dipengaruhi suhu ban'],0,'Campuran dan kebocoran.');
+P(32,'Pemasangan saringan','Saringan bahan bakar dipasang sesuai ...',['Arah aliran bensin','Arah sembarang','Tanpa arah','Di luar tangki','Dibalik terbalik'],0,'Arah aliran diperhatikan.');
+P(33,'Bahaya kebocoran','Kebocoran bensin dapat ...',['Menimbulkan bahaya kebakaran','Tidak berbahaya','Menambah tenaga','Membuat mesin dingin','Mengurangi uap'],0,'Bensin mudah terbakar.');
+P(34,'Injeksi dan karburator','Sistem injeksi dan karburator ...',['Sama-sama mengatur campuran bahan bakar dan udara','Tidak ada hubungan','Hanya untuk motor listrik','Tidak perlu dibedakan','Menggunakan oli'],0,'Keduanya mengatur campuran.');
+P(35,'Idle','Idle dipengaruhi oleh ...',['Campuran dan saluran udara','Ban','Lampu','Setang','Spion'],0,'Campuran dan udara.');
+P(36,'Selang saat dilepas','Saat melepas selang bahan bakar, mesin sebaiknya ...',['Mati','Hidup','Panas','Berputar','Dalam kondisi lembap'],0,'Mesin mati untuk keselamatan.');
+P(37,'Wadah tumpahan','Tumpahan bensin ditampung dengan ...',['Wadah yang sesuai','Lantai','Tanah','Selokan','Karung plastik'],0,'Wadah sesuai mencegah bahaya.');
+P(38,'Kain bekas','Kain bekas bensin disimpan ...',['Di wadah tertutup yang aman','Dibuang sembarangan','Dibakar','Di dekat api','Dicuci lalu dibuang'],0,'Penyimpanan aman.');
+P(39,'Keberhasilan','Perawatan dinyatakan berhasil jika ...',['Aliran lancar, idle stabil, dan tidak bocor','Warna cat baru','Berat motor berubah','Harga bensin murah','Stiker'],0,'Tiga indikator keberhasilan.');
+P(40,'Kesimpulan','Kesimpulan perawatan didasarkan pada ...',['Pemeriksaan dan spesifikasi','Perkiraan','Tidak dicatat','Warna','Opini'],0,'Berbasis data.');
 
 K(41,'Komponen bahan bakar','Pilih komponen sistem bahan bakar.',['Tangki','Selang','Kran bahan bakar','Busi'],[0,1,2],'Busi bukan komponen bahan bakar.');
 K(42,'Kebocoran','Pilih bagian yang diperiksa untuk kebocoran.',['Tangki','Selang','Kran bahan bakar','Lampu sein'],[0,1,2],'Lampu sein tidak diperiksa.');

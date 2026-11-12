@@ -2,50 +2,50 @@
 (function(){
 var U='XI-2',M='LKPD XI-2 Penggantian Pad Rem Cakram Depan',L=[];
 function id(n){return 'lkxi2-'+(n<10?'0':'')+n}
-function P(n,topik,q,o,k,b){var r=n%4,o2=o.map(function(x,i){return o[(i+r)%4]}),k2=(k-r+4)%4;L.push({id:id(n),tipe:'pg',mapel:M,topik:topik,unit:U,q:q,opts:o2,kunci:k2,bahas:b,tujuan:'keduanya',kelas:'XI'})}
+function P(n,topik,q,o,k,b){var L5=o.length,t=(n-1)%L5,r=(k-t+L5)%L5,o2=o.map(function(x,i){return o[(i+r)%L5]}),k2=t;L.push({id:id(n),tipe:'pg',mapel:M,topik:topik,unit:U,q:q,opts:o2,kunci:k2,bahas:b,tujuan:'keduanya',kelas:'XI'})}
 function K(n,topik,q,o,k,b){L.push({id:id(n),tipe:'kompleks',mapel:M,topik:topik,unit:U,q:q,opts:o,kunci:k,bahas:b,tujuan:'keduanya',kelas:'XI'})}
 function C(n,topik,q,rows,b){L.push({id:id(n),tipe:'kategori',mapel:M,topik:topik,unit:U,q:q,rows:rows,lab:['Benar','Salah'],bahas:b,tujuan:'keduanya',kelas:'XI'})}
 
-P(1,'Prinsip rem cakram','Rem cakram bekerja dengan cara ...',['Minyak rem mendorong piston ke pad yang menjepit piringan','Kabel menarik roda','Pegas menahan roda','Udara menekan roda'],0,'Tekanan minyak rem menggerakkan piston dan pad.');
-P(2,'Pad aus','Pad rem yang sudah tipis harus ...',['Diganti sesuai batas servis','Ditambal lem','Diamplas','Dibiarkan'],0,'Pad di bawah batas servis wajib diganti.');
-P(3,'Minyak rem','Minyak rem bersifat ...',['Higroskopis dan dapat merusak cat','Tahan air sepenuhnya','Padat seperti gemuk','Menyerap panas'],0,'Minyak rem menyerap air dari udara.');
-P(4,'Minyak rem pad','Minyak rem yang mengenai pad menyebabkan ...',['Daya rem turun dan pad harus diganti','Rem makin kuat','Tidak ada efek','Ban lebih awet'],0,'Pad terkontaminasi kehilangan daya gesek.');
-P(5,'Pemasangan pad','Sebelum memasang pad baru, piston kaliper ...',['Didorong kembali dengan pelan','Dibiarkan menonjol','Dipukul','Dilumasi dengan oli mesin'],0,'Piston didorong agar pad baru muat.');
-P(6,'K3 kaliper','Tuas rem tidak boleh ditekan saat kaliper dilepas karena ...',['Piston dapat keluar dari silinder','Lampu rem menyala','Ban bocor','Rantai putus'],0,'Piston bisa terlepas.');
-P(7,'Debu rem','Debu pad rem sebaiknya dibersihkan dengan ...',['Pembersih rem','Udara bertekanan','Air keras','Bensin'],0,'Pembersih rem lebih aman daripada udara.');
-P(8,'Piringan','Piringan rem yang bergelombang menyebabkan ...',['Getaran dan rem tidak merata','Rem lebih ringan','Ban lebih awet','Tidak ada efek'],0,'Permukaan tidak rata menimbulkan getaran.');
-P(9,'Gejala rem','Rem berdecit dapat disebabkan oleh ...',['Pad aus atau kotor','Ban penuh angin','Setang lurus','Lampu terang'],0,'Pad aus atau kotor menimbulkan bunyi.');
-P(10,'Gejala rem','Tuas rem terasa lembek dapat disebabkan oleh ...',['Udara dalam sistem atau minyak rem kurang','Pad terlalu tebal','Rantai kencang','Lampu redup'],0,'Udara dan minyak kurang melemahkan tekanan.');
-P(11,'Gejala rem','Rem seret terjadi ketika ...',['Piston tidak kembali dengan baik','Pad baru dipasang tepat','Minyak rem penuh','Roda bebas berputar'],0,'Piston macet membuat pad tetap menempel.');
-P(12,'Level minyak rem','Level minyak rem diperiksa agar ...',['Berada di antara batas atas dan bawah','Penuh sampai tutup','Kosong total','Dicampur air'],0,'Level harus di rentang batas.');
-P(13,'Kebocoran','Minyak rem yang berkurang drastis menunjukkan kemungkinan ...',['Kebocoran pada sistem','Pad terlalu tipis saja','Piringan baru','Tidak ada masalah'],0,'Penurunan drastis berarti kebocoran.');
-P(14,'Uji rem','Uji rem sebelum motor dijalankan bertujuan untuk ...',['Memastikan rem bekerja normal','Menambah kecepatan','Menghemat bahan bakar','Mengecat rangka'],0,'Uji rem demi keselamatan.');
-P(15,'Pelepasan kaliper','Kaliper dilepas dengan cara ...',['Melepas baut kaliper dan menopang tanpa meregangkan selang','Memotong selang','Memukul kaliper','Mengangkat dengan selang'],0,'Selang tidak boleh diregangkan.');
-P(16,'Selang rem','Selang rem yang retak harus ...',['Diganti','Dilakban','Dicuci','Dibiarkan'],0,'Selang retak dapat bocor.');
-P(17,'Minyak rem','Minyak rem tidak boleh terkena ...',['Pad dan piringan rem','Setang','Jok','Spion'],0,'Minyak mengurangi daya gesek.');
-P(18,'Piston','Pemeriksaan piston dan karet debu bertujuan untuk melihat ...',['Kebocoran dan gerak piston','Warna jok','Ukuran rantai','Bunyi klakson'],0,'Piston dan karet debu menentukan kerja kaliper.');
-P(19,'Uji fungsi','Setelah penggantian pad, rem diuji dengan ...',['Tuas ditekan dan roda diputar','Dibiarkan begitu saja','Diabaikan','Dilumasi gemuk'],0,'Uji fungsi memastikan rem bekerja.');
-P(20,'Piringan','Piringan rem diperiksa keausan dan ...',['Alurnya','Warna bodi','Kilau cat','Berat ban'],0,'Alur dan keausan dicek.');
-P(21,'Tuas keras','Tuas rem yang terasa keras dan tidak seret menandakan ...',['Sistem rem berfungsi normal','Pad sudah lepas','Minyak bocor','Tidak ada informasi'],0,'Tuas keras menandakan tekanan yang baik.');
-P(22,'Pembersihan','Komponen rem tidak boleh dibersihkan dengan ...',['Oli atau gemuk','Pembersih rem khusus','Kain lap bersih','Sikat kering'],0,'Oli atau gemuk merusak daya gesek.');
-P(23,'Pad terkontaminasi','Pad yang terkena oli harus ...',['Diganti karena daya rem turun','Dibiarkan kering sendiri','Dilumasi lagi','Ditambah gemuk'],0,'Pad yang terkontaminasi tidak boleh dipakai.');
-P(24,'Bunyi rem','Bunyi tok pada rem depan dapat berasal dari ...',['Bearing atau fork yang longgar','Lampu depan','Spion','Klakson'],0,'Komponen depan yang longgar menimbulkan bunyi.');
-P(25,'Penggantian pad','Penggantian pad sebaiknya dilakukan berdasarkan ...',['Ketebalan pad dan manual','Jadwal bulanan tanpa cek','Sembarang waktu','Tidak perlu dicatat'],0,'Keputusan berdasarkan pengukuran.');
-P(26,'Higroskopis','Minyak rem yang higroskopis berarti ...',['Menyerap air dari udara','Menolak air','Menghasilkan panas sendiri','Tidak berpengaruh'],0,'Penyerapan air menurunkan titik didih.');
-P(27,'Selang rem','Pemeriksaan selang rem mencakup ...',['Retak, bocor, dan kondisinya','Warna selang','Panjang selang saja','Bunyi selang'],0,'Kondisi selang yang diperiksa.');
-P(28,'Gemuk','Gemuk pada piringan rem menyebabkan ...',['Daya rem berkurang','Rem makin kuat','Ban cepat aus','Tidak ada efek'],0,'Gemuk mengurangi gesekan yang dibutuhkan.');
-P(29,'Persiapan','Hal pertama sebelum membongkar kaliper adalah ...',['Membaca manual dan menopang motor dengan aman','Menekan tuas rem','Melepas selang','Mencuci piringan dengan bensin'],0,'Persiapan dan keselamatan lebih dulu.');
-P(30,'Pad baru','Pad baru yang dipasang harus ...',['Sesuai tipe dan ukuran kaliper','Dipilih bebas','Ukuran apa saja','Dibuat sendiri'],0,'Pad harus cocok dengan kaliper.');
-P(31,'Keausan tidak rata','Keausan pad yang tidak rata dapat menandakan ...',['Masalah pada kaliper atau piston','Pelumasan rantai','Ban kurang angin','Lampu redup'],0,'Kaliper atau piston perlu diperiksa.');
-P(32,'Pembersih rem','Pembersih rem digunakan untuk ...',['Membersihkan pad dan piringan dari kotoran','Menambah minyak rem','Mengecat kaliper','Melumasi rantai'],0,'Pembersih menjaga permukaan gesek.');
-P(33,'Batas servis','Pad yang sudah melewati batas servis ...',['Harus diganti','Boleh dipakai terus','Diamplas','Ditambal'],0,'Batas servis wajib dipatuhi.');
-P(34,'Pemeriksaan minyak','Pemeriksaan minyak rem dilakukan ...',['Dengan sistem dalam kondisi wajar sesuai manual','Setelah dipanaskan dengan api','Dengan air','Dengan oli mesin'],0,'Pemeriksaan sesuai manual.');
-P(35,'Pompa tuas','Tujuan memompa tuas rem setelah pemasangan adalah ...',['Memastikan tekanan mengembalikan pad ke posisi kerja','Memanaskan minyak','Mengosongkan minyak','Menggerakkan rantai'],0,'Pompa tuas menggerakkan piston ke posisi kerja.');
-P(36,'Piston kaliper','Piston kaliper didorong kembali agar ...',['Pad baru dapat dipasang','Rem makin kuat','Minyak menetes','Roda lepas'],0,'Ruang untuk pad baru tersedia.');
-P(37,'Pin pad','Pin atau pengunci pad sebaiknya ...',['Dipasang sesuai urutan','Dibuang','Dicat','Diganti merek'],0,'Urutan pemasangan dijaga.');
-P(38,'Torsi baut','Baut kaliper dikencangkan dengan ...',['Torsi spesifikasi','Sekuat tenaga','Palu','Tanpa kunci'],0,'Torsi sesuai mencegah kerusakan.');
-P(39,'Hasil uji rem','Rem yang berfungsi baik memberikan ...',['Tuas keras dan roda berhenti dengan baik','Tuas lembek','Bunyi keras saja','Tidak ada respons'],0,'Respons rem menunjukkan kondisi baik.');
-P(40,'Kesimpulan','Kesimpulan penggantian pad sebaiknya ...',['Didasarkan pada hasil pemeriksaan dan manual','Didasarkan perkiraan','Tidak dicatat','Berdasarkan warna pad'],0,'Kesimpulan wajib berdasarkan data.');
+P(1,'Prinsip rem cakram','Rem cakram bekerja dengan cara ...',['Minyak rem mendorong piston ke pad yang menjepit piringan','Kabel menarik roda','Pegas menahan roda','Udara menekan roda','Rantai menarik kaliper'],0,'Tekanan minyak rem menggerakkan piston dan pad.');
+P(2,'Pad aus','Pad rem yang sudah tipis harus ...',['Diganti sesuai batas servis','Ditambal lem','Diamplas','Dibiarkan','Dicuci bensin'],0,'Pad di bawah batas servis wajib diganti.');
+P(3,'Minyak rem','Minyak rem bersifat ...',['Higroskopis dan dapat merusak cat','Tahan air sepenuhnya','Padat seperti gemuk','Menyerap panas','Mengering dengan cepat'],0,'Minyak rem menyerap air dari udara.');
+P(4,'Minyak rem pad','Minyak rem yang mengenai pad menyebabkan ...',['Daya rem turun dan pad harus diganti','Rem makin kuat','Tidak ada efek','Ban lebih awet','Rem berbunyi terus'],0,'Pad terkontaminasi kehilangan daya gesek.');
+P(5,'Pemasangan pad','Sebelum memasang pad baru, piston kaliper ...',['Didorong kembali dengan pelan','Dibiarkan menonjol','Dipukul','Dilumasi dengan oli mesin','Ditarik keluar'],0,'Piston didorong agar pad baru muat.');
+P(6,'K3 kaliper','Tuas rem tidak boleh ditekan saat kaliper dilepas karena ...',['Piston dapat keluar dari silinder','Lampu rem menyala','Ban bocor','Rantai putus','Mesin mati'],0,'Piston bisa terlepas.');
+P(7,'Debu rem','Debu pad rem sebaiknya dibersihkan dengan ...',['Pembersih rem','Udara bertekanan','Air keras','Bensin','Sikat baja'],0,'Pembersih rem lebih aman daripada udara.');
+P(8,'Piringan','Piringan rem yang bergelombang menyebabkan ...',['Getaran dan rem tidak merata','Rem lebih ringan','Ban lebih awet','Tidak ada efek','Mesin lebih senyap'],0,'Permukaan tidak rata menimbulkan getaran.');
+P(9,'Gejala rem','Rem berdecit dapat disebabkan oleh ...',['Pad aus atau kotor','Ban penuh angin','Setang lurus','Lampu terang','Ban terlalu lebar'],0,'Pad aus atau kotor menimbulkan bunyi.');
+P(10,'Gejala rem','Tuas rem terasa lembek dapat disebabkan oleh ...',['Udara dalam sistem atau minyak rem kurang','Pad terlalu tebal','Rantai kencang','Lampu redup','Oli mesin baru'],0,'Udara dan minyak kurang melemahkan tekanan.');
+P(11,'Gejala rem','Rem seret terjadi ketika ...',['Piston tidak kembali dengan baik','Pad baru dipasang tepat','Minyak rem penuh','Roda bebas berputar','Lampu rem menyala'],0,'Piston macet membuat pad tetap menempel.');
+P(12,'Level minyak rem','Level minyak rem diperiksa agar ...',['Berada di antara batas atas dan bawah','Penuh sampai tutup','Kosong total','Dicampur air','Di atas tutup'],0,'Level harus di rentang batas.');
+P(13,'Kebocoran','Minyak rem yang berkurang drastis menunjukkan kemungkinan ...',['Kebocoran pada sistem','Pad terlalu tipis saja','Piringan baru','Tidak ada masalah','Sekring putus'],0,'Penurunan drastis berarti kebocoran.');
+P(14,'Uji rem','Uji rem sebelum motor dijalankan bertujuan untuk ...',['Memastikan rem bekerja normal','Menambah kecepatan','Menghemat bahan bakar','Mengecat rangka','Mengganti ban'],0,'Uji rem demi keselamatan.');
+P(15,'Pelepasan kaliper','Kaliper dilepas dengan cara ...',['Melepas baut kaliper dan menopang tanpa meregangkan selang','Memotong selang','Memukul kaliper','Mengangkat dengan selang','Menarik selang kuat'],0,'Selang tidak boleh diregangkan.');
+P(16,'Selang rem','Selang rem yang retak harus ...',['Diganti','Dilakban','Dicuci','Dibiarkan','Diberi lem silikon'],0,'Selang retak dapat bocor.');
+P(17,'Minyak rem','Minyak rem tidak boleh terkena ...',['Pad dan piringan rem','Setang','Jok','Spion','Velg'],0,'Minyak mengurangi daya gesek.');
+P(18,'Piston','Pemeriksaan piston dan karet debu bertujuan untuk melihat ...',['Kebocoran dan gerak piston','Warna jok','Ukuran rantai','Bunyi klakson','Pelumas kaliper'],0,'Piston dan karet debu menentukan kerja kaliper.');
+P(19,'Uji fungsi','Setelah penggantian pad, rem diuji dengan ...',['Tuas ditekan dan roda diputar','Dibiarkan begitu saja','Diabaikan','Dilumasi gemuk','Ditinggal'],0,'Uji fungsi memastikan rem bekerja.');
+P(20,'Piringan','Piringan rem diperiksa keausan dan ...',['Alurnya','Warna bodi','Kilau cat','Berat ban','Permukaan kesat'],0,'Alur dan keausan dicek.');
+P(21,'Tuas keras','Tuas rem yang terasa keras dan tidak seret menandakan ...',['Sistem rem berfungsi normal','Pad sudah lepas','Minyak bocor','Tidak ada informasi','Pad sudah aus habis'],0,'Tuas keras menandakan tekanan yang baik.');
+P(22,'Pembersihan','Komponen rem tidak boleh dibersihkan dengan ...',['Oli atau gemuk','Pembersih rem khusus','Kain lap bersih','Sikat kering','Kain basah bekas'],0,'Oli atau gemuk merusak daya gesek.');
+P(23,'Pad terkontaminasi','Pad yang terkena oli harus ...',['Diganti karena daya rem turun','Dibiarkan kering sendiri','Dilumasi lagi','Ditambah gemuk','Dibakar untuk kering'],0,'Pad yang terkontaminasi tidak boleh dipakai.');
+P(24,'Bunyi rem','Bunyi tok pada rem depan dapat berasal dari ...',['Bearing atau fork yang longgar','Lampu depan','Spion','Klakson','Sein'],0,'Komponen depan yang longgar menimbulkan bunyi.');
+P(25,'Penggantian pad','Penggantian pad sebaiknya dilakukan berdasarkan ...',['Ketebalan pad dan manual','Jadwal bulanan tanpa cek','Sembarang waktu','Tidak perlu dicatat','Saat motor dijual'],0,'Keputusan berdasarkan pengukuran.');
+P(26,'Higroskopis','Minyak rem yang higroskopis berarti ...',['Menyerap air dari udara','Menolak air','Menghasilkan panas sendiri','Tidak berpengaruh','Mengeras di udara'],0,'Penyerapan air menurunkan titik didih.');
+P(27,'Selang rem','Pemeriksaan selang rem mencakup ...',['Retak, bocor, dan kondisinya','Warna selang','Panjang selang saja','Bunyi selang','Berat selang'],0,'Kondisi selang yang diperiksa.');
+P(28,'Gemuk','Gemuk pada piringan rem menyebabkan ...',['Daya rem berkurang','Rem makin kuat','Ban cepat aus','Tidak ada efek','Suara rem bertambah'],0,'Gemuk mengurangi gesekan yang dibutuhkan.');
+P(29,'Persiapan','Hal pertama sebelum membongkar kaliper adalah ...',['Membaca manual dan menopang motor dengan aman','Menekan tuas rem','Melepas selang','Mencuci piringan dengan bensin','Memukul kaliper'],0,'Persiapan dan keselamatan lebih dulu.');
+P(30,'Pad baru','Pad baru yang dipasang harus ...',['Sesuai tipe dan ukuran kaliper','Dipilih bebas','Ukuran apa saja','Dibuat sendiri','Dipilih berdasarkan warna'],0,'Pad harus cocok dengan kaliper.');
+P(31,'Keausan tidak rata','Keausan pad yang tidak rata dapat menandakan ...',['Masalah pada kaliper atau piston','Pelumasan rantai','Ban kurang angin','Lampu redup','Oli habis'],0,'Kaliper atau piston perlu diperiksa.');
+P(32,'Pembersih rem','Pembersih rem digunakan untuk ...',['Membersihkan pad dan piringan dari kotoran','Menambah minyak rem','Mengecat kaliper','Melumasi rantai','Mengganti kampas'],0,'Pembersih menjaga permukaan gesek.');
+P(33,'Batas servis','Pad yang sudah melewati batas servis ...',['Harus diganti','Boleh dipakai terus','Diamplas','Ditambal','Mengisi angin ban'],0,'Batas servis wajib dipatuhi.');
+P(34,'Pemeriksaan minyak','Pemeriksaan minyak rem dilakukan ...',['Dengan sistem dalam kondisi wajar sesuai manual','Setelah dipanaskan dengan api','Dengan air','Dengan oli mesin','Dicat hitam'],0,'Pemeriksaan sesuai manual.');
+P(35,'Pompa tuas','Tujuan memompa tuas rem setelah pemasangan adalah ...',['Memastikan tekanan mengembalikan pad ke posisi kerja','Memanaskan minyak','Mengosongkan minyak','Menggerakkan rantai','Dengan bensin'],0,'Pompa tuas menggerakkan piston ke posisi kerja.');
+P(36,'Piston kaliper','Piston kaliper didorong kembali agar ...',['Pad baru dapat dipasang','Rem makin kuat','Minyak menetes','Roda lepas','Mengukur tekanan ban'],0,'Ruang untuk pad baru tersedia.');
+P(37,'Pin pad','Pin atau pengunci pad sebaiknya ...',['Dipasang sesuai urutan','Dibuang','Dicat','Diganti merek','Pad lama tetap dipakai'],0,'Urutan pemasangan dijaga.');
+P(38,'Torsi baut','Baut kaliper dikencangkan dengan ...',['Torsi spesifikasi','Sekuat tenaga','Palu','Tanpa kunci','Dibiarkan lepas'],0,'Torsi sesuai mencegah kerusakan.');
+P(39,'Hasil uji rem','Rem yang berfungsi baik memberikan ...',['Tuas keras dan roda berhenti dengan baik','Tuas lembek','Bunyi keras saja','Tidak ada respons','Dengan tang'],0,'Respons rem menunjukkan kondisi baik.');
+P(40,'Kesimpulan','Kesimpulan penggantian pad sebaiknya ...',['Didasarkan pada hasil pemeriksaan dan manual','Didasarkan perkiraan','Tidak dicatat','Berdasarkan warna pad','Berdasarkan merek'],0,'Kesimpulan wajib berdasarkan data.');
 
 K(41,'Komponen rem','Pilih komponen rem cakram depan.',['Kaliper','Pad rem','Piringan rem','Kopling kering'],[0,1,2],'Kopling kering bukan komponen rem.');
 K(42,'Tanda ganti pad','Pilih tanda pad perlu diganti.',['Ketebalan di bawah batas servis','Rem berdecit','Rem seret','Warna bodi pudar'],[0,1,2],'Warna bodi tidak berkaitan.');
