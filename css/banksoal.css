@@ -1,0 +1,37 @@
+/* banksoal.css: tampilan Bank soal TKA (siswa dan guru) */
+.seg.bs3{grid-template-columns:repeat(3,1fr)}.seg.bs4{grid-template-columns:repeat(4,1fr)}
+.seg.bs4 button{font-size:13px;padding:9px 2px}
+.bs-q{font-size:16px;line-height:1.6;font-weight:550}
+.bs-qs{font-weight:550}
+.bs-opts,.bs-kat{display:flex;flex-direction:column;gap:8px}
+.bs-opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;min-height:44px;-webkit-tap-highlight-color:transparent}
+.bs-opt .ltr{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:650}
+.bs-opt[aria-pressed=true],.bs-opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.bs-opt[aria-pressed=true] .ltr{background:var(--accent);border-color:var(--accent);color:var(--onc)}
+.bs-opt.ok{border-color:var(--ok);background:var(--ok-bg)}
+.bs-opt.bad{border-color:var(--bad);background:var(--bad-bg)}
+.bs-opt.static{cursor:default}
+.bs-opt:disabled{opacity:1;cursor:default}
+.bs-opt.small{width:auto;justify-content:center;padding:8px 16px;min-height:40px;font-weight:600}
+.bs-opt em{font-style:normal;font-size:12px;color:var(--muted)}
+.bs-kr{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.bs-kr.ok{border-color:var(--ok);background:var(--ok-bg)}.bs-kr.bad{border-color:var(--bad);background:var(--bad-bg)}
+.bs-kb{display:flex;gap:8px}.bs-kb .bs-opt{flex:1}
+.bs-bahas{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.bs-bahas p{font-size:14px}
+.bs-rv{display:flex;flex-direction:column;gap:10px}
+.bs-nav{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px}
+.bs-nav button{height:38px;border:1px solid var(--line);background:var(--bg);border-radius:10px;font-weight:600;font-size:13px}
+.bs-nav button.dn{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.bs-nav button.cur{outline:2px solid var(--accent);outline-offset:1px}
+.bsbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;gap:10px;justify-content:space-between;padding:10px max(16px,env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--surface) 92%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+.bsclock{font-variant-numeric:tabular-nums;font-weight:750;font-size:20px;color:var(--accent);margin-right:auto}
+.bsclock.low{color:var(--bad)}
+.bs-score{font-size:56px;font-weight:800;line-height:1;color:var(--accent)}
+.bs-resume{border-color:var(--accent);background:var(--accent-soft)}
+.bs-orow{align-items:flex-end;flex-wrap:nowrap}.bs-orow input[type=radio],.bs-orow input[type=checkbox]{width:22px;height:22px;flex:none;margin-bottom:11px;accent-color:var(--accent)}
+.bs-ck{display:flex;gap:10px;align-items:center;font-size:14px}.bs-ck input{width:20px;height:20px;flex:none;accent-color:var(--accent)}
+.bs-pick{max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column}
+.bs-pk{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px}.bs-pk:last-child{border-bottom:0}
+.bs-pk input{width:20px;height:20px;flex:none;margin-top:2px;accent-color:var(--accent)}
+.bs-pk small{color:var(--muted)}
