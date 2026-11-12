@@ -62,5 +62,7 @@ Menu **Observasi praktik siswa** (Admin dan Guru) memakai koleksi yang sama deng
 ## Bank soal TKA (v41)
 Menu **Bank soal TKA** (terpisah dari LKPD): 60 soal TKA SMK bawaan (40 PG, 10 PG kompleks, 10 PG kategori), latihan dengan pembahasan, ujian bertimer dari sesi guru, riwayat siswa, serta pengelolaan bank soal, sesi, dan hasil (ekspor Excel) untuk Guru dan Admin. Koleksi baru: `banksoal`, `soal_sesi`, `soal_hasil` (`node tools/setup-appwrite.mjs --only=banksoal,soal_sesi,soal_hasil`). Berkas baru: `js/soal-tka.js`, `js/banksoal.js`, `css/banksoal.css`. Panduan di `docs-BANK-SOAL.md`.
 
+**Impor dan ekspor soal (v47, Admin dan Guru)**: tab Bank soal punya tombol Impor soal, Template, dan Ekspor Excel. Impor memakai pratinjau, melewati soal ganda, dan hanya mengatur peruntukan, kelas, dan status untuk soal bawaan. Berkas baru: `js/banksoal-io.js`. Detail di `docs-BANK-SOAL.md`.
+
 ## Membuat database Appwrite dari HP
 Belum punya database? Jalankan `node tools/setup-appwrite.mjs` di Termux (membuat database dan semua koleksi dari `appwrite.json`). Langkah lengkap di `docs-SETUP-APPWRITE.md`.

@@ -36,3 +36,13 @@ Catatan keamanan: kunci jawaban ikut terunduh ke peramban karena penilaian dilak
 
 ## Mode offline
 Latihan dan ujian yang sedang berjalan tersimpan di perangkat. Hasil yang belum terkirim diantre dan dikirim saat online. Menu Segarkan data juga memuat ulang bank soal.
+
+## Impor dan ekspor soal (v47)
+Hanya Guru dan Admin, di tab **Bank soal** (tombol Impor soal, Template, Ekspor Excel). Berkas: `js/banksoal-io.js`. Tidak ada perubahan koleksi Appwrite.
+- **Ekspor Excel**: mengekspor soal yang sedang tampil sesuai filter (filter kosong = semua soal, termasuk bawaan). Berisi sheet Soal dan Petunjuk. File ini bisa diedit lalu diimpor ulang.
+- **Template**: file contoh berisi tiga soal (PG, PG kompleks, PG kategori) dan petunjuk kolom. Hapus baris contoh sebelum impor.
+- **Impor**: .xlsx, .xls, atau .csv, maksimal 500 baris. Pratinjau dulu (baru, diperbarui, dilewati, ditolak beserta alasan per baris), lalu tekan Terapkan.
+- Kolom: ID, Jenis, Mapel, Topik, Kelas, Peruntukan, Status, Soal, A sampai E, Kunci, Label 1, Label 2, Pernyataan 1-6, Kunci 1-6, Pembahasan.
+- ID kosong = soal baru. ID soal sendiri yang sudah ada = soal diperbarui. ID soal bawaan (tka-...) = hanya Peruntukan, Kelas, dan Status yang berubah.
+- Soal baru yang jenis, mapel, dan teksnya sama dengan soal yang sudah ada dilewati, jadi aman bila file diimpor dua kali.
+- Kunci PG: satu huruf (B). PG kompleks: beberapa huruf (A,C). PG kategori: isi Label 1 atau Label 2 (atau 1 / 2) pada Kunci 1-6.
