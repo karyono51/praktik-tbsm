@@ -335,3 +335,15 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 @media print{.lk-yn{border:0!important;padding:2px 0!important;flex-direction:row;justify-content:space-between;margin:0}.lk-yn-opt label{border:0;padding:0;min-height:0;flex:0 0 auto}}
 /* v71: aksi kartu Rekap LKPD */
 .rk-acts{justify-content:flex-start;gap:8px}.rk-acts .btn{margin-left:auto}
+/* Form UKK */
+.ukk-head{gap:10px}.ukk-id{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px}.ukk-id>span:nth-child(odd){color:var(--muted)}
+.ukk-nis{width:110px;padding:4px 6px;font-size:13px}
+.ukk-w{overflow-x:auto}table.ukk{border-collapse:collapse;width:100%;background:var(--surface)}
+table.ukk th,table.ukk td{border:1px solid var(--line);padding:7px 8px;vertical-align:top;text-align:left;font-size:13px}table.ukk th{text-align:center}
+table.ukk td input{width:100%;min-width:110px}
+.ukk-row[data-v="1"]{background:var(--ok-bg)}.ukk-row[data-v="0"]{background:var(--bad-bg)}
+@media(max-width:700px){
+ table.ukk thead{display:none}table.ukk,table.ukk tbody,table.ukk tr,table.ukk td{display:block;width:100%}
+ table.ukk tr{border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;padding:4px}
+ table.ukk td{border:0;padding:4px 6px}table.ukk td[data-l]::before{content:attr(data-l);display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.02em}
+}

@@ -16,7 +16,8 @@ function viewKatalog(){
 
 function viewExam(){
   var j=V.job,groups='';
-  Object.keys(ASPEK).forEach(function(a){
+  if(j.ukk)groups=ukkForm(j);
+  else Object.keys(ASPEK).forEach(function(a){
     var its=j.items.filter(function(i){return i.a===a});
     groups+='<section class="aspek"><div class="aspek-head"><span class="label">'+ASPEK[a].n+'</span><span class="mono note">bobot '+ASPEK[a].w+'%</span></div>'+
       its.map(function(i){var v=V.checks[i.id];
@@ -49,7 +50,7 @@ function viewExam(){
 
 function viewResult(){
   var j=V.job,r=V.res,c=r.calc,its=V.items||[],multi=its.length>1,rname=(V.kel&&multi)?'Kelompok ('+its.length+' siswa)':(V.peserta||'Tanpa nama');
-  var asp=Object.keys(ASPEK).map(function(a){var t=c.by[a].y+c.by[a].n,p=t?Math.round(100*c.by[a].y/t):0;
+  var asp=Object.keys(ASPEK).filter(function(a){return c.by[a].y+c.by[a].n>0}).map(function(a){var t=c.by[a].y+c.by[a].n,p=t?Math.round(100*c.by[a].y/t):0;
     return '<div><div class="row sb"><span>'+ASPEK[a].n+'</span><span class="mono">'+c.by[a].y+'/'+t+'</span></div><div class="meter"><i class="'+(p<S.kkm?'low':'')+'" style="width:'+p+'%"></i></div></div>'}).join('');
   var why='';
   if(c.crit.length)why='<div class="card" style="border-color:var(--bad)"><h3>Butir wajib belum terpenuhi</h3><ul class="plain">'+c.crit.map(function(i){return '<li>'+esc(i.t)+'</li>'}).join('')+'</ul></div>';
@@ -104,3 +105,23 @@ function viewBeranda(){
   secHead('kelas',kelasBoleh().length>1?'Pilih kelas':'Kelas saya')+'<div class="kcards">'+kc+'</div>'+
   '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari modul LKPD pertama.</p>')+'</section>'+ob;
 }
+
+/* ---- Form UKK: tampilan sama dengan lembar UKK (identitas + tabel No, Item, Standar, Hasil Pemeriksaan, Kesimpulan) ---- */
+function hsOf(){V.hs=V.hs||{};var k=V.kel?'*':V.peserta;return V.hs[k]||(V.hs[k]={})}
+function ukkForm(j){
+  var f=j.form,hs=hsOf(),multi=V.kel&&V.group.length>1;
+  var nama=multi?V.group.join(', '):(V.peserta||'');
+  var tgl=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  var idr=[['Satuan Pendidikan',f.satuan],['Konsentrasi Keahlian',f.konsentrasi],['Kode',f.kode],['Alokasi Waktu',j.menit+' Menit'],['Bentuk Soal',f.bentuk],['Judul Tugas',j.judul+' ('+j.unit+')'],['Nama Siswa',nama||'.........'],['NIS / Kelas','<input id="ukknis" class="ukk-nis" value="'+esc(V.nis||'')+'" placeholder="NIS" aria-label="NIS"> / '+j.kelas],['Tanggal',tgl],['Penguji',isStaff()?esc(S.user.nama):'Latihan mandiri']];
+  var head='<div class="card ukk-head"><h3 class="center" style="margin:0">UJI KOMPETENSI KEAHLIAN<br>Tahun Pelajaran '+f.tahun+'</h3><div class="ukk-id">'+idr.map(function(r){return '<span>'+r[0]+'</span><span>: '+(r[0]==='NIS / Kelas'?r[1]:esc(r[1]))+'</span>'}).join('')+'</div></div>';
+  var rows=j.items.map(function(i){var v=V.checks[i.id];
+    return '<tr class="ukk-row" data-id="'+i.id+'" data-v="'+(v===undefined?'':v)+'"><td data-l="No">'+i.no+'</td><td data-l="Nama item pekerjaan">'+esc(i.t)+(i.k?' <span class="pill warn">Wajib</span>':'')+'</td><td data-l="Standar/Spesifikasi">'+esc(i.std)+'</td>'+
+      '<td data-l="Hasil Pemeriksaan"><input data-hs="'+i.id+'" value="'+esc(hs[i.id]||'')+'" placeholder="Nilai ukur / hasil" aria-label="Hasil pemeriksaan '+i.no+'"></td>'+
+      '<td data-l="Kesimpulan"><div class="yn"><button type="button" class="y" data-act="chk" data-id="'+i.id+'" data-v="1" aria-pressed="'+(v===1)+'">Sesuai</button><button type="button" class="n" data-act="chk" data-id="'+i.id+'" data-v="0" aria-pressed="'+(v===0)+'">Tidak sesuai</button></div></td></tr>'}).join('');
+  return head+'<div class="ukk-w"><table class="ukk"><thead><tr><th>No</th><th>Nama item pekerjaan</th><th>Standar/Spesifikasi</th><th>Hasil Pemeriksaan</th><th>Kesimpulan</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+document.addEventListener('input',function(e){
+  var t=e.target;if(!t||V.mode!=='exam')return;
+  if(t.dataset&&t.dataset.hs)hsOf()[t.dataset.hs]=t.value;
+  else if(t.id==='ukknis')V.nis=t.value;
+});

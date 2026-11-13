@@ -12,7 +12,7 @@ function startExam(id,keep){
   var j=jobById(id);if(kelasBoleh().indexOf(j.kelas)<0){toast('Unit ini bukan untuk kelas kamu');return}
   var ro=S.roster.filter(function(r){return r.kelas===j.kelas});
   var first=isStaff()?(ro[0]?ro[0].nama:''):S.siswaName;
-  V={mode:'exam',job:j,checks:{},peserta:first,catatan:'',sec:0,running:false,res:null,group:first?[first]:[],kel:false,cks:{},notes:{},items:null,rc:0};
+  V={mode:'exam',job:j,checks:{},peserta:first,catatan:'',sec:0,running:false,res:null,group:first?[first]:[],kel:false,cks:{},notes:{},items:null,rc:0,hs:{},nis:''};
   V.cks[first]=V.checks;
   if(keep&&isStaff()){V.group=keep.group.slice();V.kel=keep.kel;V.peserta=V.group[0]||'';V.cks={};V.group.forEach(function(n){V.cks[n]={}});V.cks['*']={};V.cks[V.peserta]=V.cks[V.peserta]||{};V.checks=curChecks()}
   render();window.scrollTo(0,0);
@@ -53,7 +53,7 @@ document.addEventListener('click',function(e){
   else if(a==='chk'){
     var val=parseInt(v,10);V.checks[b.dataset.id]=val;
     if(!V.running&&!timer&&V.sec===0)startTimer(),$('#tbtn').textContent='Jeda';
-    var card=b.closest('.item');card.dataset.v=val;
+    var card=b.closest('.item,.ukk-row');card.dataset.v=val;
     $$('button',card).forEach(function(x){x.setAttribute('aria-pressed',String(parseInt(x.dataset.v,10)===val))});
     syncProg();
   }
@@ -77,6 +77,7 @@ document.addEventListener('click',function(e){
     var t0=Date.now(),n=V.items.length;
     V.items.forEach(function(it,k){
       var nt=V.notes[V.kel?'*':it.nama]||'';
+      if(V.job.ukk){var hh=(V.hs||{})[V.kel?'*':it.nama]||{},hp=V.job.items.filter(function(i){return hh[i.id]}).map(function(i){return i.no+'='+hh[i.id]}).join('; ');if(hp)nt=(nt+' Hasil pemeriksaan: '+hp).trim().slice(0,1000)}
       if(V.kel&&n>1)nt=('Penilaian kelompok ('+n+' siswa). '+nt).trim().slice(0,1000);
       S.results.push({id:uid(),ts:t0+k,jobId:V.job.id,kelas:V.job.kelas,siswa:it.nama,tipe:isStaff()?'Penilaian':'Latihan',score:it.calc.score,kompeten:it.calc.kompeten,catatan:nt,detik:V.sec,oleh:S.user.username,penilai:S.user.nama,sid:sidOf(it.nama)});
     });

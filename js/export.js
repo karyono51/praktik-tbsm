@@ -162,6 +162,7 @@ function pdfRekap(){
 }
 function pdfOne(){
  if(!needP()||!V.res)return;
+ if(V.job&&V.job.ukk)return pdfUkk();
  var ct=$('#catatan');V.catatan=ct?ct.value.trim():'';
  var j=V.job,c=V.res.calc,doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
  kop(doc,'Lembar Penilaian KBM Praktik');
@@ -171,7 +172,7 @@ function pdfOne(){
  doc.setFontSize(26).setFont('helvetica','bold').setTextColor(0).text(String(c.score),14,y+10);
  doc.setFontSize(12).setTextColor.apply(doc,c.kompeten?[4,120,87]:[185,28,28]);doc.text(c.kompeten?'KOMPETEN':'BELUM KOMPETEN',40,y+9);doc.setTextColor(0).setFont('helvetica','normal');
  doc.autoTable({startY:y+16,theme:'grid',styles:{fontSize:9.5},headStyles:TH,head:[['Aspek','Bobot','Terpenuhi','Skor aspek']],
-  body:Object.keys(ASPEK).map(function(k){var t=c.by[k].y+c.by[k].n;return [ASPEK[k].n,ASPEK[k].w+'%',c.by[k].y+' / '+t,Math.round(ASPEK[k].w*(t?c.by[k].y/t:0)*10)/10]})});
+  body:Object.keys(ASPEK).filter(function(k){return c.by[k].y+c.by[k].n>0}).map(function(k){var t=c.by[k].y+c.by[k].n;return [ASPEK[k].n,ASPEK[k].w+'%',c.by[k].y+' / '+t,Math.round(ASPEK[k].w*(t?c.by[k].y/t:0)*10)/10]})});
  if(c.unmet.length)doc.autoTable({startY:doc.lastAutoTable.finalY+6,theme:'grid',styles:{fontSize:9},headStyles:{fillColor:[185,28,28],textColor:255},head:[['Butir belum terpenuhi','Wajib']],body:c.unmet.map(function(i){return [i.t,i.k?'Ya':'']}),columnStyles:{1:{cellWidth:16,halign:'center'}}});
  y=doc.lastAutoTable.finalY+8;
  if(V.catatan){doc.setFontSize(10).setFont('helvetica','bold').text('Catatan',14,y);doc.setFont('helvetica','normal');var t=doc.splitTextToSize(V.catatan,180);doc.text(t,14,y+5);y+=8+t.length*4.5}
@@ -228,4 +229,29 @@ async function hapusGanda(){
  }
  persist();
  toast(ok+' akun ganda dihapus'+(gagal?', '+gagal+' gagal di server':''));
+}
+
+/* PDF lembar UKK: tata letak sama dengan form HTML (identitas, tabel 5 kolom, catatan, tanda tangan penguji) */
+function pdfUkk(){
+ var ct=$('#catatan');V.catatan=ct?ct.value.trim():'';
+ var j=V.job,c=V.res.calc,f=j.form,doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth();
+ var multi=V.kel&&V.items&&V.items.length>1,key=V.kel?'*':V.peserta;
+ var nama=multi?V.items.map(function(x){return x.nama}).join(', '):(V.peserta||'');
+ var hs=(V.hs||{})[key]||{},ck=V.cks[key]||{},penguji=isStaff()?S.user.nama:'';
+ doc.setFont('helvetica','bold').setFontSize(13).text('UJI KOMPETENSI KEAHLIAN',W/2,16,{align:'center'});
+ doc.text('Tahun Pelajaran '+f.tahun,W/2,22,{align:'center'});doc.setFont('helvetica','normal');
+ var tgl=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+ doc.autoTable({startY:27,theme:'plain',styles:{fontSize:10,cellPadding:1,textColor:0},columnStyles:{0:{cellWidth:46}},body:[
+  ['Satuan Pendidikan',': '+f.satuan],['Konsentrasi Keahlian',': '+f.konsentrasi],['Kode',': '+f.kode],['Alokasi Waktu',': '+j.menit+' Menit'],['Bentuk Soal',': '+f.bentuk],
+  ['Judul Tugas',': '+j.judul+' ('+j.unit+')'],['Nama Siswa',': '+(nama||'………………………………')],['NIS / Kelas',': '+(V.nis||'………………')+' / '+j.kelas],['Tanggal',': '+tgl],['Penguji',': '+(penguji||'………………………………')]]});
+ doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9,cellPadding:1.8,lineColor:60,lineWidth:.2,textColor:0,valign:'top'},
+  headStyles:{fillColor:255,textColor:0,fontStyle:'bold',halign:'center'},
+  columnStyles:{0:{cellWidth:10,halign:'center'},1:{cellWidth:48},2:{cellWidth:56},3:{cellWidth:38},4:{cellWidth:30}},
+  head:[['No','Nama item pekerjaan','Standar/Spesifikasi','Hasil Pemeriksaan','Kesimpulan']],
+  body:j.items.map(function(i){return [i.no,i.t,i.std,hs[i.id]||'',ck[i.id]===1?'Sesuai':(ck[i.id]===0?'Tidak sesuai':'')]})});
+ var ringkas='Hasil: '+(c.kompeten?'KOMPETEN':'BELUM KOMPETEN')+', skor '+c.score+' (KKM '+S.kkm+'), waktu '+mmss(V.sec)+' dari '+j.menit+' menit';
+ doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9.5,cellPadding:2,lineColor:60,lineWidth:.2,textColor:0,minCellHeight:30},
+  columnStyles:{0:{cellWidth:118},1:{cellWidth:64,halign:'center'}},
+  body:[[{content:'Catatan:\n'+(V.catatan?V.catatan+'\n':'')+ringkas},{content:'Penguji\n\n\n\n('+(penguji||'………………………')+')'}]]});
+ foot(doc);doc.save('UKK_'+slug(nama||'siswa')+'_'+j.id+'.pdf');
 }
