@@ -99,11 +99,11 @@ function lksHub(){
    modul itu kembali memakai versi bawaan (tampil). Tandai agar izin baca ikut diperbarui saat sinkron berikutnya. */
 function lksHeal(){
  try{
-  if(!Cloud.on||!S.user||!isStaff()||localStorage.getItem('tbsm-permfix-1'))return;
+  if(LKS.healed||!Cloud.on||!S.user||!isStaff())return;
   var ms=S.lkpdModules||[];if(!ms.length)return;
+  LKS.healed=true;   /* sekali per sesi: murah, dan tidak bergantung pada penanda lama di perangkat */
   var n=0;ms.forEach(function(m){if(lkBuiltin(m.id)&&(m.status!=='published'||m.active===false)&&m.r){m.d=1;n++}});
-  localStorage.setItem('tbsm-permfix-1','1');
-  if(n){lkSaveModules()}
+  if(n){lkSaveModules();toast('Menyinkronkan status '+n+' modul tersembunyi ke siswa')}
  }catch(e){}
 }
 
