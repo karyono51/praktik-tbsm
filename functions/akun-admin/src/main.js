@@ -1,7 +1,7 @@
 /* Appwrite Function "akun-admin": admin mengatur sandi akun login dari aplikasi.
    Runtime Node.js 18+ . Scope API key: users.read, users.write. Execute access: Users (semua yang login),
    tetapi fungsi ini hanya melayani pemanggil berlabel "admin". */
-import { Client, Users, ID, Query } from 'node-appwrite';
+import { Client, Users, Databases, ID, Query } from 'node-appwrite';
 
 export default async ({ req, res, error }) => {
   try {
@@ -14,10 +14,28 @@ export default async ({ req, res, error }) => {
     const callerId = req.headers['x-appwrite-user-id'];
     if (!callerId) return res.json({ ok: false, error: 'Harus login.' }, 401);
     const caller = await users.get(callerId);
-    if (!(caller.labels || []).includes('admin')) return res.json({ ok: false, error: 'Hanya admin yang boleh mengatur sandi.' }, 403);
 
     let body = {};
     try { body = req.bodyJson || JSON.parse(req.bodyText || req.body || '{}'); } catch (e) { return res.json({ ok: false, error: 'Data tidak valid.' }, 400); }
+
+    /* Aksi "claim" (semua pengguna login): catat pemetaan ID login -> ID akun aplikasi di uid_map.
+       Email diambil dari akun Auth pemanggil di server, bukan dari kiriman klien. Perlu scope databases.read dan databases.write. */
+    if (body.action === 'claim') {
+      const db = new Databases(client);
+      const DB = process.env.DB_ID || 'tbsm';
+      const mail = String(caller.email || '').trim().toLowerCase();
+      if (!mail) return res.json({ ok: false, error: 'Akun login tidak punya email.' }, 400);
+      const f = await db.listDocuments(DB, 'akun', [Query.equal('email', [mail]), Query.limit(1)]);
+      if (!f.total) return res.json({ ok: false, error: 'Email belum terdaftar di daftar akun.' }, 404);
+      const akun = f.documents[0];
+      if (akun.aktif === false) return res.json({ ok: false, error: 'Akun nonaktif.' }, 403);
+      const data = { sid: akun.$id, email: mail };
+      try { await db.createDocument(DB, 'uid_map', callerId, data); }
+      catch (e) { if (e && e.code === 409) await db.updateDocument(DB, 'uid_map', callerId, data); else throw e; }
+      return res.json({ ok: true, sid: akun.$id });
+    }
+
+    if (!(caller.labels || []).includes('admin')) return res.json({ ok: false, error: 'Hanya admin yang boleh mengatur sandi.' }, 403);
     const email = String(body.email || '').trim().toLowerCase();
     const password = String(body.password || '');
     const name = String(body.name || '').trim().slice(0, 128) || email;

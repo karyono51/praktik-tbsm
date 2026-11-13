@@ -9,11 +9,24 @@
  function emailOf(u){return String((u&&u.email)||'').toLowerCase()}
  function readUser(id){return Appwrite.Permission.read(Appwrite.Role.user(id))}
 
- /* siswa: catat ID login sekali per sesi; 409 berarti sudah tercatat */
- var claimed=false;
+ /* siswa: catat ID login sekali per sesi lewat fungsi server akun-admin (aksi claim; email diambil server dari akun Auth).
+    Fungsi belum diperbarui (galat 403/400/404): cadangan lama menulis langsung ke koleksi, yang berhenti bekerja setelah izin create dicabut. */
+ var claimed=false,tanpaFn=false;
  async function claim(){
   if(claimed||!Cloud.on||!S.user||!Cloud.db)return;
   var id=myAuth();if(!id)return;
+  if(!tanpaFn){
+   try{
+    var cl=(Cloud.acc&&Cloud.acc.client)||new Appwrite.Client().setEndpoint(CFG.APPWRITE_ENDPOINT).setProject(CFG.APPWRITE_PROJECT);
+    var ex=await new Appwrite.Functions(cl).createExecution(CFG.FN_AKUN||'akun-admin',JSON.stringify({action:'claim'}),false,'/','POST',{'content-type':'application/json'});
+    var j={};try{j=JSON.parse(ex.responseBody||'{}')}catch(e){}
+    if(j.ok){claimed=true;return}
+    var st=ex.responseStatusCode||0;
+    if(st===404&&/belum terdaftar/i.test(j.error||''))return;   /* akun memang belum ada: jangan dicadangkan */
+    if(st>=500)return;                                          /* galat sementara: coba lagi nanti */
+    tanpaFn=true;                                               /* fungsi versi lama (403/400): pakai cadangan */
+   }catch(e){if(e&&(e.code===404||/not found/i.test(e.message||'')))tanpaFn=true;else return}
+  }
   try{await Cloud.db.createDocument(CFG.DB,'uid_map',id,{sid:S.user.id,email:emailOf(S.user)});claimed=true}
   catch(e){if(e&&e.code===409)claimed=true}}
 

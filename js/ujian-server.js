@@ -18,6 +18,9 @@
  function pay(r){return JSON.stringify({mode:r.mode,sesiId:r.sesiId,sesiJudul:r.sesiJudul,dur:r.dur,ids:r.ids,oo:r.oo,ans:r.ans,cur:r.cur,chk:r.chk,pindah:r.pindah||0,tampil:r.tampil,kkm:r.kkm})}
  function lomba(p,ms){return new Promise(function(res,rej){var t=setTimeout(function(){var e=new Error('Waktu tunggu habis');e.code=408;rej(e)},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})})}
 
+ /* durasi dan KKM selalu dari sesi guru, bukan dari payload catatan yang bisa diubah siswa lewat API */
+ function fixDur(r){try{var ss=BS.D.sesi.filter(function(x){return x.id===r.sesiId})[0];if(ss){r.dur=(ss.durasi||0)*60;if(ss.kkm!==undefined)r.kkm=ss.kkm}}catch(e){}}
+
  /* Mulai ujian: ambil atau buat catatan di server, lalu jalankan. Gagal terhubung: lanjut dengan jam yang ada dan sinkron menyusul. */
  window.bsMulaiUjian=async function(s,run){
   if(BS.starting||BS.run)return;
@@ -34,7 +37,7 @@
        var ex=await lomba(Cloud.db.getDocument(CFG.DB,COL,rid),8000);
        if(ex.done){toast('Kamu sudah mengerjakan sesi ini');return}
        var p={};try{p=JSON.parse(ex.payload||'{}')}catch(e2){}
-       if(p.ids&&p.ids.length){Object.assign(run,p)}
+       if(p.ids&&p.ids.length){Object.assign(run,p);fixDur(run)}
        run.start=Date.parse(ex.$createdAt)||run.start;run.srv=1;
        toast('Ujian dilanjutkan dari server');
       }catch(e3){}
@@ -111,7 +114,7 @@
   if(BS.D.hasil.some(function(h){return h.sid===S.user.id&&h.sesiId===d.sesiId&&h.mode==='ujian'}))return;
   var p={};try{p=JSON.parse(d.payload||'{}')}catch(e){}
   if(!p.ids||!p.ids.length)return;
-  var r=Object.assign({},p,{start:Date.parse(d.$createdAt)||Jam.now(),sid:S.user.id,rid:d.$id,srv:1,done:0,dirty:0});
+  var r=Object.assign({},p,{start:Date.parse(d.$createdAt)||Jam.now(),sid:S.user.id,rid:d.$id,srv:1,done:0,dirty:0});fixDur(r);
   BS.run=r;BS.resumed=true;
   if(S.tab==='banksoal')BS.sub='run';
   bsRunSave0();

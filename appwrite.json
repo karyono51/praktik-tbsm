@@ -1011,7 +1011,6 @@
       "enabled": true,
       "documentSecurity": false,
       "$permissions": [
-        "create(\"users\")",
         "read(\"label:guru\")",
         "read(\"label:admin\")",
         "delete(\"label:admin\")"
