@@ -231,24 +231,24 @@ async function hapusGanda(){
  toast(ok+' akun ganda dihapus'+(gagal?', '+gagal+' gagal di server':''));
 }
 
-/* PDF lembar UKK: tata letak sama dengan form HTML (identitas, tabel 5 kolom, catatan, tanda tangan penguji) */
+/* PDF lembar UKK: tata letak sama dengan form HTML (identitas praktik, tabel Komponen, Hasil aktual, Standar, Status, Catatan, tanda tangan penguji) */
 function pdfUkk(){
  var ct=$('#catatan');V.catatan=ct?ct.value.trim():'';
  var j=V.job,c=V.res.calc,f=j.form,doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth();
  var multi=V.kel&&V.items&&V.items.length>1,key=V.kel?'*':V.peserta;
  var nama=multi?V.items.map(function(x){return x.nama}).join(', '):(V.peserta||'');
- var hs=(V.hs||{})[key]||{},ck=V.cks[key]||{},penguji=isStaff()?S.user.nama:'';
+ var hs=(V.hs||{})[key]||{},hn=(V.hn||{})[key]||{},ck=V.cks[key]||{},penguji=isStaff()?S.user.nama:'';
  doc.setFont('helvetica','bold').setFontSize(13).text('UJI KOMPETENSI KEAHLIAN',W/2,16,{align:'center'});
  doc.text('Tahun Pelajaran '+f.tahun,W/2,22,{align:'center'});doc.setFont('helvetica','normal');
  var tgl=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
  doc.autoTable({startY:27,theme:'plain',styles:{fontSize:10,cellPadding:1,textColor:0},columnStyles:{0:{cellWidth:46}},body:[
-  ['Satuan Pendidikan',': '+f.satuan],['Konsentrasi Keahlian',': '+f.konsentrasi],['Kode',': '+f.kode],['Alokasi Waktu',': '+j.menit+' Menit'],['Bentuk Soal',': '+f.bentuk],
-  ['Judul Tugas',': '+j.judul+' ('+j.unit+')'],['Nama Siswa',': '+(nama||'………………………………')],['NIS / Kelas',': '+(V.nis||'………………')+' / '+j.kelas],['Tanggal',': '+tgl],['Penguji',': '+(penguji||'………………………………')]]});
+  ['Sekolah',': '+f.satuan],['Konsentrasi keahlian',': '+f.konsentrasi],['Kode',': '+f.kode],['Alokasi waktu',': '+j.menit+' menit'],['Bentuk',': '+f.bentuk],
+  ['Judul tugas',': '+j.judul],['Tipe kendaraan',': '+j.unit],['Nama siswa',': '+(nama||'………………………………')],['NIS / Kelas',': '+(V.nis||'………………')+' / '+j.kelas],['Tanggal',': '+tgl],['Guru/penguji',': '+(penguji||'………………………………')]]});
  doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9,cellPadding:1.8,lineColor:60,lineWidth:.2,textColor:0,valign:'top'},
   headStyles:{fillColor:255,textColor:0,fontStyle:'bold',halign:'center'},
-  columnStyles:{0:{cellWidth:10,halign:'center'},1:{cellWidth:48},2:{cellWidth:56},3:{cellWidth:38},4:{cellWidth:30}},
-  head:[['No','Nama item pekerjaan','Standar/Spesifikasi','Hasil Pemeriksaan','Kesimpulan']],
-  body:j.items.map(function(i){return [i.no,i.t,i.std,hs[i.id]||'',ck[i.id]===1?'Sesuai':(ck[i.id]===0?'Tidak sesuai':'')]})});
+  columnStyles:{0:{cellWidth:44},1:{cellWidth:32},2:{cellWidth:48},3:{cellWidth:22,halign:'center'},4:{cellWidth:36}},
+  head:[['Komponen','Hasil aktual','Standar manual','Status','Catatan']],
+  body:j.items.map(function(i){return [i.no+'. '+i.t+(i.k?' (Wajib)':''),hs[i.id]||'',i.std,ck[i.id]===1?'Sesuai':(ck[i.id]===0?'Tidak sesuai':'Belum diperiksa'),hn[i.id]||'']})});
  var ringkas='Hasil: '+(c.kompeten?'KOMPETEN':'BELUM KOMPETEN')+', skor '+c.score+' (KKM '+S.kkm+'), waktu '+mmss(V.sec)+' dari '+j.menit+' menit';
  doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9.5,cellPadding:2,lineColor:60,lineWidth:.2,textColor:0,minCellHeight:30},
   columnStyles:{0:{cellWidth:118},1:{cellWidth:64,halign:'center'}},

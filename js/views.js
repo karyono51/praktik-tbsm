@@ -106,22 +106,41 @@ function viewBeranda(){
   '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari modul LKPD pertama.</p>')+'</section>'+ob;
 }
 
-/* ---- Form UKK: tampilan sama dengan lembar UKK (identitas + tabel No, Item, Standar, Hasil Pemeriksaan, Kesimpulan) ---- */
+/* ---- Form UKK: tampilan mengikuti tab Lembar Kerja LKPD (Identitas praktik + Hasil pemeriksaan: Komponen, Hasil aktual, Standar, Status, Catatan) ---- */
 function hsOf(){V.hs=V.hs||{};var k=V.kel?'*':V.peserta;return V.hs[k]||(V.hs[k]={})}
+function hnOf(){V.hn=V.hn||{};var k=V.kel?'*':V.peserta;return V.hn[k]||(V.hn[k]={})}
+function ukkStatus(v){return v===1?'Sesuai':(v===0?'Tidak sesuai':'Belum diperiksa')}
 function ukkForm(j){
-  var f=j.form,hs=hsOf(),multi=V.kel&&V.group.length>1;
+  var f=j.form,hs=hsOf(),hn=hnOf(),multi=V.kel&&V.group.length>1;
   var nama=multi?V.group.join(', '):(V.peserta||'');
   var tgl=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-  var idr=[['Satuan Pendidikan',f.satuan],['Konsentrasi Keahlian',f.konsentrasi],['Kode',f.kode],['Alokasi Waktu',j.menit+' Menit'],['Bentuk Soal',f.bentuk],['Judul Tugas',j.judul+' ('+j.unit+')'],['Nama Siswa',nama||'.........'],['NIS / Kelas','<input id="ukknis" class="ukk-nis" value="'+esc(V.nis||'')+'" placeholder="NIS" aria-label="NIS"> / '+j.kelas],['Tanggal',tgl],['Penguji',isStaff()?esc(S.user.nama):'Latihan mandiri']];
-  var head='<div class="card ukk-head"><h3 class="center" style="margin:0">UJI KOMPETENSI KEAHLIAN<br>Tahun Pelajaran '+f.tahun+'</h3><div class="ukk-id">'+idr.map(function(r){return '<span>'+r[0]+'</span><span>: '+(r[0]==='NIS / Kelas'?r[1]:esc(r[1]))+'</span>'}).join('')+'</div></div>';
+  var ro=function(l,v,w){return '<label class=\"f'+(w?' wide':'')+'\">'+l+'<input value=\"'+esc(v)+'\" readonly></label>'};
+  var idc='<section class=\"card\"><h2>Identitas praktik</h2><p class=\"note\">Uji Kompetensi Keahlian · Tahun Pelajaran '+esc(f.tahun)+' · Kode '+esc(f.kode)+'</p><div class=\"formgrid\">'+
+    ro('Sekolah',f.satuan)+ro('Konsentrasi keahlian',f.konsentrasi)+ro('Nama siswa',nama,1)+
+    '<label class=\"f\">NIS<input id=\"ukknis\" value=\"'+esc(V.nis||'')+'\" placeholder=\"NIS\"></label>'+
+    ro('Kelas',j.kelas)+ro('Tanggal',tgl)+ro('Tipe kendaraan',j.unit)+ro('Guru/penguji',isStaff()?S.user.nama:'Latihan mandiri')+
+    ro('Alokasi waktu',j.menit+' menit')+ro('Bentuk',f.bentuk)+'</div></section>';
   var rows=j.items.map(function(i){var v=V.checks[i.id];
-    return '<tr class="ukk-row" data-id="'+i.id+'" data-v="'+(v===undefined?'':v)+'"><td data-l="No">'+i.no+'</td><td data-l="Nama item pekerjaan">'+esc(i.t)+(i.k?' <span class="pill warn">Wajib</span>':'')+'</td><td data-l="Standar/Spesifikasi">'+esc(i.std)+'</td>'+
-      '<td data-l="Hasil Pemeriksaan"><input data-hs="'+i.id+'" value="'+esc(hs[i.id]||'')+'" placeholder="Nilai ukur / hasil" aria-label="Hasil pemeriksaan '+i.no+'"></td>'+
-      '<td data-l="Kesimpulan"><div class="yn"><button type="button" class="y" data-act="chk" data-id="'+i.id+'" data-v="1" aria-pressed="'+(v===1)+'">Sesuai</button><button type="button" class="n" data-act="chk" data-id="'+i.id+'" data-v="0" aria-pressed="'+(v===0)+'">Tidak sesuai</button></div></td></tr>'}).join('');
-  return head+'<div class="ukk-w"><table class="ukk"><thead><tr><th>No</th><th>Nama item pekerjaan</th><th>Standar/Spesifikasi</th><th>Hasil Pemeriksaan</th><th>Kesimpulan</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    var opt=function(x){return '<option'+(ukkStatus(v)===x?' selected':'')+'>'+x+'</option>'};
+    return '<tr class=\"ukk-row\" data-id=\"'+i.id+'\" data-v=\"'+(v===undefined?'':v)+'\">'+
+      '<td data-label=\"Komponen\">'+i.no+'. '+esc(i.t)+(i.k?' <span class=\"pill warn\">Wajib</span>':'')+'</td>'+
+      '<td data-label=\"Hasil aktual\"><input data-hs=\"'+i.id+'\" value=\"'+esc(hs[i.id]||'')+'\" placeholder=\"Nilai ukur / hasil\" aria-label=\"Hasil aktual '+i.no+'\"></td>'+
+      '<td data-label=\"Standar manual\">'+esc(i.std)+'</td>'+
+      '<td data-label=\"Status\"><select data-ukst=\"'+i.id+'\" aria-label=\"Status '+i.no+'\">'+opt('Belum diperiksa')+opt('Sesuai')+opt('Tidak sesuai')+'</select></td>'+
+      '<td data-label=\"Catatan\"><input data-hn=\"'+i.id+'\" value=\"'+esc(hn[i.id]||'')+'\" aria-label=\"Catatan '+i.no+'\"></td></tr>'}).join('');
+  return idc+'<section class=\"card\"><h2>Hasil pemeriksaan</h2><p class=\"note\">'+esc(j.judul)+'. Status Sesuai berarti butir terpenuhi dan dihitung dalam skor.</p><div class=\"tablewrap\"><table class=\"ukk\"><thead><tr><th>Komponen</th><th>Hasil aktual</th><th>Standar manual</th><th>Status</th><th>Catatan</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>';
 }
 document.addEventListener('input',function(e){
   var t=e.target;if(!t||V.mode!=='exam')return;
   if(t.dataset&&t.dataset.hs)hsOf()[t.dataset.hs]=t.value;
+  else if(t.dataset&&t.dataset.hn)hnOf()[t.dataset.hn]=t.value;
   else if(t.id==='ukknis')V.nis=t.value;
+});
+document.addEventListener('change',function(e){
+  var t=e.target;if(!t||V.mode!=='exam'||!t.dataset||!t.dataset.ukst)return;
+  var val=t.value==='Sesuai'?1:(t.value==='Tidak sesuai'?0:null),id=t.dataset.ukst;
+  if(val===null)delete V.checks[id];else V.checks[id]=val;
+  if(val!==null&&!V.running&&!timer&&V.sec===0){startTimer();var tb=$('#tbtn');if(tb)tb.textContent='Jeda'}
+  var row=t.closest('.ukk-row');if(row)row.dataset.v=val===null?'':val;
+  syncProg();
 });
