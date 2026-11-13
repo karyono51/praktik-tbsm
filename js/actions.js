@@ -17,6 +17,15 @@ function startExam(id,keep){
   if(keep&&isStaff()){V.group=keep.group.slice();V.kel=keep.kel;V.peserta=V.group[0]||'';V.cks={};V.group.forEach(function(n){V.cks[n]={}});V.cks['*']={};V.cks[V.peserta]=V.cks[V.peserta]||{};V.checks=curChecks()}
   render();window.scrollTo(0,0);
 }
+function finishExam(){
+    stopTimer();
+    var ps=$('#peserta');if(ps&&!isStaff()){V.peserta=ps.value.trim();V.group=[V.peserta];V.cks[V.peserta]=V.checks}
+    if(actRole()==='siswa'){S.siswaName=V.peserta;persist()}
+    var nm=nameList();
+    V.items=nm.map(function(n){return {nama:n,calc:calc(V.job,V.kel?V.cks['*']:(V.cks[n]||{}),S.kkm)}});
+    V.rc=0;V.peserta=V.items[0].nama;V.res={calc:V.items[0].calc};V.catatan=V.notes[noteKey()]||'';
+    V.mode='result';render();window.scrollTo(0,0);
+}
 function addMember(n){
   if(!n||V.group.indexOf(n)>-1)return;
   V.group.push(n);V.cks[n]=V.cks[n]||{};
@@ -61,15 +70,7 @@ document.addEventListener('click',function(e){
     var inp=$('#newsiswa'),nm=inp.value.trim();if(!nm){inp.focus();return}
     quickSiswa(nm,V.job.kelas);addMember(nm);toast('Siswa ditambahkan');
   }
-  else if(a==='finish'){
-    stopTimer();
-    var ps=$('#peserta');if(ps&&!isStaff()){V.peserta=ps.value.trim();V.group=[V.peserta];V.cks[V.peserta]=V.checks}
-    if(actRole()==='siswa'){S.siswaName=V.peserta;persist()}
-    var nm=nameList();
-    V.items=nm.map(function(n){return {nama:n,calc:calc(V.job,V.kel?V.cks['*']:(V.cks[n]||{}),S.kkm)}});
-    V.rc=0;V.peserta=V.items[0].nama;V.res={calc:V.items[0].calc};V.catatan=V.notes[noteKey()]||'';
-    V.mode='result';render();window.scrollTo(0,0);
-  }
+  else if(a==='finish'){finishExam()}
   else if(a==='redo'){var j=V.job,keep={group:nameList().slice(),kel:!!V.kel};startExam(j.id,keep)}
   else if(a==='save'){
     stashNote();

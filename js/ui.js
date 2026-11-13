@@ -203,7 +203,7 @@ function drOpen(on){
 window.addEventListener('popstate',function(){if(drIsOpen())drSet(false)});
 function leaveExam(el){
  if(V.mode==='list')return true;
- if(V.mode==='exam'&&anyChecked()&&!uiOk('leave','Tinggalkan penilaian ini?\nIsian yang belum disimpan akan hilang.',el,{ok:'Tinggalkan',danger:true}))return false;
+ if(V.mode==='exam'&&anyChecked()&&!uiOk('leave',V.t0?'Waktu tetap berjalan dan tidak bisa dijeda.\nIsian tersimpan otomatis; lanjutkan dari daftar unit sebelum waktu habis.':'Tinggalkan penilaian ini?\nIsian yang belum disimpan akan hilang.',el,{ok:'Tinggalkan',danger:true}))return false;
  stopTimer();V.mode='list';return true;
 }
 document.addEventListener('click',async function(e){

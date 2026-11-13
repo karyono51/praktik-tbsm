@@ -1,17 +1,19 @@
 function viewKatalog(){
   var kb=kelasBoleh();if(kb.indexOf(S.kelas)<0)S.kelas=kb[0];
-  var k=KELAS[S.kelas];
-  var jobs=JOBS.filter(function(j){return j.kelas===S.kelas}).map(function(j){
+  var k=KELAS[S.kelas],staff=isStaff();
+  var pn=staff?ukkPanel():'';if(pn)return pn;
+  var list=JOBS.filter(function(j){return j.kelas===S.kelas&&(staff||ukkTampil(j))});
+  var jobs=list.map(function(j){
     var l=lastFor(j.id),st='<span class="pill plain">Belum dicoba</span>';
     if(l)st='<span class="pill '+(l.kompeten?'ok':'bad')+'">'+(l.kompeten?'Kompeten':'Belum kompeten')+' · '+l.score+'</span>';
     var wajib=j.items.filter(function(i){return i.k}).length;
     return '<article class="card job '+(l?(l.kompeten?'st-ok':'st-bad'):'')+'"><div class="row sb"><h3 class="grow">'+esc(j.judul)+'</h3></div>'+
       '<div class="meta"><span>'+esc(j.unit)+'</span><span class="mono">'+j.menit+' menit</span><span>'+j.items.length+' butir, '+wajib+' wajib</span></div>'+
-      (j.skkni?'<div><span class="pill plain mono" title="Kode unit SKKNI">SKKNI '+j.skkni+'</span></div>':'')+
-      '<div class="row sb">'+st+'<button type="button" class="btn primary small" data-act="start" data-v="'+j.id+'">'+(isStaff()?'Nilai siswa':'Mulai latihan')+'</button></div></article>';
+      (j.skkni?'<div><span class="pill plain mono" title="Kode unit SKKNI">SKKNI '+esc(j.skkni)+'</span></div>':'')+ukkCardInfo(j)+
+      '<div class="row sb" style="flex-wrap:wrap;gap:8px">'+st+'</div>'+ukkCardAction(j)+'</article>';
   }).join('');
-  return '<div class="row sb"><div><h2>'+k.judul+'</h2><p class="note">'+k.sub+'</p></div><span class="pill plain">'+JOBS.filter(function(j){return j.kelas===S.kelas}).length+' unit</span></div>'+
-    '<p class="note">'+(isStaff()?'Mode guru: menilai siswa dengan rubrik. Hasil tercatat sebagai Penilaian.':'Mode siswa: latihan mandiri dengan pengukur waktu. Hasil tercatat sebagai Latihan.')+' '+(kb.length>1?'Ganti kelas lewat menu di dasbor.':'Unit di sini khusus kelas kamu.')+'</p><div class="jobs">'+(jobs||'<div class="card"><p class="muted">Belum ada unit uji untuk kelas ini.</p></div>')+'</div>';
+  return '<div class="row sb"><div><h2>'+k.judul+'</h2><p class="note">'+k.sub+'</p></div><span class="pill plain">'+list.length+' unit</span></div>'+
+    '<p class="note">'+(staff?'Mode guru: menilai siswa dengan rubrik, dan mengelola unit UKK (edit butir, pengaturan tampil, kesempatan, jadwal). Hasil tercatat sebagai Penilaian.':'Mode siswa: latihan mandiri dengan pengukur waktu. Hasil tercatat sebagai Latihan.')+' '+(kb.length>1?'Ganti kelas lewat menu di dasbor.':'Unit di sini khusus kelas kamu.')+'</p>'+ukkTopBar()+'<div class="jobs">'+(jobs||'<div class="card"><p class="muted">Belum ada unit uji untuk kelas ini.</p></div>')+'</div>';
 }
 
 function viewExam(){
@@ -43,8 +45,8 @@ function viewExam(){
   var total=j.items.length,done=Object.keys(V.checks).length;
   return '<div class="row"><button type="button" class="btn small" data-act="back">Kembali</button><span class="pill">Kelas '+j.kelas+' · Fase '+KELAS[j.kelas].fase+'</span></div>'+
     '<div class="card"><h2>'+esc(j.judul)+'</h2>'+(isStaff()&&V.group.length&&!V.kel?'<div class="pill" style="align-self:flex-start">Menilai: '+esc(V.peserta)+'</div>':'')+'<div class="meta muted" style="font-size:13px">'+esc(j.unit)+' · target '+j.menit+' menit'+(j.skkni?' · SKKNI '+j.skkni:'')+'</div>'+pes+
-    '<p class="note">Butir bertanda Wajib menyangkut keselamatan atau ketepatan kerja. Satu butir wajib yang belum terpenuhi membuat hasil Belum Kompeten, berapa pun skornya. Waktu berjalan otomatis begitu kamu mulai mengisi.</p></div>'+groups+
-    '<div class="bar"><div class="in"><div><div class="mono" style="font-size:20px;font-weight:600" id="clock">'+mmss(V.sec)+'</div><div class="note"><span id="prog">'+done+'</span>/'+total+' butir terisi</div><div class="note" id="gcount">'+esc(gcText())+'</div></div>'+
+    '<p class="note">Butir bertanda Wajib menyangkut keselamatan atau ketepatan kerja. Satu butir wajib yang belum terpenuhi membuat hasil Belum Kompeten, berapa pun skornya. Waktu ('+j.menit+' menit) berjalan otomatis begitu butir pertama diisi, tidak bisa dijeda, dan berhenti hanya saat Hitung hasil ditekan atau waktu habis.</p><p class="note" id="ujisyarat" hidden></p></div>'+groups+
+    '<div class="bar"><div class="in"><div><div class="mono" style="font-size:20px;font-weight:600" id="clock">'+mmss(Math.max(0,j.menit*60-V.sec))+'</div><div class="note" id="clocknote">'+(V.t0?'Sisa waktu':'Mulai otomatis')+'</div><div class="note"><span id="prog">'+done+'</span>/'+total+' butir terisi</div><div class="note" id="gcount">'+esc(gcText())+'</div></div>'+
     '<div class="row"><button type="button" class="btn small" data-act="uji-print" aria-label="Cetak lembar penilaian">Cetak</button><button type="button" class="btn primary" data-act="finish" id="fin"'+(groupComplete()?'':' disabled')+'>Hitung hasil</button></div></div></div>';
 }
 
