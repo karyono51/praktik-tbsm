@@ -99,6 +99,32 @@ JOBS.forEach(function(j){
 /* Unit uji dihapus dari katalog: daftar lama disimpan di JOBS_ARSIP hanya agar nilai lama dan kode SKKNI LKPD tetap bisa diberi nama.
    Untuk memulihkan katalog, hapus baris 'JOBS=[]' di bawah. */
 var JOBS_ARSIP=JOBS;JOBS=[];
+/* Unit Uji Kompetensi Keahlian (UKK) 2026/2027, SMKS, kode KM25.2.2.2, 20 menit, praktik perorangan.
+   Tiap item pada lembar UKK menjadi butir proses kerja (aspek R); kolom Hasil Pemeriksaan dan Kesimpulan dinilai pada aspek Hasil. */
+var HASIL_UKK=[['Hasil pemeriksaan tiap item dicatat dengan nilai ukur dan satuan yang benar',0],['Kesimpulan tiap item (layak atau tidak layak, perlu tindakan) ditulis sesuai standar',0]];
+JOBS=[
+ {id:"UKK-1",kelas:'XII',judul:"Perawatan Berkala Engine Injeksi 4 Tak",unit:"Honda Vario KZR",menit:20,
+  steps:[["Baterai. Standar: Tegangan 13,0–13,2 V (penuh); perlu diisi bila di bawah 12,3 V",0],["Oli mesin. Standar: 0,8 L (ganti periodik); 0,9 L (setelah bongkar mesin)",0],["Oli transmisi matic (final drive). Standar: 0,12 L (ganti periodik); 0,14 L (setelah bongkar)",0],["Saringan oli (kasa dan sentrifugal). Standar: Bersih, tidak tersumbat",0],["Air radiator/coolant. Standar: 0,51 L; level di antara batas atas dan bawah",0],["Celah klep. Standar: IN 0,10 ± 0,02 mm; EX 0,24 ± 0,02 mm",0],["Filter udara. Standar: Bersih, tidak sobek, tidak basah oli",0],["Busi. Standar: NGK CPR7EA-9 / Denso U22EPR-9; celah 0,8–0,9 mm",0],["Idle speed. Standar: 1.700 ± 100 rpm",0],["Throttle gas. Standar: Jarak main bebas handel gas 2–6 mm",0],["Saluran dan tekanan bahan bakar. Standar: Tekanan 294 kPa; aliran pompa min. 98 cm³/10 detik; tidak bocor",0],["Sistem injeksi dan reset kerusakan. Standar: Tidak ada kode kerusakan setelah reset",0],["Suspensi depan: kebocoran oli shock. Standar: Tidak bocor",0],["Suspensi depan: kerja (tekan-lepas). Standar: Bekerja halus, tidak macet",0],["Suspensi belakang: kebocoran shock. Standar: Tidak bocor",0],["Suspensi belakang: kerja shock. Standar: Bekerja halus, tidak macet",0]],
+  hasil:HASIL_UKK.map(function(h){return h.slice()})},
+ {id:"UKK-2",kelas:'XII',judul:"Perawatan Berkala Sistem CVT",unit:"Honda Beat Pop",menit:20,
+  steps:[["Melepas komponen CVT. Standar: Sesuai prosedur, komponen tidak rusak",0],["V-belt (lebar dan keausan). Standar: Lebar standar 18,5 mm; batas servis 17,5 mm",0],["Roller weight (diameter dan keausan). Standar: Diameter 17,92–18,08 mm; batas servis 17,3 mm; bobot 15 g",0],["Weight set clutch (kampas dan pegas). Standar: Tebal kanvas batas servis 2,0 mm; pegas tidak patah/lemah",0],["Puli primer. Standar: Ukuran boss dan bushing dalam batas servis (sesuai buku manual)",0],["Puli sekunder. Standar: Ukuran boss dan bushing dalam batas servis (sesuai buku manual)",0],["Mangkok kopling CVT (diameter dalam dan keausan). Standar: 112,0–112,2 mm; batas servis 112,5 mm",0],["Per CVT (panjang bebas dan kekenduran). Standar: Panjang bebas 127,5 mm; batas servis 124,7 mm",0],["Memasang komponen CVT. Standar: Sesuai prosedur, torsi baut sesuai buku manual",1]],
+  hasil:HASIL_UKK.map(function(h){return h.slice()})},
+ {id:"UKK-3",kelas:'XII',judul:"Perawatan Berkala Sistem Rem",unit:"Honda Supra X 125 Karburator",menit:20,
+  steps:[["Drive chain dan sprocket. Standar: Kekenduran rantai 25–35 mm",0],["Rem depan: jarak main bebas handel rem. Standar: 10–20 mm",0],["Rem depan: ketebalan kampas rem (pad). Standar: Di atas batas servis (sesuai buku manual)",0],["Rem depan: kondisi dan ketebalan piringan (disc). Standar: Tebal 3,8–4,2 mm; batas servis 3,0 mm; keolengan maks. 0,30 mm",0],["Rem depan: level dan kondisi minyak rem. Standar: Level di antara batas, tidak keruh",0],["Rem depan: kebocoran selang, kaliper, master rem. Standar: Tidak bocor",1],["Rem belakang: jarak main bebas pedal. Standar: 20–30 mm",0],["Rem belakang: indikator keausan kampas. Standar: Tanda indikator belum mencapai batas",0],["Rem belakang: penyetelan jarak main bebas. Standar: Hasil setel 20–30 mm",0],["Rem belakang: diameter dalam tromol (jangka sorong). Standar: 110,0 mm; batas servis 111,0 mm",0],["Sistem kemudi: kebebasan putaran stang. Standar: Berputar halus kiri-kanan, tidak seret",0],["Sistem kemudi: kelonggaran bantalan kemudi. Standar: Tidak longgar, tidak berbunyi",0],["Keolengan roda. Standar: Dalam batas servis (sesuai buku manual)",0]],
+  hasil:HASIL_UKK.map(function(h){return h.slice()})},
+ {id:"UKK-4",kelas:'XII',judul:"Perawatan Berkala Sistem Kelistrikan Bodi",unit:"Honda Supra Fit",menit:20,
+  steps:[["Lampu kepala: lampu jauh menyala. Standar: Menyala normal",0],["Lampu kepala: lampu dekat menyala. Standar: Menyala normal",0],["Lampu kepala: kondisi bohlam dan soket. Standar: Daya bohlam sesuai buku manual; soket tidak meleleh/kotor",0],["Lampu sein: sein kanan. Standar: Menyala dan berkedip normal; bohlam 12 V 10 W",0],["Lampu sein: sein kiri. Standar: Menyala dan berkedip normal; bohlam 12 V 10 W",0],["Lampu sein: kondisi flasher. Standar: Berkedip teratur",0],["Lampu sein: kondisi sakelar sein. Standar: Berfungsi kanan, kiri, dan netral",0],["Sistem starter: sakelar starter. Standar: Ada kontinuitas saat ditekan",0],["Sistem starter: relay starter. Standar: Kerja relay sesuai buku manual",0],["Sistem starter: kerja motor starter. Standar: Berputar normal, tidak lemah",0]],
+  hasil:HASIL_UKK.map(function(h){return h.slice()})}
+];
+JOBS.forEach(function(j){
+  var it=[],n=0;
+  COMMON_P.forEach(function(c){it.push({id:j.id+'-'+(n++),a:'P',t:c[0],k:!!c[1]})});
+  j.steps.forEach(function(c){it.push({id:j.id+'-'+(n++),a:'R',t:c[0],k:!!c[1]})});
+  j.hasil.forEach(function(c){it.push({id:j.id+'-'+(n++),a:'H',t:c[0],k:!!c[1]})});
+  COMMON_S.forEach(function(c){it.push({id:j.id+'-'+(n++),a:'S',t:c,k:false})});
+  j.items=it;
+});
+JOBS_ARSIP=JOBS_ARSIP.concat(JOBS);
 function jobById(id){return JOBS.filter(function(j){return j.id===id})[0]||JOBS_ARSIP.filter(function(j){return j.id===id})[0]}
 
 /* ===== Penilaian: kompeten bila semua butir wajib terpenuhi dan skor >= KKM ===== */
