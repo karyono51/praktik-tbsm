@@ -71,7 +71,7 @@ function lktSync(){
  /* Mengisi LKPD: memulai timer, dan melanjutkannya bila terjeda (Latihan). Ujian: memulai bila belum jalan. */
  function auto(e){
   var t=e.target;
-  if(!t.matches||!t.matches('[data-lk-field],[data-lk-check],[data-lk-answer]'))return;
+  if(!t.matches||!t.matches('[data-lk-field],[data-lk-check],[data-lk-answer],[data-lk-yn]'))return;
   if(!LKT.running)lktStart();
  }
  document.addEventListener('input',auto);
