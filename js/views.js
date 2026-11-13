@@ -41,11 +41,11 @@ function viewExam(){
     pes='<label class="f">Nama kamu<input id="peserta" value="'+esc(V.peserta)+'" placeholder="Nama lengkap" autocomplete="name" readonly></label>';
   }
   var total=j.items.length,done=Object.keys(V.checks).length;
-  return '<div class="row"><button type="button" class="btn small" data-act="back">Kembali</button><span class="pill">Kelas '+j.kelas+' · Fase '+KELAS[j.kelas].fase+'</span><button type="button" class="btn small" data-act="uji-print" aria-label="Cetak lembar penilaian" style="margin-left:auto">Cetak</button></div>'+
+  return '<div class="row"><button type="button" class="btn small" data-act="back">Kembali</button><span class="pill">Kelas '+j.kelas+' · Fase '+KELAS[j.kelas].fase+'</span></div>'+
     '<div class="card"><h2>'+esc(j.judul)+'</h2>'+(isStaff()&&V.group.length&&!V.kel?'<div class="pill" style="align-self:flex-start">Menilai: '+esc(V.peserta)+'</div>':'')+'<div class="meta muted" style="font-size:13px">'+esc(j.unit)+' · target '+j.menit+' menit'+(j.skkni?' · SKKNI '+j.skkni:'')+'</div>'+pes+
-    '<p class="note">Butir bertanda Wajib menyangkut keselamatan atau ketepatan kerja. Satu butir wajib yang belum terpenuhi membuat hasil Belum Kompeten, berapa pun skornya.</p></div>'+groups+
+    '<p class="note">Butir bertanda Wajib menyangkut keselamatan atau ketepatan kerja. Satu butir wajib yang belum terpenuhi membuat hasil Belum Kompeten, berapa pun skornya. Waktu berjalan otomatis begitu kamu mulai mengisi.</p></div>'+groups+
     '<div class="bar"><div class="in"><div><div class="mono" style="font-size:20px;font-weight:600" id="clock">'+mmss(V.sec)+'</div><div class="note"><span id="prog">'+done+'</span>/'+total+' butir terisi</div><div class="note" id="gcount">'+esc(gcText())+'</div></div>'+
-    '<div class="row"><button type="button" class="btn small" data-act="timer" id="tbtn">'+(V.running?'Jeda':'Mulai waktu')+'</button><button type="button" class="btn primary" data-act="finish" id="fin"'+(groupComplete()?'':' disabled')+'>Hitung hasil</button></div></div></div>';
+    '<div class="row"><button type="button" class="btn small" data-act="uji-print" aria-label="Cetak lembar penilaian">Cetak</button><button type="button" class="btn primary" data-act="finish" id="fin"'+(groupComplete()?'':' disabled')+'>Hitung hasil</button></div></div></div>';
 }
 
 function viewResult(){
@@ -132,6 +132,7 @@ function ukkForm(j){
 }
 document.addEventListener('input',function(e){
   var t=e.target;if(!t||V.mode!=='exam')return;
+  if(t.dataset&&(t.dataset.hs||t.dataset.hn)&&t.value&&!V.running&&!timer&&V.sec===0)startTimer();
   if(t.dataset&&t.dataset.hs)hsOf()[t.dataset.hs]=t.value;
   else if(t.dataset&&t.dataset.hn)hnOf()[t.dataset.hn]=t.value;
   else if(t.id==='ukknis')V.nis=t.value;
@@ -140,7 +141,7 @@ document.addEventListener('change',function(e){
   var t=e.target;if(!t||V.mode!=='exam'||!t.dataset||!t.dataset.ukst)return;
   var val=t.value==='Sesuai'?1:(t.value==='Tidak sesuai'?0:null),id=t.dataset.ukst;
   if(val===null)delete V.checks[id];else V.checks[id]=val;
-  if(val!==null&&!V.running&&!timer&&V.sec===0){startTimer();var tb=$('#tbtn');if(tb)tb.textContent='Jeda'}
+  if(val!==null&&!V.running&&!timer&&V.sec===0)startTimer();
   var row=t.closest('.ukk-row');if(row)row.dataset.v=val===null?'':val;
   syncProg();
 });

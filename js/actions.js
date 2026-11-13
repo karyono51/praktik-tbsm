@@ -52,12 +52,11 @@ document.addEventListener('click',function(e){
   else if(a==='rtab'){stashNote();V.rc=parseInt(v,10);V.peserta=V.items[V.rc].nama;V.res.calc=V.items[V.rc].calc;V.catatan=V.notes[noteKey()]||'';render();window.scrollTo(0,0)}
   else if(a==='chk'){
     var val=parseInt(v,10);V.checks[b.dataset.id]=val;
-    if(!V.running&&!timer&&V.sec===0)startTimer(),$('#tbtn').textContent='Jeda';
+    if(!V.running&&!timer&&V.sec===0)startTimer();
     var card=b.closest('.item,.ukk-row');card.dataset.v=val;
     $$('button',card).forEach(function(x){x.setAttribute('aria-pressed',String(parseInt(x.dataset.v,10)===val))});
     syncProg();
   }
-  else if(a==='timer'){if(V.running){stopTimer();b.textContent='Lanjut'}else{startTimer();b.textContent='Jeda'}}
   else if(a==='addsiswa'){
     var inp=$('#newsiswa'),nm=inp.value.trim();if(!nm){inp.focus();return}
     quickSiswa(nm,V.job.kelas);addMember(nm);toast('Siswa ditambahkan');
