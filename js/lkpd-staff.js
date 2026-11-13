@@ -149,3 +149,25 @@ document.addEventListener('click',function(e){
  if(!b||!lksOn()||!LKS.id)return;
  setTimeout(function(){if(!LKM.edit&&LKS.tab==='atur'){LKS.tab='kumpul';render()}},0);
 },true);
+
+/* Tombol Tampilkan/Sembunyikan dan ceklis "Tampilkan ke siswa" di Pengaturan selalu sama.
+   - Tombol ditekan: ceklis ikut berubah (sebelumnya salinan lama, dan Simpan bisa menimpa balik).
+   - Ceklis diubah: status modul langsung berubah, tombol dan label ikut. */
+document.addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-act="lk-toggle"]');
+ if(!b||!lksOn())return;
+ var id=b.dataset.v;
+ setTimeout(function(){
+  var m=(LKPD_MODULES||[]).find(function(x){return x.id===id});
+  if(m&&LKM.d&&LKM.edit===id){LKM.d.tampil=lkmPub(m);render()}
+ },0);
+},true);
+document.addEventListener('change',function(e){
+ var t=e.target;
+ if(!t||!t.dataset||t.dataset.lkm!=='tampil'||!lksOn()||!LKS.id||!isStaff())return;
+ var src=(LKPD_MODULES||[]).find(function(x){return x.id===LKS.id});if(!src)return;
+ var cp=lkSerialize(src);cp.status=t.checked?'published':'draft';cp.active=!!t.checked;
+ lkModuleStore(cp);
+ if(LKM.d)LKM.d.tampil=!!t.checked;
+ render();
+},true);
