@@ -94,10 +94,24 @@ function lksHub(){
   lksTabs()+body;
 }
 
+
+/* Perbaikan sekali jalan: modul bawaan yang sudah terlanjur disembunyikan belum bisa dibaca siswa, sehingga di sisi siswa
+   modul itu kembali memakai versi bawaan (tampil). Tandai agar izin baca ikut diperbarui saat sinkron berikutnya. */
+function lksHeal(){
+ try{
+  if(!Cloud.on||!S.user||!isStaff()||localStorage.getItem('tbsm-permfix-1'))return;
+  var ms=S.lkpdModules||[];if(!ms.length)return;
+  var n=0;ms.forEach(function(m){if(lkBuiltin(m.id)&&(m.status!=='published'||m.active===false)&&m.r){m.d=1;n++}});
+  localStorage.setItem('tbsm-permfix-1','1');
+  if(n){lkSaveModules()}
+ }catch(e){}
+}
+
 /* ---------- Pengganti viewLKPD untuk guru/admin ---------- */
 var _lksView=viewLKPD;
 viewLKPD=function(){
  if(!lksOn())return _lksView();
+ lksHeal();
  if(LK.detail||LK.editor){LKA.id=null;return _lksView()}
  if(LK.open&&LK.tab==='editor'){LK.open=false;LK.tab='materi'}   /* daftar Editor Guru lama tidak dipakai lagi */
  if(LK.open){LKA.id=null;return _lksView()}                      /* pratinjau dan rekap semua modul */
