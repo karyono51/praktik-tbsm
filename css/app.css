@@ -333,3 +333,5 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 .lk-yn-opt input{width:20px;height:20px;margin:0;accent-color:var(--accent)}
 .lk-yn-opt label:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
 @media print{.lk-yn{border:0!important;padding:2px 0!important;flex-direction:row;justify-content:space-between;margin:0}.lk-yn-opt label{border:0;padding:0;min-height:0;flex:0 0 auto}}
+/* v71: aksi kartu Rekap LKPD */
+.rk-acts{justify-content:flex-start;gap:8px}.rk-acts .btn{margin-left:auto}
