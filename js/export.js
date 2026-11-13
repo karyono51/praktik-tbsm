@@ -11,13 +11,17 @@ function dl(wb,name){XLSX.writeFile(wb,name+'_'+new Date().toISOString().slice(0
 function book(pairs,name){var wb=XLSX.utils.book_new();pairs.forEach(function(p){XLSX.utils.book_append_sheet(wb,sheet(p[1],p[2]),p[0])});dl(wb,name)}
 
 /* ---------- Akun: impor ---------- */
+function cariAkun(un,email){
+ un=String(un||'').trim().toLowerCase();email=String(email||'').trim().toLowerCase();
+ return S.users.find(function(u){return (un&&String(u.username||'').toLowerCase()===un)||(email&&String(u.email||'').toLowerCase()===email)})||null;
+}
 async function parseAkun(f){
  if(!needX())throw new Error('Pustaka Excel belum termuat.');
  var wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
  var raw=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false});
  if(!raw.length)throw new Error('File kosong atau header tidak terbaca.');
  if(raw.length>1000)throw new Error('Maksimal 1000 baris per impor.');
- var ok=[],err=[],seen={};
+ var ok=[],err=[],seen={},skip=0;
  raw.forEach(function(r0,i){
   var line=i+2,r={},any=false;
   Object.keys(r0).forEach(function(k){var c=HM[String(k).toLowerCase().replace(/[^a-z0-9]/g,'')],v=String(r0[k]).trim();if(v)any=true;if(c)r[c]=v});
@@ -35,16 +39,24 @@ async function parseAkun(f){
   var keys=[un,email].filter(Boolean);
   if(keys.some(function(k){return seen[k]}))return bad('Duplikat di dalam file: '+(email||un));
   keys.forEach(function(k){seen[k]=1});
-  var ex=S.users.find(function(u){return u.username===un||(email&&u.email===email)});
-  ok.push({line:line,nama:nama,username:un,email:email,pw:r.pw||'',peran:peran,kelas:kelas,aktif:normAktif(r.aktif),id:ex?ex.id:null});
+  var ex=cariAkun(un,email),akt=normAktif(r.aktif);
+  if(ex&&!r.pw&&String(ex.nama||'').trim()===nama&&(!email||String(ex.email||'').toLowerCase()===email)&&ex.peran===peran&&(ex.kelas||'')===kelas&&(ex.aktif!==false)===akt){skip++;return}
+  ok.push({line:line,nama:nama,username:un,email:email,pw:r.pw||'',peran:peran,kelas:kelas,aktif:akt,id:ex?ex.id:null});
  });
- if(!ok.length&&!err.length)throw new Error('Tidak ada baris data. Pakai template dari tombol Template.');
- return {ok:ok,err:err};
+ if(!ok.length&&!err.length&&!skip)throw new Error('Tidak ada baris data. Pakai template dari tombol Template.');
+ return {ok:ok,err:err,skip:skip};
 }
 async function applyImport(){
+ if(A.impBusy||!A.imp)return;
+ A.impBusy=true;
+ var imp=A.imp;A.imp=null;
+ try{await applyImport2(imp)}finally{A.impBusy=false}
+}
+async function applyImport2(imp){
  var out=[],hasGen=false,nl=0,stopL=false;
- for(var i=0;i<A.imp.ok.length;i++){
-  var r=A.imp.ok[i],u=r.id&&S.users.find(function(x){return x.id===r.id}),gen='',st='';
+ for(var i=0;i<imp.ok.length;i++){
+  var r=imp.ok[i],u=(r.id&&S.users.find(function(x){return x.id===r.id}))||cariAkun(r.username,r.email),gen='',st='';
+  r.id=u?u.id:null;
   if(u){
    if(u.id===S.user.id){r.peran=u.peran;r.aktif=true}
    Object.assign(u,{nama:r.nama,email:r.email||u.email,peran:r.peran,kelas:r.kelas,aktif:r.aktif});u.d=1;
@@ -60,10 +72,10 @@ async function applyImport(){
   }
   out.push([r.nama,u.username,u.email,peranLabel(u.peran),u.kelas,r.id?'Diperbarui':'Baru',gen||(Cloud.on?(st||'(daftar sendiri dengan email ini)'):'(sesuai file)')]);
  }
- var n=A.imp.ok.length;A.imp=null;persist();
+ var n=imp.ok.length;persist();
  if(hasGen&&needX())book([['Hasil impor',[['Nama','Username','Email','Peran','Kelas','Status','Sandi awal']].concat(out),[26,18,28,9,7,12,30]]],'Hasil_Impor_Akun');
  if(Cloud.on&&out.some(function(o){return /GAGAL|dilewati/.test(o[6])})&&needX())book([['Hasil impor',[['Nama','Username','Email','Peran','Kelas','Status','Login']].concat(out),[26,18,28,9,7,12,40]]],'Hasil_Impor_Akun');
- toast(n+' akun diproses'+(hasGen?', daftar sandi awal diunduh':'')+(nl?', '+nl+' akun login dibuat':''));
+ toast(n+' akun diproses'+(imp.skip?', '+imp.skip+' yang sama dilewati':'')+(hasGen?', daftar sandi awal diunduh':'')+(nl?', '+nl+' akun login dibuat':''));
 }
 
 /* ---------- Akun: ekspor dan template ---------- */
@@ -165,4 +177,55 @@ function pdfOne(){
  if(V.catatan){doc.setFontSize(10).setFont('helvetica','bold').text('Catatan',14,y);doc.setFont('helvetica','normal');var t=doc.splitTextToSize(V.catatan,180);doc.text(t,14,y+5);y+=8+t.length*4.5}
  ttd(doc,y+8,[['Siswa',(V.kel&&V.items&&V.items.length>1)?V.items[0].nama+' dkk.':V.peserta],['Penilai',isStaff()?S.user.nama:'']]);
  foot(doc);doc.save((V.kel&&V.items&&V.items.length>1?'Penilaian_kelompok_':'Penilaian_'+slug(V.peserta||'siswa')+'_')+j.id+'.pdf');
+}
+
+
+/* ---------- Akun: cari dan hapus akun ganda (hasil impor berulang) ---------- */
+function kelompokGanda(){
+ var U=S.users,p=U.map(function(_,i){return i}),m={};
+ function f(i){while(p[i]!==i){p[i]=p[p[i]];i=p[i]}return i}
+ U.forEach(function(u,i){
+  var em=String(u.email||'').trim().toLowerCase(),us=String(u.username||'').trim().toLowerCase(),ks=[];
+  if(em)ks.push('e:'+em);if(us)ks.push('u:'+us);
+  if(hasRole(u,'siswa')&&u.nama)ks.push('n:'+slug(u.nama)+'|'+(u.kelas||''));
+  ks.forEach(function(k){if(k in m){var a=f(m[k]),b=f(i);if(a!==b)p[b]=a}else m[k]=i});
+ });
+ var g={};U.forEach(function(u,i){var r=f(i);(g[r]=g[r]||[]).push(u)});
+ var pakai={};
+ [S.results||[],S.lkpd||[],S.lkpdBukti||[]].forEach(function(L){L.forEach(function(o){if(o.sid)pakai[o.sid]=(pakai[o.sid]||0)+1})});
+ return Object.keys(g).map(function(k){return g[k]}).filter(function(a){return a.length>1}).map(function(a){
+  a.sort(function(x,y){
+   function sk(u){return (u.id===S.user.id?1e6:0)+(pakai[u.id]||0)*10+(u.r?5:0)}
+   return sk(y)-sk(x)||(x.dibuat||0)-(y.dibuat||0)});
+  return {simpan:a[0],hapus:a.slice(1)};
+ });
+}
+async function hapusGanda(){
+ var G=kelompokGanda();if(!G.length){toast('Tidak ada akun ganda');return}
+ var n=G.reduce(function(t,g){return t+g.hapus.length},0);
+ var daftar=G.slice(0,8).map(function(g){return '• '+g.simpan.nama+' ('+(g.hapus.length+1)+' akun)'}).join('\n')+(G.length>8?'\n…dan '+(G.length-8)+' lainnya':'');
+ if(!(await uiConfirm('Hapus '+n+' akun ganda?\n'+G.length+' akun punya salinan. Satu akun terbaik dipertahankan, data nilai dipindahkan ke akun itu.\n\n'+daftar,{ok:'Hapus '+n,danger:true})))return;
+ var gagal=0,ok=0;
+ for(var gi=0;gi<G.length;gi++){
+  var g=G[gi],k=g.simpan,ids={};
+  g.hapus.forEach(function(x){ids[x.id]=1});
+  g.hapus.forEach(function(x){
+   var rl=roleList(k);roleList(x).forEach(function(r){if(rl.indexOf(r)<0)rl.push(r)});
+   k.peran=URUT.filter(function(r){return rl.indexOf(r)>-1}).join(',');
+   if(!k.email&&x.email)k.email=x.email;
+   if(!k.kelas&&x.kelas)k.kelas=x.kelas;
+   if(x.aktif!==false)k.aktif=true;
+  });
+  k.d=1;
+  [[S.results,['sid']],[S.lkpd,['sid']],[S.lkpdBukti,['sid']],[S.observasi,['guruId','pengamatId']]].forEach(function(pr){
+   (pr[0]||[]).forEach(function(o){pr[1].forEach(function(f){if(o[f]&&ids[o[f]]){o[f]=k.id;o.d=1}})});
+  });
+  for(var hi=0;hi<g.hapus.length;hi++){
+   var x=g.hapus[hi],done=true;
+   if(x.r)done=await Cloud.remove('akun',x.id);
+   if(done){S.users=S.users.filter(function(u){return u.id!==x.id});ok++}else gagal++;
+  }
+ }
+ persist();
+ toast(ok+' akun ganda dihapus'+(gagal?', '+gagal+' gagal di server':''));
 }

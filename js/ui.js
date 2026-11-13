@@ -86,7 +86,7 @@ function viewRekap(){
 }
 
 function viewAkun(){
- var q=A.q.toLowerCase(),e=A.edit;
+ var q=A.q.toLowerCase(),e=A.edit,nGanda=kelompokGanda().reduce(function(t,g){return t+g.hapus.length},0);
  var L=S.users.filter(function(u){return (A.peran==='ALL'||hasRole(u,A.peran))&&(!q||(u.nama+' '+u.username+' '+(u.email||'')).toLowerCase().indexOf(q)>-1)});
  var chips=['ALL','admin','guru','siswa'].map(function(c){return '<button type="button" data-act="akunfilter" data-v="'+c+'" aria-pressed="'+(A.peran===c)+'">'+(c==='ALL'?'Semua':PERAN[c])+' <span class="mono">'+(c==='ALL'?S.users.length:S.users.filter(function(u){return hasRole(u,c)}).length)+'</span></button>'}).join('');
  var form=e?'<form class="card" data-form="akun"><h3>'+(e.id?'Ubah akun':'Akun baru')+'</h3>'+
@@ -99,14 +99,14 @@ function viewAkun(){
   '<div class="row"><button type="button" class="btn" data-act="akuncancel">Batal</button><button type="submit" class="btn primary grow">Simpan akun</button></div></form>':'';
  var im='';
  if(A.imp){var nb=A.imp.ok.filter(function(r){return !r.id}).length;
-  im='<div class="card"><h3>Pratinjau impor</h3><div class="row"><span class="pill ok">'+nb+' baru</span><span class="pill">'+(A.imp.ok.length-nb)+' diperbarui</span><span class="pill '+(A.imp.err.length?'bad':'plain')+'">'+A.imp.err.length+' ditolak</span></div>'+
+  im='<div class="card"><h3>Pratinjau impor</h3><div class="row"><span class="pill ok">'+nb+' baru</span><span class="pill">'+(A.imp.ok.length-nb)+' diperbarui</span><span class="pill '+(A.imp.err.length?'bad':'plain')+'">'+A.imp.err.length+' ditolak</span>'+(A.imp.skip?'<span class="pill plain">'+A.imp.skip+' sama, dilewati</span>':'')+'</div>'+
   (A.imp.err.length?'<ul class="plain note">'+A.imp.err.slice(0,8).map(function(x){return '<li>Baris '+x.line+': '+esc(x.msg)+'</li>'}).join('')+(A.imp.err.length>8?'<li>dan '+(A.imp.err.length-8)+' lainnya</li>':'')+'</ul>':'')+
-  '<div class="row"><button type="button" class="btn" data-act="impcancel">Batal</button><button type="button" class="btn primary grow" data-act="impapply"'+(A.imp.ok.length?'':' disabled')+'>Terapkan '+A.imp.ok.length+' akun</button></div></div>'}
+  '<div class="row"><button type="button" class="btn" data-act="impcancel">Batal</button><button type="button" class="btn primary grow" data-act="impapply"'+(A.imp.ok.length&&!A.impBusy?'':' disabled')+'>Terapkan '+A.imp.ok.length+' akun</button></div></div>'}
  var rows=L.map(function(u){
   return '<div class="card user"><div class="row sb"><div class="grow"><b>'+esc(u.nama)+'</b><div class="note">'+esc(u.username)+(u.email?' · '+esc(u.email):'')+'</div></div><span class="pill '+(u.peran==='admin'?'warn':u.peran==='guru'?'':'plain')+'">'+PERAN[u.peran]+'</span></div>'+
   '<div class="row sb"><span class="note">'+(u.kelas?'Kelas '+u.kelas+' · ':'')+(u.aktif===false?'Nonaktif':'Aktif')+'</span><div class="row"><button type="button" class="btn small" data-act="akunedit" data-v="'+u.id+'">Ubah</button>'+(u.id!==S.user.id?'<button type="button" class="btn small danger" data-act="akundel" data-v="'+u.id+'">Hapus</button>':'')+'</div></div></div>'}).join('');
  return '<div class="row sb"><h2>Akun</h2><button type="button" class="btn small primary" data-act="akunnew">Tambah akun</button></div>'+
-  '<div class="row"><label class="btn small filebtn">Impor Excel<input id="impfile" type="file" accept=".xlsx,.xls,.csv" hidden></label><button type="button" class="btn small" data-act="akuntpl">Template</button><button type="button" class="btn small" data-act="akunxls">Ekspor Excel</button></div>'+
+  '<div class="row"><label class="btn small filebtn">Impor Excel<input id="impfile" type="file" accept=".xlsx,.xls,.csv" hidden></label><button type="button" class="btn small" data-act="akuntpl">Template</button><button type="button" class="btn small" data-act="akunxls">Ekspor Excel</button>'+(nGanda?'<button type="button" class="btn small danger" data-act="akunganda">Hapus akun ganda ('+nGanda+')</button>':'')+'</div>'+
   (A.msg?'<div class="card job '+(A.msg.ok?'st-ok':'st-bad')+'" role="status"><p>'+esc(A.msg.m)+'</p><button type="button" class="btn small" data-act="akunmsg">Tutup</button></div>':'')+im+form+'<input id="akunq" type="search" placeholder="Cari nama, username, atau email" value="'+esc(A.q)+'" aria-label="Cari akun"><div class="chips" role="group" aria-label="Filter peran">'+chips+'</div>'+
   (rows||'<div class="card"><p class="muted">Tidak ada akun yang cocok.</p></div>')+
   '<p class="note">'+(Cloud.on?'Akun login dibuat pengguna lewat Daftar atau Google. Impor menyiapkan peran dan kelas berdasarkan email.':'Mode lokal: sandi disimpan sebagai hash di peramban ini.')+' Admin: kelola akun dan KKM. Guru: menilai dan melihat semua rekap. Siswa: latihan dan melihat nilai sendiri.</p>';
@@ -168,6 +168,7 @@ document.addEventListener('click',async function(e){
  else if(a==='akuntpl')tplAkun();
  else if(a==='akunxls')xlsAkun();
  else if(a==='impapply'){await applyImport();render()}
+ else if(a==='akunganda'){await hapusGanda();render()}
  else if(a==='impcancel'){A.imp=null;render()}
  else if(a==='xlsrekap')xlsRekap();
  else if(a==='pdfrekap')pdfRekap();
