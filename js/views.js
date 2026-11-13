@@ -41,7 +41,7 @@ function viewExam(){
     pes='<label class="f">Nama kamu<input id="peserta" value="'+esc(V.peserta)+'" placeholder="Nama lengkap" autocomplete="name" readonly></label>';
   }
   var total=j.items.length,done=Object.keys(V.checks).length;
-  return '<div class="row"><button type="button" class="btn small" data-act="back">Kembali</button><span class="pill">Kelas '+j.kelas+' · Fase '+KELAS[j.kelas].fase+'</span></div>'+
+  return '<div class="row"><button type="button" class="btn small" data-act="back">Kembali</button><span class="pill">Kelas '+j.kelas+' · Fase '+KELAS[j.kelas].fase+'</span><button type="button" class="btn small" data-act="uji-print" aria-label="Cetak lembar penilaian" style="margin-left:auto">Cetak</button></div>'+
     '<div class="card"><h2>'+esc(j.judul)+'</h2>'+(isStaff()&&V.group.length&&!V.kel?'<div class="pill" style="align-self:flex-start">Menilai: '+esc(V.peserta)+'</div>':'')+'<div class="meta muted" style="font-size:13px">'+esc(j.unit)+' · target '+j.menit+' menit'+(j.skkni?' · SKKNI '+j.skkni:'')+'</div>'+pes+
     '<p class="note">Butir bertanda Wajib menyangkut keselamatan atau ketepatan kerja. Satu butir wajib yang belum terpenuhi membuat hasil Belum Kompeten, berapa pun skornya.</p></div>'+groups+
     '<div class="bar"><div class="in"><div><div class="mono" style="font-size:20px;font-weight:600" id="clock">'+mmss(V.sec)+'</div><div class="note"><span id="prog">'+done+'</span>/'+total+' butir terisi</div><div class="note" id="gcount">'+esc(gcText())+'</div></div>'+
@@ -64,7 +64,7 @@ function viewResult(){
   return rtabs+'<div class="card"><div class="row sb"><span class="label">'+esc(j.judul)+'</span>'+wk+'</div>'+
     '<div class="row" style="gap:16px"><div class="score mono">'+c.score+'</div><div class="stack" style="gap:6px"><span class="pill '+(c.kompeten?'ok':'bad')+'" style="font-size:14px">'+(c.kompeten?'Kompeten':'Belum kompeten')+'</span><span class="note">'+esc(rname)+' · KKM '+S.kkm+'</span></div></div>'+asp+'</div>'+why+tl+
     '<div class="card"><label class="f">Catatan '+(isStaff()?'asesor':'untuk diri sendiri')+'<textarea id="catatan" placeholder="Temuan, saran perbaikan, atau bukti pendukung">'+esc(V.notes[noteKey()]||'')+'</textarea></label></div>'+
-    '<div class="row"><button type="button" class="btn" data-act="redo">Ulangi</button><button type="button" class="btn" data-act="pdfone">Unduh PDF</button><button type="button" class="btn primary grow" data-act="save">'+(multi?'Simpan '+its.length+' hasil':'Simpan ke rekap')+'</button></div>';
+    '<div class="row"><button type="button" class="btn" data-act="redo">Ulangi</button><button type="button" class="btn" data-act="pdfone">Unduh PDF</button><button type="button" class="btn" data-act="uji-print">Cetak</button><button type="button" class="btn primary grow" data-act="save">'+(multi?'Simpan '+its.length+' hasil':'Simpan ke rekap')+'</button></div>';
 }
 function viewAcuan(){
   function card(t,body){return '<div class="card"><h3>'+t+'</h3>'+body+'</div>'}
