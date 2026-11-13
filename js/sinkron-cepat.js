@@ -21,7 +21,12 @@
   ['createDocument','updateDocument','deleteDocument','getDocument','listDocuments'].forEach(function(m){
    var f=db[m];if(typeof f!=='function')return;
    var ms=m==='listDocuments'?TMO_LIST:TMO;
-   db[m]=function(){return timeout(f.apply(db,arguments),ms)};
+   var tulis=(m==='createDocument'||m==='updateDocument');
+   db[m]=function(){
+    var t0=Date.now(),p=timeout(f.apply(db,arguments),ms);
+    if(!tulis||!window.Jam)return p;
+    return p.then(function(r){try{if(r&&r.$updatedAt)Jam.sample(r.$updatedAt,t0,Date.now())}catch(e){}return r});
+   };
   });
  };
 

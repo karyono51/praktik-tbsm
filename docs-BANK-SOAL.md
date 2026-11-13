@@ -31,6 +31,7 @@ Fitur terpisah dari LKPD. Menu: **Bank soal** (semua peran).
 | `banksoal` | soal buatan guru dan pengaturan peruntukan soal bawaan | semua pengguna login | label guru/admin |
 | `soal_sesi` | sesi ujian | semua pengguna login | label guru/admin |
 | `soal_hasil` | hasil latihan dan ujian | guru/admin, siswa hanya miliknya | siswa membuat; guru/admin ubah dan hapus |
+| `soal_run` | catatan ujian berjalan (waktu mulai server, jawaban sementara) | guru/admin, siswa hanya miliknya | siswa membuat dan mengubah miliknya; guru/admin ubah dan hapus |
 
 Catatan keamanan: kunci jawaban ikut terunduh ke peramban karena penilaian dilakukan di aplikasi, sama seperti LKPD. Cocok untuk latihan dan ujian harian. Untuk ujian bertaruhan tinggi gunakan Appwrite Function untuk menilai di server.
 

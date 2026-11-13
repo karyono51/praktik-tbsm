@@ -1044,6 +1044,81 @@
           ]
         }
       ]
+    },
+    {
+      "$id": "soal_run",
+      "databaseId": "tbsm",
+      "name": "soal_run",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "size": 36,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "sesiId",
+          "type": "string",
+          "size": 36,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "done",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 60000,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_bsr_sid",
+          "type": "key",
+          "attributes": [
+            "sid"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_bsr_sesi",
+          "type": "key",
+          "attributes": [
+            "sesiId"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
     }
   ]
 }

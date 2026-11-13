@@ -90,6 +90,7 @@ async function bsLoad(){
     }catch(e){BS.err.push(BSC[k]+': '+((e&&e.message)||e))}
    }));
    bsSaveLocal();
+   if(typeof bsRunRestore==='function'){try{await bsRunRestore()}catch(e){}}
   }
  }finally{BS.loading=false;BS.loaded=true;BS.all=null;render()}
 }
@@ -147,7 +148,7 @@ function bsEdit(){return !!S.user&&isStaff()&&can('nilai')}
 
 /* ---------- Sesi dan percobaan ---------- */
 function bsSesiStatus(s){
- var n=Date.now();
+ var n=Jam.now();
  if(s.aktif===false)return {k:'off',t:'Nonaktif',c:'plain'};
  if(s.mulai&&n<s.mulai)return {k:'soon',t:'Terjadwal',c:'warn'};
  if(s.selesai&&n>s.selesai)return {k:'end',t:'Berakhir',c:'plain'};
@@ -173,19 +174,19 @@ function bsMake(mode,sesi,opt){
  }
  var oo={};
  ids.forEach(function(id){var q=bsSoalById(id);if(q&&q.opts){var ix=q.opts.map(function(_,i){return i});oo[id]=acak?bsShuffle(ix):ix}});
- return {mode:mode,sesiId:sesi?sesi.id:'',sesiJudul:sesi?sesi.judul:'',start:Date.now(),dur:sesi?(sesi.durasi||0)*60:0,ids:ids,oo:oo,ans:{},cur:0,chk:{},pindah:0,sid:S.user.id,tampil:sesi?!!sesi.tampil:true,kkm:sesi&&sesi.kkm?sesi.kkm:S.kkm};
+ return {mode:mode,sesiId:sesi?sesi.id:'',sesiJudul:sesi?sesi.judul:'',start:Jam.now(),dur:sesi?(sesi.durasi||0)*60:0,ids:ids,oo:oo,ans:{},cur:0,chk:{},pindah:0,sid:S.user.id,tampil:sesi?!!sesi.tampil:true,kkm:sesi&&sesi.kkm?sesi.kkm:S.kkm};
 }
 function bsStartRun(r){
  BS.run=r;BS.sub='run';bsRunSave();bsTimerOn();render();window.scrollTo(0,0);
 }
-function bsRemain(r){return Math.max(0,r.start+r.dur*1000-Date.now())}
+function bsRemain(r){return Math.max(0,r.start+r.dur*1000-Jam.now())}
 function bsTimerOn(){
  if(BS.timer)clearInterval(BS.timer);
  BS.timer=setInterval(function(){
   var r=BS.run;if(!r){clearInterval(BS.timer);BS.timer=null;return}
   var el=document.getElementById('bs-clock');
   if(r.dur){var ms=bsRemain(r);if(el){el.textContent=mmss(Math.ceil(ms/1000));el.classList.toggle('low',ms<300000)}if(ms<=0)bsFinish(true)}
-  else if(el)el.textContent=mmss(Math.floor((Date.now()-r.start)/1000));
+  else if(el)el.textContent=mmss(Math.floor((Jam.now()-r.start)/1000));
  },1000);
 }
 async function bsFinish(auto){
@@ -193,12 +194,13 @@ async function bsFinish(auto){
  if(BS.timer){clearInterval(BS.timer);BS.timer=null}
  var tot=r.ids.length,sum=0,ben=0;
  r.ids.forEach(function(id){var q=bsSoalById(id);if(!q)return;var f=bsFrac(q,r.ans[id]);sum+=f;if(f>=0.9999)ben++});
- var h={id:uid(),ts:Date.now(),sid:r.sid,siswa:S.user.nama,kelas:S.user.kelas||'',mode:r.mode,sesiId:r.sesiId||'',sesiJudul:r.sesiJudul||'',
-  score:tot?Math.round(sum/tot*100):0,benar:ben,total:tot,detik:Math.min(Math.round((Date.now()-r.start)/1000),r.dur||1e9),
+ var h={id:r.rid?('h'+r.rid.slice(1)):uid(),ts:Jam.now(),sid:r.sid,siswa:S.user.nama,kelas:S.user.kelas||'',mode:r.mode,sesiId:r.sesiId||'',sesiJudul:r.sesiJudul||'',
+  score:tot?Math.round(sum/tot*100):0,benar:ben,total:tot,detik:Math.min(Math.round((Jam.now()-r.start)/1000),r.dur||1e9),
   ans:r.ans,order:r.ids,oo:r.oo,pindah:r.pindah||0,pts:+sum.toFixed(2),tampil:r.tampil,kkm:r.kkm};
  try{localStorage.removeItem(bsRunKey())}catch(e){}
  BS.run=null;BS.res=h.id;BS.sub='result';
  var sp=bsPut('hasil',h,auto?Math.floor(Math.random()*4000):0);
+ if(typeof bsRunDone==='function')bsRunDone(r);
  if(auto)toast('Waktu habis. Jawaban dikirim otomatis.');
  render();window.scrollTo(0,0);
  sp.then(function(){if(BS.sub==='result'&&BS.res===h.id&&S.tab==='banksoal')render()});
@@ -213,6 +215,7 @@ function bsResume(){
 }
 document.addEventListener('visibilitychange',function(){
  var r=BS.run;if(r&&r.mode==='ujian'&&document.hidden){r.pindah=(r.pindah||0)+1;bsRunSave()}
+ if(r&&!document.hidden&&r.dur&&bsRemain(r)<=0)bsFinish(true);
 });
 
 /* ---------- Tampilan soal ---------- */
@@ -310,7 +313,7 @@ function bsViewRun(){
  if(mode==='check'&&!r.chk[id])h+='<button type="button" class="btn" data-bs="cek"'+(bsAnswered(q,r.ans[id])?'':' disabled')+'>Periksa jawaban</button>';
  h+='</div>';
  var last=r.cur===r.ids.length-1;
- h+='<div class="bsbar"><span class="bsclock" id="bs-clock" role="timer">'+(r.dur?mmss(Math.ceil(bsRemain(r)/1000)):mmss(Math.floor((Date.now()-r.start)/1000)))+'</span><button type="button" class="btn" data-bs="prev"'+(r.cur?'':' disabled')+'>Kembali</button>'+(last?'<button type="button" class="btn primary" data-bs="selesai">Selesai</button>':'<button type="button" class="btn primary" data-bs="next">Lanjut</button>')+'</div>';
+ h+='<div class="bsbar"><span class="bsclock" id="bs-clock" role="timer">'+(r.dur?mmss(Math.ceil(bsRemain(r)/1000)):mmss(Math.floor((Jam.now()-r.start)/1000)))+'</span><button type="button" class="btn" data-bs="prev"'+(r.cur?'':' disabled')+'>Kembali</button>'+(last?'<button type="button" class="btn primary" data-bs="selesai">Selesai</button>':'<button type="button" class="btn primary" data-bs="next">Lanjut</button>')+'</div>';
  return h;
 }
 function bsViewResult(){
@@ -577,7 +580,7 @@ document.addEventListener('click',function(e){
   if(BS.D.hasil.some(function(x){return x.sid===S.user.id&&x.sesiId===s.id&&x.mode==='ujian'})){toast('Kamu sudah mengerjakan sesi ini');return}
   if(BS.run){toast('Selesaikan pengerjaan yang sedang berjalan dahulu');return}
   var run2=bsMake('ujian',s);if(!run2.ids.length){toast('Sesi ini belum memiliki soal');return}
-  uiConfirm('Mulai ujian "'+s.judul+'"?\n'+run2.ids.length+' soal, '+s.durasi+' menit.\nWaktu berjalan terus meskipun aplikasi ditutup.\nUjian hanya bisa dikerjakan sekali.',{ok:'Mulai'}).then(function(ok){if(ok&&!BS.run)bsStartRun(run2)});
+  uiConfirm('Mulai ujian "'+s.judul+'"?\n'+run2.ids.length+' soal, '+s.durasi+' menit.\nWaktu berjalan terus meskipun aplikasi ditutup.\nUjian hanya bisa dikerjakan sekali.',{ok:'Mulai'}).then(function(ok){if(ok&&!BS.run&&!BS.starting){if(typeof bsMulaiUjian==='function')bsMulaiUjian(s,run2);else bsStartRun(run2)}});
  }
  else if(a==='ans'&&r){
   var q=bsSoalById(qid);if(!q||r.chk[qid])return;var ov=+v;
