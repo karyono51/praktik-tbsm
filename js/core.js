@@ -55,7 +55,7 @@ var Cloud={on:CLOUD_ON,busy:false,
  register:async function(n,e,p){await this.acc.create(Appwrite.ID.unique(),e,p,n);await this.login(e,p)},
  google:function(){this.acc.createOAuth2Session('google',location.href,location.href)},
  logout:async function(){try{await this.acc.deleteSession('current')}catch(e){}},
- list:async function(col,extra){var out=[],cur=null;for(;;){var q=[Appwrite.Query.limit(100)].concat(extra||[]);if(cur)q.push(Appwrite.Query.cursorAfter(cur));var r=await this.db.listDocuments(CFG.DB,col,q);out=out.concat(r.documents);if(r.documents.length<100)return out;cur=r.documents[r.documents.length-1].$id}},
+ list:async function(col,extra){var out=[],cur=null,LIM=500;for(;;){var q=[Appwrite.Query.limit(LIM)].concat(extra||[]);if(cur)q.push(Appwrite.Query.cursorAfter(cur));var r=await this.db.listDocuments(CFG.DB,col,q);out=out.concat(r.documents);if(r.documents.length<LIM)return out;cur=r.documents[r.documents.length-1].$id}},
  resolve:async function(me){
   var em=me.email.toLowerCase(),f=await this.list('akun',[Appwrite.Query.equal('email',[em])]);
   if(f[0])return fromDoc(f[0]);

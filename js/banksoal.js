@@ -33,16 +33,18 @@ function bsPack(k,o){
 }
 function bsQueueGet(){try{return JSON.parse(localStorage.getItem(BSQ)||'[]')}catch(e){return []}}
 function bsQueueAdd(k,id){var q=bsQueueGet();if(q.indexOf(k+':'+id)<0)q.push(k+':'+id);try{localStorage.setItem(BSQ,JSON.stringify(q))}catch(e){}}
+/* Galat yang layak dicoba ulang: tanpa kode (jaringan), waktu habis, sesi habis, terlalu banyak permintaan, atau galat server. */
+function bsRetryable(e){var c=e&&e.code;return !c||c===401||c===408||c===425||c===429||c>=500}
 async function bsRemote(k,o){
  var col=BSC[k],data=pick(o,BSF[k]);
  try{
   var db=Cloud.db;
   if(!o.r){try{await db.createDocument(CFG.DB,col,o.id,data)}catch(e){if(e&&e.code===409)await db.updateDocument(CFG.DB,col,o.id,data);else throw e}}
   else{try{await db.updateDocument(CFG.DB,col,o.id,data)}catch(e){if(e&&e.code===404)await db.createDocument(CFG.DB,col,o.id,data);else throw e}}
-  o.r=1;o.d=0;bsSaveLocal();return true;
+  o.r=1;o.d=0;o.bad=0;bsSaveLocal();return true;
  }catch(e){
-  if(navigator.onLine===false||!(e&&e.code))bsQueueAdd(k,o.id);
-  else toast('Gagal menyimpan ke server: '+((e&&e.message)||e));
+  if(navigator.onLine===false||bsRetryable(e))bsQueueAdd(k,o.id);
+  else{o.bad=1;bsSaveLocal();toast('Gagal menyimpan ke server: '+((e&&e.message)||e))}
   return false;
  }
 }
@@ -51,16 +53,18 @@ async function bsFlushQ(){
  var q=bsQueueGet(),rest=[];
  for(var i=0;i<q.length;i++){
   var p=q[i].split(':'),k=p[0],id=p.slice(1).join(':'),o=BS.D[k]&&BS.D[k].filter(function(x){return x.id===id})[0];
-  if(!o)continue;
-  var ok=await bsRemote(k,o);if(!ok)rest.push(q[i]);
+  if(!o||(o.r&&!o.d)||o.bad)continue;
+  var ok=await bsRemote(k,o);if(!ok&&!o.bad)rest.push(q[i]);
  }
  try{if(rest.length)localStorage.setItem(BSQ,JSON.stringify(rest));else localStorage.removeItem(BSQ)}catch(e){}
 }
-function bsPut(k,o){
+/* delay (ms) dipakai pengiriman hasil ujian otomatis agar ratusan siswa tidak mengirim pada detik yang sama */
+function bsPut(k,o,delay){
  bsPack(k,o);o.d=1;
  var a=BS.D[k],i=a.findIndex(function(x){return x.id===o.id});if(i<0)a.push(o);else a[i]=o;
  BS.all=null;bsSaveLocal();
  if(!Cloud.on){o.r=1;o.d=0;bsSaveLocal();return Promise.resolve(true)}
+ if(delay>0){bsQueueAdd(k,o.id);return new Promise(function(res){setTimeout(function(){res(bsRemote(k,o))},delay)})}
  return bsRemote(k,o);
 }
 async function bsDel(k,id){
@@ -77,14 +81,14 @@ async function bsLoad(){
   else if(Cloud.on){
    await bsFlushQ();
    var Q=Appwrite.Query,jobs=[['soal',[]],['sesi',[]],['hasil',isStaff()?[]:[Q.equal('sid',[S.user.id])]]];
-   for(var i=0;i<jobs.length;i++){
-    var k=jobs[i][0];
+   await Promise.all(jobs.map(async function(jb){
+    var k=jb[0];
     try{
-     var rows=(await Cloud.list(BSC[k],jobs[i][1])).map(bsFromDoc),keep=BS.D[k].filter(function(x){return !x.r||x.d});
+     var rows=(await Cloud.list(BSC[k],jb[1])).map(bsFromDoc),keep=BS.D[k].filter(function(x){return !x.r||x.d});
      BS.D[k]=rows;
      keep.forEach(function(x){var j=BS.D[k].findIndex(function(y){return y.id===x.id});if(j<0)BS.D[k].push(x);else BS.D[k][j]=x});
     }catch(e){BS.err.push(BSC[k]+': '+((e&&e.message)||e))}
-   }
+   }));
    bsSaveLocal();
   }
  }finally{BS.loading=false;BS.loaded=true;BS.all=null;render()}
@@ -194,9 +198,10 @@ async function bsFinish(auto){
   ans:r.ans,order:r.ids,oo:r.oo,pindah:r.pindah||0,pts:+sum.toFixed(2),tampil:r.tampil,kkm:r.kkm};
  try{localStorage.removeItem(bsRunKey())}catch(e){}
  BS.run=null;BS.res=h.id;BS.sub='result';
- await bsPut('hasil',h);
+ var sp=bsPut('hasil',h,auto?Math.floor(Math.random()*4000):0);
  if(auto)toast('Waktu habis. Jawaban dikirim otomatis.');
  render();window.scrollTo(0,0);
+ sp.then(function(){if(BS.sub==='result'&&BS.res===h.id&&S.tab==='banksoal')render()});
 }
 function bsResume(){
  if(BS.resumed||!S.user)return;BS.resumed=true;

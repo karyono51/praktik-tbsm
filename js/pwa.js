@@ -53,21 +53,27 @@ function netbar(){
    if(navigator.onLine===false){netbar();toast('Offline: data disimpan di perangkat, disinkronkan saat online');return}
    this.busy=true;var fails=[];
    try{
-    var jobs=[[S.users,'akun',FA],[S.results,'hasil',FH],[S.lkpd||[],'lkpd',FL],[S.lkpdBukti||[],'lkpd_bukti',FB],[S.observasi||[],'observasi',FO]];
-    for(var i=0;i<jobs.length;i++){var arr=jobs[i][0],col=jobs[i][1],F=jobs[i][2];
-     for(var k=0;k<arr.length;k++){var o=arr[k];if(o.r&&!o.d)continue;
+    /* Urutan prioritas: hasil nilai, LKPD, observasi, akun, foto bukti (paling berat). Dikirim 4 item sekaligus. */
+    var todo=[],self=this,idx=0;
+    [[S.results,'hasil',FH],[S.lkpd||[],'lkpd',FL],[S.observasi||[],'observasi',FO],[S.users,'akun',FA],[S.lkpdBukti||[],'lkpd_bukti',FB]].forEach(function(jb){jb[0].forEach(function(o){if(!(o.r&&!o.d))todo.push([o,jb[1],jb[2]])})});
+    var worker=async function(){
+     while(idx<todo.length){var t=todo[idx++],o=t[0],col=t[1],F=t[2],wasNew=!o.r;
       try{
-       if(!o.r){
+       /* d dinolkan sebelum kirim: bila item diubah lagi saat kirim berjalan, d kembali 1 dan terkirim pada putaran berikutnya */
+       o.d=0;
+       if(wasNew){
         if(col==='akun'&&!o.email)o.email=(o.username||o.id)+'@tanpa-email.local';
-        try{await createOwned(this.db,col,o,F)}
-        catch(e1){if(e1&&(e1.code===409||/already exists|unique/i.test(e1.message||''))){await this.db.updateDocument(CFG.DB,col,o.id,pick(o,F))}else throw e1}
-        o.r=1;o.d=0}
-       else{await this.db.updateDocument(CFG.DB,col,o.id,pick(o,F));o.d=0}
-      }catch(e2){fails.push(col+': '+((e2&&e2.message)||e2))}}}
+        try{await createOwned(self.db,col,o,F)}
+        catch(e1){if(e1&&(e1.code===409||/already exists|unique/i.test(e1.message||''))){await self.db.updateDocument(CFG.DB,col,o.id,pick(o,F))}else throw e1}
+        o.r=1}
+       else{await self.db.updateDocument(CFG.DB,col,o.id,pick(o,F))}
+      }catch(e2){o.d=1;fails.push(col+': '+((e2&&e2.message)||e2))}}
+    };
+    await Promise.all([worker(),worker(),worker(),worker()]);
     for(var j=0;j<(S.lkpdModules||[]).length;j++){var m=S.lkpdModules[j];if(m.r&&!m.d)continue;try{var data={moduleId:m.id,title:m.title,kelas:m.kelas,fase:m.fase,duration:m.duration,status:m.status||'draft',active:m.active!==false,payload:JSON.stringify((function(x){var y=Object.assign({},x);delete y.r;delete y.d;delete y.payload;return y})(m)),updatedAt:m.updatedAt||Date.now(),updatedBy:m.updatedBy||S.user.username||S.user.id};var perms=[Appwrite.Permission.read(Appwrite.Role.label('lkpdeditor')),Appwrite.Permission.update(Appwrite.Role.label('lkpdeditor')),Appwrite.Permission.delete(Appwrite.Role.label('lkpdeditor'))];if((data.status==='published'&&data.active)||(typeof lkBuiltin==='function'&&lkBuiltin(m.id)))perms.push(Appwrite.Permission.read(Appwrite.Role.users()));if(!m.r){try{await this.db.createDocument(CFG.DB,'lkpd_modules',m.id,data,perms)}catch(ex){if(ex&&ex.code===409)await this.db.updateDocument(CFG.DB,'lkpd_modules',m.id,data,perms);else throw ex}}else await this.db.updateDocument(CFG.DB,'lkpd_modules',m.id,data,perms);m.r=1;m.d=0}catch(me){fails.push('lkpd_modules: '+((me&&me.message)||me))}}
    }catch(e){fails.push(String((e&&e.message)||e))}
    this.busy=false;savePending();saveSnap();netbar();
-   if(fails.length)toast('Sinkronisasi gagal ('+fails.length+'): '+fails[0]);
+   if(fails.length){if(window.CK){CK.err='Sinkronisasi gagal ('+fails.length+'): '+fails[0];CK.errTs=Date.now()}if(!(Cloud.retrying&&Cloud.failN>1))toast('Sinkronisasi gagal ('+fails.length+'): '+fails[0])}
   };
  }
  window.addEventListener('online',function(){netbar();if(Cloud.on&&S.user&&pendingCount())Cloud.flush().then(function(){netbar();if(!pendingCount())toast('Data tersinkron ke Appwrite')})});
