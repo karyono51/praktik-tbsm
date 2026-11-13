@@ -103,7 +103,7 @@ function lksHeal(){
   var ms=S.lkpdModules||[];if(!ms.length)return;
   LKS.healed=true;   /* sekali per sesi: murah, dan tidak bergantung pada penanda lama di perangkat */
   var n=0;ms.forEach(function(m){if(lkBuiltin(m.id)&&(m.status!=='published'||m.active===false)&&m.r){m.d=1;n++}});
-  if(n){lkSaveModules();toast('Menyinkronkan status '+n+' modul tersembunyi ke siswa')}
+  if(n)lkSaveModules();
  }catch(e){}
 }
 
