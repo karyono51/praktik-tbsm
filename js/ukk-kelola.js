@@ -174,7 +174,7 @@ function ukkHasil(j){
  var chips=lat?'<div class="chips" role="group" aria-label="Filter jenis">'+[['penilaian','Penilaian · '+pen.length],['semua','Penilaian + Latihan · '+all.length]].map(function(c){return '<button type="button" data-act="ukm-f" data-v="'+c[0]+'" aria-pressed="'+(UKS.f===c[0])+'">'+c[1]+'</button>'}).join('')+'</div>':'';
  var list=rows.map(function(r){
   return '<article class="card"><div class="row sb"><b>'+esc(r.siswa)+'</b><span class="pill '+(r.kompeten?'ok':'bad')+'">'+(r.kompeten?'Kompeten':'Belum kompeten')+' · '+ukkNilai(r)+'</span></div>'+
-   '<p class="note">'+new Date(r.ts).toLocaleDateString('id-ID')+' · '+esc(r.tipe||'')+(r.penilai?' · oleh '+esc(r.penilai):'')+'</p></article>';
+   '<p class="note">'+new Date(r.ts).toLocaleDateString('id-ID')+' · '+esc(r.tipe||'')+(r.penilai?' · oleh '+esc(r.penilai):'')+'</p>'+ukFotoTombol(r)+'</article>';
  }).join('');
  return '<div class="lks-acts"><button type="button" class="btn primary small" data-act="start" data-v="'+esc(j.id)+'">Nilai siswa</button><button type="button" class="btn small" data-act="ukm-xls" data-v="'+esc(j.id)+'">Unduh Excel</button></div>'+
   '<div class="stats"><div class="card"><span class="label">Dinilai</span><b class="mono">'+rows.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div><div class="card"><span class="label">Kompeten</span><b class="mono">'+kom+'</b></div></div>'+chips+

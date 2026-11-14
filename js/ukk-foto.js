@@ -49,3 +49,53 @@ document.addEventListener('click',function(e){
 });
 /* Hitung hasil tidak bisa dijalankan bila foto wajib belum lengkap */
 (function(){var f0=finishExam;finishExam=function(){var m=ukFotoKurang();if(m){toast(m);return}return f0.apply(this,arguments)}})();
+
+/* ---------- Tahap 2: simpan foto bukti ke lkpd_bukti (jalur yang sama dengan LKPD) ---------- */
+/* Dipanggil dari aksi Simpan, sebelum draft dihapus. n0 = jumlah hasil sebelum penyimpanan.
+   Foto dicatat per hasil: lkpdId = ID hasil, moduleId = ID unit. Di mode Latihan kelompok, foto hanya dicatat sekali (pada anggota pertama). */
+function ukFotoLampirkan(n0){
+ if(!V.job||!V.job.ukk||!V.fo)return;
+ S.lkpdBukti=S.lkpdBukti||[];
+ var idx={};V.job.items.forEach(function(i,k){idx[i.id]={no:k,t:i.t}});
+ S.results.slice(n0).filter(function(r){return r.jobId===V.job.id}).forEach(function(r,n){
+  if(V.kel&&n>0)return;
+  var map=V.fo[V.kel?'*':r.siswa]||{},ids=Object.keys(map).filter(function(id){return idx[id]&&map[id]});
+  if(!ids.length)return;
+  ids.forEach(function(id){
+   S.lkpdBukti.push({id:uid(),lkpdId:r.id,sid:r.sid,moduleId:r.jobId,ts:r.ts,label:'c'+idx[id].no+'|'+String(idx[id].t||''),data:map[id]});
+  });
+  r.catatan=((r.catatan||'')+' Foto bukti: '+ids.length+' butir.').trim().slice(0,1000);
+  if(!Cloud.on){try{localStorage.setItem('tbsm-lkpd-bukti',JSON.stringify(S.lkpdBukti))}catch(e){toast('Foto bukti tidak muat di penyimpanan perangkat')}}
+ });
+}
+
+/* ---------- Guru: melihat foto bukti pada Hasil penilaian ---------- */
+var UKF={open:{},busy:{}};
+function ukFotoLoad(rid){
+ if(!Cloud.on||navigator.onLine===false)return;
+ UKF.busy[rid]=1;
+ Cloud.list('lkpd_bukti',[Appwrite.Query.equal('lkpdId',[rid])]).then(function(d){
+  LK.remote=LK.remote||{};LK.remote[rid]=d.map(fromDoc);
+ }).catch(function(){toast('Foto tidak dapat dimuat, periksa koneksi')}).then(function(){delete UKF.busy[rid];render()});
+}
+function ukFotoPanel(rid){
+ if(UKF.busy[rid])return '<p class="note">Memuat foto…</p>';
+ var a=lkBuktiAll(rid);
+ if(!a.length)return '<p class="note">Tidak ada foto bukti.</p>';
+ return '<div class="lk-fotos">'+a.map(function(x){
+  var p=ldParse(x),cap=(p.item>=0?'Item '+(p.item+1)+' · ':'')+lkEsc(p.name);
+  return '<figure class="lk-foto">'+ldImgHtml(x,rid,'')+'<figcaption>'+cap+'</figcaption></figure>';
+ }).join('')+'</div>';
+}
+/* Tombol di kartu hasil; hanya untuk hasil yang punya foto bukti */
+function ukFotoTombol(r){
+ if(!/Foto bukti/.test(r.catatan||''))return '';
+ var o=!!UKF.open[r.id];
+ return '<div class="row" style="margin-top:6px"><button type="button" class="btn small" data-act="ukf-toggle" data-v="'+esc(r.id)+'">'+(o?'Sembunyikan foto':'Lihat foto')+'</button></div>'+(o?ukFotoPanel(r.id):'');
+}
+document.addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-act="ukf-toggle"]');if(!b)return;
+ var rid=b.dataset.v;UKF.open[rid]=!UKF.open[rid];
+ if(UKF.open[rid])ukFotoLoad(rid);
+ render();
+});

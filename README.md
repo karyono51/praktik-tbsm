@@ -146,3 +146,9 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 - Tombol Hitung hasil tidak bisa dijalankan sebelum semua foto wajib terisi. Kekurangannya ditampilkan di bilah bawah.
 - Mengambil foto pertama juga memulai waktu, sama seperti mengisi butir pertama.
 - Cache service worker: `tbsm-v83`. Skrip `?v=83`.
+
+## Pembaruan v84: tahap 2 foto wajib UKK (unggah dan penyimpanan)
+- Saat Simpan, foto per butir UKK dicatat ke koleksi `lkpd_bukti` memakai jalur yang sama dengan LKPD: label `c<nomor>|<nama komponen>`, ID hasil sebagai `lkpdId`, ID unit sebagai `moduleId`. Unggah ke Google Drive dilakukan oleh fungsi `foto-drive` yang sama dan dengan pengaturan folder dan ukuran yang sama.
+- Pada mode Latihan kelompok, foto hanya dicatat sekali untuk anggota pertama.
+- Hasil yang punya foto bukti mendapat catatan "Foto bukti: n butir" dan tombol **Lihat foto** di Hasil penilaian.
+- Cache service worker: `tbsm-v84`. Skrip `?v=84`.
