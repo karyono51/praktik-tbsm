@@ -8,7 +8,7 @@ var OBS_DEF={
   {g:'B. Pembukaan',t:['Apersepsi dan motivasi siswa','Penyampaian tujuan dan alur kegiatan']},
   {g:'C. Kegiatan Inti',t:['Penguasaan materi dan kebenaran konsep','Penggunaan metode yang variatif dan sesuai','Demonstrasi keterampilan praktik yang benar dan aman','Keterlibatan siswa dalam kegiatan','Pengelolaan kelas dan bengkel praktik','Penerapan K3 dan prosedur keselamatan kerja','Pemberian bimbingan dan umpan balik kepada siswa','Penggunaan bahasa dan komunikasi yang efektif','Pemanfaatan waktu pembelajaran']},
   {g:'D. Penutup',t:['Penarikan kesimpulan dan refleksi bersama siswa','Evaluasi atau penilaian hasil belajar']}]},
- siswa:{judul:'Observasi praktik siswa',sub:'Pengamatan proses dan sikap kerja siswa saat praktik.',nama:'Nama siswa',namaMan:'Nama siswa (manual)',pdf:'Form Observasi Praktik Siswa',diamati:'Siswa yang diamati',pengamat:'Guru pengamat',unit:'Siswa',
+ siswa:{judul:'Observasi LKPD Praktik',sub:'Pengamatan proses dan sikap kerja siswa saat praktik.',nama:'Nama siswa',namaMan:'Nama siswa (manual)',pdf:'Form Observasi LKPD Praktik',diamati:'Siswa yang diamati',pengamat:'Guru pengamat',unit:'Siswa',
   mapelLab:'Unit / pekerjaan praktik',jenisLab:'Tempat praktik',materiLab:'Kompetensi / jobsheet',jenis:['Bengkel sekolah','Teaching factory','Industri (PKL)'],
   grup:[
   {g:'A. Persiapan Kerja',t:['Memakai APD dan pakaian praktik lengkap dan benar','Menyiapkan alat dan bahan sesuai kebutuhan pekerjaan','Membaca dan memahami instruksi kerja (jobsheet/SOP)']},
@@ -317,7 +317,7 @@ function obsXls(){
  var head=['No','Tanggal',D.unit,D.mapelLab,'Kelas',D.jenisLab,D.pengamat].concat(D.flat.map(function(i){return i.no+'. '+i.t})).concat(['Total skor','Rata-rata','Nilai','Kategori','Kekuatan','Perlu ditingkatkan','Tindak lanjut']);
  var aoa=[head].concat(L.map(function(r,i){var p=obsPay(r),h=obsHitung(p.nilai,T);
   return [i+1,r.tanggal,r.guru,r.mapel,r.kelas,p.jenis||'',r.pengamat||''].concat(D.flat.map(function(it){return p.nilai[it.id]||''})).concat([h.tot,h.rata,r.skor,r.kategori,p.kekuatan||'',p.perbaikan||'',p.tindak||''])}));
- book([[T==='siswa'?'Rekap Praktik Siswa':'Rekap Observasi Guru',aoa,head.map(function(x,i){return i===2||i===3?24:i>6&&i<7+D.flat.length?10:i>=7+D.flat.length+4?36:14})]],T==='siswa'?'Rekap_Observasi_Praktik_Siswa':'Rekap_Observasi_Guru');
+ book([[T==='siswa'?'Rekap Observasi LKPD Praktik':'Rekap Observasi Guru',aoa,head.map(function(x,i){return i===2||i===3?24:i>6&&i<7+D.flat.length?10:i>=7+D.flat.length+4?36:14})]],T==='siswa'?'Rekap_Observasi_LKPD_Praktik':'Rekap_Observasi_Guru');
 }
 
 /* ---- Aksi ---- */

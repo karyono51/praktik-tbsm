@@ -1,5 +1,5 @@
 /* observasi-ukk.js: Lembar Observasi UKK, 4 lembar: Engine Injeksi (Vario KZR), Sistem CVT (Beat Pop), Sistem Rem (Supra X 125), Kelistrikan Bodi (Supra Fit).
-   Untuk Admin dan Guru (penguji). Menu terpisah dari Observasi guru dan Observasi praktik siswa; berkas observasi.js tidak diubah.
+   Untuk Admin dan Guru (penguji). Menu terpisah dari Observasi guru dan Observasi LKPD Praktik; berkas observasi.js tidak diubah.
    Penyimpanan: koleksi dan kunci yang sama dengan observasi lain (S.observasi, koleksi `observasi`) dengan tipe = 'ukk',
    sehingga sinkron Appwrite, antrean offline, hak akses (Admin semua, Guru miliknya), dan Cek sinkronisasi ikut berlaku. */
 var OBU={
@@ -203,8 +203,10 @@ function obuPdf(id){
  doc.text('Penguji 1',rx+rw/4,y+17,{align:'center'});doc.line(rx+4,y+38,mid-4,y+38);
  doc.text('Penguji 2',mid+rw/4,y+17,{align:'center'});doc.line(mid+4,y+38,rx+rw-4,y+38);
  doc.setFontSize(8.5);
- doc.text(doc.splitTextToSize(pg1||'-',rw/2-8).slice(0,2),rx+rw/4,y+43,{align:'center'});
- doc.text(doc.splitTextToSize(pg2,rw/2-8).slice(0,2),mid+rw/4,y+43,{align:'center'});
+ /* nama penguji tepat di atas garis tanda tangan; baris kedua (nama panjang) naik ke atas */
+ var n1=doc.splitTextToSize(pg1||'-',rw/2-8).slice(0,2),n2=doc.splitTextToSize(pg2,rw/2-8).slice(0,2);
+ doc.text(n1,rx+rw/4,y+36.5-(n1.length-1)*4,{align:'center'});
+ doc.text(n2,mid+rw/4,y+36.5-(n2.length-1)*4,{align:'center'});
  /* Footer: kiri paket-tahun pelajaran, tengah hak cipta, kanan PP. halaman/jumlah halaman */
  var np=doc.getNumberOfPages();
  for(var pg=1;pg<=np;pg++){doc.setPage(pg);doc.setFont('helvetica','normal').setFontSize(8).setTextColor(0);
@@ -336,8 +338,8 @@ render=function(){
   if(!S.user||!can('observasi'))return;
   var sb=document.querySelector('.sbody');if(!sb||sb.querySelector('[data-v="observasi-ukk"]'))return;
   var cur=V.mode==='list'?S.tab:'';
-  var html='<button type="button" class="srow" data-act="menu" data-v="observasi-ukk"'+(cur==='observasi-ukk'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO['observasi-ukk'],22)+'</span><span class="st"><b>Observasi UKK</b><small>Lembar praktik Kompeten / Belum Kompeten</small></span>'+svg(ICO.chev,18)+'</button>';
-  var ref=sb.querySelector('[data-v="observasi-siswa"]');
+  var html='<button type="button" class="srow" data-act="menu" data-v="observasi-ukk"'+(cur==='observasi-ukk'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO['observasi-ukk'],22)+'</span><span class="st"><b>Observasi UKK</b><small>Lembar praktik skala 1-4 dan rekap nilai</small></span>'+svg(ICO.chev,18)+'</button>';
+  var ks=sb.querySelectorAll('[data-v^="kelas:"]'),ref=ks.length?ks[ks.length-1]:null;
   if(ref)ref.insertAdjacentHTML('afterend',html);
   else{var chips=[].slice.call(sb.querySelectorAll('.chip')),sesi=chips.filter(function(c){return /Sesi/.test(c.textContent)})[0];if(sesi)sesi.insertAdjacentHTML('beforebegin',html);else sb.insertAdjacentHTML('beforeend',html)}
  }catch(err){}

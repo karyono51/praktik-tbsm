@@ -42,7 +42,7 @@ function render(){
   '<div class="chip">'+svg(ICO.kelas,16)+(kelasBoleh().length>1?'LKPD praktik':'LKPD praktik kelas saya')+'</div>'+kr+
   '<div class="chip">'+svg(ICO.menu,16)+'Lainnya</div>'+
   row('rekap','Rekap nilai','Nilai, ekspor Excel dan PDF','rekap',cur==='rekap')+
-  (can('observasi')?row('observasi','Observasi guru','Supervisi pembelajaran','observasi',cur==='observasi')+row('observasi-siswa','Observasi praktik siswa','Pengamatan proses dan sikap kerja','observasi-siswa',cur==='observasi-siswa'):'')+
+  (can('observasi')?row('observasi','Observasi guru','Supervisi pembelajaran','observasi',cur==='observasi')+row('observasi-siswa','Observasi LKPD Praktik','Pengamatan proses dan sikap kerja','observasi-siswa',cur==='observasi-siswa'):'')+
   '<div class="chip">'+svg(ICO.kelas,16)+(isStaff()?'UKK':'UKK kelas saya')+'</div>'+kelasBoleh().map(function(c){return row('kelas:'+c,'UKK '+KELAS[c].judul,isStaff()?'Kelola unit uji kompetensi':'Latihan uji kompetensi','kelas',cur==='katalog'&&S.kelas===c)}).join('')+
   (can('akun')?row('akun','Akun','Kelola akun, impor, dan KKM','akun',cur==='akun'):'')+
   row('acuan','Acuan','Rubrik dan standar penilaian','acuan',cur==='acuan')+

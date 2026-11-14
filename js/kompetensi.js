@@ -1,5 +1,5 @@
 /* kompetensi.js: Rekap kompetensi per siswa (Admin dan Guru).
-   Menggabungkan nilai uji praktik, LKPD mode Ujian, dan observasi praktik siswa.
+   Menggabungkan nilai uji praktik, LKPD mode Ujian, dan Observasi LKPD Praktik.
    Aturan status unit: memakai nilai TERBARU dari tiap sumber (praktik, LKPD). Unit Kompeten bila semua sumber yang ada Kompeten.
    Nilai Latihan tidak dihitung. Observasi ditampilkan sebagai bukti pendukung, tidak menentukan status unit. */
 var KP={kelas:'ALL',st:'ALL',q:'',key:null};

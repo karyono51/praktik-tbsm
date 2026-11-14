@@ -13,10 +13,10 @@
  function groups(staff,admin){
   return [
    {key:'home',label:'',   ic:null,   keys:['beranda']},
-   {key:'lkpd',label:staff?'LKPD Praktik':'LKPD Praktik kelas saya',ic:'kelas',pre:'lkpd:'},
-   {key:'ukk',label:staff?'UKK':'UKK kelas saya',ic:'kelas',pre:'kelas:'},
+   {key:'lkpd',label:staff?'LKPD Praktik':'LKPD Praktik kelas saya',ic:'kelas',pre:'lkpd:',post:['observasi-siswa']},
+   {key:'ukk',label:staff?'UKK':'UKK kelas saya',ic:'kelas',pre:'kelas:',post:['observasi-ukk']},
    {key:'soal',label:'Soal dan ujian',ic:'menu',keys:['banksoal']},
-   {key:'nilai',label:staff?'Penilaian dan acuan':'Nilai dan acuan',ic:'menu',keys:['rekap','kompetensi','observasi','observasi-siswa','acuan']},
+   {key:'nilai',label:staff?'Penilaian dan acuan':'Nilai dan acuan',ic:'menu',keys:['rekap','kompetensi','observasi','acuan']},
    {key:'admin',label:'Administrasi',ic:'menu',keys:['akun']},
    {key:'app',label:'Akun dan aplikasi',ic:'keluar',keys:['sinkron','gantisandi','segarkan','perbarui','keluar'],compact:true}
   ];
@@ -36,6 +36,7 @@
    /* urutan mengikuti daftar keys, lalu baris berawalan (kelas dalam urutan aslinya) */
    (g.keys||[]).forEach(function(k){rows.forEach(function(r){if(r.dataset.v===k&&used.indexOf(r)<0){mine.push(r);used.push(r)}})});
    if(g.pre)rows.forEach(function(r){if(String(r.dataset.v).indexOf(g.pre)===0&&used.indexOf(r)<0){mine.push(r);used.push(r)}});
+   (g.post||[]).forEach(function(k){rows.forEach(function(r){if(r.dataset.v===k&&used.indexOf(r)<0){mine.push(r);used.push(r)}})});
    if(!mine.length)return;
    if(g.compact)mine.forEach(function(r){r.classList.add('compact')});
    out.push({g:g,rows:mine});

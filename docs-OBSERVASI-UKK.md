@@ -1,6 +1,6 @@
 # Observasi UKK
 
-Menu **Observasi UKK** (Admin dan Guru) berisi **4 lembar** observasi praktik Uji Kompetensi Keahlian, kode KM25.2.2.2, alokasi 20 menit, tahun pelajaran 2026/2027. Siswa tidak melihat menu ini.
+Menu **Observasi UKK** (Admin dan Guru) berisi **4 lembar** observasi praktik Uji Kompetensi Keahlian, kode KM25.2.2.2, alokasi 20 menit, tahun pelajaran 2026/2027. Siswa tidak melihat menu ini. Di laci menu, **Observasi UKK** berada di kelompok **UKK** (setelah daftar UKK kelas), dan **Observasi LKPD Praktik** berada di kelompok **LKPD Praktik** (setelah daftar kelas).
 
 | Lembar | Judul tugas | Aspek |
 |---|---|---|
@@ -34,12 +34,12 @@ Untuk setiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** sesuai
 ## Hak akses dan penyimpanan
 - Admin melihat dan mengelola semua observasi UKK; Guru hanya miliknya sendiri.
 - Memakai koleksi `observasi` yang sama dengan observasi lain, dengan `tipe` = `ukk`. Lembar yang dipakai disimpan di dalam `payload` (kunci `lembar`: `vario`, `cvt`, `rem`, `bodi`); data lama tanpa kunci ini otomatis dibaca sebagai `vario`. Tidak ada perubahan skema Appwrite. Sinkron, antrean offline, dan Cek sinkronisasi ikut berlaku.
-- Observasi UKK tidak muncul di Observasi guru maupun Observasi praktik siswa.
+- Observasi UKK tidak muncul di Observasi guru maupun Observasi LKPD Praktik.
 
 ## Ekspor
 - **PDF** per observasi, mengikuti lembar UKK: kotak RAHASIA dan Paket (Paket mengacu pada pengaturan paket UKK (FORM_UKK.paket), semua lembar = P1), judul *Uji Kompetensi Keahlian*, identitas (termasuk tipe kendaraan), 13 kotak Nomor Peserta (NIS), tabel aspek (No urut, Aspek, Capaian berisi langsung Belum Kompeten / Cukup Kompeten / Kompeten / Sangat Kompeten tanpa angka skala, Nilai, Keterangan), lalu pengesahan:
   - **NILAI** (nilai akhir dan kesimpulan) di kiri.
-  - **PENGUJI** di kanan, tanpa border (hanya garis tanda tangan): **Penguji 1** = nama akun yang mengisi observasi (akun login, otomatis terisi di kolom Penguji), **Penguji 2** = **Tim AHASS**. Tempat dan tanggal mengikuti pengaturan UKK (Sumedang).
+  - **PENGUJI** di kanan, tanpa border (hanya garis tanda tangan); nama penguji dicetak tepat di atas garis: **Penguji 1** = nama akun yang mengisi observasi (akun login, otomatis terisi di kolom Penguji), **Penguji 2** = **Tim AHASS**. Tempat dan tanggal mengikuti pengaturan UKK (Sumedang).
 - **Excel rincian aspek**: satu sheet per lembar yang sudah berisi data, nilai tiap aspek.
 - **Rekap nilai** (tombol *Rekap nilai* di daftar): satu kartu per siswa dengan nilai tiap lembar (observasi terbaru per lembar), rata-rata dari lembar yang sudah dinilai, dan kesimpulan. Bisa difilter per kelas.
 - **Excel rekap nilai** (tombol *Unduh rekap nilai (Excel)* di halaman Rekap): sheet **Rekap Nilai** (siswa x lembar, rata-rata, kesimpulan), **Daftar Observasi** (semua observasi lengkap dengan Penguji 1 dan 2, jumlah nilai, N, nilai), dan **Ringkasan** (jumlah siswa per kesimpulan, rata-rata per lembar). Mengikuti filter kelas.
@@ -62,3 +62,8 @@ Untuk setiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** sesuai
 - Nilai unit = persentase butir yang dapat nilai; Kompeten bila >= KKM (butir kritis tidak dipakai).
 - Aturan terikat ID butir (`UKK-n-k`): bila urutan butir unit diedit di editor UKK, aturan harus disesuaikan.
 - Form menampilkan petunjuk isian pada kolom Hasil aktual dan keterangan "Perlu: ..." di bawah Catatan.
+
+## Pembaruan: menu dan penamaan
+- Menu **Observasi UKK** dipindah ke kelompok UKK; menu **Observasi LKPD Praktik** (sebelumnya Observasi praktik siswa) dipindah ke kelompok LKPD Praktik. Pengelompokan diatur di `js/menu-dasbor.js` (opsi `post`).
+- Penamaan lama diganti di menu, kartu beranda, ubin, judul halaman, PDF, sheet dan nama berkas Excel (`Rekap_Observasi_LKPD_Praktik`), README dan dokumen. Nama internal (`observasi-siswa`, `tipe` = `siswa`) tidak diubah agar data lama tetap terbaca.
+- `service-worker.js` naik ke `tbsm-v101`.

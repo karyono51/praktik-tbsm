@@ -23,8 +23,8 @@ Menu **Observasi guru** (Admin dan Guru) untuk supervisi pembelajaran di kelas d
 - PWA: observasi yang dibuat saat offline diantre dan dikirim saat online, sama seperti nilai.
 - Jika koleksi belum dibuat di Appwrite, aplikasi tetap berjalan; daftar observasi hanya kosong.
 
-## Observasi praktik siswa
-Menu kedua, **Observasi praktik siswa**, memakai mesin dan koleksi yang sama (`observasi`) dengan kolom `tipe` = `siswa`. Observasi guru lama (tanpa `tipe`) dianggap `guru`.
+## Observasi LKPD Praktik
+Menu kedua, **Observasi LKPD Praktik**, memakai mesin dan koleksi yang sama (`observasi`) dengan kolom `tipe` = `siswa`. Observasi guru lama (tanpa `tipe`) dianggap `guru`.
 - Identitas: siswa (pilih dari akun berperan Siswa, kelas terisi otomatis, atau ketik manual), unit/pekerjaan praktik, kelas, tanggal, tempat praktik, jam ke-, kompetensi/jobsheet.
 - 16 butir dalam 4 bagian: Persiapan Kerja, Proses Kerja, Hasil Kerja, Sikap Kerja. Skor 1-4, nilai, dan kategori dihitung sama seperti observasi guru.
 - Penyimpanan: nama siswa disimpan di kolom `guru`, id akun siswa di `guruId`, unit praktik di `mapel`. Hak akses sama: Admin melihat semua, Guru hanya miliknya.
