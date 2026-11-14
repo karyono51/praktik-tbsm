@@ -342,3 +342,9 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 /* observasi UKK: skala 1-4 dan input nilai */
 .obu-ket{font-size:13px;font-weight:600}.obu-ket.bad{color:var(--bad)}
 .obu-nil{font-size:15px}.obu-nil[aria-invalid="true"]{border-color:var(--bad)}.obu-nil:disabled{opacity:.55}
+
+/* v98: login dua sekolah dan profil pengembang */
+.auth .duo{display:flex;gap:14px;justify-content:center}.auth .duo .logo.big{margin:0 0 14px}
+.devcard{display:flex;gap:12px;align-items:center;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px 14px}
+.devcard .av{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;display:grid;place-items:center;flex:none}
+.devcard b{display:block;font-size:14px}.devcard small{display:block;font-size:12px;line-height:1.45;color:var(--muted)}

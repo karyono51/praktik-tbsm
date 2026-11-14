@@ -20,8 +20,8 @@ function setAct(r){S.act=r;S.role=r;try{localStorage.setItem('tbsm-act-'+S.user.
 function can(p){return !!S.user&&PERM[actRole()].indexOf(p)>-1}
 function kelasBoleh(){var ks=Object.keys(KELAS);if(!S.user||actRole()!=='siswa'||hasRole(S.user,'admin'))return ks;return ks.indexOf(S.user.kelas)>-1?[S.user.kelas]:ks}
 function isStaff(){return !!S.user&&actRole()!=='siswa'}
-function syncRoster(){S.roster=S.users.filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false}).map(function(u){return {id:u.id,nama:u.nama,kelas:u.kelas}})}
-function visibleResults(){return isStaff()?S.results:S.results.filter(function(r){return r.sid===S.user.id})}
+function syncRoster(){S.roster=S.users.filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false&&schAkunOk(u)}).map(function(u){return {id:u.id,nama:u.nama,kelas:u.kelas}})}
+function visibleResults(){if(!isStaff())return S.results.filter(function(r){return r.sid===S.user.id});var m=schPeta();return S.results.filter(function(r){return schHasilOk(r,m)})}
 function lastFor(id){return visibleResults().filter(function(x){return x.jobId===id}).sort(function(a,b){return b.ts-a.ts})[0]}
 function sidOf(n){var u=S.users.find(function(x){return hasRole(x,'siswa')&&x.nama===n});return u?u.id:(actRole()==='siswa'?S.user.id:'')}
 function slug(n){return String(n).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'.').replace(/^\.|\.$/g,'')}
@@ -34,11 +34,11 @@ async function hashPw(p,s){var t=s+':'+p;if(window.crypto&&crypto.subtle){var b=
 async function setPw(u,pw){u.salt=uid();u.pw=await hashPw(pw,u.salt)}
 async function seed(){if(!S.users.length){var u={id:uid(),nama:'Administrator',username:'admin',email:'',peran:'admin',kelas:'',aktif:true,dibuat:Date.now()};await setPw(u,'admin123');S.users.push(u);save()}}
 async function localLogin(id,pw){id=id.toLowerCase();var u=S.users.find(function(x){return x.aktif!==false&&(x.username===id||(x.email&&x.email===id))});if(!u||!u.pw)return null;return (await hashPw(pw,u.salt))===u.pw?u:null}
-function enter(u){S.user=u;var rl=roleList(u),sv='';try{sv=localStorage.getItem('tbsm-act-'+u.id)||''}catch(e){}S.act=rl.indexOf(sv)>-1?sv:rl[0];S.role=S.act;S.siswaName=u.nama;if(S.act==='siswa'&&u.kelas)S.kelas=u.kelas;S.tab='beranda';resetV();syncRoster()}
+function enter(u){S.user=u;schMasuk(u);var rl=roleList(u),sv='';try{sv=localStorage.getItem('tbsm-act-'+u.id)||''}catch(e){}S.act=rl.indexOf(sv)>-1?sv:rl[0];S.role=S.act;S.siswaName=u.nama;if(S.act==='siswa'&&u.kelas)S.kelas=u.kelas;S.tab='beranda';resetV();syncRoster()}
 function quickSiswa(nama,kelas){var u={id:uid(),nama:nama,username:slug(nama)+'.'+Math.random().toString(36).slice(2,5),email:'',peran:'siswa',kelas:kelas,aktif:true,dibuat:Date.now()};S.users.push(u);persist();toast('Siswa ditambahkan')}
 
 /* ---- Appwrite ---- */
-var FA=['nama','username','email','peran','kelas','aktif'];
+var FA=['nama','username','email','peran','kelas','aktif','sekolah'];
 var FH=['ts','jobId','kelas','siswa','tipe','score','kompeten','catatan','detik','oleh','penilai','sid','payload'];
 var FL=['ts','moduleId','moduleTitle','kelas','siswa','sid','score','practice','theory','kompeten','payload','oleh','koreksi','umpan','verifOleh','verifTs'];
 var FB=['lkpdId','sid','moduleId','ts','label','data'];
@@ -61,7 +61,7 @@ var Cloud={on:CLOUD_ON,busy:false,
   if(f[0])return fromDoc(f[0]);
   var adm=em===String(CFG.ADMIN_EMAIL||'').toLowerCase();
   if(!adm&&CFG.PENDAFTARAN_TERBUKA===false){await this.logout();throw new Error('Email ini belum terdaftar. Minta guru atau admin menambahkan akun Anda terlebih dahulu.')}
-  var p={id:uid(),nama:me.name||em,username:em.split('@')[0],email:em,peran:adm?'admin':'siswa',kelas:'X',aktif:true};
+  var p={id:uid(),nama:me.name||em,username:em.split('@')[0],email:em,peran:adm?'admin':'siswa',kelas:'X',aktif:true,sekolah:adm?'ALL':(schKode()||'')};
   await this.db.createDocument(CFG.DB,'akun',p.id,pick(p,FA));p.r=1;return p},
  enter:async function(me){var p=await this.resolve(me);this.authId=me.$id;try{localStorage.setItem('tbsm-auth',JSON.stringify({sid:p.id,auth:me.$id}))}catch(e){}if(p.aktif===false){await this.logout();throw new Error('Akun dinonaktifkan. Hubungi admin.')}
   S.user=p;S.users=[p];
@@ -85,5 +85,5 @@ async function boot(){
   if(Cloud.on){Cloud.init();var me=await Cloud.me();if(me==='offline'){loadSnap()}else if(me){await Cloud.enter(me)}else dropSnap()}
   else{await seed();var sid=localStorage.getItem(SES),u=S.users.find(function(x){return x.id===sid&&x.aktif!==false});if(u)enter(u)}
  }catch(e){A.err=e.message||String(e)}
- render();
+ schTerap();render();
 }

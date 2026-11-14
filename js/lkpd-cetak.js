@@ -1,7 +1,7 @@
 /* lkpd-cetak.js: cetak LKPD dengan kop sekolah, identitas modul, seluruh isi LKPD, dan spasi rapat.
    Berdiri sendiri: tidak mengubah lkpd.js. Menangkap tombol Cetak lebih dulu, lalu menyusun lembar cetak. */
 (function(){
-var SEK={nama:'SMKS Medina Bandung',program:'Program Keahlian Teknik Sepeda Motor',alamat:'Jl. K.H. Ahmad Dahlan No. 13\u201315, Kel. Burangrang, Kec. Lengkong, Kota Bandung 40262'};
+/* SEK (nama, program, alamat sekolah aktif) didefinisikan di sekolah.js */
 var CSS='#lk-print{display:none}'+
 '@media print{'+
 '@page{size:A4;margin:10mm 12mm}'+

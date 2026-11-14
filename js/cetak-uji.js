@@ -1,7 +1,7 @@
 /* cetak-uji.js: tombol Cetak untuk form uji praktik (V.mode exam) dan halaman hasil (V.mode result).
    Berdiri sendiri: menyalin tampilan aktif, memberi kop sekolah, mengganti kolom isian dengan teks, lalu window.print(). */
 (function(){
-var SEK={nama:'SMKS Medina Bandung',program:'Program Keahlian Teknik Sepeda Motor',alamat:'Jl. K.H. Ahmad Dahlan No. 13\u201315, Kel. Burangrang, Kec. Lengkong, Kota Bandung 40262'};
+/* SEK (nama, program, alamat sekolah aktif) didefinisikan di sekolah.js */
 var CSS='#uj-print{display:none}'+
 '@media print{'+
 '@page{size:A4;margin:10mm 12mm}'+

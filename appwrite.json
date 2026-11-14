@@ -58,6 +58,13 @@
           "array": false
         },
         {
+          "key": "sekolah",
+          "type": "string",
+          "size": 8,
+          "required": false,
+          "array": false
+        },
+        {
           "key": "aktif",
           "type": "boolean",
           "required": false,

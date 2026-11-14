@@ -44,7 +44,7 @@ function obsDraftDari(r){
  var p=obsPay(r),sel=(r.guruId&&S.users.some(function(u){return u.id===r.guruId}))?r.guruId:'__lain';
  return {id:r.id,tipe:obsTipe(r),guruSel:sel,guruNama:sel==='__lain'?r.guru:'',mapel:r.mapel||'',kelas:r.kelas||Object.keys(KELAS)[0],tanggal:r.tanggal||ymd(Date.now()),jam:p.jam||'',materi:p.materi||'',jenis:p.jenis||obsDef(obsTipe(r)).jenis[0],nilai:p.nilai,cat:p.cat,kekuatan:p.kekuatan||'',perbaikan:p.perbaikan||'',tindak:p.tindak||''};
 }
-function obsOrang(t){var role=t==='siswa'?'siswa':'guru';return S.users.filter(function(u){return hasRole(u,role)&&u.aktif!==false}).sort(function(a,b){return (t==='siswa'?String(a.kelas).localeCompare(String(b.kelas)):0)||String(a.nama).localeCompare(String(b.nama))})}
+function obsOrang(t){var role=t==='siswa'?'siswa':'guru';return S.users.filter(function(u){return hasRole(u,role)&&u.aktif!==false&&schAkunOk(u)}).sort(function(a,b){return (t==='siswa'?String(a.kelas).localeCompare(String(b.kelas)):0)||String(a.nama).localeCompare(String(b.nama))})}
 
 /* ---- Tampilan ---- */
 function viewObservasi(){
@@ -137,7 +137,7 @@ function obsSync(){
 document.head.appendChild(st)})();
 
 function obsRoster(d){
- var m={};S.users.forEach(function(u){if(hasRole(u,'siswa'))m[u.id]={key:u.id,id:u.id,nama:u.nama,kelas:u.kelas||'',ak:u.aktif!==false}});
+ var m={};S.users.forEach(function(u){if(hasRole(u,'siswa')&&schAkunOk(u))m[u.id]={key:u.id,id:u.id,nama:u.nama,kelas:u.kelas||'',ak:u.aktif!==false}});
  (d.man||[]).forEach(function(x){m[x.key]={key:x.key,id:'',nama:x.nama,kelas:x.kelas||d.kelas,ak:true,man:true}});
  return m;
 }

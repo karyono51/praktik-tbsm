@@ -20,10 +20,10 @@ function svg(d,n){n=n||20;return '<svg viewBox="0 0 24 24" width="'+n+'" height=
 function render(){
  if(!S.user){$('#app').innerHTML=viewLogin();return}
  var u=S.user,home=V.mode==='list'&&S.tab==='beranda',act=actRole(),multi=roleList(u).length>1;
- var logoBtn='<button type="button" class="logobtn" data-act="drawer" aria-label="Buka menu" aria-controls="drawer" aria-expanded="false"><img class="logo" src="'+LOGO+'" alt="Logo SMK Medina"></button>';
+ var logoBtn='<button type="button" class="logobtn" data-act="drawer" aria-label="Buka menu" aria-controls="drawer" aria-expanded="false"><img class="logo" src="'+LOGO+'" alt="Logo '+schNama()+'"></button>';
  var rolePill=multi?'<button type="button" class="pill glass role" data-act="switchrole" aria-label="Peran aktif '+PERAN[act]+'. Ketuk untuk berganti peran">'+PERAN[act]+svg(ICO.swap,14)+'</button>':'<span class="pill glass">'+PERAN[act]+'</span>';
  var kls=act==='siswa'&&u.kelas?'<span class="pill glass">Kelas '+esc(u.kelas)+'</span>':'';
- var who='<div class="hi"><p class="hello"><span>Halo,</span> <b>'+esc(String(u.nama).trim().split(/\s+/)[0])+'</b></p><p class="mail">'+esc(u.email||u.username||'')+'</p><div class="hmeta">'+rolePill+kls+'<button type="button" class="pill glass role" data-act="refresh" aria-label="Segarkan data">'+svg(ICO.refresh,14)+'Segarkan</button></div>'+(home?'':'<div class="netslot" id="netslot" hidden></div>')+'</div>';
+ var who='<div class="hi"><p class="hello"><span>Halo,</span> <b>'+esc(String(u.nama).trim().split(/\s+/)[0])+'</b></p><p class="mail">'+esc(u.email||u.username||'')+'</p><div class="hmeta">'+rolePill+schPill()+kls+'<button type="button" class="pill glass role" data-act="refresh" aria-label="Segarkan data">'+svg(ICO.refresh,14)+'Segarkan</button></div>'+(home?'':'<div class="netslot" id="netslot" hidden></div>')+'</div>';
  var moto='<svg class="moto" viewBox="0 0 170 96" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="32" cy="66" r="19"/><circle cx="138" cy="66" r="19"/><circle cx="32" cy="66" r="5"/><circle cx="138" cy="66" r="5"/><path d="M32 66 56 42h40l14 24M96 42l12-22h16M108 20 138 66M60 42l-6-8h24M62 66h32l8-14"/></svg>';
  var head=home?
   '<header class="top big"><svg class="rings" viewBox="0 0 220 220" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="150" cy="70" r="30"/><circle cx="150" cy="70" r="60"/><circle cx="150" cy="70" r="90"/></svg>'+moto+
@@ -36,7 +36,7 @@ function render(){
  var row=function(v,t,sub,ic,on,tone){return '<button type="button" class="srow'+(tone?' '+tone:'')+'" data-act="'+(v==='keluar'?'menulogout':v==='segarkan'?'refresh':v==='perbarui'?'updateapp':v==='gantisandi'?'mypw':'menu')+'" data-v="'+v+'"'+(on?' aria-current="page"':'')+'><span class="ico">'+svg(ICO[ic],22)+'</span><span class="st"><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+svg(ICO.chev,18)+'</button>'};
  var kr=kelasBoleh().map(function(c){return row('lkpd:'+c,KELAS[c].judul,KELAS[c].sub,'kelas',cur==='lkpd'&&S.kelas===c)}).join('');
  var sh='<div class="scrim" data-act="drawerclose"></div><aside class="sheet" id="drawer" role="dialog" aria-modal="true" aria-label="Menu"><div class="grab" data-act="drawerclose" aria-hidden="true"><i></i></div><div class="sbody">'+
-  '<div class="sbrand"><button type="button" class="logobtn" data-act="drawerclose" aria-label="Tutup menu"><img class="logo ring" src="'+LOGO+'" alt=""></button><b>SMKS Medina Bandung</b><address class="addr"><span>Jl. K.H. Ahmad Dahlan No. 13–15, Kel. Burangrang,</span><span>Kec. Lengkong, Kota Bandung, Jawa Barat 40262</span></address><span class="bar2"></span></div>'+
+  '<div class="sbrand"><button type="button" class="logobtn" data-act="drawerclose" aria-label="Tutup menu"><img class="logo ring" src="'+LOGO+'" alt=""></button><b>'+schNama()+'</b><address class="addr"><span>'+schEf().a1+'</span><span>'+schEf().a2+'</span></address><span class="bar2"></span></div>'+
   '<div class="sprofile"><span class="av" aria-hidden="true">'+esc(String(u.nama).trim().charAt(0).toUpperCase())+'</span><div class="grow"><b>'+esc(u.nama)+'</b><div class="note">'+esc(u.email||u.username||'')+'</div></div>'+(multi?'<button type="button" class="pill role" data-act="switchrole" aria-label="Peran aktif '+PERAN[act]+'. Ketuk untuk berganti peran">'+PERAN[act]+svg(ICO.swap,14)+'</button>':'<span class="pill">'+PERAN[act]+'</span>')+'</div>'+
   row('beranda','Beranda','Ringkasan dan pintasan','beranda',cur==='beranda')+
   '<div class="chip">'+svg(ICO.kelas,16)+(kelasBoleh().length>1?'LKPD praktik':'LKPD praktik kelas saya')+'</div>'+kr+
@@ -48,7 +48,7 @@ function render(){
   row('acuan','Acuan','Rubrik dan standar penilaian','acuan',cur==='acuan')+
   '<div class="chip">'+svg(ICO.keluar,16)+'Sesi</div>'+row('gantisandi','Ganti sandi','Ubah sandi akun ini','akun',false)+row('segarkan','Segarkan data','Ambil data terbaru dari server','refresh',false)+row('perbarui','Perbarui aplikasi','<span id="appver">Cek pembaruan aplikasi</span>','refresh',false)+row('keluar','Keluar','Akhiri sesi di perangkat ini','keluar',false,'danger')+
   '</div></aside>';
- var foot='<footer class="school"><span>© 2026 SMKS Medina Bandung</span><i aria-hidden="true">|</i><span>supported by @pakar1501</span></footer>';
+ var foot='<footer class="school"><span>© 2026 '+schNama()+'</span><i aria-hidden="true">|</i><span>supported by @pakar1501</span></footer>';
  var open=document.body.classList.contains('dr-open');
  $('#app').innerHTML=head+'<main class="stack'+(home?' home':'')+'">'+body+foot+'</main>'+sh;
  document.body.classList.toggle('has-bar',V.mode==='exam');
@@ -58,8 +58,11 @@ function render(){
 }
 
 function viewLogin(){
- var reg=Cloud.on&&A.reg;
- return '<div class="auth"><img class="logo big" src="'+LOGO+'" alt="Logo SMK Medina"><h1>KBM Praktik TBSM</h1><p class="muted">SMKS Medina Bandung</p>'+
+ var reg=Cloud.on&&A.reg,c=schCfg();
+ var head=c?'<img class="logo big" src="'+c.logo+'" alt="Logo '+c.nama+'"><h1>KBM Praktik TBSM</h1><p class="muted">'+c.nama+'</p>'
+  :'<div class="duo"><img class="logo big" src="'+LOGO_DF+'" alt="Logo SMKS Darul Fatwa"><img class="logo big" src="'+LOGO_MEDINA+'" alt="Logo SMKS Medina Bandung"></div><h1>KBM Praktik TBSM</h1><p class="muted">SMKS Darul Fatwa · SMKS Medina Bandung</p>';
+ var dev='<div class="devcard"><span class="av" aria-hidden="true">K</span><div><b>Karyono, S.T.</b><small>Guru Teknik Bisnis Sepeda Motor · pengembang sistem KBM Praktik TBSM</small><small>SMKS Darul Fatwa · SMKS Medina Bandung</small></div></div>';
+ return '<div class="auth">'+head+
  '<form class="card" data-form="'+(reg?'register':'login')+'">'+
  (reg?'<label class="f">Nama lengkap<input name="nama" required autocomplete="name"></label>':'')+
  '<label class="f">'+(Cloud.on?'Email':'Username atau email')+'<input name="id" '+(Cloud.on?'type="email" ':'')+'required autocomplete="username"></label>'+
@@ -67,7 +70,7 @@ function viewLogin(){
  (A.err?'<p class="err" role="alert">'+esc(A.err)+'</p>':'')+
  '<button class="btn primary" type="submit">'+(reg?'Daftar':'Masuk')+'</button>'+
  (Cloud.on?'<button type="button" class="link" data-act="togglereg">'+(reg?'Sudah punya akun? Masuk':'Belum punya akun? Daftar')+'</button>':'')+
- '</form>'+(Cloud.on?'':'<p class="note center">Mode lokal, data tersimpan di peramban ini. Akun awal: <b>admin</b> / <b>admin123</b>. Ganti sandinya di menu Akun.</p>')+'</div>';
+ '</form>'+(Cloud.on?'':'<p class="note center">Mode lokal, data tersimpan di peramban ini. Akun awal: <b>admin</b> / <b>admin123</b>. Ganti sandinya di menu Akun.</p>')+dev+'</div>';
 }
 
 function viewRekap(){
@@ -87,12 +90,12 @@ function viewRekap(){
 
 function viewAkun(){
  var q=A.q.toLowerCase(),e=A.edit,nGanda=kelompokGanda().reduce(function(t,g){return t+g.hapus.length},0);
- var L=S.users.filter(function(u){return (A.peran==='ALL'||hasRole(u,A.peran))&&(!q||(u.nama+' '+u.username+' '+(u.email||'')).toLowerCase().indexOf(q)>-1)});
- var chips=['ALL','admin','guru','siswa'].map(function(c){return '<button type="button" data-act="akunfilter" data-v="'+c+'" aria-pressed="'+(A.peran===c)+'">'+(c==='ALL'?'Semua':PERAN[c])+' <span class="mono">'+(c==='ALL'?S.users.length:S.users.filter(function(u){return hasRole(u,c)}).length)+'</span></button>'}).join('');
+ var UL=S.users.filter(schAkunOk),L=UL.filter(function(u){return (A.peran==='ALL'||hasRole(u,A.peran))&&(!q||(u.nama+' '+u.username+' '+(u.email||'')).toLowerCase().indexOf(q)>-1)});
+ var chips=['ALL','admin','guru','siswa'].map(function(c){return '<button type="button" data-act="akunfilter" data-v="'+c+'" aria-pressed="'+(A.peran===c)+'">'+(c==='ALL'?'Semua':PERAN[c])+' <span class="mono">'+(c==='ALL'?UL.length:UL.filter(function(u){return hasRole(u,c)}).length)+'</span></button>'}).join('');
  var form=e?'<form class="card" data-form="akun"><h3>'+(e.id?'Ubah akun':'Akun baru')+'</h3>'+
   '<label class="f">Nama<input name="nama" required value="'+esc(e.nama)+'"></label>'+
   '<div class="two"><label class="f">Username<input name="username" value="'+esc(e.username)+'" placeholder="otomatis"></label><label class="f">Email<input name="email" type="email" value="'+esc(e.email)+'"'+(Cloud.on?' required':'')+'></label></div>'+
-  '<fieldset class="roles"><legend>Peran (boleh lebih dari satu)</legend>'+URUT.map(function(r){return '<label class="chk"><input type="checkbox" name="peran" value="'+r+'"'+(hasRole(e,r)?' checked':'')+'> '+PERAN[r]+'</label>'}).join('')+'</fieldset><label class="f">Kelas (jika siswa)<select name="kelas">'+opt(KLS,e.kelas||'X')+'</select></label>'+
+  '<fieldset class="roles"><legend>Peran (boleh lebih dari satu)</legend>'+URUT.map(function(r){return '<label class="chk"><input type="checkbox" name="peran" value="'+r+'"'+(hasRole(e,r)?' checked':'')+'> '+PERAN[r]+'</label>'}).join('')+'</fieldset><label class="f">Kelas (jika siswa)<select name="kelas">'+opt(KLS,e.kelas||'X')+'</select></label><label class="f">Sekolah<select name="sekolah">'+schOpt(String(e.sekolah||'').toUpperCase()||(e.id?'':schKode()),true)+'</select></label>'+
   (Cloud.on?'<label class="f">Sandi login (opsional, minimal 8 karakter)'+(e.id?' · kosongkan jika tidak diubah':'')+'<input name="pw" type="password" autocomplete="new-password" minlength="8"></label><p class="note">Diisi: sandi diatur admin lewat fungsi server. Dikosongkan: pengguna membuat sandi sendiri lewat Daftar memakai email di atas.</p>':'<label class="f">Sandi'+(e.id?' (kosongkan jika tidak diubah)':'')+'<input name="pw" type="password" autocomplete="new-password"'+(e.id?'':' required')+' minlength="6"></label>')+
   '<label class="chk"><input type="checkbox" name="aktif"'+(e.aktif!==false?' checked':'')+'> Akun aktif</label>'+
   (A.err?'<p class="err" role="alert">'+esc(A.err)+'</p>':'')+
@@ -104,7 +107,7 @@ function viewAkun(){
   '<div class="row"><button type="button" class="btn" data-act="impcancel">Batal</button><button type="button" class="btn primary grow" data-act="impapply"'+(A.imp.ok.length&&!A.impBusy?'':' disabled')+'>Terapkan '+A.imp.ok.length+' akun</button></div></div>'}
  var rows=L.map(function(u){
   return '<div class="card user"><div class="row sb"><div class="grow"><b>'+esc(u.nama)+'</b><div class="note">'+esc(u.username)+(u.email?' · '+esc(u.email):'')+'</div></div><span class="pill '+(u.peran==='admin'?'warn':u.peran==='guru'?'':'plain')+'">'+PERAN[u.peran]+'</span></div>'+
-  '<div class="row sb"><span class="note">'+(u.kelas?'Kelas '+u.kelas+' · ':'')+(u.aktif===false?'Nonaktif':'Aktif')+'</span><div class="row"><button type="button" class="btn small" data-act="akunedit" data-v="'+u.id+'">Ubah</button>'+(u.id!==S.user.id?'<button type="button" class="btn small danger" data-act="akundel" data-v="'+u.id+'">Hapus</button>':'')+'</div></div></div>'}).join('');
+  '<div class="row sb"><span class="note">'+(u.sekolah==='ALL'?'Semua sekolah · ':SCH_LIST[u.sekolah]?SCH_LIST[u.sekolah].pendek+' · ':'Sekolah belum diatur · ')+(u.kelas?'Kelas '+u.kelas+' · ':'')+(u.aktif===false?'Nonaktif':'Aktif')+'</span><div class="row"><button type="button" class="btn small" data-act="akunedit" data-v="'+u.id+'">Ubah</button>'+(u.id!==S.user.id?'<button type="button" class="btn small danger" data-act="akundel" data-v="'+u.id+'">Hapus</button>':'')+'</div></div></div>'}).join('');
  return '<div class="row sb"><h2>Akun</h2><button type="button" class="btn small primary" data-act="akunnew">Tambah akun</button></div>'+
   '<div class="row"><label class="btn small filebtn">Impor Excel<input id="impfile" type="file" accept=".xlsx,.xls,.csv" hidden></label><button type="button" class="btn small" data-act="akuntpl">Template</button><button type="button" class="btn small" data-act="akunxls">Ekspor Excel</button>'+(nGanda?'<button type="button" class="btn small danger" data-act="akunganda">Hapus akun ganda ('+nGanda+')</button>':'')+'</div>'+
   (A.msg?'<div class="card job '+(A.msg.ok?'st-ok':'st-bad')+'" role="status"><p>'+esc(A.msg.m)+'</p><button type="button" class="btn small" data-act="akunmsg">Tutup</button></div>':'')+im+form+'<input id="akunq" type="search" placeholder="Cari nama, username, atau email" value="'+esc(A.q)+'" aria-label="Cari akun"><div class="chips" role="group" aria-label="Filter peran">'+chips+'</div>'+
@@ -122,7 +125,7 @@ async function saveAkun(d){
  if(o.id===S.user.id&&(pr.indexOf('admin')<0||!d.aktif))throw new Error('Akun Anda sendiri tidak bisa diturunkan atau dinonaktifkan.');
  if(!Cloud.on&&d.pw&&d.pw.length<6)throw new Error('Sandi minimal 6 karakter.');
  if(Cloud.on&&d.pw&&d.pw.length<8)throw new Error('Sandi minimal 8 karakter.');
- Object.assign(o,{nama:nama,username:un,email:em,peran:pr.join(','),kelas:pr.indexOf('siswa')>-1?d.kelas:'',aktif:!!d.aktif});
+ Object.assign(o,{nama:nama,username:un,email:em,peran:pr.join(','),kelas:pr.indexOf('siswa')>-1?d.kelas:'',aktif:!!d.aktif,sekolah:schNorm(d.sekolah)});
  if(!Cloud.on&&d.pw)await setPw(o,d.pw);
  if(e.id)o.d=1;else S.users.push(o);
  A.edit=null;persist();

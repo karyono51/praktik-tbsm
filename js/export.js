@@ -1,6 +1,6 @@
 /* export.js: impor akun (xls/xlsx/csv), ekspor Excel, dan PDF */
 var HM={};
-(function(){var H={nama:['nama','namalengkap','name'],username:['username','user','akun','nis','nip'],email:['email','surel'],pw:['password','sandi','katasandi'],peran:['peran','role','level'],kelas:['kelas','class','tingkat'],aktif:['status','aktif']};Object.keys(H).forEach(function(c){H[c].forEach(function(a){HM[a]=c})})})();
+(function(){var H={nama:['nama','namalengkap','name'],username:['username','user','akun','nis','nip'],email:['email','surel'],pw:['password','sandi','katasandi'],peran:['peran','role','level'],kelas:['kelas','class','tingkat'],aktif:['status','aktif'],sekolah:['sekolah','school','asalsekolah','satuanpendidikan']};Object.keys(H).forEach(function(c){H[c].forEach(function(a){HM[a]=c})})})();
 function normKelas(v){v=String(v||'').toUpperCase().replace(/KELAS|[\s-]/g,'');var m=v.match(/^(XII|XI|X|12|11|10)/);return m?({'12':'XII','11':'XI','10':'X'}[m[1]]||m[1]):''}
 function normPeran(v){v=String(v||'').toLowerCase();var o=[];if(v.indexOf('admin')>-1)o.push('admin');if(/guru|asesor|teacher/.test(v))o.push('guru');if(/siswa|murid|student/.test(v)||!o.length)o.push('siswa');return o.join(',')}
 function normAktif(v){return !/^(tidak|nonaktif|non-aktif|0|false|no|n)$/i.test(String(v||'').trim())}
@@ -32,6 +32,7 @@ async function parseAkun(f){
   if(email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return bad('Email tidak valid: '+email);
   if(Cloud.on&&!email)return bad('Email wajib pada mode Appwrite');
   if(!un)un=email?email.split('@')[0]:slug(nama);
+  var sk=schNorm(r.sekolah);if(r.sekolah&&!sk)return bad('Sekolah tidak dikenali: '+r.sekolah+' (isi DF, MEDINA, atau ALL)');if(!r.sekolah)sk=schKode()||'';
   var peran=normPeran(r.peran),isSw=hasRole({peran:peran},'siswa'),kelas=isSw?normKelas(r.kelas):'';
   if(isSw&&!kelas)return bad('Kelas siswa harus X, XI, atau XII');
   if(r.pw&&!Cloud.on&&r.pw.length<6)return bad('Sandi minimal 6 karakter');
@@ -40,8 +41,8 @@ async function parseAkun(f){
   if(keys.some(function(k){return seen[k]}))return bad('Duplikat di dalam file: '+(email||un));
   keys.forEach(function(k){seen[k]=1});
   var ex=cariAkun(un,email),akt=normAktif(r.aktif);
-  if(ex&&!r.pw&&String(ex.nama||'').trim()===nama&&(!email||String(ex.email||'').toLowerCase()===email)&&ex.peran===peran&&(ex.kelas||'')===kelas&&(ex.aktif!==false)===akt){skip++;return}
-  ok.push({line:line,nama:nama,username:un,email:email,pw:r.pw||'',peran:peran,kelas:kelas,aktif:akt,id:ex?ex.id:null});
+  if(ex&&!r.pw&&String(ex.nama||'').trim()===nama&&(!email||String(ex.email||'').toLowerCase()===email)&&ex.peran===peran&&(ex.kelas||'')===kelas&&(ex.sekolah||'')===sk&&(ex.aktif!==false)===akt){skip++;return}
+  ok.push({line:line,nama:nama,username:un,email:email,pw:r.pw||'',peran:peran,kelas:kelas,sekolah:sk,aktif:akt,id:ex?ex.id:null});
  });
  if(!ok.length&&!err.length&&!skip)throw new Error('Tidak ada baris data. Pakai template dari tombol Template.');
  return {ok:ok,err:err,skip:skip};
@@ -58,11 +59,11 @@ async function applyImport2(imp){
   var r=imp.ok[i],u=(r.id&&S.users.find(function(x){return x.id===r.id}))||cariAkun(r.username,r.email),gen='',st='';
   r.id=u?u.id:null;
   if(u){
-   if(u.id===S.user.id){r.peran=u.peran;r.aktif=true}
-   Object.assign(u,{nama:r.nama,email:r.email||u.email,peran:r.peran,kelas:r.kelas,aktif:r.aktif});u.d=1;
+   if(u.id===S.user.id){r.peran=u.peran;r.aktif=true;r.sekolah=u.sekolah||r.sekolah}
+   Object.assign(u,{nama:r.nama,email:r.email||u.email,peran:r.peran,kelas:r.kelas,sekolah:r.sekolah||u.sekolah||'',aktif:r.aktif});u.d=1;
    if(r.pw&&!Cloud.on)await setPw(u,r.pw);
   }else{
-   u={id:uid(),nama:r.nama,username:r.username,email:r.email,peran:r.peran,kelas:r.kelas,aktif:r.aktif,dibuat:Date.now()};
+   u={id:uid(),nama:r.nama,username:r.username,email:r.email,peran:r.peran,kelas:r.kelas,sekolah:r.sekolah||'',aktif:r.aktif,dibuat:Date.now()};
    if(!Cloud.on){gen=r.pw?'':genPw();if(gen)hasGen=true;await setPw(u,r.pw||gen)}
    S.users.push(u);
   }
@@ -81,13 +82,13 @@ async function applyImport2(imp){
 /* ---------- Akun: ekspor dan template ---------- */
 function xlsAkun(){
  if(!needX())return;
- var L=S.users.slice().sort(function(a,b){return a.peran.localeCompare(b.peran)||a.nama.localeCompare(b.nama)});
- book([['Akun',[['No','Nama','Username','Email','Peran','Kelas','Status','Dibuat']].concat(L.map(function(u,i){return [i+1,u.nama,u.username,u.email||'',peranLabel(u.peran),u.kelas||'',u.aktif===false?'Nonaktif':'Aktif',u.dibuat?new Date(u.dibuat).toLocaleDateString('id-ID'):'']})),[5,28,20,30,9,7,10,12]]],'Akun_TBSM');
+ var L=S.users.filter(schAkunOk).sort(function(a,b){return a.peran.localeCompare(b.peran)||a.nama.localeCompare(b.nama)});
+ book([['Akun',[['No','Nama','Username','Email','Peran','Kelas','Sekolah','Status','Dibuat']].concat(L.map(function(u,i){return [i+1,u.nama,u.username,u.email||'',peranLabel(u.peran),u.kelas||'',u.sekolah==='ALL'?'ALL':(SCH_LIST[u.sekolah]?SCH_LIST[u.sekolah].kode:''),u.aktif===false?'Nonaktif':'Aktif',u.dibuat?new Date(u.dibuat).toLocaleDateString('id-ID'):'']})),[5,28,20,30,9,7,10,10,12]]],'Akun_TBSM');
 }
 function tplAkun(){
  if(!needX())return;
- book([['Akun',[['Nama','Username','Email','Sandi','Peran','Kelas','Status'],['Contoh Siswa','contoh.siswa','contoh.siswa@sekolah.sch.id','','siswa','X','aktif'],['Contoh Guru','contoh.guru','contoh.guru@sekolah.sch.id','','guru','','aktif']],[26,18,30,14,9,8,9]],
-  ['Petunjuk',[['Kolom','Aturan'],['Nama','Wajib.'],['Username','Boleh kosong, otomatis dari email atau nama. Harus unik.'],['Email','Wajib jika memakai Appwrite. Harus unik.'],['Sandi','Mode lokal: minimal 6 karakter. Kosong = dibuatkan otomatis dan diunduh setelah impor. Mode Appwrite: dipakai membuat akun login baru (minimal 8 karakter); email yang sudah punya login tidak diubah.'],['Peran','admin, guru, atau siswa. Kosong = siswa.'],['Kelas','Wajib untuk siswa: X, XI, atau XII.'],['Status','aktif atau nonaktif. Kosong = aktif.'],['Catatan','Akun yang usernamenya atau emailnya sudah ada akan diperbarui, bukan digandakan. Hapus dua baris contoh sebelum impor.']],[12,100]]],'Template_Impor_Akun');
+ book([['Akun',[['Nama','Username','Email','Sandi','Peran','Kelas','Sekolah','Status'],['Contoh Siswa','contoh.siswa','contoh.siswa@sekolah.sch.id','','siswa','X','DF','aktif'],['Contoh Guru','contoh.guru','contoh.guru@sekolah.sch.id','','guru','','MEDINA','aktif']],[26,18,30,14,9,8,10,9]],
+  ['Petunjuk',[['Kolom','Aturan'],['Nama','Wajib.'],['Username','Boleh kosong, otomatis dari email atau nama. Harus unik.'],['Email','Wajib jika memakai Appwrite. Harus unik.'],['Sandi','Mode lokal: minimal 6 karakter. Kosong = dibuatkan otomatis dan diunduh setelah impor. Mode Appwrite: dipakai membuat akun login baru (minimal 8 karakter); email yang sudah punya login tidak diubah.'],['Peran','admin, guru, atau siswa. Kosong = siswa.'],['Kelas','Wajib untuk siswa: X, XI, atau XII.'],['Sekolah','DF (SMKS Darul Fatwa), MEDINA (SMKS Medina Bandung), atau ALL (lintas sekolah, khusus admin). Kosong = sekolah yang sedang dikelola di header.'],['Status','aktif atau nonaktif. Kosong = aktif.'],['Catatan','Akun yang usernamenya atau emailnya sudah ada akan diperbarui, bukan digandakan. Hapus dua baris contoh sebelum impor.']],[12,100]]],'Template_Impor_Akun');
 }
 
 /* ---------- Rekap: Excel ---------- */
@@ -123,9 +124,10 @@ function xlsRekap(){
 /* ---------- PDF ---------- */
 function kop(doc,judul){
  var W=doc.internal.pageSize.getWidth();
- try{doc.addImage(LOGO,'JPEG',14,10,18,18)}catch(e){}
- doc.setFont('helvetica','bold').setFontSize(13).text('SMKS MEDINA BANDUNG',36,16);
- doc.setFont('helvetica','normal').setFontSize(8.5).text('Jl. K.H. Ahmad Dahlan No. 13-15, Kel. Burangrang, Kec. Lengkong, Kota Bandung 40262',36,21);
+ var sc=schEf();
+ try{doc.addImage(sc.logo,'JPEG',14,10,18,18)}catch(e){}
+ doc.setFont('helvetica','bold').setFontSize(13).text(sc.nama.toUpperCase(),36,16);
+ doc.setFont('helvetica','normal').setFontSize(8.5).text(sc.alamat.replace(/\u2013/g,'-'),36,21);
  doc.setDrawColor(200).line(14,31,W-14,31);
  doc.setFont('helvetica','bold').setFontSize(12).text(judul,14,40);
  doc.setFont('helvetica','normal');

@@ -25,7 +25,7 @@ function kpBangun(){
   return map[key];
  }
  function unit(s,id,judul,kelas){return s.units[id]||(s.units[id]={id:id,judul:kpUnitJudul(id,judul),kelas:kelas||s.kelas,praktik:null,lkpd:null})}
- S.users.forEach(function(u){if(hasRole(u,'siswa')&&u.aktif!==false)siswa(u.id,u.nama,u.kelas)});
+ S.users.forEach(function(u){if(hasRole(u,'siswa')&&u.aktif!==false&&schAkunOk(u))siswa(u.id,u.nama,u.kelas)});
  (S.results||[]).forEach(function(r){
   if(r.tipe==='LKPD'||r.tipe==='Latihan')return;
   var s=siswa(r.sid,r.siswa,r.kelas),u=unit(s,r.jobId,'',r.kelas);
