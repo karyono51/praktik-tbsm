@@ -10,7 +10,7 @@
 function ukkPdfState(){
  var key=V.kel?'*':V.peserta,multi=V.kel&&V.items&&V.items.length>1;
  var ct=$('#catatan'),fin=!!V.res;
- var c=fin?V.res.calc:calc(V.job,V.kel?V.cks['*']:(V.cks[V.peserta]||{}),S.kkm);
+ var c=fin?V.res.calc:calc(V.job,V.kel?V.cks['*']:(V.cks[V.peserta]||{}),S.kkm,(V.hs||{})[key]||{},(V.hn||{})[key]||{});
  return {job:V.job,nama:multi?V.items.map(function(x){return x.nama}).join(', '):(V.peserta||''),nis:V.nis||'',sec:V.sec||0,
   catatan:ct?ct.value.trim():'',kkm:S.kkm,fin:fin,score:c.score,kompeten:c.kompeten,
   hs:(V.hs||{})[key]||{},hn:(V.hn||{})[key]||{},ck:V.cks[key]||{},fo:(V.fo||{})[key]||{},

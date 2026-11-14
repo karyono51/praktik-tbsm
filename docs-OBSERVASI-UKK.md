@@ -53,3 +53,12 @@ Untuk setiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** sesuai
 ## Pembaruan: 4 lembar
 - `js/observasi-ukk.js` diubah menjadi registri lembar (`OBU.lembar`, `obuLb`, `obuKey`). Lembar 2-4 diambil dari berkas Observasi_2, _3, _4.
 - `service-worker.js` naik ke `tbsm-v97`; `index.html` memuat `observasi-ukk.js?v=96` dan `css/app.css?v=90`.
+
+## Nilai unit UKK (v100): aturan angka
+`js/ukk-aturan.js` memuat aturan angka per butir (`UKK_ATURAN`, kunci = ID butir, mis. `UKK-1-0`) dan menggantikan hitungan `calc()` untuk unit UKK bila Hasil aktual dan Catatan ikut dikirim.
+- Butir berangka: sistem membaca angka dari Hasil aktual (koma = desimal, 1.700 = 1700) dan menentukan status yang benar. Dapat nilai bila status pilihan siswa sama dengan yang benar; bila Tidak sesuai, Catatan wajib terisi. Nilai tepat di batas = Sesuai.
+- Butir tanpa angka: dapat nilai bila Hasil aktual, Status, dan Catatan terisi. Butir tanpa aturan di `UKK_ATURAN` otomatis tanpa angka.
+- Butir campuran (`tk:1`): Hasil aktual harus memuat teks selain angka dan satuan.
+- Nilai unit = persentase butir yang dapat nilai; Kompeten bila >= KKM (butir kritis tidak dipakai).
+- Aturan terikat ID butir (`UKK-n-k`): bila urutan butir unit diedit di editor UKK, aturan harus disesuaikan.
+- Form menampilkan petunjuk isian pada kolom Hasil aktual dan keterangan "Perlu: ..." di bawah Catatan.

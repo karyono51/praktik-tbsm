@@ -126,11 +126,11 @@ function ukkForm(j){
     var opt=function(x){return '<option'+(ukkStatus(v)===x?' selected':'')+'>'+x+'</option>'};
     return '<tr class=\"ukk-row\" data-id=\"'+i.id+'\" data-v=\"'+(v===undefined?'':v)+'\">'+
       '<td data-label=\"Komponen\">'+i.no+'. '+esc(i.t)+(i.k?' <span class=\"pill warn\">Wajib</span>':'')+ukFotoCell(i)+'</td>'+
-      '<td data-label=\"Hasil aktual\"><input data-hs=\"'+i.id+'\" value=\"'+esc(hs[i.id]||'')+'\" placeholder=\"Nilai ukur / hasil\" aria-label=\"Hasil aktual '+i.no+'\"></td>'+
+      '<td data-label=\"Hasil aktual\"><input data-hs=\"'+i.id+'\" value=\"'+esc(hs[i.id]||'')+'\" placeholder=\"'+esc(ukkHint(i))+'\" aria-label=\"Hasil aktual '+i.no+'\"></td>'+
       '<td data-label=\"Standar manual\">'+esc(i.std)+'</td>'+
       '<td data-label=\"Status\"><select data-ukst=\"'+i.id+'\" aria-label=\"Status '+i.no+'\">'+opt('Belum diperiksa')+opt('Sesuai')+opt('Tidak sesuai')+'</select></td>'+
-      '<td data-label=\"Catatan\"><input data-hn=\"'+i.id+'\" value=\"'+esc(hn[i.id]||'')+'\" aria-label=\"Catatan '+i.no+'\"></td></tr>'}).join('');
-  return idc+'<section class=\"card\"><h2>Hasil pemeriksaan</h2><p class=\"note\">'+esc(j.judul)+'. Status Sesuai berarti butir terpenuhi dan dihitung dalam skor.</p><div class=\"tablewrap\"><table class=\"ukk\"><thead><tr><th>Komponen</th><th>Hasil aktual</th><th>Standar manual</th><th>Status</th><th>Catatan</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>';
+      '<td data-label=\"Catatan\"><input data-hn=\"'+i.id+'\" value=\"'+esc(hn[i.id]||'')+'\" aria-label=\"Catatan '+i.no+'\"><small class=\"ukk-need note\" aria-live=\"polite\"></small></td></tr>'}).join('');
+  return idc+'<section class=\"card\"><h2>Hasil pemeriksaan</h2><p class=\"note\">'+esc(j.judul)+'. Isi hasil aktual, pilih status, dan isi catatan. Butir berangka dinilai dari kecocokan status dengan standar, butir tanpa angka dinilai bila hasil aktual, status, dan catatan terisi.</p><div class=\"tablewrap\"><table class=\"ukk\"><thead><tr><th>Komponen</th><th>Hasil aktual</th><th>Standar manual</th><th>Status</th><th>Catatan</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>';
 }
 document.addEventListener('input',function(e){
   var t=e.target;if(!t||V.mode!=='exam')return;

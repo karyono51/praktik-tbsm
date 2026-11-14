@@ -22,7 +22,7 @@ function finishExam(){
     var ps=$('#peserta');if(ps&&!isStaff()){V.peserta=ps.value.trim();V.group=[V.peserta];V.cks[V.peserta]=V.checks}
     if(actRole()==='siswa'){S.siswaName=V.peserta;persist()}
     var nm=nameList();
-    V.items=nm.map(function(n){return {nama:n,calc:calc(V.job,V.kel?V.cks['*']:(V.cks[n]||{}),S.kkm)}});
+    V.items=nm.map(function(n){return {nama:n,calc:calc(V.job,V.kel?V.cks['*']:(V.cks[n]||{}),S.kkm,(V.hs||{})[V.kel?'*':n]||{},(V.hn||{})[V.kel?'*':n]||{})}});
     V.rc=0;V.peserta=V.items[0].nama;V.res={calc:V.items[0].calc};V.catatan=V.notes[noteKey()]||'';
     V.mode='result';render();window.scrollTo(0,0);
 }
