@@ -13,7 +13,8 @@ var ICO={
  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
  chev:'<path d="m9 6 6 6-6 6"/>',
  swap:'<path d="M7 4 3.5 7.5 7 11M3.5 7.5H18M17 13l3.5 3.5L17 20M20.5 16.5H6"/>',
- refresh:'<path d="M20 11a8 8 0 0 0-14.5-4.4L4 8.5M4 4v4.5h4.5M4 13a8 8 0 0 0 14.5 4.4L20 15.5M20 20v-4.5h-4.5"/>'
+ refresh:'<path d="M20 11a8 8 0 0 0-14.5-4.4L4 8.5M4 4v4.5h4.5M4 13a8 8 0 0 0 14.5 4.4L20 15.5M20 20v-4.5h-4.5"/>',
+ segarkan:'<path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 4v4.8h-4.8"/>'
 };
 function svg(d,n){n=n||20;return '<svg viewBox="0 0 24 24" width="'+n+'" height="'+n+'" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>'}
 
@@ -23,7 +24,7 @@ function render(){
  var logoBtn='<button type="button" class="logobtn" data-act="drawer" aria-label="Buka menu" aria-controls="drawer" aria-expanded="false"><img class="logo" src="'+LOGO+'" alt="Logo '+schNama()+'"></button>';
  var rolePill=multi?'<button type="button" class="pill glass role" data-act="switchrole" aria-label="Peran aktif '+PERAN[act]+'. Ketuk untuk berganti peran">'+PERAN[act]+svg(ICO.swap,14)+'</button>':'<span class="pill glass">'+PERAN[act]+'</span>';
  var kls=act==='siswa'&&u.kelas?'<span class="pill glass">Kelas '+esc(u.kelas)+'</span>':'';
- var who='<div class="hi"><p class="hello"><span>Halo,</span> <b>'+esc(String(u.nama).trim().split(/\s+/)[0])+'</b></p><p class="mail">'+esc(u.email||u.username||'')+'</p><div class="hmeta">'+rolePill+schPill()+kls+'<button type="button" class="pill glass role" data-act="refresh" aria-label="Segarkan data">'+svg(ICO.refresh,14)+'Segarkan</button></div>'+(home?'':'<div class="netslot" id="netslot" hidden></div>')+'</div>';
+ var who='<div class="hi"><p class="hello"><span>Halo,</span> <b>'+esc(String(u.nama).trim().split(/\s+/)[0])+'</b></p><p class="mail">'+esc(u.email||u.username||'')+'</p><div class="hmeta">'+rolePill+schPill()+kls+'<button type="button" class="pill glass role" data-act="refresh" aria-label="Segarkan data">'+svg(ICO.segarkan,14)+'Segarkan</button></div>'+(home?'':'<div class="netslot" id="netslot" hidden></div>')+'</div>';
  var moto='<svg class="moto" viewBox="0 0 170 96" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="32" cy="66" r="19"/><circle cx="138" cy="66" r="19"/><circle cx="32" cy="66" r="5"/><circle cx="138" cy="66" r="5"/><path d="M32 66 56 42h40l14 24M96 42l12-22h16M108 20 138 66M60 42l-6-8h24M62 66h32l8-14"/></svg>';
  var head=home?
   '<header class="top big"><svg class="rings" viewBox="0 0 220 220" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="150" cy="70" r="30"/><circle cx="150" cy="70" r="60"/><circle cx="150" cy="70" r="90"/></svg>'+moto+
@@ -219,3 +220,12 @@ document.addEventListener('click',async function(e){
  else if(a==='menulogout'){drOpen(false);if(!leaveExam(b))return;await doLogout()}
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&drIsOpen())drOpen(false)});
+/* Menu tertutup bila klik di luar laci, atau di area kosong dalam laci (bukan tombol, kolom isian, tautan, atau judul kelompok) */
+document.addEventListener('click',function(e){
+ if(!drIsOpen())return;
+ var t=e.target;if(!t||!t.closest)return;
+ if(t.closest('[data-act="drawer"]'))return;
+ var d=t.closest('#drawer');
+ if(!d){drOpen(false);return}
+ if(!t.closest('button,a,input,select,textarea,label,summary,[data-act],.chip.grp,.srow'))drOpen(false);
+});
