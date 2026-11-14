@@ -76,7 +76,7 @@ function viewRekap(){
  var rows=list.map(function(r){var j=jobById(r.jobId);
   return '<div class="card" style="gap:6px"><div class="row sb"><b>'+esc(r.siswa||'Tanpa nama')+'</b><span class="pill '+(r.kompeten?'ok':'bad')+'">'+(r.kompeten?'Kompeten':'Belum kompeten')+'</span></div>'+
   '<div class="note">'+esc(j?j.judul:r.jobId)+'</div><div class="row sb"><span class="note">Kelas '+r.kelas+' · '+jenisTampil(r)+' · '+tgl(r.ts)+(r.penilai?' · '+esc(r.penilai):'')+'</span><span class="mono" style="font-weight:600">'+r.score+'</span></div>'+
-  (r.catatan?'<div class="note">'+esc(r.catatan)+'</div>':'')+'</div>'}).join('');
+  (r.catatan?'<div class="note">'+esc(r.catatan)+'</div>':'')+ukkPdfTombol(r)+'</div>'}).join('');
  return '<h2>Rekap nilai</h2><div class="chips" role="group" aria-label="Filter kelas">'+chips+'</div>'+
   '<div class="stats"><div class="card"><span class="label">Data</span><b class="mono">'+n+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+a[1]+'</b></div><div class="card"><span class="label">Kompeten</span><b class="mono">'+Math.round(a[2]*100)+'%</b></div></div>'+
   '<div class="row"><button type="button" class="btn small" data-act="xlsrekap">Unduh Excel</button><button type="button" class="btn small primary" data-act="pdfrekap">Unduh PDF</button>'+(can('hapus')&&!Cloud.on?'<button type="button" class="btn small danger" data-act="rmall">Hapus semua</button>':'')+'</div>'+

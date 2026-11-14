@@ -39,7 +39,7 @@ function quickSiswa(nama,kelas){var u={id:uid(),nama:nama,username:slug(nama)+'.
 
 /* ---- Appwrite ---- */
 var FA=['nama','username','email','peran','kelas','aktif'];
-var FH=['ts','jobId','kelas','siswa','tipe','score','kompeten','catatan','detik','oleh','penilai','sid'];
+var FH=['ts','jobId','kelas','siswa','tipe','score','kompeten','catatan','detik','oleh','penilai','sid','payload'];
 var FL=['ts','moduleId','moduleTitle','kelas','siswa','sid','score','practice','theory','kompeten','payload','oleh','koreksi','umpan','verifOleh','verifTs'];
 var FB=['lkpdId','sid','moduleId','ts','label','data'];
 var FO=['ts','tipe','guruId','guru','mapel','kelas','tanggal','pengamat','pengamatId','skor','kategori','payload'];

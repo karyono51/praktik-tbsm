@@ -178,3 +178,11 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 - Kotak PENGUJI membagi dua kolom, kiri Penguji Internal dan kanan Penguji Eksternal, masing-masing dengan garis tanda tangan.
 - Hasil latihan UKK ditampilkan sebagai **Latihan UKK** di Rekap nilai, Hasil penilaian UKK, Excel, dan PDF rekap. Nilai yang tersimpan tetap "Latihan", jadi filter dan rekap kompetensi tidak berubah.
 - Cache service worker: `tbsm-v88`. Skrip `?v=88`.
+
+## Pembaruan v89: PDF UKK bisa diunduh ulang dari Rekap
+- Saat **Simpan**, rincian setiap butir UKK (status, hasil ukur, catatan, standar, dan identitas lembar) disimpan di kolom `payload` pada koleksi `hasil`. Identitas dan standar disimpan sebagai salinan saat ujian, jadi PDF lama tidak berubah walaupun unitnya diedit kemudian.
+- Kartu hasil UKK di **Rekap nilai** (siswa dan guru) dan di **Hasil penilaian** (guru) punya tombol **Unduh PDF**. PDF memakai tata letak yang sama dengan Unduh PDF di layar hasil, termasuk foto bukti. Foto diambil dari perangkat, atau dari Google Drive bila belum ada di perangkat.
+- Kelompok: PDF setiap anggota menampilkan nama seluruh anggota. Foto hanya tersimpan pada anggota pertama, sehingga PDF anggota lain tidak memuat lampiran foto.
+- Hasil yang disimpan sebelum v89 tidak punya rincian, sehingga tombol Unduh PDF tidak muncul untuk hasil tersebut.
+- **Perlu `appwrite push collections`** agar atribut `payload` (100.000 karakter) ditambahkan ke koleksi `hasil`.
+- Cache service worker: `tbsm-v89`. Skrip `?v=89`.

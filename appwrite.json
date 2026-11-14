@@ -177,6 +177,13 @@
           "size": 36,
           "required": false,
           "array": false
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 100000,
+          "required": false,
+          "array": false
         }
       ],
       "indexes": [

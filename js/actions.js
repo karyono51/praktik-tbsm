@@ -81,7 +81,7 @@ document.addEventListener('click',function(e){
       if(V.kel&&n>1)nt=('Penilaian kelompok ('+n+' siswa). '+nt).trim().slice(0,1000);
       S.results.push({id:uid(),ts:t0+k,jobId:V.job.id,kelas:V.job.kelas,siswa:it.nama,tipe:isStaff()||(V.job.ukk&&V.job.cfg&&V.job.cfg.mode==='ujian')?'Penilaian':'Latihan',score:it.calc.score,kompeten:it.calc.kompeten,catatan:nt,detik:V.sec,oleh:S.user.username,penilai:S.user.nama,sid:sidOf(it.nama)});
     });
-    ukFotoLampirkan(n0);persist();resetV();S.tab='rekap';render();window.scrollTo(0,0);toast(n>1?n+' hasil tersimpan':'Hasil tersimpan');
+    ukFotoLampirkan(n0);ukkSimpanRincian(n0);persist();resetV();S.tab='rekap';render();window.scrollTo(0,0);toast(n>1?n+' hasil tersimpan':'Hasil tersimpan');
   }
   else if(a==='csv'){
     var rows=S.results.filter(function(r){return S.filter==='ALL'||r.kelas===S.filter}).sort(function(x,y){return x.ts-y.ts});
