@@ -13,7 +13,7 @@ function viewKatalog(){
       '<div class="row sb" style="flex-wrap:wrap;gap:8px">'+st+'</div>'+ukkCardAction(j)+'</article>';
   }).join('');
   return '<div class="row sb"><div><h2>'+k.judul+'</h2><p class="note">'+k.sub+'</p></div><span class="pill plain">'+list.length+' unit</span></div>'+
-    '<p class="note">'+(staff?'Mode guru: menilai siswa dengan rubrik, dan mengelola unit UKK (edit butir, pengaturan tampil, kesempatan, jadwal). Hasil tercatat sebagai Penilaian.':'Mode siswa: latihan mandiri dengan pengukur waktu. Hasil tercatat sebagai Latihan.')+' '+(kb.length>1?'Ganti kelas lewat menu di dasbor.':'Unit di sini khusus kelas kamu.')+'</p>'+ukkTopBar()+'<div class="jobs">'+(jobs||'<div class="card"><p class="muted">Belum ada unit uji untuk kelas ini.</p></div>')+'</div>';
+    '<p class="note">'+(staff?'Mode guru: ketuk Kelola unit untuk melihat hasil penilaian, mengatur tampil, kesempatan, dan jadwal, serta pratinjau dan edit isi unit UKK. Hasil penilaian tercatat sebagai Penilaian.':'Mode siswa: latihan mandiri dengan pengukur waktu. Hasil tercatat sebagai Latihan.')+' '+(kb.length>1?'Ganti kelas lewat menu di dasbor.':'Unit di sini khusus kelas kamu.')+'</p>'+ukkTopBar()+'<div class="jobs">'+(jobs||'<div class="card"><p class="muted">Belum ada unit uji untuk kelas ini.</p></div>')+'</div>';
 }
 
 function viewExam(){

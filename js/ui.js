@@ -43,7 +43,7 @@ function render(){
   '<div class="chip">'+svg(ICO.menu,16)+'Lainnya</div>'+
   row('rekap','Rekap nilai','Nilai, ekspor Excel dan PDF','rekap',cur==='rekap')+
   (can('observasi')?row('observasi','Observasi guru','Supervisi pembelajaran','observasi',cur==='observasi')+row('observasi-siswa','Observasi praktik siswa','Pengamatan proses dan sikap kerja','observasi-siswa',cur==='observasi-siswa'):'')+
-  row('kelas:'+kelasBoleh()[0],'Unit ujian','Akan digantikan LKPD praktik','acuan',cur==='katalog')+
+  '<div class="chip">'+svg(ICO.kelas,16)+(isStaff()?'UKK':'UKK kelas saya')+'</div>'+kelasBoleh().map(function(c){return row('kelas:'+c,'UKK '+KELAS[c].judul,isStaff()?'Kelola unit uji kompetensi':'Latihan uji kompetensi','kelas',cur==='katalog'&&S.kelas===c)}).join('')+
   (can('akun')?row('akun','Akun','Kelola akun, impor, dan KKM','akun',cur==='akun'):'')+
   row('acuan','Acuan','Rubrik dan standar penilaian','acuan',cur==='acuan')+
   '<div class="chip">'+svg(ICO.keluar,16)+'Sesi</div>'+row('gantisandi','Ganti sandi','Ubah sandi akun ini','akun',false)+row('segarkan','Segarkan data','Ambil data terbaru dari server','refresh',false)+row('perbarui','Perbarui aplikasi','<span id="appver">Cek pembaruan aplikasi</span>','refresh',false)+row('keluar','Keluar','Akhiri sesi di perangkat ini','keluar',false,'danger')+

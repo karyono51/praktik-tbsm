@@ -98,3 +98,28 @@ Unit UKK ditampilkan seperti lembar UKK: identitas (satuan pendidikan, konsentra
 
 ## Pembaruan v76: Form UKK mengikuti Lembar Kerja LKPD
 Form UKK Perawatan Berkala (UKK-1 sampai UKK-4) kini memakai tampilan tab Lembar Kerja LKPD: kartu **Identitas praktik** (sekolah, konsentrasi, nama siswa, NIS, kelas, tanggal, tipe kendaraan, penguji) dan kartu **Hasil pemeriksaan** dengan kolom Komponen, Hasil aktual, Standar manual, Status (Belum diperiksa, Sesuai, Tidak sesuai), dan Catatan per item. Status Sesuai tetap menjadi butir terpenuhi pada skor. Catatan per item ikut tersimpan di rekap dan di PDF UKK. Berkas berubah: `js/views.js`, `js/actions.js`, `js/export.js`, `css/app.css`. Cache service worker: `tbsm-v76`.
+
+## Pembaruan v80: Tata kelola UKK disamakan dengan modul LKPD
+Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `js/ui.js`, `js/menu-dasbor.js`, `js/views.js`. Ekspor dan impor UKK sengaja belum dibuat.
+
+**Alur menu (dua tingkat, seperti LKPD Praktik)**
+- Dasbor punya kelompok **UKK** dengan satu baris per kelas (siswa hanya melihat kelasnya).
+- Tingkat 1, daftar unit: kartu ringkas dengan **Kelola unit** dan **Tampilkan/Sembunyikan**; di atas ada **+ UKK baru**, **Tampilkan semua**, **Sembunyikan semua**.
+- Tingkat 2, **Kelola unit**: tombol Pratinjau, Edit isi, Duplikat, Tampilkan/Sembunyikan, Kembalikan bawaan (unit bawaan yang sudah diedit), Hapus (unit buatan sendiri); tab **Hasil penilaian** (tombol Nilai siswa, statistik, daftar hasil, filter Penilaian atau Penilaian + Latihan) dan **Pengaturan** (tampil, kesempatan, jadwal buka/tutup, terapkan ke semua UKK kelas).
+- Tombol back HP mundur satu tingkat: editor (konfirmasi bila ada perubahan), pratinjau, Kelola unit, daftar. Pindah menu atau kelas selalu kembali ke daftar.
+- Ceklis Tampilkan di Pengaturan dan tombol Tampilkan/Sembunyikan selalu sinkron.
+
+**Teknis**
+- Dokumen UKK tetap di koleksi `lkpd_modules` (`jenis:'ukk'`), jadi sinkronisasi Appwrite, antrean offline, dan izin label `lkpdeditor` sama dengan modul LKPD. Tidak ada koleksi atau atribut baru.
+- Semua penyimpanan lewat satu pintu `ukkStore`, yang memanggil `ukkValidateDoc`: ID 2–32 karakter (huruf, angka, _ atau -), judul maks. 180, tipe kendaraan wajib, kelas valid, status draft/published, waktu 1–600 menit, 1–60 butir (komponen maks. 200, standar maks. 300 karakter), identitas lembar maks. 120 karakter, kesempatan 0–9, jadwal tutup setelah buka, ukuran dokumen maks. sekitar 450 KB.
+- ID unit baru tidak boleh bentrok dengan unit atau modul LKPD lain (koleksi dipakai bersama).
+- Unit bawaan (UKK-1 sampai UKK-4) tidak dapat dihapus, hanya disembunyikan. Dokumen lama yang bertanda hapus pada unit bawaan dibaca sebagai disembunyikan. Unit buatan sendiri yang dihapus diarsipkan, nilai lama tetap terbaca di rekap.
+- Unit baru dan hasil duplikat dimulai sebagai Draft, seperti modul LKPD. Jadwal dan kesempatan dipertahankan saat isi unit diedit.
+
+**Pengeditan**
+- Editor terstruktur bertab: **Info** (ID, kelas, judul, tipe kendaraan, waktu, SKKNI, status Draft/Terbit, aktif), **Identitas lembar** (sekolah, konsentrasi, kode, tahun, bentuk), **Butir pemeriksaan**.
+- Butir diedit sebagai baris terpisah (komponen, standar, ceklis Butir wajib) dengan tombol naik, turun, hapus, tambah, dan **Tempel banyak** (`Komponen | Standar | wajib`).
+- Lencana masalah per tab dan ringkasan tiga masalah pertama; penghitung butir dan butir wajib langsung.
+- Draf otomatis di perangkat (`localStorage`, kunci `tbsm-ukk-ed-draft`, berlaku 14 hari) dengan tombol Pulihkan.
+- **Simpan unit** atau **Simpan dan pratinjau**. Pratinjau menampilkan lembar versi siswa tanpa pengisian dan menyebut apa yang saat ini dilihat siswa (belum dibuka, ditutup, atau terbuka).
+- Cache service worker `tbsm-v80`, skrip `?v=76`.

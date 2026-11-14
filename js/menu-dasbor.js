@@ -14,7 +14,8 @@
   return [
    {key:'home',label:'',   ic:null,   keys:['beranda']},
    {key:'lkpd',label:staff?'LKPD Praktik':'LKPD Praktik kelas saya',ic:'kelas',pre:'lkpd:'},
-   {key:'soal',label:'Soal dan ujian',ic:'menu',keys:['banksoal'],pre:'kelas:'},
+   {key:'ukk',label:staff?'UKK':'UKK kelas saya',ic:'kelas',pre:'kelas:'},
+   {key:'soal',label:'Soal dan ujian',ic:'menu',keys:['banksoal']},
    {key:'nilai',label:staff?'Penilaian dan acuan':'Nilai dan acuan',ic:'menu',keys:['rekap','kompetensi','observasi','observasi-siswa','acuan']},
    {key:'admin',label:'Administrasi',ic:'menu',keys:['akun']},
    {key:'app',label:'Akun dan aplikasi',ic:'keluar',keys:['sinkron','gantisandi','segarkan','perbarui','keluar'],compact:true}
