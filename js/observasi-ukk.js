@@ -22,7 +22,7 @@ obsTipe=function(r){return r&&r.tipe==='ukk'?'ukk':(r&&r.tipe==='siswa'?'siswa':
 
 /* Kriteria kesimpulan akhir dan nilai konversi: 91-100 Sangat Kompeten, 75-90 Kompeten, 61-74 Cukup Kompeten, di bawah 61 Belum Kompeten. */
 function obuKat(n){n=+n||0;return n>=91?'Sangat Kompeten':n>=75?'Kompeten':n>=61?'Cukup Kompeten':'Belum Kompeten'}
-function obuPill(k){return k==='Sangat Kompeten'||k==='Kompeten'?'ok':k==='Cukup Kompeten'?'warn':'bad'}
+function obuPill(k){return k==='Sangat Kompeten'?'ok sk':k==='Kompeten'?'ok':k==='Cukup Kompeten'?'warn':'bad'}
 /* Skala per aspek: 1 Belum Kompeten (<61), 2 Cukup Kompeten (61-74), 3 Kompeten (75-90), 4 Sangat Kompeten (91-100).
    Penguji memilih skala lalu mengisi nilai dalam rentangnya. Nilai akhir = jumlah nilai semua aspek / N. Payload v:2 (nilai + lvl). Data lama (tanpa v) = Kompeten/Belum Kompeten. */
 var OBU_LVL=[null,{k:'Belum Kompeten',min:0,max:60,ket:'<61'},{k:'Cukup Kompeten',min:61,max:74,ket:'61-74'},{k:'Kompeten',min:75,max:90,ket:'75-90'},{k:'Sangat Kompeten',min:91,max:100,ket:'91-100'}];
@@ -68,19 +68,19 @@ function obuListView(){
   return '<article class="card job"><div class="row sb"><h3 class="grow">'+esc(r.guru)+'</h3><span class="pill '+obuPill(kt)+'">'+esc(kt)+'</span></div>'+
    '<div class="meta"><span>Kelas '+esc(r.kelas)+'</span><span>'+esc(obsTgl(r.tanggal))+'</span></div><div class="note">'+esc(obuLb(obuKey(r)).nama)+'</div>'+
    '<div class="row sb"><span class="note">'+(admin?'Penguji: '+esc(r.pengamat||'-'):'Observasi saya')+'</span><span class="mono" style="font-weight:600">Nilai '+(+r.skor||0)+'</span></div>'+
-   '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="obu-view" data-v="'+esc(r.id)+'">Lihat</button><button type="button" class="btn small" data-act="obu-pdf" data-v="'+esc(r.id)+'">PDF</button>'+
+   '<div class="row obu-act" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="obu-view" data-v="'+esc(r.id)+'">Lihat</button><button type="button" class="btn small" data-act="obu-pdf" data-v="'+esc(r.id)+'">PDF</button>'+
    (obsBoleh(r)?'<button type="button" class="btn small" data-act="obu-edit" data-v="'+esc(r.id)+'">Ubah</button><button type="button" class="btn small danger" data-act="obu-del" data-v="'+esc(r.id)+'">Hapus</button>':'')+'</div></article>';
  }).join('');
  return '<div class="row sb"><div><h2>Observasi UKK</h2><p class="note">Lembar observasi praktik uji kompetensi keahlian. Hanya untuk Admin dan Guru.</p></div></div>'+'<label class="f">Lembar observasi<select id="obulb">'+OBU.lembar.map(function(L){return '<option value="'+L.k+'"'+(OU.lembar===L.k?' selected':'')+'>'+esc(L.nama)+'</option>'}).join('')+'</select></label>'+obuInfoCard(OU.lembar)+
   '<div class="stats"><div class="card"><span class="label">Observasi</span><b class="mono">'+L.length+'</b></div><div class="card"><span class="label">Kompeten ke atas</span><b class="mono">'+kom+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div></div>'+
-  '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="obu-new">+ Observasi baru</button>'+(L.length?'<button type="button" class="btn small" data-act="obu-rekap">Rekap nilai</button><button type="button" class="btn small" data-act="obu-xls">Excel rincian aspek</button>':'')+'</div>'+
+  '<div class="row obu-act" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="obu-new">+ Observasi baru</button>'+(L.length?'<button type="button" class="btn small" data-act="obu-rekap">Rekap nilai</button><details class="obu-exp"><summary class="btn small">Ekspor</summary><div class="obu-exp-menu"><button type="button" class="btn small" data-act="obu-rekapxls">Rekap nilai (Excel)</button><button type="button" class="btn small" data-act="obu-xls">Rincian aspek (Excel)</button></div></details>':'')+'</div>'+
   (L.length>3?'<label class="f">Cari<input id="obuq" type="search" value="'+esc(OU.q)+'" placeholder="Nama siswa, kelas, penguji"></label>':'')+
   '<div class="jobs">'+(cards||'<div class="card"><p class="muted">'+(L.length?'Tidak ada observasi yang cocok.':'Belum ada observasi. Ketuk <b>+ Observasi baru</b> untuk mulai.')+'</p></div>')+'</div>'+
   '<p class="note">'+(admin?'Admin melihat semua observasi.':'Anda hanya melihat observasi yang Anda isi sendiri.')+' '+(Cloud.on?'Data tersinkron ke Appwrite.':'Data tersimpan di peramban ini.')+'</p>';
 }
 function obuItemHtml(it,d){
  var l=d.lvl[it.id]||0,v=d.nilai[it.id],L=OBU_LVL[l],bad=!!l&&v!==undefined&&!obuValid(l,v);
- return '<div class="item" data-s="'+(l||'')+'"><div class="t" style="display:block"><b>'+it.no+'. '+esc(it.t)+'</b>'+(it.d?'<div class="note" style="font-style:italic;margin-top:3px">'+esc(it.d)+'</div>':'')+'</div>'+
+ return '<div class="item obu-item" id="obi-'+it.id+'" data-s="'+(l||'')+'"><div class="t" style="display:block"><b>'+it.no+'. '+esc(it.t)+'</b>'+(it.d?'<div class="note" style="font-style:italic;margin-top:3px">'+esc(it.d)+'</div>':'')+'</div>'+
   '<div class="seg rate" role="group" aria-label="Skor butir '+it.no+'">'+[1,2,3,4].map(function(k){return '<button type="button" data-act="obu-set" data-id="'+it.id+'" data-v="'+k+'" aria-pressed="'+(l===k)+'" title="'+OBU_LVL[k].k+'">'+k+'</button>'}).join('')+'</div>'+
   '<div class="note obu-ket'+(bad?' bad':'')+'">'+esc(obuKet(l))+'</div>'+
   '<input class="obu-nil" type="number" inputmode="numeric" step="1" data-id="'+it.id+'" '+(l?'min="'+L.min+'" max="'+L.max+'" placeholder="Nilai '+L.min+'-'+L.max+'"':'placeholder="Nilai" disabled')+' value="'+(v===undefined?'':esc(v))+'" aria-invalid="'+bad+'">'+
@@ -101,10 +101,30 @@ function obuFormView(){
   '<div class="card"><div class="row sb"><span class="note">Terisi</span><b class="mono"><span id="obuprog">'+h.done+'</span> / '+h.n+'</b></div><div class="row sb"><span class="note">Jumlah / N · nilai</span><b class="mono" id="obunilai">'+obuRingkas(h)+'</b></div>'+
   '<p class="note">Nilai akhir = jumlah nilai semua aspek dibagi '+h.n+' (dibulatkan). Kesimpulan: 91-100 Sangat Kompeten, 75-90 Kompeten, 61-74 Cukup Kompeten, di bawah 61 Belum Kompeten.</p></div>'+
   '<div class="card"><label class="f">Catatan penguji<textarea data-obu="catatan" maxlength="800">'+esc(d.catatan)+'</textarea></label></div>'+
-  '<div class="row"><button type="button" class="btn" data-act="obu-cancel">Batal</button><button type="button" class="btn primary grow" data-act="obu-save">Simpan observasi</button></div>';
+  '<div class="obu-bar" role="region" aria-label="Ringkasan dan simpan"><div class="obu-bar-in"><div class="obu-stat"><b class="mono"><span id="obuprog2">'+h.done+'</span> / '+h.n+' terisi</b><span class="note" id="obunilai2">'+esc(obuBarTxt(h))+'</span></div>'+
+   '<div class="obu-bar-btns"><button type="button" class="btn" id="obunext" data-act="obu-next"'+(h.done>=h.n?' hidden':'')+'>Belum diisi</button><button type="button" class="btn primary" data-act="obu-save">Simpan</button></div></div></div>';
+}
+function obuBarTxt(h){return h.done?'Nilai '+h.nilai+(h.done>=h.n?' · '+h.hasil:' (sementara)'):'Nilai -'}
+/* Gulir ke aspek pertama yang belum lengkap dan beri sorotan singkat. Mengembalikan aspek itu, atau null bila lengkap. */
+function obuKeBelum(){
+ var d=OU.d;if(!d)return null;
+ var ms=obuLb(d.lembar).flat.filter(function(i){return !obuValid(d.lvl[i.id],d.nilai[i.id])})[0];
+ if(!ms)return null;
+ var el=document.getElementById('obi-'+ms.id);if(!el)return ms;
+ var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ el.scrollIntoView({block:'center',behavior:rm?'auto':'smooth'});
+ el.classList.remove('obu-flash');void el.offsetWidth;el.classList.add('obu-flash');
+ setTimeout(function(){el.classList.remove('obu-flash')},1600);
+ return ms;
+}
+/* Umpan balik tombol ekspor: nonaktif dan berlabel Menyiapkan sampai selesai. */
+function obuBusy(b,fn){
+ if(!b||b.disabled){fn();return}
+ var t=b.textContent;b.disabled=true;b.setAttribute('aria-busy','true');b.textContent='Menyiapkan…';
+ setTimeout(function(){try{fn()}catch(e){toast('Gagal menyiapkan berkas')}finally{b.disabled=false;b.removeAttribute('aria-busy');b.textContent=t}},50);
 }
 function obuRingkas(h){return h.done?h.sum+' / '+h.n+' = '+h.nilai+(h.done>=h.n?' · '+h.hasil:''):'-'}
-function obuSync(){if(!OU.d)return;var h=obuHitung(OU.d,OU.d.lembar),a=$('#obuprog'),b=$('#obunilai');if(a)a.textContent=h.done;if(b)b.textContent=obuRingkas(h)}
+function obuSync(){if(!OU.d)return;var h=obuHitung(OU.d,OU.d.lembar),a=$('#obuprog'),b=$('#obunilai'),a2=$('#obuprog2'),b2=$('#obunilai2'),nx=$('#obunext');if(a)a.textContent=h.done;if(b)b.textContent=obuRingkas(h);if(a2)a2.textContent=h.done;if(b2)b2.textContent=obuBarTxt(h);if(nx){if(h.done>=h.n)nx.setAttribute('hidden','');else nx.removeAttribute('hidden')}}
 function obuDetailView(){
  var r=OU.view,p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p,lk),kt=obuKat(r.skor),m=Object.assign({},OBU.meta,{judul:LB.judul});
  var rows=LB.grup.map(function(g){return '<h3 class="obs-group">'+esc(g.g)+'</h3>'+g.items.map(function(it){
@@ -115,7 +135,7 @@ function obuDetailView(){
   '<div class="note">'+esc(m.judul)+' · Kode '+esc(m.kode)+'</div><div class="note">Penguji: '+esc(p.penguji||r.pengamat||'-')+'</div>'+
   '<div class="row sb"><span class="pill '+obuPill(kt)+'">'+esc(kt)+'</span><b class="mono">Nilai '+(+r.skor||0)+(h.v2?' · jumlah '+h.sum+' / '+h.n:' · '+h.kom+'/'+h.n+' kompeten')+'</b></div></div>'+rows+
   (p.catatan?'<div class="card"><b>Catatan penguji</b><p>'+esc(p.catatan).replace(/\n/g,'<br>')+'</p></div>':'')+
-  '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn primary" data-act="obu-pdf" data-v="'+esc(r.id)+'">Unduh PDF</button>'+(obsBoleh(r)?'<button type="button" class="btn" data-act="obu-edit" data-v="'+esc(r.id)+'">Ubah</button>':'')+'</div>';
+  '<div class="row obu-act" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn primary" data-act="obu-pdf" data-v="'+esc(r.id)+'">Unduh PDF</button>'+(obsBoleh(r)?'<button type="button" class="btn" data-act="obu-edit" data-v="'+esc(r.id)+'">Ubah</button>':'')+'</div>';
 }
 
 /* ---- Simpan, hapus ---- */
@@ -125,7 +145,7 @@ function obuSave(){
  else if(d.sel){var u=S.users.find(function(x){return x.id===d.sel});if(u){nama=u.nama;gid=u.id}}
  if(!nama){toast('Pilih atau isi nama siswa');return}
  if(!d.tanggal){toast('Isi tanggal observasi');return}
- if(h.done<h.n){var ms=LB.flat.filter(function(i){return !obuValid(d.lvl[i.id],d.nilai[i.id])})[0];toast('Aspek '+(ms?ms.no:'')+' belum lengkap: pilih skala 1-4 dan isi nilai sesuai rentang ('+h.done+' dari '+h.n+' terisi)');return}
+ if(h.done<h.n){var ms=LB.flat.filter(function(i){return !obuValid(d.lvl[i.id],d.nilai[i.id])})[0];toast('Aspek '+(ms?ms.no:'')+' belum lengkap: pilih skala 1-4 dan isi nilai sesuai rentang ('+h.done+' dari '+h.n+' terisi)');obuKeBelum();return}
  var penguji=String(d.penguji||'').trim()||S.user.nama;
  var payload=JSON.stringify({v:2,nis:String(d.nis||'').trim(),penguji:penguji,nilai:d.nilai,lvl:d.lvl,cat:d.cat,catatan:String(d.catatan||'').trim(),kode:OBU.meta.kode,lembar:LB.k});
  var f={tipe:'ukk',guruId:gid,guru:nama.slice(0,120),mapel:LB.judul.slice(0,120),kelas:(KELAS[kelas]?kelas:Object.keys(KELAS)[0]),tanggal:d.tanggal,skor:h.nilai,kategori:h.hasil,payload:payload,pengamat:penguji.slice(0,120)};
@@ -256,7 +276,7 @@ function obuRekapView(){
   '<label class="f">Kelas<select id="obukel">'+kopt+'</select></label>'+
   '<div class="stats"><div class="card"><span class="label">Siswa</span><b class="mono">'+n+'</b></div><div class="card"><span class="label">Observasi</span><b class="mono">'+obs+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+(n?avg:'-')+'</b></div></div>'+
   '<div class="card"><span class="label">Rata-rata per lembar</span>'+per+'</div>'+
-  '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="obu-rekapxls"'+(n?'':' disabled')+'>Unduh rekap nilai (Excel)</button></div>'+
+  '<div class="row obu-act" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="obu-rekapxls"'+(n?'':' disabled')+'>Unduh rekap nilai (Excel)</button></div>'+
   '<div class="jobs">'+(cards||'<div class="card"><p class="muted">Belum ada observasi'+(OU.kel?' untuk kelas ini':'')+'.</p></div>')+'</div>';
 }
 function obuRekapXls(){
@@ -296,11 +316,13 @@ document.addEventListener('click',function(e){
   obuSync()}
  else if(a==='obu-save'&&OU.d)obuSave();
  else if(a==='obu-del')obuDelete(v);
- else if(a==='obu-pdf')obuPdf(v);
- else if(a==='obu-xls')obuXls();
+ else if(a==='obu-pdf')obuBusy(b,function(){obuPdf(v)});
+ else if(a==='obu-xls'){var d1=b.closest('details.obu-exp');if(d1)d1.removeAttribute('open');obuBusy(b,obuXls)}
+ else if(a==='obu-next')obuKeBelum();
  else if(a==='obu-rekap'){OU.mode='rekap';render();window.scrollTo(0,0)}
- else if(a==='obu-rekapxls')obuRekapXls();
+ else if(a==='obu-rekapxls'){var d2=b.closest('details.obu-exp');if(d2)d2.removeAttribute('open');obuBusy(b,obuRekapXls)}
 });
+document.addEventListener('click',function(e){var o=document.querySelector('details.obu-exp[open]');if(o&&!o.contains(e.target))o.removeAttribute('open')});
 document.addEventListener('input',function(e){
  var t=e.target;if(!OU.d||OU.mode!=='form')return;
  if(t.dataset&&t.dataset.obu&&t.tagName!=='SELECT')OU.d[t.dataset.obu]=t.value;
@@ -338,7 +360,7 @@ render=function(){
   if(!S.user||!can('observasi'))return;
   var sb=document.querySelector('.sbody');if(!sb||sb.querySelector('[data-v="observasi-ukk"]'))return;
   var cur=V.mode==='list'?S.tab:'';
-  var html='<button type="button" class="srow" data-act="menu" data-v="observasi-ukk"'+(cur==='observasi-ukk'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO['observasi-ukk'],22)+'</span><span class="st"><b>Observasi UKK</b><small>Lembar praktik skala 1-4 dan rekap nilai</small></span>'+svg(ICO.chev,18)+'</button>';
+  var html='<button type="button" class="srow" data-act="menu" data-v="observasi-ukk"'+(cur==='observasi-ukk'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO['observasi-ukk'],22)+'</span><span class="st"><b>Observasi UKK</b><small>Lembar skala 1-4 dan rekap nilai</small></span>'+svg(ICO.chev,18)+'</button>';
   var ks=sb.querySelectorAll('[data-v^="kelas:"]'),ref=ks.length?ks[ks.length-1]:null;
   if(ref)ref.insertAdjacentHTML('afterend',html);
   else{var chips=[].slice.call(sb.querySelectorAll('.chip')),sesi=chips.filter(function(c){return /Sesi/.test(c.textContent)})[0];if(sesi)sesi.insertAdjacentHTML('beforebegin',html);else sb.insertAdjacentHTML('beforeend',html)}

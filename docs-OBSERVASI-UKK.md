@@ -68,3 +68,13 @@ Untuk setiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** sesuai
 - Penamaan lama diganti di menu, kartu beranda, ubin, judul halaman, PDF, sheet dan nama berkas Excel (`Rekap_Observasi_LKPD_Praktik`), README dan dokumen. Nama internal (`observasi-siswa`, `tipe` = `siswa`) tidak diubah agar data lama tetap terbaca.
 - `service-worker.js` naik ke `tbsm-v101`.
 - Kelompok menu di laci (LKPD Praktik, UKK, Soal dan ujian, Penilaian dan acuan, Administrasi, Akun dan aplikasi) kini dapat dibuka/ditutup dengan mengetuk judulnya. Default tertutup, kecuali kelompok yang berisi menu yang sedang dibuka. Buka/tutup manual diingat selama menu aktif sama (`js/menu-dasbor.js`); Tombol **Keluar** dipisah dari kelompok Akun dan aplikasi sehingga selalu terlihat. `service-worker.js` naik ke `tbsm-v103`.
+
+## Pembaruan: menu dan tombol
+- **Judul kelompok menu** selebar laci, tinggi 44 px, dengan jumlah isi dan panah. Default tertutup kecuali kelompok yang berisi menu aktif. Kelompok yang dibuka manual diingat di perangkat (per akun); kelompok menu aktif selalu terbuka saat menu itu dibuka.
+- **Terakhir dibuka**: sampai 3 menu terakhir tampil di bawah Beranda (disimpan di perangkat, per akun).
+- **Baris menu** lebih padat (ikon 38 px) dan subjudul satu baris. **Keluar** tetap terlihat. Fokus keyboard terkunci di dalam laci saat terbuka.
+- **Beranda**: ubin **Observasi UKK** untuk Admin dan Guru. Untuk 7 ubin (Admin), ubin Menu melebar satu baris penuh.
+- **Form Observasi UKK**: bar tetap di bawah layar berisi jumlah terisi, nilai sementara, tombol **Belum diisi** (gulir ke aspek yang belum lengkap, disorot) dan **Simpan**. Simpan yang gagal karena belum lengkap juga menggulir ke aspek itu.
+- **Warna skala 1-4**: 1 merah, 2 kuning, 3 hijau, 4 hijau dengan cincin; label Sangat Kompeten di rekap dan daftar berwarna hijau penuh.
+- **Daftar**: tombol utama Observasi baru, lalu Rekap nilai dan menu **Ekspor** (Rekap nilai Excel, Rincian aspek Excel). Tombol PDF dan Excel menampilkan "Menyiapkan..." selama diproses. Tombol aksi tingginya minimal 42 px.
+- Urutan skrip: `observasi-ukk.js` dimuat sebelum `menu-dasbor.js` agar baris menunya ikut dikelompokkan. `service-worker.js` naik ke `tbsm-v104`.
