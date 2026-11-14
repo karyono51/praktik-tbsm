@@ -13,12 +13,22 @@ Pilih lembar lewat kolom **Lembar observasi** di atas daftar, lalu ketuk **+ Obs
 
 ## Isi lembar
 - Identitas: nama siswa (pilih dari akun Siswa atau ketik manual), NIS, kelas, tanggal, penguji.
-- Tiap lembar terdiri dari 4 bagian (A Persiapan 4, B Proses kerja sesuai lembar, C K3 dan lingkungan 3, D Hasil dan waktu 3). Tiap aspek dipilih **Kompeten** atau **Belum Kompeten**, dengan keterangan opsional. Spesifikasi (mis. 13,0-13,2 V, idle 1.700 ± 100 rpm) tampil sebagai petunjuk di bawah aspek.
-- Nilai = jumlah aspek Kompeten / jumlah aspek lembar x 100. Kesimpulan akhir dan nilai konversi:
-  - 91-100: **Sangat Kompeten**
-  - 75-90: **Kompeten**
-  - 61-74: **Cukup Kompeten**
-  - di bawah 61: **Belum Kompeten**
+- Tiap lembar terdiri dari 4 bagian (A Persiapan 4, B Proses kerja sesuai lembar, C K3 dan lingkungan 3, D Hasil dan waktu 3). Tiap aspek dinilai dengan skala **1-4** (lihat bagian Penilaian), dengan keterangan opsional. Spesifikasi (mis. 13,0-13,2 V, idle 1.700 ± 100 rpm) tampil sebagai petunjuk di bawah aspek.
+## Penilaian (skala 1-4)
+Untuk setiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** sesuai rentang skala yang dipilih. Di bawah tombol tampil keterangan rentang, dan kolom nilai menolak angka di luar rentang.
+
+| Tombol | Kesimpulan | Rentang nilai yang boleh diisi |
+|---|---|---|
+| 1 | Belum Kompeten | 0-60 (<61) |
+| 2 | Cukup Kompeten | 61-74 |
+| 3 | Kompeten | 75-90 |
+| 4 | Sangat Kompeten | 91-100 |
+
+- **Nilai akhir = jumlah nilai semua aspek / N** (N = jumlah aspek lembar, dibulatkan ke bilangan bulat).
+- Kesimpulan akhir memakai rentang yang sama pada nilai akhir: 91-100 Sangat Kompeten, 75-90 Kompeten, 61-74 Cukup Kompeten, di bawah 61 Belum Kompeten.
+- Observasi hanya bisa disimpan bila semua aspek sudah punya skala dan nilai yang valid.
+- Payload baru: `v:2`, `nilai` (angka per aspek), `lvl` (skala 1-4 per aspek).
+- Observasi lama (tanpa `v`, format Kompeten/Belum Kompeten) tetap bisa dilihat dan diunduh sebagaimana tersimpan. Bila diubah, aspeknya harus diisi ulang dengan skala 1-4.
 - Kesimpulan selalu dihitung dari nilai, sehingga observasi lama (yang dulu memakai KKM) otomatis tampil sesuai kriteria baru.
 
 ## Hak akses dan penyimpanan
@@ -28,7 +38,7 @@ Pilih lembar lewat kolom **Lembar observasi** di atas daftar, lalu ketuk **+ Obs
 
 ## Ekspor
 - **PDF** per observasi (berkop sekolah, tanda tangan siswa dan penguji).
-- **Excel** rekap (K = Kompeten, BK = Belum Kompeten per aspek), satu sheet per lembar yang sudah berisi data.
+- **Excel** rekap (nilai per aspek; observasi format lama tetap K / BK), satu sheet per lembar yang sudah berisi data.
 
 ## Berkas
 - Baru: `js/observasi-ukk.js`, `docs-OBSERVASI-UKK.md`.
@@ -36,4 +46,4 @@ Pilih lembar lewat kolom **Lembar observasi** di atas daftar, lalu ketuk **+ Obs
 
 ## Pembaruan: 4 lembar
 - `js/observasi-ukk.js` diubah menjadi registri lembar (`OBU.lembar`, `obuLb`, `obuKey`). Lembar 2-4 diambil dari berkas Observasi_2, _3, _4.
-- `service-worker.js` naik ke `tbsm-v92`; `index.html` memuat `observasi-ukk.js?v=91`.
+- `service-worker.js` naik ke `tbsm-v93`; `index.html` memuat `observasi-ukk.js?v=92` dan `css/app.css?v=90`.

@@ -23,20 +23,28 @@ obsTipe=function(r){return r&&r.tipe==='ukk'?'ukk':(r&&r.tipe==='siswa'?'siswa':
 /* Kriteria kesimpulan akhir dan nilai konversi: 91-100 Sangat Kompeten, 75-90 Kompeten, 61-74 Cukup Kompeten, di bawah 61 Belum Kompeten. */
 function obuKat(n){n=+n||0;return n>=91?'Sangat Kompeten':n>=75?'Kompeten':n>=61?'Cukup Kompeten':'Belum Kompeten'}
 function obuPill(k){return k==='Sangat Kompeten'||k==='Kompeten'?'ok':k==='Cukup Kompeten'?'warn':'bad'}
-function obuHitung(nl,lk){
- var F=obuLb(lk).flat,n=F.length,done=0,kom=0;
- F.forEach(function(i){var v=nl&&nl[i.id];if(v===1||v===0){done++;if(v===1)kom++}});
- var nilai=Math.round(kom/n*100),hasil=obuKat(nilai),ok=nilai>=75;
- return {n:n,done:done,kom:kom,belum:done-kom,nilai:nilai,ok:ok,hasil:hasil};
+/* Skala per aspek: 1 Belum Kompeten (<61), 2 Cukup Kompeten (61-74), 3 Kompeten (75-90), 4 Sangat Kompeten (91-100).
+   Penguji memilih skala lalu mengisi nilai dalam rentangnya. Nilai akhir = jumlah nilai semua aspek / N. Payload v:2 (nilai + lvl). Data lama (tanpa v) = Kompeten/Belum Kompeten. */
+var OBU_LVL=[null,{k:'Belum Kompeten',min:0,max:60,ket:'<61'},{k:'Cukup Kompeten',min:61,max:74,ket:'61-74'},{k:'Kompeten',min:75,max:90,ket:'75-90'},{k:'Sangat Kompeten',min:91,max:100,ket:'91-100'}];
+function obuValid(l,v){var L=OBU_LVL[l];return !!L&&typeof v==='number'&&isFinite(v)&&v===Math.floor(v)&&v>=L.min&&v<=L.max}
+function obuKet(l){var L=OBU_LVL[l];return L?L.k+': '+L.ket:'Pilih 1-4 sesuai kriteria'}
+function obuHitung(src,lk){
+ var F=obuLb(lk).flat,n=F.length,done=0,sum=0,kom=0,nl=(src&&src.nilai)||{},lv=(src&&src.lvl)||{},v2=!!src&&src.v===2;
+ F.forEach(function(i){var v=nl[i.id];
+  if(v2){if(obuValid(lv[i.id],v)){done++;sum+=v}}
+  else if(v===1||v===0){done++;if(v===1)kom++}
+ });
+ var nilai=v2?(done?Math.round(sum/n):0):Math.round(kom/n*100),hasil=obuKat(nilai);
+ return {n:n,done:done,sum:sum,kom:kom,belum:done-kom,nilai:nilai,ok:nilai>=75,hasil:hasil,v2:v2};
 }
 function obuVisible(){
  var L=(S.observasi||[]).filter(function(r){return r.tipe==='ukk'&&(can('observasi-semua')||(!!S.user&&r.pengamatId===S.user.id))});
  return L.sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))||b.ts-a.ts});
 }
-function obuBaru(){return {id:'',lembar:OU.lembar,sel:'',nama:'',nis:'',kelas:Object.keys(KELAS)[0],tanggal:ymd(Date.now()),penguji:(S.user&&S.user.nama)||'',nilai:{},cat:{},catatan:''}}
+function obuBaru(){return {id:'',lembar:OU.lembar,sel:'',nama:'',nis:'',kelas:Object.keys(KELAS)[0],tanggal:ymd(Date.now()),penguji:(S.user&&S.user.nama)||'',v:2,nilai:{},lvl:{},cat:{},catatan:''}}
 function obuDraftDari(r){
  var p=obsPay(r),sel=(r.guruId&&S.users.some(function(u){return u.id===r.guruId}))?r.guruId:'__lain';
- return {id:r.id,lembar:obuKey(r),sel:sel,nama:sel==='__lain'?r.guru:'',nis:p.nis||'',kelas:r.kelas||Object.keys(KELAS)[0],tanggal:r.tanggal||ymd(Date.now()),penguji:p.penguji||r.pengamat||'',nilai:p.nilai,cat:p.cat,catatan:p.catatan||''};
+ return {id:r.id,lembar:obuKey(r),sel:sel,nama:sel==='__lain'?r.guru:'',nis:p.nis||'',kelas:r.kelas||Object.keys(KELAS)[0],tanggal:r.tanggal||ymd(Date.now()),penguji:p.penguji||r.pengamat||'',v:2,lama:p.v!==2,nilai:p.v===2?p.nilai:{},lvl:p.v===2?(p.lvl||{}):{},cat:p.cat,catatan:p.catatan||''};
 }
 
 /* ---- Tampilan ---- */
@@ -70,15 +78,15 @@ function obuListView(){
   '<p class="note">'+(admin?'Admin melihat semua observasi.':'Anda hanya melihat observasi yang Anda isi sendiri.')+' '+(Cloud.on?'Data tersinkron ke Appwrite.':'Data tersimpan di peramban ini.')+'</p>';
 }
 function obuItemHtml(it,d){
- var v=d.nilai[it.id],on=(v===1||v===0)?v:'';
- return '<div class="item" data-s="'+(v===1?4:v===0?1:'')+'"><div class="t" style="display:block"><b>'+it.no+'. '+esc(it.t)+'</b>'+(it.d?'<div class="note" style="font-style:italic;margin-top:3px">'+esc(it.d)+'</div>':'')+'</div>'+
-  '<div class="seg" role="group" aria-label="Capaian butir '+it.no+'">'+
-  '<button type="button" data-act="obu-set" data-id="'+it.id+'" data-v="1" aria-pressed="'+(v===1)+'">Kompeten</button>'+
-  '<button type="button" data-act="obu-set" data-id="'+it.id+'" data-v="0" aria-pressed="'+(v===0)+'">Belum Kompeten</button></div>'+
+ var l=d.lvl[it.id]||0,v=d.nilai[it.id],L=OBU_LVL[l],bad=!!l&&v!==undefined&&!obuValid(l,v);
+ return '<div class="item" data-s="'+(l||'')+'"><div class="t" style="display:block"><b>'+it.no+'. '+esc(it.t)+'</b>'+(it.d?'<div class="note" style="font-style:italic;margin-top:3px">'+esc(it.d)+'</div>':'')+'</div>'+
+  '<div class="seg rate" role="group" aria-label="Skor butir '+it.no+'">'+[1,2,3,4].map(function(k){return '<button type="button" data-act="obu-set" data-id="'+it.id+'" data-v="'+k+'" aria-pressed="'+(l===k)+'" title="'+OBU_LVL[k].k+'">'+k+'</button>'}).join('')+'</div>'+
+  '<div class="note obu-ket'+(bad?' bad':'')+'">'+esc(obuKet(l))+'</div>'+
+  '<input class="obu-nil" type="number" inputmode="numeric" step="1" data-id="'+it.id+'" '+(l?'min="'+L.min+'" max="'+L.max+'" placeholder="Nilai '+L.min+'-'+L.max+'"':'placeholder="Nilai" disabled')+' value="'+(v===undefined?'':esc(v))+'" aria-invalid="'+bad+'">'+
   '<input class="obu-cat" data-id="'+it.id+'" maxlength="300" placeholder="Keterangan (opsional)" value="'+esc(d.cat[it.id]||'')+'"></div>';
 }
 function obuFormView(){
- var d=OU.d,h=obuHitung(d.nilai,d.lembar),LB=obuLb(d.lembar);
+ var d=OU.d,h=obuHitung(d,d.lembar),LB=obuLb(d.lembar);
  var gopt='<option value="">Pilih siswa</option>'+obsOrang('siswa').map(function(u){return '<option value="'+esc(u.id)+'"'+(d.sel===u.id?' selected':'')+'>'+esc(u.nama)+' ('+esc(u.kelas||'-')+')</option>'}).join('')+'<option value="__lain"'+(d.sel==='__lain'?' selected':'')+'>Lainnya (ketik nama)</option>';
  var kopt=Object.keys(KELAS).map(function(k){return '<option value="'+k+'"'+(d.kelas===k?' selected':'')+'>Kelas '+k+'</option>'}).join('');
  var items=LB.grup.map(function(g){return '<h3 class="obs-group">'+esc(g.g)+'</h3>'+g.items.map(function(it){return obuItemHtml(it,d)}).join('')}).join('');
@@ -88,37 +96,37 @@ function obuFormView(){
   (d.sel==='__lain'?'<label class="f">Nama siswa (manual)<input data-obu="nama" maxlength="120" value="'+esc(d.nama)+'"></label>':'')+
   '<div class="two"><label class="f">NIS<input data-obu="nis" maxlength="30" value="'+esc(d.nis)+'"></label><label class="f">Kelas<select data-obu="kelas">'+kopt+'</select></label></div>'+
   '<div class="two"><label class="f">Tanggal<input type="date" data-obu="tanggal" value="'+esc(d.tanggal)+'"></label><label class="f">Penguji<input data-obu="penguji" maxlength="120" value="'+esc(d.penguji)+'"></label></div></form>'+
-  '<p class="note">Pilih Kompeten atau Belum Kompeten untuk setiap aspek. Isi keterangan bila perlu.</p>'+items+
-  '<div class="card"><div class="row sb"><span class="note">Terisi</span><b class="mono"><span id="obuprog">'+h.done+'</span> / '+h.n+'</b></div><div class="row sb"><span class="note">Kompeten · nilai</span><b class="mono" id="obunilai">'+obuRingkas(h)+'</b></div>'+
-  '<p class="note">Nilai = jumlah butir Kompeten dibagi '+h.n+' x 100. Kesimpulan: 91-100 Sangat Kompeten, 75-90 Kompeten, 61-74 Cukup Kompeten, di bawah 61 Belum Kompeten.</p></div>'+
+  (d.lama?'<p class="note">Observasi ini dibuat dengan format lama (Kompeten / Belum Kompeten). Isi ulang setiap aspek dengan skala 1-4 sebelum menyimpan.</p>':'')+'<p class="note">Pilih skala 1-4 untuk setiap aspek, lalu isi nilai sesuai rentangnya: 1 Belum Kompeten (&lt;61), 2 Cukup Kompeten (61-74), 3 Kompeten (75-90), 4 Sangat Kompeten (91-100). Isi keterangan bila perlu.</p>'+items+
+  '<div class="card"><div class="row sb"><span class="note">Terisi</span><b class="mono"><span id="obuprog">'+h.done+'</span> / '+h.n+'</b></div><div class="row sb"><span class="note">Jumlah / N · nilai</span><b class="mono" id="obunilai">'+obuRingkas(h)+'</b></div>'+
+  '<p class="note">Nilai akhir = jumlah nilai semua aspek dibagi '+h.n+' (dibulatkan). Kesimpulan: 91-100 Sangat Kompeten, 75-90 Kompeten, 61-74 Cukup Kompeten, di bawah 61 Belum Kompeten.</p></div>'+
   '<div class="card"><label class="f">Catatan penguji<textarea data-obu="catatan" maxlength="800">'+esc(d.catatan)+'</textarea></label></div>'+
   '<div class="row"><button type="button" class="btn" data-act="obu-cancel">Batal</button><button type="button" class="btn primary grow" data-act="obu-save">Simpan observasi</button></div>';
 }
-function obuRingkas(h){return h.done?h.kom+'/'+h.n+' · '+h.nilai+(h.done>=h.n?' · '+h.hasil:''):'-'}
-function obuSync(){if(!OU.d)return;var h=obuHitung(OU.d.nilai,OU.d.lembar),a=$('#obuprog'),b=$('#obunilai');if(a)a.textContent=h.done;if(b)b.textContent=obuRingkas(h)}
+function obuRingkas(h){return h.done?h.sum+' / '+h.n+' = '+h.nilai+(h.done>=h.n?' · '+h.hasil:''):'-'}
+function obuSync(){if(!OU.d)return;var h=obuHitung(OU.d,OU.d.lembar),a=$('#obuprog'),b=$('#obunilai');if(a)a.textContent=h.done;if(b)b.textContent=obuRingkas(h)}
 function obuDetailView(){
- var r=OU.view,p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p.nilai,lk),kt=obuKat(r.skor),m=Object.assign({},OBU.meta,{judul:LB.judul});
+ var r=OU.view,p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p,lk),kt=obuKat(r.skor),m=Object.assign({},OBU.meta,{judul:LB.judul});
  var rows=LB.grup.map(function(g){return '<h3 class="obs-group">'+esc(g.g)+'</h3>'+g.items.map(function(it){
-  var v=p.nilai[it.id];
-  return '<div class="card" style="gap:4px"><div class="row sb"><span>'+it.no+'. '+esc(it.t)+'</span><span class="pill '+(v===1?'ok':v===0?'bad':'plain')+'">'+(v===1?'Kompeten':v===0?'Belum Kompeten':'-')+'</span></div>'+(it.d?'<div class="note" style="font-style:italic">'+esc(it.d)+'</div>':'')+(p.cat[it.id]?'<div class="note">'+esc(p.cat[it.id])+'</div>':'')+'</div>'}).join('')}).join('');
+  var v=p.nilai[it.id],l=h.v2?((p.lvl||{})[it.id]||0):0,pill=h.v2?(l?'<span class="pill '+obuPill(OBU_LVL[l].k)+'">'+l+' · '+esc(OBU_LVL[l].k)+' · '+esc(v)+'</span>':'<span class="pill plain">-</span>'):'<span class="pill '+(v===1?'ok':v===0?'bad':'plain')+'">'+(v===1?'Kompeten':v===0?'Belum Kompeten':'-')+'</span>';
+  return '<div class="card" style="gap:4px"><div class="row sb"><span>'+it.no+'. '+esc(it.t)+'</span>'+pill+'</div>'+(it.d?'<div class="note" style="font-style:italic">'+esc(it.d)+'</div>':'')+(p.cat[it.id]?'<div class="note">'+esc(p.cat[it.id])+'</div>':'')+'</div>'}).join('')}).join('');
  return '<div class="row sb"><h2>Detail observasi UKK</h2><button type="button" class="btn small" data-act="obu-back">Kembali</button></div>'+
   '<div class="card"><h3>'+esc(r.guru)+'</h3><div class="meta"><span>NIS '+esc(p.nis||'-')+'</span><span>Kelas '+esc(r.kelas)+'</span><span>'+esc(obsTgl(r.tanggal))+'</span></div>'+
   '<div class="note">'+esc(m.judul)+' · Kode '+esc(m.kode)+'</div><div class="note">Penguji: '+esc(p.penguji||r.pengamat||'-')+'</div>'+
-  '<div class="row sb"><span class="pill '+obuPill(kt)+'">'+esc(kt)+'</span><b class="mono">Nilai '+(+r.skor||0)+' · '+h.kom+'/'+h.n+' kompeten</b></div></div>'+rows+
+  '<div class="row sb"><span class="pill '+obuPill(kt)+'">'+esc(kt)+'</span><b class="mono">Nilai '+(+r.skor||0)+(h.v2?' · jumlah '+h.sum+' / '+h.n:' · '+h.kom+'/'+h.n+' kompeten')+'</b></div></div>'+rows+
   (p.catatan?'<div class="card"><b>Catatan penguji</b><p>'+esc(p.catatan).replace(/\n/g,'<br>')+'</p></div>':'')+
   '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn primary" data-act="obu-pdf" data-v="'+esc(r.id)+'">Unduh PDF</button>'+(obsBoleh(r)?'<button type="button" class="btn" data-act="obu-edit" data-v="'+esc(r.id)+'">Ubah</button>':'')+'</div>';
 }
 
 /* ---- Simpan, hapus ---- */
 function obuSave(){
- var d=OU.d,h=obuHitung(d.nilai,d.lembar),LB=obuLb(d.lembar),nama='',gid='',kelas=d.kelas;
+ var d=OU.d,h=obuHitung(d,d.lembar),LB=obuLb(d.lembar),nama='',gid='',kelas=d.kelas;
  if(d.sel==='__lain')nama=String(d.nama||'').trim();
  else if(d.sel){var u=S.users.find(function(x){return x.id===d.sel});if(u){nama=u.nama;gid=u.id}}
  if(!nama){toast('Pilih atau isi nama siswa');return}
  if(!d.tanggal){toast('Isi tanggal observasi');return}
- if(h.done<h.n){toast('Lengkapi semua aspek ('+h.done+' dari '+h.n+')');return}
+ if(h.done<h.n){var ms=LB.flat.filter(function(i){return !obuValid(d.lvl[i.id],d.nilai[i.id])})[0];toast('Aspek '+(ms?ms.no:'')+' belum lengkap: pilih skala 1-4 dan isi nilai sesuai rentang ('+h.done+' dari '+h.n+' terisi)');return}
  var penguji=String(d.penguji||'').trim()||S.user.nama;
- var payload=JSON.stringify({nis:String(d.nis||'').trim(),penguji:penguji,nilai:d.nilai,cat:d.cat,catatan:String(d.catatan||'').trim(),kode:OBU.meta.kode,lembar:LB.k});
+ var payload=JSON.stringify({v:2,nis:String(d.nis||'').trim(),penguji:penguji,nilai:d.nilai,lvl:d.lvl,cat:d.cat,catatan:String(d.catatan||'').trim(),kode:OBU.meta.kode,lembar:LB.k});
  var f={tipe:'ukk',guruId:gid,guru:nama.slice(0,120),mapel:LB.judul.slice(0,120),kelas:(KELAS[kelas]?kelas:Object.keys(KELAS)[0]),tanggal:d.tanggal,skor:h.nilai,kategori:h.hasil,payload:payload,pengamat:penguji.slice(0,120)};
  S.observasi=S.observasi||[];
  var rec=d.id?S.observasi.find(function(x){return x.id===d.id}):null;
@@ -136,20 +144,21 @@ async function obuDelete(id){
 /* ---- Ekspor ---- */
 function obuPdf(id){
  var r=(S.observasi||[]).find(function(x){return x.id===id});if(!r||r.tipe!=='ukk'||!needP())return;
- var p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p.nilai,lk),m=Object.assign({},OBU.meta,{judul:LB.judul}),doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+ var p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p,lk),m=Object.assign({},OBU.meta,{judul:LB.judul}),doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
  kop(doc,'Lembar Observasi Praktik - Uji Kompetensi Keahlian '+m.tahun);
  doc.autoTable({startY:45,theme:'plain',styles:{fontSize:10,cellPadding:1.2},columnStyles:{0:{cellWidth:50,fontStyle:'bold'}},body:[
   ['Satuan Pendidikan',m.satuan],['Konsentrasi Keahlian',m.konsentrasi],['Kode',m.kode],['Alokasi Waktu',m.waktu],['Judul Tugas',m.judul],
   ['Nama Siswa',r.guru],['NIS / Kelas',(p.nis||'-')+' / '+r.kelas],['Tanggal',obsTgl(r.tanggal)],['Penguji',p.penguji||r.pengamat||'-']]});
  var body=[];
  LB.grup.forEach(function(g){
-  body.push([{content:g.g,colSpan:4,styles:{fontStyle:'bold',fillColor:[232,240,235]}}]);
-  g.items.forEach(function(it){var v=p.nilai[it.id];body.push([it.no,it.t+(it.d?'\n'+it.d:''),v===1?'Kompeten':v===0?'Belum Kompeten':'-',p.cat[it.id]||''])});
+  body.push([{content:g.g,colSpan:5,styles:{fontStyle:'bold',fillColor:[232,240,235]}}]);
+  g.items.forEach(function(it){var v=p.nilai[it.id],l=h.v2?((p.lvl||{})[it.id]||0):0;body.push([it.no,it.t+(it.d?'\n'+it.d:''),h.v2?(l?l+' - '+OBU_LVL[l].k:'-'):(v===1?'Kompeten':v===0?'Belum Kompeten':'-'),h.v2&&l?v:'',p.cat[it.id]||''])});
  });
- doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9,cellPadding:1.8},headStyles:TH,head:[['No','Aspek yang diamati','Capaian','Keterangan']],body:body,columnStyles:{0:{cellWidth:10,halign:'center'},2:{cellWidth:28,halign:'center'}}});
+ doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9,cellPadding:1.8},headStyles:TH,head:[['No','Aspek yang diamati','Capaian','Nilai','Keterangan']],body:body,columnStyles:{0:{cellWidth:10,halign:'center'},2:{cellWidth:32,halign:'center'},3:{cellWidth:14,halign:'center'}}});
  var y=doc.lastAutoTable.finalY+7,H=doc.internal.pageSize.getHeight();
- if(y>H-40){doc.addPage();y=22}
- doc.setFontSize(10.5).setTextColor(0).setFont('helvetica','bold').text('Kompeten '+h.kom+' dari '+h.n+' aspek   Nilai '+r.skor+'   Kesimpulan: '+obuKat(r.skor)+' (konversi '+r.skor+')',14,y);doc.setFont('helvetica','normal');y+=8;
+ if(y>H-48){doc.addPage();y=22}
+ if(h.v2){doc.setFontSize(8).setTextColor(90).setFont('helvetica','normal').text('Skala: 1 Belum Kompeten (<61) | 2 Cukup Kompeten (61-74) | 3 Kompeten (75-90) | 4 Sangat Kompeten (91-100)',14,y);y+=6}
+ doc.setFontSize(10.5).setTextColor(0).setFont('helvetica','bold').text((h.v2?'Jumlah nilai '+h.sum+' / '+h.n+' aspek':'Kompeten '+h.kom+' dari '+h.n+' aspek')+'   Nilai akhir '+r.skor+'   Kesimpulan: '+obuKat(r.skor),14,y);doc.setFont('helvetica','normal');y+=8;
  var lines=doc.splitTextToSize(p.catatan||'-',180);
  if(y+6+lines.length*4.6>H-20){doc.addPage();y=22}
  doc.setFontSize(10).setFont('helvetica','bold').text('Catatan',14,y);doc.setFont('helvetica','normal').text(lines,14,y+5);y+=9+lines.length*4.6;
@@ -161,9 +170,9 @@ function obuXls(){
  var sheets=[];
  OBU.lembar.forEach(function(LB){
   var L=all.filter(function(r){return obuKey(r)===LB.k});if(!L.length)return;
-  var F=LB.flat,head=['No','Tanggal','Nama siswa','NIS','Kelas','Penguji'].concat(F.map(function(i){return i.no+'. '+i.t})).concat(['Jumlah kompeten','Nilai','Hasil','Catatan']);
-  var aoa=[head].concat(L.map(function(r,i){var p=obsPay(r),h=obuHitung(p.nilai,LB.k);
-   return [i+1,r.tanggal,r.guru,p.nis||'',r.kelas,p.penguji||r.pengamat||''].concat(F.map(function(it){var v=p.nilai[it.id];return v===1?'K':v===0?'BK':''})).concat([h.kom,r.skor,obuKat(r.skor),p.catatan||''])}));
+  var F=LB.flat,head=['No','Tanggal','Nama siswa','NIS','Kelas','Penguji'].concat(F.map(function(i){return i.no+'. '+i.t})).concat(['Jumlah nilai','Nilai','Hasil','Catatan']);
+  var aoa=[head].concat(L.map(function(r,i){var p=obsPay(r),h=obuHitung(p,LB.k);
+   return [i+1,r.tanggal,r.guru,p.nis||'',r.kelas,p.penguji||r.pengamat||''].concat(F.map(function(it){var v=p.nilai[it.id];return h.v2?(obuValid((p.lvl||{})[it.id],v)?v:''):(v===1?'K':v===0?'BK':'')})).concat([h.v2?h.sum:'',r.skor,obuKat(r.skor),p.catatan||''])}));
   sheets.push([LB.nama.replace(/[\\\/?*\[\]:\u00b7]/g,'').replace(/\s+/g,' ').slice(0,31),aoa,head.map(function(x,i){return i===2?24:i<6?14:i<6+F.length?10:i===6+F.length+3?36:14})]);
  });
  if(!sheets.length)return;
@@ -178,8 +187,15 @@ document.addEventListener('click',function(e){
  else if(a==='obu-edit'){var r=(S.observasi||[]).find(function(x){return x.id===v});if(!r||r.tipe!=='ukk'||!obsBoleh(r))return;OU.d=obuDraftDari(r);OU.mode='form';render();window.scrollTo(0,0)}
  else if(a==='obu-view'){var r2=(S.observasi||[]).find(function(x){return x.id===v});if(!r2)return;OU.view=r2;OU.mode='view';render();window.scrollTo(0,0)}
  else if(a==='obu-back'){OU.mode='list';OU.view=null;render();window.scrollTo(0,0)}
- else if(a==='obu-cancel'){if(OU.d&&obuHitung(OU.d.nilai,OU.d.lembar).done&&!uiOk('obucancel','Batalkan observasi?\nIsian yang belum disimpan akan hilang.',b,{ok:'Batalkan',cancel:'Kembali',danger:true}))return;OU.mode='list';OU.d=null;render();window.scrollTo(0,0)}
- else if(a==='obu-set'&&OU.d){var s=parseInt(v,10),card=b.closest('.item');OU.d.nilai[b.dataset.id]=s;card.dataset.s=s===1?4:1;$$('button',card).forEach(function(x){x.setAttribute('aria-pressed',String(parseInt(x.dataset.v,10)===s))});obuSync()}
+ else if(a==='obu-cancel'){if(OU.d&&obuHitung(OU.d,OU.d.lembar).done&&!uiOk('obucancel','Batalkan observasi?\nIsian yang belum disimpan akan hilang.',b,{ok:'Batalkan',cancel:'Kembali',danger:true}))return;OU.mode='list';OU.d=null;render();window.scrollTo(0,0)}
+ else if(a==='obu-set'&&OU.d){
+  var sk=parseInt(v,10),id=b.dataset.id,card=b.closest('.item'),LV=OBU_LVL[sk],cur=OU.d.nilai[id];
+  OU.d.lvl[id]=sk;if(!obuValid(sk,cur))delete OU.d.nilai[id];
+  card.dataset.s=sk;$$('.seg button',card).forEach(function(x){x.setAttribute('aria-pressed',String(parseInt(x.dataset.v,10)===sk))});
+  var ket=card.querySelector('.obu-ket'),inp=card.querySelector('.obu-nil');
+  if(ket){ket.textContent=obuKet(sk);ket.classList.remove('bad')}
+  if(inp){inp.disabled=false;inp.min=LV.min;inp.max=LV.max;inp.placeholder='Nilai '+LV.min+'-'+LV.max;if(!obuValid(sk,cur))inp.value='';inp.setAttribute('aria-invalid','false');inp.focus()}
+  obuSync()}
  else if(a==='obu-save'&&OU.d)obuSave();
  else if(a==='obu-del')obuDelete(v);
  else if(a==='obu-pdf')obuPdf(v);
@@ -189,6 +205,14 @@ document.addEventListener('input',function(e){
  var t=e.target;if(!OU.d||OU.mode!=='form')return;
  if(t.dataset&&t.dataset.obu&&t.tagName!=='SELECT')OU.d[t.dataset.obu]=t.value;
  else if(t.classList&&t.classList.contains('obu-cat'))OU.d.cat[t.dataset.id]=t.value;
+ else if(t.classList&&t.classList.contains('obu-nil')){
+  var nid=t.dataset.id,nl=OU.d.lvl[nid],raw=t.value;
+  if(raw==='')delete OU.d.nilai[nid];else OU.d.nilai[nid]=Number(raw);
+  var bd=raw!==''&&!obuValid(nl,OU.d.nilai[nid]),kt=t.closest('.item').querySelector('.obu-ket'),LN=OBU_LVL[nl];
+  t.setAttribute('aria-invalid',String(bd));
+  if(kt){kt.textContent=bd&&LN?'Nilai harus '+LN.min+'-'+LN.max+' ('+obuKet(nl)+')':obuKet(nl);kt.classList.toggle('bad',bd)}
+  obuSync();
+ }
 });
 document.addEventListener('change',function(e){
  var t=e.target;

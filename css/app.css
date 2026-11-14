@@ -338,3 +338,7 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 /* Form UKK: memakai gaya Lembar Kerja LKPD (.card, .formgrid, .tablewrap); hanya warna status per baris */
 .ukk-row[data-v="1"]{background:var(--ok-bg)}.ukk-row[data-v="0"]{background:var(--bad-bg)}
 .tablewrap table.ukk td select{width:100%}
+
+/* observasi UKK: skala 1-4 dan input nilai */
+.obu-ket{font-size:13px;font-weight:600}.obu-ket.bad{color:var(--bad)}
+.obu-nil{font-size:15px}.obu-nil[aria-invalid="true"]{border-color:var(--bad)}.obu-nil:disabled{opacity:.55}
