@@ -3,7 +3,7 @@
    Penyimpanan: koleksi dan kunci yang sama dengan observasi lain (S.observasi, koleksi `observasi`) dengan tipe = 'ukk',
    sehingga sinkron Appwrite, antrean offline, hak akses (Admin semua, Guru miliknya), dan Cek sinkronisasi ikut berlaku. */
 var OBU={
- meta:{tahun:'2026/2027',satuan:'SMKS Darul Fatwa',konsentrasi:'Teknik Bisnis Sepeda Motor',kode:'KM25.2.2.2',waktu:'20 Menit'},
+ meta:{tahun:'2026/2027',satuan:'SMKS Darul Fatwa',konsentrasi:'Teknik Bisnis Sepeda Motor',kode:'KM25.2.2.2',waktu:'20 Menit',penguji2:'Tim AHASS',unit:{vario:'Honda Vario KZR',cvt:'Honda Beat Pop',rem:'Honda Supra X 125 Karburator',bodi:'Honda Supra Fit'}},
  lembar:[{"k": "vario", "nama": "Observasi 1 · Engine Injeksi (Vario KZR)", "judul": "Perawatan Berkala Engine Injeksi 4 Tak (Honda Vario KZR)", "g": [{"g": "A. Persiapan", "t": [[1, "Memakai pakaian kerja dan APD (wearpack, sepatu, sarung tangan)", ""], [2, "Menyiapkan alat dan bahan sesuai kebutuhan pekerjaan", ""], [3, "Memeriksa kondisi alat ukur sebelum dipakai", ""], [4, "Memposisikan sepeda motor dengan aman (standar tengah/dudukan)", ""]]}, {"g": "B. Proses kerja (16 item)", "t": [[5, "Memeriksa tegangan baterai", "Siswa mengukur tegangan baterai dengan voltmeter dan membandingkannya dengan 13,0–13,2 V."], [6, "Memeriksa dan mengganti oli mesin sesuai takaran", "Siswa menguras oli mesin lama dan mengisi oli baru sebanyak 0,8 L sesuai takaran."], [7, "Memeriksa dan mengganti oli transmisi matic (final drive)", "Siswa mengganti oli transmisi matic sebanyak 0,12 L sesuai takaran."], [8, "Membersihkan saringan oli (kasa dan sentrifugal)", "Siswa membersihkan kasa dan saringan sentrifugal hingga bersih dan tidak tersumbat."], [9, "Memeriksa level dan kondisi air radiator/coolant", "Siswa memeriksa level coolant berada di antara batas atas dan bawah pada 0,51 L."], [10, "Mengukur dan menyetel celah klep", "Siswa mengukur celah klep dan menyetelnya ke IN 0,10 ± 0,02 mm dan EX 0,24 ± 0,02 mm."], [11, "Memeriksa dan membersihkan filter udara", "Siswa memeriksa dan membersihkan filter udara hingga bersih, tidak sobek, dan tidak basah oli."], [12, "Memeriksa kondisi dan mengukur celah busi", "Siswa memeriksa kondisi busi dan mengukur celah busi 0,8–0,9 mm."], [13, "Memeriksa dan menyetel idle speed", "Siswa menyetel idle speed hingga 1.700 ± 100 rpm."], [14, "Memeriksa jarak main bebas throttle gas", "Siswa mengukur jarak main bebas handel gas dan memastikannya berada pada 2–6 mm."], [15, "Memeriksa saluran dan mengukur tekanan bahan bakar", "Siswa memeriksa saluran bahan bakar tidak bocor dan mengukur tekanan bahan bakar 294 kPa."], [16, "Memeriksa kode kerusakan sistem injeksi dan mereset kerusakan", "Siswa membaca kode kerusakan sistem injeksi dan mereset kerusakan hingga tidak ada kode tersisa."], [17, "Memeriksa kebocoran oli shock depan", "Siswa memeriksa shock depan dan memastikan tidak ada kebocoran oli."], [18, "Memeriksa kerja (tekan-lepas) shock depan", "Siswa menekan dan melepas shock depan dan memastikan kerjanya halus, tidak macet."], [19, "Memeriksa kebocoran shock belakang", "Siswa memeriksa shock belakang dan memastikan tidak ada kebocoran."], [20, "Memeriksa kerja shock belakang", "Siswa menekan dan melepas shock belakang dan memastikan kerjanya halus, tidak macet."]]}, {"g": "C. K3 dan lingkungan", "t": [[21, "Menerapkan K3 selama bekerja", ""], [22, "Menangani oli bekas dan limbah dengan benar", ""], [23, "Merapikan dan membersihkan area kerja serta alat setelah selesai", ""]]}, {"g": "D. Hasil dan waktu", "t": [[24, "Menyelesaikan pekerjaan dalam 20 menit", ""], [25, "Mengisi hasil pemeriksaan dengan jujur dan lengkap", ""], [26, "Menarik kesimpulan sesuai standar/spesifikasi", ""]]}]}, {"k": "cvt", "nama": "Observasi 2 · Sistem CVT (Beat Pop)", "judul": "Perawatan Berkala Sistem CVT (Honda Beat Pop)", "g": [{"g": "A. Persiapan", "t": [[1, "Memakai pakaian kerja dan APD (wearpack, sepatu, sarung tangan)", ""], [2, "Menyiapkan alat dan bahan sesuai kebutuhan pekerjaan", ""], [3, "Memeriksa kondisi alat ukur sebelum dipakai", ""], [4, "Memposisikan sepeda motor dengan aman (standar tengah/dudukan)", ""]]}, {"g": "B. Proses kerja (9 item)", "t": [[5, "Melepas komponen CVT", "Siswa melepas komponen CVT sesuai prosedur tanpa merusak komponen."], [6, "V-belt (lebar dan keausan)", "Siswa mengukur lebar V-belt dan memastikannya di atas batas servis 17,5 mm (standar 18,5 mm)."], [7, "Roller weight (diameter dan keausan)", "Siswa mengukur diameter roller weight 17,92–18,08 mm dan menimbang bobotnya 15 g, di atas batas servis 17,3 mm."], [8, "Weight set clutch (kampas dan pegas)", "Siswa memeriksa tebal kampas kopling di atas 2,0 mm dan memastikan pegas tidak patah atau lemah."], [9, "Puli primer", "Siswa memeriksa ukuran boss dan bushing puli primer dalam batas servis sesuai buku manual."], [10, "Puli sekunder", "Siswa memeriksa ukuran boss dan bushing puli sekunder dalam batas servis sesuai buku manual."], [11, "Mangkok kopling CVT (diameter dalam dan keausan)", "Siswa mengukur diameter dalam mangkok kopling 112,0–112,2 mm, di bawah batas servis 112,5 mm."], [12, "Per CVT (panjang bebas dan kekenduran)", "Siswa mengukur panjang bebas per CVT 127,5 mm dan memastikannya di atas batas servis 124,7 mm."], [13, "Memasang komponen CVT", "Siswa memasang kembali komponen CVT sesuai prosedur dan mengencangkan baut sesuai torsi buku manual."]]}, {"g": "C. K3 dan lingkungan", "t": [[14, "Menerapkan K3 selama bekerja", ""], [15, "Menangani oli bekas dan limbah dengan benar", ""], [16, "Merapikan dan membersihkan area kerja serta alat setelah selesai", ""]]}, {"g": "D. Hasil dan waktu", "t": [[17, "Menyelesaikan pekerjaan dalam 20 menit", ""], [18, "Mengisi hasil pemeriksaan dengan jujur dan lengkap", ""], [19, "Menarik kesimpulan sesuai standar/spesifikasi", ""]]}]}, {"k": "rem", "nama": "Observasi 3 · Sistem Rem (Supra X 125)", "judul": "Perawatan Berkala Sistem Rem (Honda Supra X 125 Karburator)", "g": [{"g": "A. Persiapan", "t": [[1, "Memakai pakaian kerja dan APD (wearpack, sepatu, sarung tangan)", ""], [2, "Menyiapkan alat dan bahan sesuai kebutuhan pekerjaan", ""], [3, "Memeriksa kondisi alat ukur sebelum dipakai", ""], [4, "Memposisikan sepeda motor dengan aman (standar tengah/dudukan)", ""]]}, {"g": "B. Proses kerja (13 item)", "t": [[5, "Drive chain dan sprocket", "Siswa mengukur kekenduran rantai 25–35 mm dan memeriksa kondisi sprocket."], [6, "Rem depan: jarak main bebas handel rem", "Siswa mengukur jarak main bebas handel rem depan dan memastikannya berada pada 10–20 mm."], [7, "Rem depan: ketebalan kampas rem (pad)", "Siswa mengukur ketebalan kampas rem depan dan memastikannya masih di atas batas servis."], [8, "Rem depan: kondisi dan ketebalan piringan (disc)", "Siswa mengukur tebal piringan depan 3,8–4,2 mm dan keolengan maksimal 0,30 mm, serta memastikan tebal tidak di bawah 3,0 mm."], [9, "Rem depan: level dan kondisi minyak rem", "Siswa memeriksa level minyak rem depan berada di antara batas dan tidak keruh."], [10, "Rem depan: kebocoran selang, kaliper, master rem", "Siswa memeriksa selang, kaliper, dan master rem depan dan memastikan tidak bocor."], [11, "Rem belakang: jarak main bebas pedal", "Siswa mengukur jarak main bebas pedal rem belakang dan memastikannya berada pada 20–30 mm."], [12, "Rem belakang: indikator keausan kampas", "Siswa memeriksa indikator keausan kampas rem belakang dan memastikan belum mencapai batas."], [13, "Rem belakang: penyetelan jarak main bebas", "Siswa menyetel jarak main bebas pedal rem belakang hingga 20–30 mm."], [14, "Rem belakang: diameter dalam tromol (jangka sorong)", "Siswa mengukur diameter dalam tromol dengan jangka sorong, 110,0 mm, di bawah batas servis 111,0 mm."], [15, "Sistem kemudi: kebebasan putaran stang", "Siswa memeriksa stang kemudi berputar halus ke kiri dan kanan serta tidak seret."], [16, "Sistem kemudi: kelonggaran bantalan kemudi", "Siswa memeriksa kelonggaran bantalan kemudi dan memastikannya tidak longgar serta tidak berbunyi."], [17, "Keolengan roda", "Siswa memeriksa keolengan roda dan memastikannya masih dalam batas servis sesuai buku manual."]]}, {"g": "C. K3 dan lingkungan", "t": [[18, "Menerapkan K3 selama bekerja", ""], [19, "Menangani oli bekas dan limbah dengan benar", ""], [20, "Merapikan dan membersihkan area kerja serta alat setelah selesai", ""]]}, {"g": "D. Hasil dan waktu", "t": [[21, "Menyelesaikan pekerjaan dalam 20 menit", ""], [22, "Mengisi hasil pemeriksaan dengan jujur dan lengkap", ""], [23, "Menarik kesimpulan sesuai standar/spesifikasi", ""]]}]}, {"k": "bodi", "nama": "Observasi 4 · Kelistrikan Bodi (Supra Fit)", "judul": "Perawatan Berkala Sistem Kelistrikan Bodi (Honda Supra Fit)", "g": [{"g": "A. Persiapan", "t": [[1, "Memakai pakaian kerja dan APD (wearpack, sepatu, sarung tangan)", ""], [2, "Menyiapkan alat dan bahan sesuai kebutuhan pekerjaan", ""], [3, "Memeriksa kondisi alat ukur sebelum dipakai", ""], [4, "Memposisikan sepeda motor dengan aman (standar tengah/dudukan)", ""]]}, {"g": "B. Proses kerja (10 item)", "t": [[5, "Lampu kepala: lampu jauh menyala", "Siswa mengaktifkan lampu jauh dan memastikan lampu menyala normal."], [6, "Lampu kepala: lampu dekat menyala", "Siswa mengaktifkan lampu dekat dan memastikan lampu menyala normal."], [7, "Lampu kepala: kondisi bohlam dan soket", "Siswa memeriksa daya bohlam sesuai buku manual dan memastikan soket tidak meleleh atau kotor."], [8, "Lampu sein: sein kanan", "Siswa mengaktifkan sein kanan dan memastikan menyala serta berkedip normal dengan bohlam 12 V 10 W."], [9, "Lampu sein: sein kiri", "Siswa mengaktifkan sein kiri dan memastikan menyala serta berkedip normal dengan bohlam 12 V 10 W."], [10, "Lampu sein: kondisi flasher", "Siswa memeriksa flasher dan memastikan lampu sein berkedip teratur."], [11, "Lampu sein: kondisi sakelar sein", "Siswa menguji sakelar sein dan memastikan berfungsi untuk kanan, kiri, dan netral."], [12, "Sistem starter: sakelar starter", "Siswa menekan sakelar starter dan memastikan ada kontinuitas."], [13, "Sistem starter: relay starter", "Siswa memeriksa kerja relay starter sesuai buku manual."], [14, "Sistem starter: kerja motor starter", "Siswa mengoperasikan motor starter dan memastikan berputar normal, tidak lemah."]]}, {"g": "C. K3 dan lingkungan", "t": [[15, "Menerapkan K3 selama bekerja", ""], [16, "Menangani oli bekas dan limbah dengan benar", ""], [17, "Merapikan dan membersihkan area kerja serta alat setelah selesai", ""]]}, {"g": "D. Hasil dan waktu", "t": [[18, "Menyelesaikan pekerjaan dalam 20 menit", ""], [19, "Mengisi hasil pemeriksaan dengan jujur dan lengkap", ""], [20, "Menarik kesimpulan sesuai standar/spesifikasi", ""]]}]}],lb:{}
 };
 /* Registri lembar: tiap lembar punya judul tugas, grup butir, dan daftar datar sendiri. Lembar lama (tanpa payload.lembar) = 'vario'. */
@@ -14,7 +14,7 @@ OBU.lembar.forEach(function(L){
 });
 function obuLb(k){return OBU.lb[k]||OBU.lb.vario}
 function obuKey(r){var p=obsPay(r);return p.lembar&&OBU.lb[p.lembar]?p.lembar:'vario'}
-var OU={mode:'list',d:null,view:null,q:'',lembar:'vario'};
+var OU={mode:'list',d:null,view:null,q:'',lembar:'vario',kel:''};
 ICO['observasi-ukk']=ICO.observasi;
 
 /* Observasi bertipe 'ukk' tidak boleh muncul di daftar Observasi guru (obsTipe lama menganggap semua selain 'siswa' sebagai guru) */
@@ -51,6 +51,7 @@ function obuDraftDari(r){
 function viewObservasiUkk(){
  if(OU.mode==='form'&&OU.d)return obuFormView();
  if(OU.mode==='view'&&OU.view)return obuDetailView();
+ if(OU.mode==='rekap')return obuRekapView();
  return obuListView();
 }
 function obuInfoCard(lk){
@@ -72,7 +73,7 @@ function obuListView(){
  }).join('');
  return '<div class="row sb"><div><h2>Observasi UKK</h2><p class="note">Lembar observasi praktik uji kompetensi keahlian. Hanya untuk Admin dan Guru.</p></div></div>'+'<label class="f">Lembar observasi<select id="obulb">'+OBU.lembar.map(function(L){return '<option value="'+L.k+'"'+(OU.lembar===L.k?' selected':'')+'>'+esc(L.nama)+'</option>'}).join('')+'</select></label>'+obuInfoCard(OU.lembar)+
   '<div class="stats"><div class="card"><span class="label">Observasi</span><b class="mono">'+L.length+'</b></div><div class="card"><span class="label">Kompeten ke atas</span><b class="mono">'+kom+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div></div>'+
-  '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="obu-new">+ Observasi baru</button>'+(L.length?'<button type="button" class="btn small" data-act="obu-xls">Unduh Excel</button>':'')+'</div>'+
+  '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="obu-new">+ Observasi baru</button>'+(L.length?'<button type="button" class="btn small" data-act="obu-rekap">Rekap nilai</button><button type="button" class="btn small" data-act="obu-xls">Excel rincian aspek</button>':'')+'</div>'+
   (L.length>3?'<label class="f">Cari<input id="obuq" type="search" value="'+esc(OU.q)+'" placeholder="Nama siswa, kelas, penguji"></label>':'')+
   '<div class="jobs">'+(cards||'<div class="card"><p class="muted">'+(L.length?'Tidak ada observasi yang cocok.':'Belum ada observasi. Ketuk <b>+ Observasi baru</b> untuk mulai.')+'</p></div>')+'</div>'+
   '<p class="note">'+(admin?'Admin melihat semua observasi.':'Anda hanya melihat observasi yang Anda isi sendiri.')+' '+(Cloud.on?'Data tersinkron ke Appwrite.':'Data tersimpan di peramban ini.')+'</p>';
@@ -142,27 +143,69 @@ async function obuDelete(id){
 }
 
 /* ---- Ekspor ---- */
+function obuTglPanjang(t){
+ try{var d=new Date(String(t)+'T00:00:00');if(isNaN(d))throw 0;return d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}catch(e){return obsTgl(t)}
+}
+/* PDF mengikuti lembar UKK: kotak RAHASIA dan Paket, judul UKK, identitas, 13 kotak nomor peserta (NIS), tabel, pengesahan NILAI dan PENGUJI.
+   Penguji 1 = nama akun yang mengisi (login), Penguji 2 = Tim AHASS. */
 function obuPdf(id){
  var r=(S.observasi||[]).find(function(x){return x.id===id});if(!r||r.tipe!=='ukk'||!needP())return;
- var p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p,lk),m=Object.assign({},OBU.meta,{judul:LB.judul}),doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
- kop(doc,'Lembar Observasi Praktik - Uji Kompetensi Keahlian '+m.tahun);
- doc.autoTable({startY:45,theme:'plain',styles:{fontSize:10,cellPadding:1.2},columnStyles:{0:{cellWidth:50,fontStyle:'bold'}},body:[
-  ['Satuan Pendidikan',m.satuan],['Konsentrasi Keahlian',m.konsentrasi],['Kode',m.kode],['Alokasi Waktu',m.waktu],['Judul Tugas',m.judul],
-  ['Nama Siswa',r.guru],['NIS / Kelas',(p.nis||'-')+' / '+r.kelas],['Tanggal',obsTgl(r.tanggal)],['Penguji',p.penguji||r.pengamat||'-']]});
+ var p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p,lk),m=OBU.meta,doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+ var tempat=(typeof FORM_UKK!=='undefined'&&FORM_UKK.tempat)||'Sumedang',tgl=obuTglPanjang(r.tanggal),paket=String(OBU.lembar.indexOf(LB)+1),pg1=p.penguji||r.pengamat||'',pg2=m.penguji2,kat=obuKat(r.skor);
+ /* Kop */
+ doc.setLineWidth(.3).rect(14,10,44,9);
+ doc.setFont('helvetica','normal').setFontSize(9).text('RAHASIA',36,16,{align:'center'});
+ doc.rect(W-38,10,24,17);
+ doc.setFontSize(8).text('Paket',W-26,16,{align:'center'});
+ doc.setFont('helvetica','bold').setFontSize(13).text(paket,W-26,23,{align:'center'});
+ doc.setFont('helvetica','bold').setFontSize(13).text('UJI KOMPETENSI KEAHLIAN',W/2,38,{align:'center'});
+ doc.setFont('helvetica','normal').setFontSize(10).text('TAHUN PELAJARAN '+m.tahun,W/2,45,{align:'center'});
+ doc.setFont('helvetica','bold').setFontSize(11).text('LEMBAR OBSERVASI PRAKTIK',W/2,57,{align:'center'});
+ doc.setFont('helvetica','normal').setFontSize(10).text('UJIAN PRAKTIK KEJURUAN',W/2,63,{align:'center'});
+ /* Identitas */
+ doc.autoTable({startY:70,theme:'plain',styles:{fontSize:10,cellPadding:1,textColor:0},columnStyles:{0:{cellWidth:48}},body:[
+  ['Satuan Pendidikan',': '+m.satuan],['Kompetensi Keahlian',': '+m.konsentrasi],['Kode',': '+m.kode],['Alokasi Waktu',': '+m.waktu],
+  ['Tipe kendaraan',': '+(m.unit[lk]||'')],['Judul tugas',': '+LB.judul],['Nama Peserta',': '+(r.guru||'………………………………')],['Kelas',': '+r.kelas],['Tanggal',': '+tgl]]});
+ var y=doc.lastAutoTable.finalY+4;
+ doc.setFontSize(10).text('Nomor Peserta (NIS)',14,y+4);
+ var nis=String(p.nis||'').toUpperCase().replace(/\s/g,''),bx=62,bw=6.5;
+ for(var k=0;k<13;k++){doc.rect(bx+k*bw,y,bw,bw);if(nis[k])doc.setFontSize(10).text(nis[k],bx+k*bw+bw/2,y+4.6,{align:'center'})}
+ y+=bw+6;
+ /* Tabel aspek */
  var body=[];
  LB.grup.forEach(function(g){
-  body.push([{content:g.g,colSpan:5,styles:{fontStyle:'bold',fillColor:[232,240,235]}}]);
-  g.items.forEach(function(it){var v=p.nilai[it.id],l=h.v2?((p.lvl||{})[it.id]||0):0;body.push([it.no,it.t+(it.d?'\n'+it.d:''),h.v2?(l?l+' - '+OBU_LVL[l].k:'-'):(v===1?'Kompeten':v===0?'Belum Kompeten':'-'),h.v2&&l?v:'',p.cat[it.id]||''])});
+  body.push([{content:g.g,colSpan:5,styles:{fontStyle:'bold',fillColor:235,halign:'left'}}]);
+  g.items.forEach(function(it){var v=p.nilai[it.id],l=h.v2?((p.lvl||{})[it.id]||0):0;
+   body.push([String(it.no),it.t+(it.d?'\n'+it.d:''),h.v2?(l?l+' - '+OBU_LVL[l].k:''):(v===1?'Kompeten':v===0?'Belum Kompeten':''),h.v2&&l?String(v):'',p.cat[it.id]||'']);
+  });
  });
- doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9,cellPadding:1.8},headStyles:TH,head:[['No','Aspek yang diamati','Capaian','Nilai','Keterangan']],body:body,columnStyles:{0:{cellWidth:10,halign:'center'},2:{cellWidth:32,halign:'center'},3:{cellWidth:14,halign:'center'}}});
- var y=doc.lastAutoTable.finalY+7,H=doc.internal.pageSize.getHeight();
- if(y>H-48){doc.addPage();y=22}
- if(h.v2){doc.setFontSize(8).setTextColor(90).setFont('helvetica','normal').text('Skala: 1 Belum Kompeten (<61) | 2 Cukup Kompeten (61-74) | 3 Kompeten (75-90) | 4 Sangat Kompeten (91-100)',14,y);y+=6}
- doc.setFontSize(10.5).setTextColor(0).setFont('helvetica','bold').text((h.v2?'Jumlah nilai '+h.sum+' / '+h.n+' aspek':'Kompeten '+h.kom+' dari '+h.n+' aspek')+'   Nilai akhir '+r.skor+'   Kesimpulan: '+obuKat(r.skor),14,y);doc.setFont('helvetica','normal');y+=8;
- var lines=doc.splitTextToSize(p.catatan||'-',180);
- if(y+6+lines.length*4.6>H-20){doc.addPage();y=22}
- doc.setFontSize(10).setFont('helvetica','bold').text('Catatan',14,y);doc.setFont('helvetica','normal').text(lines,14,y+5);y+=9+lines.length*4.6;
- ttd(doc,y+4,[['Siswa',r.guru],['Penguji',p.penguji||r.pengamat||'']]);
+ doc.autoTable({startY:y,theme:'grid',styles:{fontSize:9,cellPadding:1.8,lineColor:60,lineWidth:.2,textColor:0,valign:'top'},
+  headStyles:{fillColor:235,textColor:0,fontStyle:'bold',halign:'center',valign:'middle'},
+  columnStyles:{0:{cellWidth:12,halign:'center'},2:{cellWidth:34,halign:'center'},3:{cellWidth:14,halign:'center'},4:{cellWidth:38}},
+  head:[['No urut','Aspek yang diamati','Capaian','Nilai','Keterangan']],body:body});
+ y=doc.lastAutoTable.finalY+5;
+ /* Ringkasan dan catatan */
+ if(y>H-30){doc.addPage();y=20}
+ if(h.v2){doc.setFont('helvetica','normal').setFontSize(8).setTextColor(90).text('Skala: 1 Belum Kompeten (<61) | 2 Cukup Kompeten (61-74) | 3 Kompeten (75-90) | 4 Sangat Kompeten (91-100)',14,y+2);y+=6}
+ doc.setFont('helvetica','normal').setFontSize(9).setTextColor(0).text((h.v2?'Jumlah nilai '+h.sum+' / '+h.n+' aspek = '+r.skor:'Kompeten '+h.kom+' dari '+h.n+' aspek = '+r.skor)+'. Kesimpulan: '+kat.toUpperCase()+'.',14,y+3);
+ if(p.catatan){var lines=doc.splitTextToSize('Catatan: '+p.catatan,W-28);doc.text(lines,14,y+9);y+=lines.length*4.5}
+ y+=14;
+ /* Pengesahan: NILAI kiri, PENGUJI kanan (Penguji 1 dan Penguji 2 berdampingan) */
+ if(y+62>H-16){doc.addPage();y=20}
+ var bh=52,lx=14,lw=78,rx=W-14-86,rw=86,mid=rx+rw/2;
+ doc.setFont('helvetica','bold').setFontSize(10).text('NILAI',lx+lw/2,y+6,{align:'center'});
+ doc.rect(lx,y,lw,bh).line(lx,y+10,lx+lw,y+10);
+ doc.setFont('helvetica','bold').setFontSize(16).text(String(r.skor),lx+lw/2,y+26,{align:'center'});
+ doc.setFont('helvetica','normal').setFontSize(10).text(kat,lx+lw/2,y+36,{align:'center'});
+ doc.setFontSize(9).text(tempat+', '+tgl,rx+rw,y-3,{align:'right'});
+ doc.setFont('helvetica','bold').setFontSize(10).text('PENGUJI',rx+rw/2,y+6,{align:'center'});
+ doc.rect(rx,y,rw,bh).line(rx,y+10,rx+rw,y+10).line(mid,y+10,mid,y+bh);
+ doc.setFont('helvetica','normal').setFontSize(9);
+ doc.text('Penguji 1',rx+rw/4,y+17,{align:'center'});doc.line(rx+4,y+38,mid-4,y+38);
+ doc.text('Penguji 2',mid+rw/4,y+17,{align:'center'});doc.line(mid+4,y+38,rx+rw-4,y+38);
+ doc.setFontSize(8.5);
+ doc.text(doc.splitTextToSize(pg1||'-',rw/2-8).slice(0,2),rx+rw/4,y+43,{align:'center'});
+ doc.text(doc.splitTextToSize(pg2,rw/2-8).slice(0,2),mid+rw/4,y+43,{align:'center'});
  foot(doc);doc.save('Observasi_UKK_'+lk+'_'+slug(r.guru||'siswa')+'_'+r.tanggal+'.pdf');
 }
 function obuXls(){
@@ -177,6 +220,56 @@ function obuXls(){
  });
  if(!sheets.length)return;
  book(sheets,'Rekap_Observasi_UKK');
+}
+
+/* ---- Rekap nilai ---- */
+/* Satu baris per siswa; nilai tiap lembar diambil dari observasi terbaru pada lembar itu. Rata-rata dari lembar yang sudah dinilai. */
+function obuRekapSumber(kel){return obuVisible().filter(function(r){return !kel||r.kelas===kel})}
+function obuRekapData(kel){
+ var M={},arr=[];
+ obuRekapSumber(kel).sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))||a.ts-b.ts}).forEach(function(r){
+  var key=r.guruId||(String(r.guru).trim().toLowerCase()+'|'+r.kelas),p=obsPay(r),lk=obuKey(r),o=M[key];
+  if(!o){o=M[key]={key:key,nama:r.guru,nis:'',kelas:r.kelas,per:{}};arr.push(o)}
+  if(p.nis)o.nis=p.nis;o.kelas=r.kelas;o.per[lk]={r:r,nilai:+r.skor||0,kat:obuKat(r.skor)};
+ });
+ arr.forEach(function(o){var ks=Object.keys(o.per);o.n=ks.length;o.avg=o.n?Math.round(ks.reduce(function(t,k){return t+o.per[k].nilai},0)/o.n):0;o.kat=obuKat(o.avg)});
+ return arr.sort(function(a,b){return String(a.kelas).localeCompare(String(b.kelas))||String(a.nama).localeCompare(String(b.nama))});
+}
+function obuRekapView(){
+ var R=obuRekapData(OU.kel),n=R.length,obs=R.reduce(function(t,o){return t+o.n},0),avg=n?Math.round(R.reduce(function(t,o){return t+o.avg},0)/n):0;
+ var kopt='<option value="">Semua kelas</option>'+Object.keys(KELAS).map(function(k){return '<option value="'+k+'"'+(OU.kel===k?' selected':'')+'>Kelas '+k+'</option>'}).join('');
+ var per=OBU.lembar.map(function(LB){var xs=R.filter(function(o){return o.per[LB.k]});
+  return '<div class="row sb"><span class="note">'+esc(LB.nama)+'</span><span class="mono">'+(xs.length?Math.round(xs.reduce(function(t,o){return t+o.per[LB.k].nilai},0)/xs.length)+' · '+xs.length+' siswa':'-')+'</span></div>'}).join('');
+ var cards=R.map(function(o){
+  var rows=OBU.lembar.map(function(LB){var x=o.per[LB.k];
+   return '<div class="row sb"><span class="note">'+esc(LB.nama)+'</span>'+(x?'<span><b class="mono">'+x.nilai+'</b> <span class="pill '+obuPill(x.kat)+'">'+esc(x.kat)+'</span></span>':'<span class="muted">-</span>')+'</div>'}).join('');
+  return '<article class="card job"><div class="row sb"><h3 class="grow">'+esc(o.nama)+'</h3>'+(o.n?'<span class="pill '+obuPill(o.kat)+'">'+esc(o.kat)+'</span>':'')+'</div>'+
+   '<div class="meta"><span>Kelas '+esc(o.kelas)+'</span><span>NIS '+esc(o.nis||'-')+'</span></div>'+rows+
+   '<div class="row sb"><span class="note">Rata-rata ('+o.n+' dari '+OBU.lembar.length+' lembar)</span><b class="mono">'+(o.n?o.avg:'-')+'</b></div></article>';
+ }).join('');
+ return '<div class="row sb"><div><h2>Rekap nilai Observasi UKK</h2><p class="note">Nilai terbaru tiap lembar per siswa. Rata-rata dihitung dari lembar yang sudah dinilai.</p></div><button type="button" class="btn small" data-act="obu-back">Kembali</button></div>'+
+  '<label class="f">Kelas<select id="obukel">'+kopt+'</select></label>'+
+  '<div class="stats"><div class="card"><span class="label">Siswa</span><b class="mono">'+n+'</b></div><div class="card"><span class="label">Observasi</span><b class="mono">'+obs+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+(n?avg:'-')+'</b></div></div>'+
+  '<div class="card"><span class="label">Rata-rata per lembar</span>'+per+'</div>'+
+  '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="obu-rekapxls"'+(n?'':' disabled')+'>Unduh rekap nilai (Excel)</button></div>'+
+  '<div class="jobs">'+(cards||'<div class="card"><p class="muted">Belum ada observasi'+(OU.kel?' untuk kelas ini':'')+'.</p></div>')+'</div>';
+}
+function obuRekapXls(){
+ if(!needX())return;var kel=OU.kel,R=obuRekapData(kel),L=obuRekapSumber(kel).sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))||a.ts-b.ts});
+ if(!L.length){toast('Belum ada data untuk diunduh');return}
+ var m=OBU.meta,nm=OBU.lembar.map(function(x){return x.nama.replace(' · ',' - ')});
+ var rek=[['No','Nama siswa','NIS','Kelas'].concat(nm).concat(['Lembar dinilai','Rata-rata','Kesimpulan'])].concat(R.map(function(o,i){
+  return [i+1,o.nama,o.nis,o.kelas].concat(OBU.lembar.map(function(x){return o.per[x.k]?o.per[x.k].nilai:''})).concat([o.n,o.n?o.avg:'',o.n?o.kat:''])}));
+ var dft=[['No','Tanggal','Nama siswa','NIS','Kelas','Lembar','Judul tugas','Penguji 1','Penguji 2','Jumlah nilai','Jumlah aspek (N)','Nilai','Kesimpulan','Catatan']].concat(L.map(function(r,i){
+  var p=obsPay(r),lk=obuKey(r),h=obuHitung(p,lk);
+  return [i+1,r.tanggal,r.guru,p.nis||'',r.kelas,obuLb(lk).nama.replace(' · ',' - '),obuLb(lk).judul,p.penguji||r.pengamat||'',m.penguji2,h.v2?h.sum:'',h.n,r.skor,obuKat(r.skor),p.catatan||'']}));
+ var dist={};R.forEach(function(o){if(o.n)dist[o.kat]=(dist[o.kat]||0)+1});
+ var n=R.length,avg=n?Math.round(R.reduce(function(t,o){return t+o.avg},0)/n):0;
+ var info=[['Rekap Nilai Observasi UKK'],['Tahun pelajaran',m.tahun],['Satuan pendidikan',m.satuan],['Kompetensi keahlian',m.konsentrasi],['Kode',m.kode],['Kelas',kel||'Semua kelas'],['Jumlah siswa',n],['Jumlah observasi',L.length],['Rata-rata nilai siswa',n?avg:''],[],
+  ['Kesimpulan (berdasarkan rata-rata siswa)','Jumlah siswa'],['Sangat Kompeten (91-100)',dist['Sangat Kompeten']||0],['Kompeten (75-90)',dist['Kompeten']||0],['Cukup Kompeten (61-74)',dist['Cukup Kompeten']||0],['Belum Kompeten (<61)',dist['Belum Kompeten']||0],[],
+  ['Rata-rata per lembar','Rata-rata','Jumlah siswa']].concat(OBU.lembar.map(function(x,i){var xs=R.filter(function(o){return o.per[x.k]});return [nm[i],xs.length?Math.round(xs.reduce(function(t,o){return t+o.per[x.k].nilai},0)/xs.length):'',xs.length]}))
+  .concat([[],['Catatan','Nilai akhir tiap observasi = jumlah nilai semua aspek / N. Rata-rata siswa = rata-rata nilai lembar yang sudah dinilai (observasi terbaru per lembar).'],['Penguji 1','Nama akun yang mengisi observasi'],['Penguji 2',m.penguji2]]);
+ book([['Rekap Nilai',rek,[5,26,14,10,24,24,24,24,12,11,16]],['Daftar Observasi',dft,[5,12,26,14,10,24,44,22,14,12,14,8,16,36]],['Ringkasan',info,[40,22,14]]],'Rekap_Nilai_Observasi_UKK'+(kel?'_'+slug(kel):''));
 }
 
 /* ---- Aksi ---- */
@@ -200,6 +293,8 @@ document.addEventListener('click',function(e){
  else if(a==='obu-del')obuDelete(v);
  else if(a==='obu-pdf')obuPdf(v);
  else if(a==='obu-xls')obuXls();
+ else if(a==='obu-rekap'){OU.mode='rekap';render();window.scrollTo(0,0)}
+ else if(a==='obu-rekapxls')obuRekapXls();
 });
 document.addEventListener('input',function(e){
  var t=e.target;if(!OU.d||OU.mode!=='form')return;
@@ -217,6 +312,7 @@ document.addEventListener('input',function(e){
 document.addEventListener('change',function(e){
  var t=e.target;
  if(t.id==='obuq'){OU.q=t.value;render();return}
+ if(t.id==='obukel'){OU.kel=t.value;render();return}
  if(t.id==='obulb'){OU.lembar=OBU.lb[t.value]?t.value:'vario';render();return}
  if(!OU.d||OU.mode!=='form'||!t.dataset||!t.dataset.obu)return;
  OU.d[t.dataset.obu]=t.value;
