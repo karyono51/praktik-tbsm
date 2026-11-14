@@ -134,3 +134,15 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 - Tidak ada perubahan koleksi Appwrite. Mode unit disimpan di dokumen `lkpd_modules` (`jenis:'ukk'`) bersama pengaturan lain.
 - Analisis per butir UKK (persentase Sesuai per item) belum tersedia: status tiap butir belum disimpan di catatan hasil.
 - Cache service worker: `tbsm-v81`. Skrip `?v=81`.
+
+## Pembaruan v82: foto wajib terlihat di pengaturan guru dan admin
+- Kartu modul LKPD menampilkan lencana **Foto wajib N item** bila ada komponen yang wajib difoto (guru dan admin).
+- Panel Pengaturan modul menampilkan daftar komponen yang wajib foto (sesuai yang tersimpan) di bagian atas bagian Foto bukti wajib, atau pesan bahwa belum ada item yang diwajibkan.
+- Cache service worker: `tbsm-v82`. Skrip `?v=82`.
+
+## Pembaruan v83: tahap 1 foto wajib UKK
+- Editor butir UKK punya ceklis **Wajib foto** (satu foto per butir). Pengaturan unit menampilkan daftar butir yang wajib foto, dan pratinjau memberi lencana **Foto**.
+- Di form siswa, butir wajib foto punya tombol kamera. Foto diambil lewat kamera yang sama dengan LKPD, dikompres, dan disimpan di draft perangkat per peserta (atau per kelompok di mode Latihan). Foto belum dikirim ke Drive; itu tahap 2.
+- Tombol Hitung hasil tidak bisa dijalankan sebelum semua foto wajib terisi. Kekurangannya ditampilkan di bilah bawah.
+- Mengambil foto pertama juga memulai waktu, sama seperti mengisi butir pertama.
+- Cache service worker: `tbsm-v83`. Skrip `?v=83`.

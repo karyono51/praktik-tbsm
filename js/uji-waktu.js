@@ -14,8 +14,9 @@ window.ujiDraftGet=function(id){try{return JSON.parse(localStorage.getItem(key(i
 window.ujiDraftDel=function(id){try{localStorage.removeItem(key(id))}catch(e){}};
 function simpan(){
  if(V.mode!=='exam'||!V.t0||!V.job||!S.user)return;
- try{localStorage.setItem(key(V.job.id),JSON.stringify({t0:V.t0,nis:V.nis||'',group:V.group||[],kel:!!V.kel,peserta:V.peserta||'',cks:V.cks||{},hs:V.hs||{},hn:V.hn||{},notes:V.notes||{}}))}catch(e){}
+ try{localStorage.setItem(key(V.job.id),JSON.stringify({t0:V.t0,nis:V.nis||'',group:V.group||[],kel:!!V.kel,peserta:V.peserta||'',cks:V.cks||{},hs:V.hs||{},hn:V.hn||{},fo:V.fo||{},notes:V.notes||{}}))}catch(e){}
 }
+window.ujiDraftSimpan=simpan;
 /* Sisa detik dari draft (untuk daftar unit); null bila tidak ada draft */
 window.ujiSisaDraft=function(id,menit){var d=ujiDraftGet(id);if(!d||!d.t0)return null;return menit*60-Math.floor((Date.now()-d.t0)/1000)};
 
@@ -37,8 +38,9 @@ function paint(){
 function kunci(){
  if(V.mode!=='exam')return;
  var m=ujiSyarat(),lock=!!m;
- $$('.ukk-row input,.ukk-row select,.item button').forEach(function(x){x.disabled=lock});
+ $$('.ukk-row input,.ukk-row select,.ukk-row button,.item button').forEach(function(x){x.disabled=lock});
  var h=$('#ujisyarat');if(h){h.textContent=m;h.hidden=!m}
+ var fz=$('#ujifoto');if(fz){var fm=ukFotoKurang();fz.textContent=fm;fz.hidden=!fm}
  var n=$('#ukknis');if(n)n.readOnly=!!V.t0;
 }
 
@@ -87,7 +89,7 @@ window.startExam=function(id,keep){
  if(!dr||V.mode!=='exam'||!V.job||V.job.id!==id)return;
  V.t0=dr.t0;V.nis=dr.nis||'';
  V.peserta=dr.peserta||V.peserta;V.group=(dr.group&&dr.group.length)?dr.group:[V.peserta];V.kel=!!dr.kel&&isStaff();
- V.cks=dr.cks||{};V.hs=dr.hs||{};V.hn=dr.hn||{};V.notes=dr.notes||{};
+ V.cks=dr.cks||{};V.hs=dr.hs||{};V.hn=dr.hn||{};V.fo=dr.fo||{};V.notes=dr.notes||{};
  V.cks[V.kel?'*':V.peserta]=V.cks[V.kel?'*':V.peserta]||{};
  V.checks=curChecks();
  V.sec=Math.max(0,Math.floor((Date.now()-V.t0)/1000));

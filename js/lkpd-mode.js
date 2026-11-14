@@ -45,6 +45,7 @@ function lkListView(){
    if(lock)acts='<span class="pill warn">'+lkEsc(lock)+'</span>';
    else acts='<button type="button" class="btn primary small" data-act="lkc-open" data-v="'+lkEsc(m.id)+'">'+(habis?'Lihat materi':(c.mode==='latihan'?(l?'Latihan lagi':'Mulai latihan'):(l?'Buka lagi':'Mulai praktik')))+'</button>';
   }
+  if(staff&&Array.isArray(m.fotoWajib)&&m.fotoWajib.length)tags+='<span class="pill warn">Foto wajib '+m.fotoWajib.length+' item</span>';
   return '<article class="card job '+cls+'"><div class="row sb"><h3 class="grow">'+lkEsc(m.title)+'</h3>'+(staff?'<span class="pill '+(pub?'ok':'warn')+'">'+(pub?'Tampil':'Tersembunyi')+'</span>':'')+'</div>'+
    '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(m.duration)+' menit</span><span>'+m.steps.length+' langkah, '+m.quiz.length+' soal</span></div>'+
    (m.skkni?'<div><span class="pill plain mono" title="Kode unit SKKNI">SKKNI '+lkEsc(m.skkni)+'</span></div>':'')+
@@ -74,7 +75,7 @@ function lkmPanel(){
 }
 function lkmFotoPanel(m,d){
  var w=Array.isArray(d.fotoWajib)?d.fotoWajib:[];
- return '<div><span class="label">Foto bukti wajib per komponen</span><p class="note">Centang komponen di tabel Hasil pemeriksaan yang wajib difoto siswa. Siswa tidak bisa mengirim LKPD sebelum semua foto wajib terisi. Tanpa centang, foto bersifat opsional.</p>'+
+ return '<div><span class="label">Foto bukti wajib per komponen</span>'+(Array.isArray(m.fotoWajib)&&m.fotoWajib.length?'<p class="note"><b>Wajib foto saat ini (tersimpan):</b> '+m.fotoWajib.map(function(i){return (i+1)+'. '+lkEsc(m.checks[i]?m.checks[i][0]:'')}).join('; ')+'</p>':'<p class="note"><b>Belum ada item yang wajib foto.</b></p>')+'<p class="note">Centang komponen di tabel Hasil pemeriksaan yang wajib difoto siswa. Siswa tidak bisa mengirim LKPD sebelum semua foto wajib terisi. Tanpa centang, foto bersifat opsional.</p>'+
   m.checks.map(function(c,i){return '<label class="lk-check"><input type="checkbox" data-lkm-foto="'+i+'"'+(w.indexOf(i)>-1?' checked':'')+'><span><b>'+(i+1)+'. '+lkEsc(c[0])+'</b><small>'+lkEsc(c[1])+'</small></span></label>'}).join('')+
   '<div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small" data-act="lkm-foto-all">Wajibkan semua</button><button type="button" class="btn small" data-act="lkm-foto-none">Kosongkan</button></div></div>';
 }

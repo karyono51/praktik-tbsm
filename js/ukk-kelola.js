@@ -29,7 +29,7 @@ function ukkT(s){var t=s?new Date(s).getTime():0;return isNaN(t)?0:t}
 function ukkFmt(s){var t=ukkT(s);return t?new Date(t).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}
 function ukkMakeJob(d,base){
  var f=Object.assign({},(base&&base.form)||FORM_UKK,d.form||{});
- var items=(d.items||[]).map(function(i,k){return {id:d.id+'-'+k,a:'R',no:k+1,t:String(i.t||''),std:String(i.std||''),k:!!i.k}});
+ var items=(d.items||[]).map(function(i,k){return {id:d.id+'-'+k,a:'R',no:k+1,t:String(i.t||''),std:String(i.std||''),k:!!i.k,f:!!i.f}});
  return {id:d.id,kelas:d.kelas,judul:d.title,unit:d.unit||'',menit:Number(d.duration)||20,ukk:true,skkni:d.skkni||'',form:f,items:items,
   cfg:{tampil:d.status==='published'&&d.active!==false,mode:d.mode==='ujian'?'ujian':'latihan',maxTry:Math.max(0,parseInt(d.maxTry,10)||0),buka:d.buka||'',tutup:d.tutup||''},
   custom:!base,dihapus:!!d.dihapus,diubah:!!base};
@@ -92,7 +92,7 @@ function ukkIdTaken(id){
 }
 function ukkDocFromJob(j){
  return {id:j.id,jenis:'ukk',title:j.judul,kelas:j.kelas,fase:(KELAS[j.kelas]||{}).fase||'F',unit:j.unit,duration:j.menit,skkni:j.skkni||'',
-  form:Object.assign({},j.form),items:j.items.map(function(i){return {t:i.t,std:i.std,k:!!i.k}}),
+  form:Object.assign({},j.form),items:j.items.map(function(i){return {t:i.t,std:i.std,k:!!i.k,f:!!i.f}}),
   status:j.cfg&&j.cfg.tampil===false?'draft':'published',active:!(j.cfg&&j.cfg.tampil===false),mode:j.cfg&&j.cfg.mode==='ujian'?'ujian':'latihan',maxTry:j.cfg?j.cfg.maxTry:0,buka:j.cfg?j.cfg.buka:'',tutup:j.cfg?j.cfg.tutup:''};
 }
 function ukkValidateDoc(d){
@@ -187,7 +187,7 @@ function ukkOpenAtur(j){
 function ukkAtur(j){
  ukkOpenAtur(j);var d=UKS.set;
  var tries=[[0,'Tidak terbatas'],[1,'1 kali'],[2,'2 kali'],[3,'3 kali']].map(function(o){return '<option value="'+o[0]+'"'+(+d.maxTry===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('');
- var modeHtml='<div><span class="label">Mode</span><div class="seg" role="group" aria-label="Mode UKK"><button type="button" data-act="ukm-mode" data-v="latihan" aria-pressed="'+(d.mode!=='ujian')+'">Latihan</button><button type="button" data-act="ukm-mode" data-v="ujian" aria-pressed="'+(d.mode==='ujian')+'">Ujian</button></div></div><p class="note">'+(d.mode==='ujian'?'Ujian: hasil siswa tercatat sebagai Penilaian, masuk rekap nilai dan kompetensi, dan kesempatan mengerjakan bisa dibatasi.':'Latihan: siswa boleh mengulang tanpa batas. Hasil tercatat sebagai Latihan dan tidak masuk rekap nilai.')+'</p>';
+ var modeHtml='<div><span class="label">Mode</span><div class="seg" role="group" aria-label="Mode UKK"><button type="button" data-act="ukm-mode" data-v="latihan" aria-pressed="'+(d.mode!=='ujian')+'">Latihan</button><button type="button" data-act="ukm-mode" data-v="ujian" aria-pressed="'+(d.mode==='ujian')+'">Ujian</button></div></div><p class="note">'+(d.mode==='ujian'?'Ujian: hasil siswa tercatat sebagai Penilaian, masuk rekap nilai dan kompetensi, dan kesempatan mengerjakan bisa dibatasi.':'Latihan: siswa boleh mengulang tanpa batas. Hasil tercatat sebagai Latihan dan tidak masuk rekap nilai.')+'</p>'+ukFotoInfo(j);
  return '<section class="card" id="ukm-set" style="display:grid;gap:10px"><h3>Pengaturan: '+esc(j.judul)+'</h3>'+
   '<label class="lk-check"><input type="checkbox" data-ukm-s="tampil"'+(d.tampil?' checked':'')+'><span><b>Tampilkan ke siswa</b><small>Matikan untuk menyembunyikan unit (jadi draft). Perubahan ini langsung berlaku.</small></span></label>'+
   modeHtml+(d.mode==='ujian'?'<label class="f">Kesempatan mengerjakan ujian (per siswa)<select data-ukm-s="maxTry">'+tries+'</select></label>':'')+
@@ -218,7 +218,7 @@ function ukkPreview(){
  var f=j.form,msg=ukkKunciUntuk(j,null),c=j.cfg||{};
  var ro=function(l,v,w){return '<label class="f'+(w?' wide':'')+'">'+l+'<input value="'+esc(v)+'" readonly></label>'};
  var rows=j.items.map(function(i){
-  return '<tr class="ukk-row" data-v=""><td data-label="Komponen">'+i.no+'. '+esc(i.t)+(i.k?' <span class="pill warn">Wajib</span>':'')+'</td>'+
+  return '<tr class="ukk-row" data-v=""><td data-label="Komponen">'+i.no+'. '+esc(i.t)+(i.k?' <span class="pill warn">Wajib</span>':'')+(i.f?' <span class="pill warn">Foto</span>':'')+'</td>'+
    '<td data-label="Hasil aktual"><input disabled placeholder="Nilai ukur / hasil"></td><td data-label="Standar manual">'+esc(i.std)+'</td>'+
    '<td data-label="Status"><select disabled><option>Belum diperiksa</option></select></td><td data-label="Catatan"><input disabled></td></tr>'}).join('');
  return '<div class="row"><button type="button" class="btn small" data-act="ukm-prev-close">‹ Kembali ke Kelola unit</button></div>'+
@@ -238,7 +238,7 @@ function ukeNew(src,mode){
  var f=Object.assign({},FORM_UKK,(src&&src.form)||{});
  var S0={id:mode==='edit'?src.id:ukkIdBaru(),title:src?src.title:'',unit:src?src.unit:'',kelas:src?src.kelas:S.kelas,duration:src?src.duration:20,skkni:src?(src.skkni||''):'',
   status:src&&mode==='edit'?(src.status==='published'?'published':'draft'):'draft',active:src?src.active!==false:true,form:{satuan:f.satuan||'',konsentrasi:f.konsentrasi||'',kode:f.kode||'',tahun:f.tahun||'',bentuk:f.bentuk||''},
-  items:src&&src.items&&src.items.length?src.items.map(function(i){return {t:i.t||'',std:i.std||'',k:!!i.k}}):[{t:'',std:'',k:false}]};
+  items:src&&src.items&&src.items.length?src.items.map(function(i){return {t:i.t||'',std:i.std||'',k:!!i.k,f:!!i.f}}):[{t:'',std:'',k:false}]};
  if(mode==='dup')S0.title=S0.title+' (salinan)';
  var d={S:S0,tab:'info',paste:false,rec:null,focus:null,isNew:mode!=='edit',snap:JSON.stringify(S0),back:UKS.id};
  try{
@@ -281,7 +281,7 @@ function ukeBuild(d){
  var s=d.S,old=ukkDocOf(s.id)||(!d.isNew&&ukkJobBy(s.id)?ukkDocFromJob(ukkJobBy(s.id)):null),src=old||{};
  var doc=Object.assign({},src,{id:ukeT(s.id),jenis:'ukk',version:1,title:ukeT(s.title),unit:ukeT(s.unit),kelas:s.kelas,fase:(KELAS[s.kelas]||{}).fase||'F',duration:Number(ukeNum(s.duration)),skkni:ukeT(s.skkni),
   form:{satuan:ukeT(s.form.satuan),konsentrasi:ukeT(s.form.konsentrasi),kode:ukeT(s.form.kode),tahun:ukeT(s.form.tahun),bentuk:ukeT(s.form.bentuk)},
-  items:s.items.filter(function(i){return !ukeBlank(i)}).map(function(i){return {t:ukeT(i.t),std:ukeT(i.std),k:!!i.k}}),
+  items:s.items.filter(function(i){return !ukeBlank(i)}).map(function(i){return {t:ukeT(i.t),std:ukeT(i.std),k:!!i.k,f:!!i.f}}),
   status:s.status==='published'?'published':'draft',active:!!s.active,maxTry:src.maxTry||0,buka:src.buka||'',tutup:src.tutup||''});
  /* pengaturan jadwal dan kesempatan dipertahankan dari panel Pengaturan */
  delete doc.reset;delete doc.dihapus;delete doc.payload;
@@ -345,7 +345,7 @@ function ukeTabButir(d){
   '<div class="lke-calc" id="uke-calc">'+ukeCalc(d)+'</div><div class="lke-list">'+
   a.map(function(x,i){return '<div class="lke-item uke-item"><span class="lke-n">'+(i+1)+'</span><div class="lke-f"><input data-uke="items.'+i+'.t" placeholder="Komponen (contoh: Tekanan ban depan)" value="'+esc(x.t)+'">'+
    '<textarea class="lke-1" rows="1" data-uke="items.'+i+'.std" placeholder="Standar manual (contoh: 200 kPa)">'+esc(x.std)+'</textarea>'+
-   '<label class="uke-wj"><input type="checkbox" data-uke="items.'+i+'.k"'+(x.k?' checked':'')+'><span>Butir wajib</span></label></div>'+ukeCtl(i,a.length)+'</div>'}).join('')+'</div>'+
+   '<label class="uke-wj"><input type="checkbox" data-uke="items.'+i+'.k"'+(x.k?' checked':'')+'><span>Butir wajib</span></label><label class="uke-wj"><input type="checkbox" data-uke="items.'+i+'.f"'+(x.f?' checked':'')+'><span>Wajib foto</span></label></div>'+ukeCtl(i,a.length)+'</div>'}).join('')+'</div>'+
   '<div class="row" style="gap:6px"><button type="button" class="btn small primary" data-uke-a="add">+ Tambah butir</button>'+(d.paste?'':'<button type="button" class="btn small" data-uke-a="paste-open">Tempel banyak</button>')+'</div>'+ukePasteBox(d)+'</section>';
 }
 function ukeForm(){

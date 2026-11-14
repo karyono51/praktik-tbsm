@@ -46,8 +46,8 @@ function viewExam(){
   return '<div class="row"><button type="button" class="btn small" data-act="back">Kembali</button><span class="pill">Kelas '+j.kelas+' · Fase '+KELAS[j.kelas].fase+'</span></div>'+
     '<div class="card"><h2>'+esc(j.judul)+'</h2>'+(isStaff()&&V.group.length&&!V.kel?'<div class="pill" style="align-self:flex-start">Menilai: '+esc(V.peserta)+'</div>':'')+'<div class="meta muted" style="font-size:13px">'+esc(j.unit)+' · target '+j.menit+' menit'+(j.skkni?' · SKKNI '+j.skkni:'')+'</div>'+pes+
     '<p class="note">Butir bertanda Wajib menyangkut keselamatan atau ketepatan kerja. Satu butir wajib yang belum terpenuhi membuat hasil Belum Kompeten, berapa pun skornya. Waktu ('+j.menit+' menit) berjalan otomatis begitu butir pertama diisi, tidak bisa dijeda, dan berhenti hanya saat Hitung hasil ditekan atau waktu habis.</p><p class="note" id="ujisyarat" hidden></p></div>'+groups+
-    '<div class="bar"><div class="in"><div><div class="mono" style="font-size:20px;font-weight:600" id="clock">'+mmss(Math.max(0,j.menit*60-V.sec))+'</div><div class="note" id="clocknote">'+(V.t0?'Sisa waktu':'Mulai otomatis')+'</div><div class="note"><span id="prog">'+done+'</span>/'+total+' butir terisi</div><div class="note" id="gcount">'+esc(gcText())+'</div></div>'+
-    '<div class="row"><button type="button" class="btn small" data-act="uji-print" aria-label="Cetak lembar penilaian">Cetak</button><button type="button" class="btn primary" data-act="finish" id="fin"'+(groupComplete()?'':' disabled')+'>Hitung hasil</button></div></div></div>';
+    '<div class="bar"><div class="in"><div><div class="mono" style="font-size:20px;font-weight:600" id="clock">'+mmss(Math.max(0,j.menit*60-V.sec))+'</div><div class="note" id="clocknote">'+(V.t0?'Sisa waktu':'Mulai otomatis')+'</div><div class="note"><span id="prog">'+done+'</span>/'+total+' butir terisi</div><div class="note" id="gcount">'+esc(gcText())+'</div><div class="note" id="ujifoto" style="color:var(--bad);font-weight:600" hidden></div></div>'+
+    '<div class="row"><button type="button" class="btn small" data-act="uji-print" aria-label="Cetak lembar penilaian">Cetak</button><button type="button" class="btn primary" data-act="finish" id="fin"'+(groupComplete()&&!ukFotoKurang()?'':' disabled')+'>Hitung hasil</button></div></div></div>';
 }
 
 function viewResult(){
@@ -125,7 +125,7 @@ function ukkForm(j){
   var rows=j.items.map(function(i){var v=V.checks[i.id];
     var opt=function(x){return '<option'+(ukkStatus(v)===x?' selected':'')+'>'+x+'</option>'};
     return '<tr class=\"ukk-row\" data-id=\"'+i.id+'\" data-v=\"'+(v===undefined?'':v)+'\">'+
-      '<td data-label=\"Komponen\">'+i.no+'. '+esc(i.t)+(i.k?' <span class=\"pill warn\">Wajib</span>':'')+'</td>'+
+      '<td data-label=\"Komponen\">'+i.no+'. '+esc(i.t)+(i.k?' <span class=\"pill warn\">Wajib</span>':'')+ukFotoCell(i)+'</td>'+
       '<td data-label=\"Hasil aktual\"><input data-hs=\"'+i.id+'\" value=\"'+esc(hs[i.id]||'')+'\" placeholder=\"Nilai ukur / hasil\" aria-label=\"Hasil aktual '+i.no+'\"></td>'+
       '<td data-label=\"Standar manual\">'+esc(i.std)+'</td>'+
       '<td data-label=\"Status\"><select data-ukst=\"'+i.id+'\" aria-label=\"Status '+i.no+'\">'+opt('Belum diperiksa')+opt('Sesuai')+opt('Tidak sesuai')+'</select></td>'+
