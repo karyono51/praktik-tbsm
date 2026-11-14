@@ -79,7 +79,7 @@ document.addEventListener('click',function(e){
       var nt=V.notes[V.kel?'*':it.nama]||'';
       if(V.job.ukk){var hh=(V.hs||{})[V.kel?'*':it.nama]||{},hn2=(V.hn||{})[V.kel?'*':it.nama]||{},hp=V.job.items.filter(function(i){return hh[i.id]||hn2[i.id]}).map(function(i){return i.no+'='+(hh[i.id]||'-')+(hn2[i.id]?' ('+hn2[i.id]+')':'')}).join('; ');if(hp)nt=(nt+' Hasil pemeriksaan: '+hp).trim().slice(0,1000)}
       if(V.kel&&n>1)nt=('Penilaian kelompok ('+n+' siswa). '+nt).trim().slice(0,1000);
-      S.results.push({id:uid(),ts:t0+k,jobId:V.job.id,kelas:V.job.kelas,siswa:it.nama,tipe:isStaff()?'Penilaian':'Latihan',score:it.calc.score,kompeten:it.calc.kompeten,catatan:nt,detik:V.sec,oleh:S.user.username,penilai:S.user.nama,sid:sidOf(it.nama)});
+      S.results.push({id:uid(),ts:t0+k,jobId:V.job.id,kelas:V.job.kelas,siswa:it.nama,tipe:isStaff()||(V.job.ukk&&V.job.cfg&&V.job.cfg.mode==='ujian')?'Penilaian':'Latihan',score:it.calc.score,kompeten:it.calc.kompeten,catatan:nt,detik:V.sec,oleh:S.user.username,penilai:S.user.nama,sid:sidOf(it.nama)});
     });
     persist();resetV();S.tab='rekap';render();window.scrollTo(0,0);toast(n>1?n+' hasil tersimpan':'Hasil tersimpan');
   }

@@ -123,3 +123,14 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 - Draf otomatis di perangkat (`localStorage`, kunci `tbsm-ukk-ed-draft`, berlaku 14 hari) dengan tombol Pulihkan.
 - **Simpan unit** atau **Simpan dan pratinjau**. Pratinjau menampilkan lembar versi siswa tanpa pengisian dan menyebut apa yang saat ini dilihat siswa (belum dibuka, ditutup, atau terbuka).
 - Cache service worker `tbsm-v80`, skrip `?v=76`.
+
+## Pembaruan v81: analisis nilai, mode Latihan/Ujian UKK, dan pelengkap UKK
+- **Analisis nilai** (Rekap nilai > tab **Analisis**, Admin dan Guru): distribusi nilai (0–59, 60–69, 70–79, 80–89, 90–100), daftar siswa remedial (status pengumpulan terakhir belum kompeten), rekap per unit, per kelas, per siswa (diurutkan dari rata-rata terendah), dan tren bulanan. Filter kelas mengikuti Rekap nilai. Pilihan **Penilaian** (default) atau **Penilaian + Latihan**.
+- **Unduh Excel analisis** menghasilkan tujuh lembar: Ringkasan, Distribusi, Per unit, Per kelas, Per siswa, Tren bulanan, dan Remedial. Tombol Unduh Excel rekap pada tab Data tidak berubah. Berkas baru: `js/nilai-analisis.js`.
+- **Mode Latihan dan Ujian per unit UKK** (Kelola unit > Pengaturan): Latihan boleh diulang tanpa batas dan hasilnya tercatat sebagai Latihan (tidak masuk rekap). Ujian mencatat hasil siswa sebagai Penilaian sehingga masuk rekap dan kompetensi. Pengaturan kesempatan hanya tampil pada mode Ujian.
+- **Kesempatan ujian** hanya dihitung dari pengerjaan Ujian siswa sendiri (dikenali dari akun pengirim), bukan dari penilaian yang dibuat guru. Unit yang sudah ada tetap berstatus Latihan agar perilakunya tidak berubah sampai guru memilih Ujian.
+- **Label mode** tampil di kartu unit untuk guru dan siswa. Tombol siswa berbunyi Mulai ujian atau Mulai latihan sesuai mode.
+- **Pelengkap UKK**: Kelola unit > Hasil penilaian kini punya tombol **Unduh Excel** (sheet Ringkasan, Hasil, Distribusi, dan Belum dinilai) serta panel **Analisis unit** dan daftar **Belum dinilai** untuk siswa kelas unit yang belum punya penilaian. Berkas baru: `js/ukk-xls.js`.
+- Tidak ada perubahan koleksi Appwrite. Mode unit disimpan di dokumen `lkpd_modules` (`jenis:'ukk'`) bersama pengaturan lain.
+- Analisis per butir UKK (persentase Sesuai per item) belum tersedia: status tiap butir belum disimpan di catatan hasil.
+- Cache service worker: `tbsm-v81`. Skrip `?v=81`.
