@@ -99,3 +99,14 @@ document.addEventListener('click',function(e){
  if(UKF.open[rid])ukFotoLoad(rid);
  render();
 });
+
+/* ---------- UKK ujian dinilai per siswa (individu). Kelompok hanya untuk latihan. ---------- */
+function ukIndividu(){return !!(V.job&&V.job.ukk&&V.job.cfg&&V.job.cfg.mode==='ujian')}
+(function(){
+ var s0=startExam;
+ startExam=function(id,keep){
+  var r=s0.apply(this,arguments);
+  if(ukIndividu()&&V.kel){V.kel=false;V.peserta=V.group[0]||V.peserta;V.checks=curChecks();render()}
+  return r;
+ };
+})();

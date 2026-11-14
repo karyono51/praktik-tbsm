@@ -152,3 +152,8 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 - Pada mode Latihan kelompok, foto hanya dicatat sekali untuk anggota pertama.
 - Hasil yang punya foto bukti mendapat catatan "Foto bukti: n butir" dan tombol **Lihat foto** di Hasil penilaian.
 - Cache service worker: `tbsm-v84`. Skrip `?v=84`.
+
+## Pembaruan v85: perbaikan urutan muat dan UKK ujian individu
+- Perbaikan: `ukk-foto.js` kini dimuat setelah `uji-waktu.js`. Pada v83 dan v84, file itu dimuat terlalu awal sehingga penjaga Hitung hasil (foto wajib belum lengkap) tidak terpasang.
+- UKK mode Ujian dinilai per siswa. Tombol Kelompok dinonaktifkan dan pemulihan kelompok dari draft atau dari Ulangi dibatalkan untuk unit Ujian. Mode Latihan tetap boleh kelompok.
+- Cache service worker: `tbsm-v85`. Skrip `?v=85`.

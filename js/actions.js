@@ -48,7 +48,7 @@ document.addEventListener('click',function(e){
   else if(a==='filter'){S.filter=v;render()}
   else if(a==='start'){startExam(v)}
   else if(a==='back'){stopTimer();V.mode='list';render()}
-  else if(a==='gmode'){V.kel=(v==='1');if(V.kel)V.cks['*']=V.cks['*']||{};V.peserta=V.group[0]||V.peserta;V.checks=curChecks();render()}
+  else if(a==='gmode'){if(v==='1'&&ukIndividu()){toast('UKK ujian dinilai per siswa, tidak bisa berkelompok');return}V.kel=(v==='1');if(V.kel)V.cks['*']=V.cks['*']||{};V.peserta=V.group[0]||V.peserta;V.checks=curChecks();render()}
   else if(a==='ptab'){V.peserta=b.dataset.n;V.checks=curChecks();render()}
   else if(a==='padd'){var sel=$('#addpes');if(sel&&sel.value)addMember(sel.value)}
   else if(a==='prm'){
