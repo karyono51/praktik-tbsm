@@ -106,7 +106,7 @@ function xlsRekap(){
  if(!needX())return;
  var L=filt().sort(function(a,b){return a.ts-b.ts});
  var wb=XLSX.utils.book_new();
- var rows=[['No','Tanggal','Kelas','Siswa','Unit praktik','SKKNI','Jenis','Skor','Status','KKM','Penilai','Durasi (menit)','Catatan']].concat(L.map(function(r,i){var j=jobById(r.jobId)||{};return [i+1,new Date(r.ts).toLocaleDateString('id-ID'),r.kelas,r.siswa||'',j.judul||r.jobId,j.skkni||'',r.tipe,r.score,r.kompeten?'Kompeten':'Belum kompeten',S.kkm,r.penilai||r.oleh||'',r.detik?Math.round(r.detik/6)/10:'',r.catatan||'']}));
+ var rows=[['No','Tanggal','Kelas','Siswa','Unit praktik','SKKNI','Jenis','Skor','Status','KKM','Penilai','Durasi (menit)','Catatan']].concat(L.map(function(r,i){var j=jobById(r.jobId)||{};return [i+1,new Date(r.ts).toLocaleDateString('id-ID'),r.kelas,r.siswa||'',j.judul||r.jobId,j.skkni||'',jenisTampil(r),r.score,r.kompeten?'Kompeten':'Belum kompeten',S.kkm,r.penilai||r.oleh||'',r.detik?Math.round(r.detik/6)/10:'',r.catatan||'']}));
  XLSX.utils.book_append_sheet(wb,sheet(rows,[5,12,8,26,44,18,11,7,16,6,20,13,40]),'Rekap');
  var k=[['Kelas','Jumlah data','Rata-rata','Persen kompeten']].concat(['X','XI','XII'].map(function(c){return [c].concat(agg(L.filter(function(r){return r.kelas===c})))}));
  var ks=sheet(k,[10,13,11,16]);for(var i=2;i<=4;i++)if(ks['D'+i])ks['D'+i].z='0%';
@@ -149,7 +149,7 @@ function pdfRekap(){
  doc.setFontSize(9.5).text('Data: '+a[0]+'   Rata-rata: '+a[1]+'   Kompeten: '+Math.round(a[2]*100)+'%   KKM: '+S.kkm,14,46);
  doc.autoTable({startY:50,theme:'grid',styles:{fontSize:8.5,cellPadding:2},headStyles:TH,
   head:[['No','Tanggal','Kelas','Siswa','Unit praktik','Jenis','Skor','Status']],
-  body:L.map(function(r,i){var j=jobById(r.jobId);return [i+1,new Date(r.ts).toLocaleDateString('id-ID'),r.kelas,r.siswa||'-',j?j.judul:r.jobId,r.tipe,r.score,r.kompeten?'Kompeten':'Belum kompeten']}),
+  body:L.map(function(r,i){var j=jobById(r.jobId);return [i+1,new Date(r.ts).toLocaleDateString('id-ID'),r.kelas,r.siswa||'-',j?j.judul:r.jobId,jenisTampil(r),r.score,r.kompeten?'Kompeten':'Belum kompeten']}),
   columnStyles:{0:{cellWidth:10},1:{cellWidth:24},2:{cellWidth:14},6:{cellWidth:14,halign:'center'},7:{cellWidth:32}},
   didParseCell:function(d){if(d.section==='body'&&d.column.index===7)d.cell.styles.textColor=d.cell.raw==='Kompeten'?[4,120,87]:[185,28,28]}});
  var O=obsRekapUrut();

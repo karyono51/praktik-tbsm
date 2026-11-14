@@ -117,3 +117,6 @@ function ukBisaHitung(){
  if(!(V.job&&V.job.ukk&&V.job.cfg&&V.job.cfg.mode==='latihan'))return groupComplete();
  return V.kel?doneOf('*')>0:nameList().every(function(n){return doneOf(n)>0});
 }
+
+/* Label jenis di rekap dan Excel/PDF: latihan UKK ditandai "Latihan UKK". Nilai tersimpan tetap "Latihan". */
+function jenisTampil(r){var j=jobById(r.jobId);return (r.tipe==='Latihan'&&j&&j.ukk)?'Latihan UKK':r.tipe}

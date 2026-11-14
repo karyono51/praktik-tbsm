@@ -172,3 +172,9 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 - PDF bisa dibuat saat ujian masih berjalan. Nilai dan status ditulis "Belum selesai" sampai Hitung hasil ditekan.
 - Mode Latihan boleh menekan Hitung hasil ketika setiap peserta sudah mengisi minimal satu butir dan foto wajib lengkap. Butir yang kosong dihitung belum sesuai. Mode Ujian tetap mensyaratkan semua butir terisi.
 - Cache service worker: `tbsm-v87`. Skrip `?v=87`.
+
+## Pembaruan v88: lampiran foto, penguji, dan label Latihan UKK
+- Lampiran foto di PDF UKK mempertahankan rasio asli (foto potret dari HP tidak lagi dipaksa menjadi lanskap). Tiga foto per baris, enam per halaman, ukuran lebih kecil.
+- Kotak PENGUJI membagi dua kolom, kiri Penguji Internal dan kanan Penguji Eksternal, masing-masing dengan garis tanda tangan.
+- Hasil latihan UKK ditampilkan sebagai **Latihan UKK** di Rekap nilai, Hasil penilaian UKK, Excel, dan PDF rekap. Nilai yang tersimpan tetap "Latihan", jadi filter dan rekap kompetensi tidak berubah.
+- Cache service worker: `tbsm-v88`. Skrip `?v=88`.

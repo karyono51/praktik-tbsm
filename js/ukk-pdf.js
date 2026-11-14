@@ -61,24 +61,25 @@ function ukkPdfDoc(){
  doc.setFont('helvetica','normal').setFontSize(9).text((fin?(c.kompeten?'Kompeten':'Belum kompeten'):'Belum selesai')+' · KKM '+S.kkm,lx+lw/2,y+34,{align:'center'});
  doc.setFontSize(9).text(tempat+', '+tgl,rx+rw,y-3,{align:'right'});
  doc.setFont('helvetica','bold').setFontSize(10).text('PENGUJI',rx+rw/2,y+6,{align:'center'});
- doc.rect(rx,y,rw,bh).line(rx,y+10,rx+rw,y+10);
+ var mid=rx+rw/2;
+ doc.rect(rx,y,rw,bh).line(rx,y+10,rx+rw,y+10).line(mid,y+10,mid,y+bh);
  doc.setFont('helvetica','normal').setFontSize(9);
- /* dua sub-kotak: Penguji Internal di atas, Penguji Eksternal di bawah; masing-masing ada ruang tanda tangan */
- doc.text('Penguji Internal',rx+3,y+16);doc.line(rx+3,y+27,rx+rw-3,y+27);
- doc.text('Penguji Eksternal',rx+3,y+31);doc.line(rx+3,y+42,rx+rw-3,y+42);
+ doc.text('Penguji Internal',rx+rw/4,y+17,{align:'center'});doc.line(rx+4,y+38,mid-4,y+38);
+ doc.text('Penguji Eksternal',mid+rw/4,y+17,{align:'center'});doc.line(mid+4,y+38,rx+rw-4,y+38);
  y+=bh+8;
 
- /* Lampiran foto bukti */
+ /* Lampiran foto bukti: rasio asli dipertahankan (foto HP umumnya potret); 3 kolom, 6 foto per halaman */
  var ada=j.items.filter(function(i){return fo[i.id]});
  if(ada.length){
   doc.addPage();doc.setFont('helvetica','bold').setFontSize(12).text('LAMPIRAN FOTO BUKTI',W/2,16,{align:'center'});
   doc.setFont('helvetica','normal').setFontSize(9).text(j.judul+' · '+nama,W/2,22,{align:'center'});
-  var cw=86,ch=60,gx=14,gy=30;
+  var cw=56,mh=70,gap=5,gx=14,top=30,rowH=mh+14;
   ada.forEach(function(i,n){
-   var col=n%2,row=Math.floor(n/2),x=gx+col*(cw+6),yy=gy+(row%3)*(ch+14);
-   if(n>0&&row%3===0&&col===0){doc.addPage();yy=gy}
-   try{doc.addImage(fo[i.id],'JPEG',x,yy,cw,ch-10)}catch(e){doc.rect(x,yy,cw,ch-10);doc.text('Foto tidak dapat ditampilkan',x+4,yy+8)}
-   doc.setFontSize(9).text('Butir '+i.no+' · '+i.t,x,yy+ch-4);
+   var pos=n%6,col=pos%3,row=Math.floor(pos/3);
+   if(n>0&&pos===0)doc.addPage();
+   var x=gx+col*(cw+gap),y0=top+row*rowH,dm=ukkJpegDim(fo[i.id])||{w:3,h:4},sc=Math.min(cw/dm.w,mh/dm.h),dw=dm.w*sc,dh=dm.h*sc,dx=x+(cw-dw)/2;
+   try{doc.addImage(fo[i.id],'JPEG',dx,y0,dw,dh)}catch(e){doc.rect(x,y0,cw,mh);doc.setFontSize(8).text('Foto tidak dapat ditampilkan',x+3,y0+8)}
+   doc.setFontSize(8).text('Butir '+i.no+' · '+i.t,x,y0+mh+5);
   });
  }
 
@@ -90,3 +91,19 @@ function ukkNamaFile(){var multi=V.kel&&V.items&&V.items.length>1;var nm=multi?V
 function pdfUkk(){ukkPdfDoc().save(ukkNamaFile())}
 /* Cetak (ujian dan hasil): PDF yang sama dibuka di tab baru untuk dicetak */
 function ukkCetakPdf(){var w=window.open(ukkPdfDoc().output('bloburl'),'_blank');if(!w)toast('Izinkan pop-up untuk membuka PDF cetak, atau pakai Unduh PDF')}
+
+/* Ukuran piksel JPEG dari penanda SOF; null bila tidak terbaca */
+function ukkJpegDim(d){
+ try{
+  var b=atob(String(d).split(',')[1]),i=2;
+  while(i<b.length-9){
+   if(b.charCodeAt(i)!==0xFF){i++;continue}
+   var m=b.charCodeAt(i+1);
+   if(m===0xFF){i++;continue}
+   if(m===0xD8||m===0x01||(m>=0xD0&&m<=0xD7)){i+=2;continue}
+   if(m>=0xC0&&m<=0xCF&&m!==0xC4&&m!==0xC8&&m!==0xCC)return {h:(b.charCodeAt(i+5)<<8)|b.charCodeAt(i+6),w:(b.charCodeAt(i+7)<<8)|b.charCodeAt(i+8)};
+   i+=2+((b.charCodeAt(i+2)<<8)|b.charCodeAt(i+3));
+  }
+ }catch(e){}
+ return null;
+}
