@@ -67,3 +67,4 @@ Untuk setiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** sesuai
 - Menu **Observasi UKK** dipindah ke kelompok UKK; menu **Observasi LKPD Praktik** (sebelumnya Observasi praktik siswa) dipindah ke kelompok LKPD Praktik. Pengelompokan diatur di `js/menu-dasbor.js` (opsi `post`).
 - Penamaan lama diganti di menu, kartu beranda, ubin, judul halaman, PDF, sheet dan nama berkas Excel (`Rekap_Observasi_LKPD_Praktik`), README dan dokumen. Nama internal (`observasi-siswa`, `tipe` = `siswa`) tidak diubah agar data lama tetap terbaca.
 - `service-worker.js` naik ke `tbsm-v101`.
+- Kelompok menu di laci (LKPD Praktik, UKK, Soal dan ujian, Penilaian dan acuan, Administrasi, Akun dan aplikasi) kini dapat dibuka/ditutup dengan mengetuk judulnya. Default tertutup, kecuali kelompok yang berisi menu yang sedang dibuka. Buka/tutup manual diingat selama menu aktif sama (`js/menu-dasbor.js`); `service-worker.js` naik ke `tbsm-v102`.
