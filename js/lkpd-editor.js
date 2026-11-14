@@ -51,7 +51,7 @@ function lkeInit(d){
  var src=d.src||{},r=src.rubric||{steps:30,safety:20,checks:25,analysis:25,practiceWeight:85,theoryWeight:15},fresh=!d.src;
  var val=src.validation||{vehicle:true,evidence:true,cause:true,conclusion:true,atLeastOneCheck:true},vv={};
  LKE.VAL.forEach(function(k){vv[k[0]]=!!val[k[0]]});
- var s={id:d.id||'',title:d.title||'',kelas:d.kelas||'X',fase:d.fase||'E',unit:d.unit||'',duration:d.duration||45,skkni:d.skkni||'',status:d.status||'draft',active:d.active!==false,
+ var s={id:d.id||'',title:d.title||'',kelas:d.kelas||'X',sekolah:(d.sekolah!==undefined?d.sekolah:(src.sekolah!==undefined?src.sekolah:(fresh?(schKode()||''):''))),fase:d.fase||'E',unit:d.unit||'',duration:d.duration||45,skkni:d.skkni||'',status:d.status||'draft',active:d.active!==false,
   objectives:lkeCp(src.objectives),theory:lkeCp(src.theory),tools:lkeCp(src.tools),safety:lkeCp(src.safety),
   steps:(src.steps||[]).map(function(x){return {t:x[0],m:x[1],i:x[2]}}),checks:lkeCp(src.checks),symptoms:lkeCp(src.symptoms),quiz:lkeCp(src.quiz),
   w:{steps:r.steps,safety:r.safety,checks:r.checks,analysis:r.analysis,practice:r.practiceWeight},val:vv};
@@ -143,7 +143,7 @@ function lkeIssues(d){
 /* ---------- Susun modul untuk disimpan ---------- */
 function lkeBuild(d){
  var s=d.S,w=s.w,pr=Number(lkeNum(w.practice)),
- m={id:lkeT(s.id),version:1,title:lkeT(s.title),kelas:lkeT(s.kelas).toUpperCase(),fase:lkeT(s.fase),unit:lkeT(s.unit),duration:Number(lkeNum(s.duration)),skkni:lkeT(s.skkni),
+ m={id:lkeT(s.id),version:1,title:lkeT(s.title),kelas:lkeT(s.kelas).toUpperCase(),sekolah:(schNorm(s.sekolah)==='ALL'?'':schNorm(s.sekolah)),fase:lkeT(s.fase),unit:lkeT(s.unit),duration:Number(lkeNum(s.duration)),skkni:lkeT(s.skkni),
   status:s.status==='published'?'published':'draft',active:!!s.active,
   objectives:s.objectives.map(lkeT).filter(Boolean),
   theory:s.theory.filter(function(r){return !lkeBlank(r)}).map(function(r){return [lkeT(r[0]),lkeT(r[1])]}),
@@ -203,6 +203,7 @@ function lkeTabInfo(d){
  var s=d.S,ro=!d.isNew;
  return '<section class="card"><div class="two"><label class="f">ID modul'+(ro?' (tidak bisa diubah)':' (unik)')+'<input data-lke="id" value="'+esc(s.id)+'" placeholder="contoh: X-7"'+(ro?' readonly':'')+' autocapitalize="characters"></label>'+
   '<label class="f">Kelas<select data-lke="kelas" data-lke-r="1">'+lkKelasOpts(s.kelas)+'</select></label></div>'+
+  '<label class="f">Sekolah<select data-lke="sekolah">'+schOptModul(s.sekolah)+'</select></label>'+
   '<label class="f">Judul modul<input data-lke="title" value="'+esc(s.title)+'" placeholder="contoh: Pemeriksaan Busi dan Sistem Pengapian"></label>'+
   '<label class="f">Unit/objek praktik<input data-lke="unit" value="'+esc(s.unit)+'" placeholder="contoh: Sepeda motor 4 langkah injeksi"></label>'+
   '<div class="two"><label class="f">Alokasi waktu (menit)<input type="number" inputmode="numeric" min="1" max="600" data-lke="duration" value="'+esc(s.duration)+'"></label>'+

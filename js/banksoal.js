@@ -28,7 +28,7 @@ function bsParse(o){if(typeof o.payload==='string'){try{var x=JSON.parse(o.paylo
 function bsFromDoc(d){return bsParse(fromDoc(d))}
 function bsPack(k,o){
  if(k==='soal')o.payload=BS_IDX[o.id]?'{"bawaan":1}':JSON.stringify({q:o.q,opts:o.opts,kunci:o.kunci,rows:o.rows,lab:o.lab,bahas:o.bahas});
- else if(k==='sesi')o.payload=JSON.stringify({ids:o.ids||[],pilih:o.pilih||'otomatis',mapelF:o.mapelF||[],tampil:!!o.tampil});
+ else if(k==='sesi')o.payload=JSON.stringify({ids:o.ids||[],pilih:o.pilih||'otomatis',mapelF:o.mapelF||[],tampil:!!o.tampil,sekolah:o.sekolah||''});
  else o.payload=JSON.stringify({ans:o.ans,order:o.order,oo:o.oo,pindah:o.pindah||0,pts:o.pts});
 }
 function bsQueueGet(){try{return JSON.parse(localStorage.getItem(BSQ)||'[]')}catch(e){return []}}
@@ -154,7 +154,7 @@ function bsSesiStatus(s){
  if(s.selesai&&n>s.selesai)return {k:'end',t:'Berakhir',c:'plain'};
  return {k:'on',t:'Dibuka',c:'ok'};
 }
-function bsSesiUntuk(kelas){return BS.D.sesi.filter(function(s){return s.kelas==='ALL'||!s.kelas||s.kelas===kelas})}
+function bsSesiUntuk(kelas){return BS.D.sesi.filter(function(s){return (s.kelas==='ALL'||!s.kelas||s.kelas===kelas)&&schAkunOk(s)})}
 function bsHasilSaya(){return BS.D.hasil.filter(function(h){return h.sid===S.user.id}).sort(function(a,b){return b.ts-a.ts})}
 function bsRunKey(){return BSRUN+S.user.id}
 function bsRunSave(){if(BS.run)try{localStorage.setItem(bsRunKey(),JSON.stringify(BS.run))}catch(e){}}
@@ -439,24 +439,24 @@ function bsFormSave(){
 
 /* ---------- Guru: sesi ujian ---------- */
 function bsViewSesi(){
- var ss=BS.D.sesi.slice().sort(function(a,b){return (b.ts||0)-(a.ts||0)}),h='<button type="button" class="btn primary" data-bs="sesibaru">Buat sesi ujian</button>';
+ var ss=BS.D.sesi.filter(schAkunOk).sort(function(a,b){return (b.ts||0)-(a.ts||0)}),h='<button type="button" class="btn primary" data-bs="sesibaru">Buat sesi ujian</button>';
  if(!ss.length)h+='<p class="muted">Belum ada sesi ujian.</p>';
  h+=ss.map(function(s){
   var st=bsSesiStatus(s),n=BS.D.hasil.filter(function(x){return x.sesiId===s.id}).length,jml=s.pilih==='manual'?(s.ids||[]).length+' soal pilihan':(s.jumlah||'semua')+' soal acak'+((s.mapelF&&s.mapelF.length)?' ('+s.mapelF.join(', ')+')':'');
-  return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">Kelas '+(s.kelas==='ALL'||!s.kelas?'semua':esc(s.kelas))+' · '+jml+' · '+(s.durasi||0)+' menit · KKM '+(s.kkm||S.kkm)+'</p><p class="note">'+(s.mulai?'Mulai '+bsWaktu(s.mulai):'Tanpa jadwal mulai')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+' · '+n+' pengumpulan'+(s.acak!==false?' · diacak':'')+(s.tampil?' · pembahasan ditampilkan':'')+'</p>'+
+  return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">'+schLabelModul(s.sekolah)+' · Kelas '+(s.kelas==='ALL'||!s.kelas?'semua':esc(s.kelas))+' · '+jml+' · '+(s.durasi||0)+' menit · KKM '+(s.kkm||S.kkm)+'</p><p class="note">'+(s.mulai?'Mulai '+bsWaktu(s.mulai):'Tanpa jadwal mulai')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+' · '+n+' pengumpulan'+(s.acak!==false?' · diacak':'')+(s.tampil?' · pembahasan ditampilkan':'')+'</p>'+
    '<div class="row"><button type="button" class="btn small" data-bs="sesiubah" data-q="'+s.id+'">Ubah</button><button type="button" class="btn small" data-bs="sesiaktif" data-q="'+s.id+'">'+(s.aktif===false?'Aktifkan':'Nonaktifkan')+'</button><button type="button" class="btn small" data-bs="sesihasil" data-q="'+s.id+'">Lihat hasil</button><button type="button" class="btn small danger" data-bs="sesihapus" data-q="'+s.id+'">Hapus</button></div></div>';
  }).join('');
  return h;
 }
 function bsNewSesi(s){
- return s?{id:s.id,judul:s.judul,kelas:s.kelas||'ALL',durasi:s.durasi||60,jumlah:s.jumlah||20,pilih:s.pilih||'otomatis',mapelF:(s.mapelF||[]).slice(),ids:(s.ids||[]).slice(),acak:s.acak!==false,tampil:!!s.tampil,kkm:s.kkm||S.kkm,mulai:s.mulai||0,selesai:s.selesai||0,aktif:s.aktif!==false,q:''}:
-  {id:'',judul:'',kelas:'ALL',durasi:60,jumlah:20,pilih:'otomatis',mapelF:[],ids:[],acak:true,tampil:false,kkm:S.kkm,mulai:0,selesai:0,aktif:true,q:''};
+ return s?{id:s.id,judul:s.judul,kelas:s.kelas||'ALL',durasi:s.durasi||60,jumlah:s.jumlah||20,pilih:s.pilih||'otomatis',mapelF:(s.mapelF||[]).slice(),ids:(s.ids||[]).slice(),acak:s.acak!==false,tampil:!!s.tampil,kkm:s.kkm||S.kkm,mulai:s.mulai||0,selesai:s.selesai||0,aktif:s.aktif!==false,sekolah:s.sekolah||'',q:''}:
+  {id:'',judul:'',kelas:'ALL',durasi:60,jumlah:20,pilih:'otomatis',mapelF:[],ids:[],acak:true,tampil:false,kkm:S.kkm,mulai:0,selesai:0,aktif:true,sekolah:schKode()||'',q:''};
 }
 function bsSfRead(){
  var f=BS.sf;if(!f||!document.getElementById('sf-judul'))return;
  function v(id){var e=document.getElementById(id);return e?e.value:''}
  function c(id){var e=document.getElementById(id);return !!(e&&e.checked)}
- f.judul=v('sf-judul');f.kelas=v('sf-kelas')||f.kelas;f.durasi=+v('sf-durasi')||0;f.pilih=v('sf-pilih')||f.pilih;f.kkm=+v('sf-kkm')||f.kkm;
+ f.judul=v('sf-judul');f.kelas=v('sf-kelas')||f.kelas;if(document.getElementById('sf-sekolah'))f.sekolah=v('sf-sekolah');f.durasi=+v('sf-durasi')||0;f.pilih=v('sf-pilih')||f.pilih;f.kkm=+v('sf-kkm')||f.kkm;
  if(document.getElementById('sf-jumlah'))f.jumlah=+v('sf-jumlah')||0;
  f.acak=c('sf-acak');f.tampil=c('sf-tampil');f.aktif=c('sf-aktif');
  f.mulai=v('sf-mulai')?new Date(v('sf-mulai')).getTime():0;f.selesai=v('sf-selesai')?new Date(v('sf-selesai')).getTime():0;
@@ -473,6 +473,7 @@ function bsViewSesiForm(){
  var h='<div class="row"><button type="button" class="btn small" data-bs="sesibatal">Batal</button><h2>'+(f.id?'Ubah sesi':'Sesi ujian baru')+'</h2></div><div class="card">';
  h+='<label class="f">Judul sesi<input id="sf-judul" value="'+esc(f.judul)+'" placeholder="Contoh: Simulasi TKA 1"></label>';
  h+='<div class="two"><label class="f">Kelas<select id="sf-kelas">'+[['ALL','Semua kelas'],['X','Kelas X'],['XI','Kelas XI'],['XII','Kelas XII']].map(function(k){return '<option value="'+k[0]+'"'+(f.kelas===k[0]?' selected':'')+'>'+k[1]+'</option>'}).join('')+'</select></label><label class="f">Durasi (menit)<input id="sf-durasi" type="number" inputmode="numeric" min="1" max="300" value="'+f.durasi+'"></label></div>';
+ h+='<label class="f">Sekolah<select id="sf-sekolah">'+schOptModul(f.sekolah)+'</select></label>';
  h+='<label class="f">Cara memilih soal<select id="sf-pilih"><option value="otomatis"'+(oto?' selected':'')+'>Otomatis dari bank soal (tiap siswa berbeda)</option><option value="manual"'+(oto?'':' selected')+'>Pilih soal sendiri</option></select></label>';
  if(oto){
   h+='<label class="f">Jumlah soal<input id="sf-jumlah" type="number" inputmode="numeric" min="1" max="200" value="'+f.jumlah+'"></label><div><span class="label">Batasi mata pelajaran (kosong = semua)</span><div class="chips">'+mp.map(function(m){return '<button type="button" data-bs="sfmapel" data-v="'+esc(m)+'" aria-pressed="'+(f.mapelF.indexOf(m)>-1)+'">'+esc(m)+'</button>'}).join('')+'</div></div><p class="note">'+bsSfPool(f).length+' soal ujian tersedia untuk pilihan ini.</p>';
@@ -495,18 +496,19 @@ function bsSfSave(){
  if(f.pilih!=='manual'&&!bsSfPool(f).length){toast('Tidak ada soal ujian yang tersedia untuk pilihan ini');return}
  if(f.mulai&&f.selesai&&f.selesai<=f.mulai){toast('Waktu tutup harus setelah waktu mulai');return}
  var ex=BS.D.sesi.filter(function(x){return x.id===f.id})[0];
- var o=Object.assign(ex||{},{id:f.id||uid(),ts:ex?ex.ts:Date.now(),judul:String(f.judul).trim().slice(0,160),kelas:f.kelas,durasi:f.durasi,jumlah:f.pilih==='manual'?f.ids.length:Math.max(1,f.jumlah||1),acak:f.acak,mulai:f.mulai||0,selesai:f.selesai||0,aktif:f.aktif,kkm:Math.min(100,Math.max(0,f.kkm||0)),oleh:ex?ex.oleh:S.user.nama.slice(0,64),ids:f.ids,pilih:f.pilih,mapelF:f.mapelF,tampil:f.tampil});
+ var o=Object.assign(ex||{},{id:f.id||uid(),ts:ex?ex.ts:Date.now(),judul:String(f.judul).trim().slice(0,160),kelas:f.kelas,durasi:f.durasi,jumlah:f.pilih==='manual'?f.ids.length:Math.max(1,f.jumlah||1),acak:f.acak,mulai:f.mulai||0,selesai:f.selesai||0,aktif:f.aktif,kkm:Math.min(100,Math.max(0,f.kkm||0)),oleh:ex?ex.oleh:S.user.nama.slice(0,64),ids:f.ids,pilih:f.pilih,mapelF:f.mapelF,tampil:f.tampil,sekolah:schNorm(f.sekolah)==='ALL'?'':schNorm(f.sekolah)});
  BS.sf=null;bsPut('sesi',o).then(function(ok){toast(ok?'Sesi tersimpan':'Sesi tersimpan di perangkat, menunggu terkirim');render()});
  render();
 }
 
 /* ---------- Guru: hasil ---------- */
 function bsHasilRows(){
- return BS.D.hasil.filter(function(h){return BS.hs==='ALL'||(BS.hs==='latihan'?h.mode==='latihan':h.sesiId===BS.hs)}).sort(function(a,b){return b.ts-a.ts});
+ var pm=schPeta();
+ return BS.D.hasil.filter(function(h){return schHasilOk(h,pm)&&(BS.hs==='ALL'||(BS.hs==='latihan'?h.mode==='latihan':h.sesiId===BS.hs))}).sort(function(a,b){return b.ts-a.ts});
 }
 function bsViewHasil(){
  var rows=bsHasilRows(),avg=rows.length?Math.round(rows.reduce(function(s,x){return s+x.score},0)/rows.length):0;
- var ses=BS.D.sesi.slice().sort(function(a,b){return (b.ts||0)-(a.ts||0)});
+ var ses=BS.D.sesi.filter(schAkunOk).sort(function(a,b){return (b.ts||0)-(a.ts||0)});
  var h='<div class="card"><label class="f">Tampilkan<select data-bs="hs"><option value="ALL"'+(BS.hs==='ALL'?' selected':'')+'>Semua</option><option value="latihan"'+(BS.hs==='latihan'?' selected':'')+'>Latihan siswa</option>'+ses.map(function(s){return '<option value="'+s.id+'"'+(BS.hs===s.id?' selected':'')+'>'+esc(s.judul)+'</option>'}).join('')+'</select></label></div>';
  h+='<div class="stats"><div class="card"><span class="label">Pengumpulan</span><b class="mono">'+rows.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div><div class="card"><span class="label">Tertinggi</span><b class="mono">'+(rows.length?Math.max.apply(null,rows.map(function(x){return x.score})):0)+'</b></div></div>';
  h+='<div class="row"><button type="button" class="btn small" data-bs="ekspor"'+(rows.length?'':' disabled')+'>Ekspor Excel</button></div>';

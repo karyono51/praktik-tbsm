@@ -30,7 +30,7 @@ function ukkFmt(s){var t=ukkT(s);return t?new Date(t).toLocaleString('id-ID',{da
 function ukkMakeJob(d,base){
  var f=Object.assign({},(base&&base.form)||FORM_UKK,d.form||{});
  var items=(d.items||[]).map(function(i,k){return {id:d.id+'-'+k,a:'R',no:k+1,t:String(i.t||''),std:String(i.std||''),k:!!i.k,f:!!i.f}});
- return {id:d.id,kelas:d.kelas,judul:d.title,unit:d.unit||'',menit:Number(d.duration)||20,ukk:true,skkni:d.skkni||'',form:f,items:items,
+ return {id:d.id,kelas:d.kelas,sekolah:d.sekolah||'',judul:d.title,unit:d.unit||'',menit:Number(d.duration)||20,ukk:true,skkni:d.skkni||'',form:f,items:items,
   cfg:{tampil:d.status==='published'&&d.active!==false,mode:d.mode==='ujian'?'ujian':'latihan',maxTry:Math.max(0,parseInt(d.maxTry,10)||0),buka:d.buka||'',tutup:d.tutup||''},
   custom:!base,dihapus:!!d.dihapus,diubah:!!base};
 }
@@ -236,7 +236,7 @@ function ukeNum(v){var s=ukeT(v).replace(',','.');return s===''?NaN:Number(s)}
 function ukeBlank(i){return !ukeT(i.t)&&!ukeT(i.std)}
 function ukeNew(src,mode){
  var f=Object.assign({},FORM_UKK,(src&&src.form)||{});
- var S0={id:mode==='edit'?src.id:ukkIdBaru(),title:src?src.title:'',unit:src?src.unit:'',kelas:src?src.kelas:S.kelas,duration:src?src.duration:20,skkni:src?(src.skkni||''):'',
+ var S0={id:mode==='edit'?src.id:ukkIdBaru(),sekolah:src?(src.sekolah||''):(schKode()||''),title:src?src.title:'',unit:src?src.unit:'',kelas:src?src.kelas:S.kelas,duration:src?src.duration:20,skkni:src?(src.skkni||''):'',
   status:src&&mode==='edit'?(src.status==='published'?'published':'draft'):'draft',active:src?src.active!==false:true,form:{satuan:f.satuan||'',konsentrasi:f.konsentrasi||'',kode:f.kode||'',tahun:f.tahun||'',bentuk:f.bentuk||'',paket:f.paket||'1',tempat:f.tempat||'Sumedang'},
   items:src&&src.items&&src.items.length?src.items.map(function(i){return {t:i.t||'',std:i.std||'',k:!!i.k,f:!!i.f}}):[{t:'',std:'',k:false}]};
  if(mode==='dup')S0.title=S0.title+' (salinan)';
@@ -279,7 +279,7 @@ function ukeIssues(d){
 }
 function ukeBuild(d){
  var s=d.S,old=ukkDocOf(s.id)||(!d.isNew&&ukkJobBy(s.id)?ukkDocFromJob(ukkJobBy(s.id)):null),src=old||{};
- var doc=Object.assign({},src,{id:ukeT(s.id),jenis:'ukk',version:1,title:ukeT(s.title),unit:ukeT(s.unit),kelas:s.kelas,fase:(KELAS[s.kelas]||{}).fase||'F',duration:Number(ukeNum(s.duration)),skkni:ukeT(s.skkni),
+ var doc=Object.assign({},src,{id:ukeT(s.id),jenis:'ukk',version:1,sekolah:(schNorm(s.sekolah)==='ALL'?'':schNorm(s.sekolah)),title:ukeT(s.title),unit:ukeT(s.unit),kelas:s.kelas,fase:(KELAS[s.kelas]||{}).fase||'F',duration:Number(ukeNum(s.duration)),skkni:ukeT(s.skkni),
   form:{satuan:ukeT(s.form.satuan),konsentrasi:ukeT(s.form.konsentrasi),kode:ukeT(s.form.kode),tahun:ukeT(s.form.tahun),bentuk:ukeT(s.form.bentuk),paket:ukeT(s.form.paket)||'1',tempat:ukeT(s.form.tempat)||'Sumedang'},
   items:s.items.filter(function(i){return !ukeBlank(i)}).map(function(i){return {t:ukeT(i.t),std:ukeT(i.std),k:!!i.k,f:!!i.f}}),
   status:s.status==='published'?'published':'draft',active:!!s.active,maxTry:src.maxTry||0,buka:src.buka||'',tutup:src.tutup||''});
@@ -332,7 +332,7 @@ function ukeTabInfo(d){
 function ukeTabIdentitas(d){
  var f=d.S.form;
  function fi(k,l,w){return '<label class="f'+(w?' wide':'')+'">'+l+'<input data-uke="form.'+k+'" value="'+esc(f[k])+'"></label>'}
- return '<section class="card"><div><h3>Identitas pada lembar UKK</h3><p class="note">Tampil di kartu Identitas praktik pada lembar penilaian dan PDF.</p></div><div class="formgrid">'+
+ return '<section class="card"><div><h3>Identitas pada lembar UKK</h3><p class="note">Tampil di kartu Identitas praktik pada lembar penilaian dan PDF.</p></div><div class="formgrid"><label class="f wide">Unit ini untuk sekolah<select data-uke="sekolah">'+schOptModul(d.S.sekolah)+'</select></label>'+
   fi('satuan','Sekolah / satuan pendidikan',1)+fi('konsentrasi','Konsentrasi keahlian',1)+fi('kode','Kode')+fi('tahun','Tahun pelajaran')+fi('bentuk','Bentuk',1)+fi('paket','Nomor paket')+fi('tempat','Tempat pengesahan')+'</div></section>';
 }
 function ukePasteBox(d){

@@ -106,3 +106,10 @@ function schOpt(sel,adminSaja){
  if(adminSaja)o+='<option value="ALL"'+(sel==='ALL'?' selected':'')+'>Semua sekolah (lintas)</option>';
  return o;
 }
+
+/* pilihan sekolah untuk sesi ujian, modul LKPD, dan unit UKK: kosong = dipakai bersama oleh semua sekolah */
+function schOptModul(sel){
+ sel=String(sel||'').toUpperCase();
+ return '<option value="">Semua sekolah (bersama)</option>'+SCH_URUT.map(function(k){return '<option value="'+k+'"'+(sel===k?' selected':'')+'>'+SCH_LIST[k].nama+'</option>'}).join('');
+}
+function schLabelModul(v){v=String(v||'').toUpperCase();return SCH_LIST[v]?SCH_LIST[v].pendek:'Semua sekolah'}

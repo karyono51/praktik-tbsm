@@ -2,7 +2,7 @@ function viewKatalog(){
   var kb=kelasBoleh();if(kb.indexOf(S.kelas)<0)S.kelas=kb[0];
   var k=KELAS[S.kelas],staff=isStaff();
   var pn=staff?ukkPanel():'';if(pn)return pn;
-  var list=JOBS.filter(function(j){return j.kelas===S.kelas&&(staff||ukkTampil(j))});
+  var list=JOBS.filter(function(j){return j.kelas===S.kelas&&schAkunOk(j)&&(staff||ukkTampil(j))});
   var jobs=list.map(function(j){
     var l=lastFor(j.id),st='<span class="pill plain">Belum dicoba</span>';
     if(l)st='<span class="pill '+(l.kompeten?'ok':'bad')+'">'+(l.kompeten?'Kompeten':'Belum kompeten')+' · '+l.score+'</span>';

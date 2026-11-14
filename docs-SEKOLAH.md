@@ -20,5 +20,10 @@ Tanpa `?s=`, login menampilkan kedua logo. PWA lama perlu dihapus lalu dipasang 
 Tombol sekolah di header (DF / Medina) berganti sekolah yang dikelola: logo, kop PDF/cetak, daftar akun, roster siswa, rekap nilai, observasi.
 Akun yang sekolahnya belum diisi tetap tampil di kedua sekolah sampai diatur.
 
-## Belum dipisah per sekolah
-Sesi ujian bank soal, modul LKPD, dan modul UKK masih dipakai bersama; bedakan lewat judul dan kelas.
+## Sesi ujian, LKPD, dan UKK per sekolah (v99)
+Sesi ujian bank soal, modul LKPD, dan unit UKK punya pilihan **Sekolah** di form masing-masing (tanpa kolom Appwrite baru; tersimpan di payload).
+- Isi DF atau Medina: hanya tampil untuk siswa sekolah itu, dan untuk admin/guru saat sekolah itu yang aktif.
+- Kosong ("Semua sekolah (bersama)"): tampil di kedua sekolah. Semua data lama otomatis berstatus bersama.
+- Sesi, modul, atau unit baru otomatis memakai sekolah yang sedang aktif di header.
+- Hasil ujian di rekap ikut difilter menurut sekolah siswa.
+Bank soal tetap satu bersama; yang dipisah hanya sesinya.

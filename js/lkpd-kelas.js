@@ -4,7 +4,7 @@ LK.open=false;
 function lkcNum(id){var n=parseInt(String(id).split('-').pop(),10);return isNaN(n)?999:n}
 function lkcModules(kelas,staff){
  lkRefreshModules();
- return LKPD_MODULES.filter(function(m){return m.kelas===kelas&&(staff||(m.status==='published'&&m.active!==false))})
+ return LKPD_MODULES.filter(function(m){return m.kelas===kelas&&schAkunOk(m)&&(staff||(m.status==='published'&&m.active!==false))})
   .sort(function(a,b){return lkcNum(a.id)-lkcNum(b.id)||String(a.id).localeCompare(String(b.id))});
 }
 function lkcRecs(m,staff){return (S.lkpd||[]).filter(function(x){return x.moduleId===m.id&&(staff||x.sid===S.user.id)})}
