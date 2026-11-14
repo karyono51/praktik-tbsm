@@ -56,3 +56,12 @@ Paket Appwrite gratis hanya mengizinkan 2 fungsi per project: `akun-admin` dan `
 - **Ukuran**: foto dikecilkan ke sisi 800 px dengan batas sekitar 100 KB (`LD.SIDE` dan `LD.MAXC` di `js/lkpd-drive.js`). Foto lama tetap tampil.
 - **Kamera**: tombol memakai ikon (ambil foto, foto ulang, hapus, batal, balik kamera, buka kamera perangkat). Perbaikan: tombol cadangan *Buka kamera* tidak lagi ikut tampil saat kamera langsung bekerja.
 - Tidak ada perubahan pada fungsi `foto-drive` maupun skema Appwrite.
+
+## Pembaruan: tes Drive dan pemindahan foto lama
+- **Tes foto Drive**: menu Cek sinkronisasi (Admin dan Guru) punya kartu *Foto bukti (Google Drive)* dengan tombol **Tes foto Drive**. Hasilnya menyebut apakah fungsi terpasang, token Google masih berlaku, folder terbaca, dan kuota Drive terpakai. Perlu **deploy ulang fungsi `foto-drive`** (aksi `ping` baru). Fungsi lama tetap jalan; tombol hanya menjawab "belum didukung".
+- **Cek dari Termux sebelum memasang token**: `node tools/foto-drive.mjs cek` (membaca `GOOGLE_*` dari variabel lingkungan atau menanyakannya, tidak ditampilkan di layar).
+- **Pindahkan foto lama dari database ke Drive** (mengosongkan ruang database):
+  1. `node tools/foto-drive.mjs migrasi` : simulasi, hanya menghitung foto yang masih di database.
+  2. `node tools/foto-drive.mjs migrasi --jalankan --batas 50` : unggah ke Drive lalu ganti isi dokumen menjadi `drive:<id>`. Aman diulang; dokumen yang sudah di Drive dilewati. Foto diunggah dulu, dokumen baru diubah setelah unggahan berhasil.
+  3. Gunakan `GOOGLE_*` yang **sama** dengan fungsi `foto-drive` (agar fungsi bisa membaca berkas itu kembali) dan API key Appwrite dengan scope `documents.read` dan `documents.write`.
+- Urutan aman: pasang fungsi, jalankan **Tes foto Drive**, uji satu LKPD baru, baru jalankan migrasi.

@@ -6,6 +6,7 @@
      DRIVE_FOLDER_ID  (opsional; kosongkan bila token memakai scope drive.file, folder "TBSM Bukti Praktik" dibuat otomatis)
    Aksi:
      upload: {action:'upload', data:'data:image/jpeg;base64,...', nama:'X_Budi_X-1_K03-Terminal_20261112-1345'}  -> {ok:true, fileId}   (semua pengguna login)
+     ping:   {action:'ping'} -> {ok:true, google:true, folder:true, pakaiMB, batasMB}   (cek token Google dan folder Drive)
      get:    {action:'get', lkpdId, fileId}                          -> {ok:true, data:'data:...'}
              hanya guru/admin (label) atau pemilik foto (izin baca dokumen lkpd_bukti). */
 // Tanpa pustaka node-appwrite: panggilan ke Appwrite memakai fetch bawaan Node (pustaka lama gagal di runtime Node terbaru: "fetch failed").
@@ -133,6 +134,21 @@ async function get(callerId, body, auth, asUser) {
   return { ok: true, data: 'data:' + (/^image\//.test(mime) ? mime : 'image/jpeg') + ';base64,' + b64 };
 }
 
+// ping: pemeriksaan kesehatan untuk panel Cek sinkronisasi. Hanya mengembalikan status dan angka kuota, tidak ada rahasia.
+async function ping() {
+  const tok = await accessToken();
+  await folderId(tok);
+  const out = { ok: true, google: true, folder: true, pakaiMB: null, batasMB: null };
+  try {
+    const r = await gfetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota', {}, tok);
+    const j = await r.json().catch(() => ({}));
+    const q = j.storageQuota || {};
+    if (q.usage) out.pakaiMB = Math.round(Number(q.usage) / 1048576);
+    if (q.limit) out.batasMB = Math.round(Number(q.limit) / 1048576);
+  } catch (e) { /* kuota tidak wajib */ }
+  return out;
+}
+
 export default async ({ req, res, error }) => {
   try {
     const callerId = req.headers['x-appwrite-user-id'];
@@ -140,6 +156,7 @@ export default async ({ req, res, error }) => {
     let body = {};
     try { body = req.bodyJson || JSON.parse(req.bodyText || req.body || '{}'); } catch (e) { return res.json({ ok: false, error: 'Data tidak valid.' }, 400); }
     if (body.action === 'upload') return res.json(await upload(callerId, body));
+    if (body.action === 'ping') return res.json(await ping());
     if (body.action === 'get') {
       // Utama: baca dokumen atas nama pengguna (JWT) sehingga izin dokumen Appwrite yang menentukan, tanpa scope tambahan.
       // Cadangan: kunci dinamis fungsi (butuh scope users.read dan documents.read).

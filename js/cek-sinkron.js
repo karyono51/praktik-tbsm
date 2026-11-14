@@ -145,12 +145,31 @@ function viewSinkron(){
   });
   h+='<p class="note">Diperiksa '+ckWaktu(r.ts)+'.'+(staff?' Guru hanya melihat dokumen yang boleh dibacanya, jadi jumlah server untuk akun guru bisa lebih kecil daripada milik admin.':' Hanya data milik Anda yang dibandingkan.')+'</p>';
  }
+ if(staff){
+  var dv=CK.drv;
+  h+='<section class="card"><div class="row sb"><b>Foto bukti (Google Drive)</b>'+(dv?'<span class="pill '+(dv.ok?'ok':'bad')+'">'+(dv.ok?'Siap':'Bermasalah')+'</span>':'')+'</div>'+
+   '<p class="note">'+(dv?esc(dv.msg)+' ('+ckWaktu(dv.ts)+')':'Periksa bahwa fungsi foto-drive terpasang, token Google masih berlaku, dan folder Drive bisa dibuka.')+'</p>'+
+   '<button type="button" class="btn" data-act="ck-drive"'+(CK.drvBusy?' disabled':'')+'>'+(CK.drvBusy?'Memeriksa…':'Tes foto Drive')+'</button></section>';
+ }
  if(staff)h+='<p class="note">Cara memastikan data muncul di perangkat lain: masuk di perangkat kedua dengan akun yang sama (atau akun admin), tekan Segarkan data, lalu buka halaman ini dan cocokkan jumlah Observasi di server.</p>';
  return h;
 }
 document.addEventListener('click',async function(e){
  var b=e.target.closest('[data-act^="ck-"]');if(!b)return;var a=b.dataset.act;
  if(a==='ck-run')ckPeriksa();
+ else if(a==='ck-drive'){
+  if(CK.drvBusy)return;
+  if(navigator.onLine===false){toast('Offline: tes Drive butuh internet');return}
+  if(typeof ldCall!=='function'){toast('Modul foto belum siap');return}
+  CK.drvBusy=true;render();
+  try{
+   var o=await ldCall({action:'ping'});
+   CK.drv={ok:true,ts:Date.now(),msg:'Token Google valid dan folder Drive terbaca.'+(o.pakaiMB!=null?' Terpakai '+o.pakaiMB+' MB'+(o.batasMB?' dari '+o.batasMB+' MB':'')+'.':'')};
+  }catch(er){
+   var m=String((er&&er.message)||er);
+   CK.drv={ok:false,ts:Date.now(),msg:/not found|could not be found|function_not_found|404/i.test(m)&&!/Drive|Google/i.test(m)?'Fungsi foto-drive belum dipasang di Appwrite. Foto masih disimpan di database.':m};
+  }finally{CK.drvBusy=false;render()}
+ }
  else if(a==='ck-flush'){
   if(!Cloud.on||CK.busy)return;
   if(navigator.onLine===false){toast('Offline: kirim otomatis saat online');return}
