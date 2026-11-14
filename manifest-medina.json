@@ -6,7 +6,7 @@
   "start_url": "./?s=medina",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#F3F7F4",
+  "background_color": "#FFFFFF",
   "theme_color": "#0B6B3A",
   "icons": [
     {
