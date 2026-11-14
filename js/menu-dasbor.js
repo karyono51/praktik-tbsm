@@ -21,7 +21,8 @@
    {key:'soal',label:'Soal dan ujian',ic:'menu',keys:['banksoal']},
    {key:'nilai',label:staff?'Penilaian dan acuan':'Nilai dan acuan',ic:'menu',keys:['rekap','kompetensi','observasi','acuan']},
    {key:'admin',label:'Administrasi',ic:'menu',keys:['akun']},
-   {key:'app',label:'Akun dan aplikasi',ic:'keluar',keys:['sinkron','gantisandi','segarkan','perbarui','keluar'],compact:true}
+   {key:'app',label:'Akun dan aplikasi',ic:'keluar',keys:['sinkron','gantisandi','segarkan','perbarui'],compact:true},
+   {key:'keluar',label:'',ic:null,keys:['keluar'],compact:true}
   ];
  }
  function icon(n){try{return n&&typeof ICO!=='undefined'&&ICO[n]?svg(ICO[n],16):''}catch(e){return ''}}
