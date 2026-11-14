@@ -4,6 +4,8 @@
    Uji tanpa mengirim apa pun:   node tools/setup-appwrite.mjs --dry
    Hanya koleksi tertentu:       node tools/setup-appwrite.mjs --only=observasi
    Samakan izin koleksi lama:    tambahkan --sync-izin (bawaan: izin koleksi yang sudah ada tidak diubah)
+   Mode CBT aman:                tambahkan --profil=aman (siswa tidak lagi menulis soal_run dan soal_hasil; hanya fungsi cbt).
+                                 Jalankan SETELAH fungsi cbt terpasang dan CBT_AMAN:true di js/config.js. Lihat docs-CBT.md
    API key dibaca dari APPWRITE_API_KEY atau ditanyakan saat dijalankan. Key TIDAK disimpan. */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,7 +14,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DRY = process.argv.includes('--dry');
-const SYNC = process.argv.includes('--sync-izin');
+const AMAN = process.argv.includes('--profil=aman');
+const SYNC = process.argv.includes('--sync-izin') || AMAN;
 const ONLY = ((process.argv.find((a) => a.startsWith('--only=')) || '').slice(7)).split(',').filter(Boolean);
 const cfgSrc = fs.readFileSync(path.join(root, 'js/config.js'), 'utf8');
 const pick = (k) => (cfgSrc.match(new RegExp(k + "\\s*:\\s*'([^']*)'")) || [])[1];
@@ -90,7 +93,8 @@ if (rdb.ok) { rdb = { ok: false, status: 409, data: {} }; }
 else if (rdb.status === 404) { rdb = await api('POST', '/databases', { databaseId: dbDef.$id, name: dbDef.name || dbDef.$id, enabled: true }); }
 if (!lapor(dbDef.$id, rdb)) { console.error('\nBerhenti. Cek pesan di atas: biasanya scope API key kurang (butuh databases.read dan databases.write), Project ID salah, atau batas paket.'); process.exit(1); }
 
-for (const c of conf.collections.filter((x) => !ONLY.length || ONLY.includes(x.$id))) {
+for (let c of conf.collections.filter((x) => !ONLY.length || ONLY.includes(x.$id))) {
+  if (AMAN && conf.profilAman && conf.profilAman[c.$id]) c = Object.assign({}, c, conf.profilAman[c.$id]);
   console.log(`\nKoleksi ${c.$id}`);
   const rc = await api('POST', `${DB}/collections`, {
     collectionId: c.$id, name: c.name || c.$id, permissions: c.$permissions || [],

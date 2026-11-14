@@ -2,6 +2,7 @@
    Runtime Node.js 18+ . Scope API key: users.read, users.write. Execute access: Users (semua yang login),
    tetapi fungsi ini hanya melayani pemanggil berlabel "admin". */
 import { Client, Users, Databases, ID, Query } from 'node-appwrite';
+import { cbtHandle, CBT_AKSI } from './cbt.js';   /* salinan functions/cbt/src/main.js, dibuat oleh tools/gabung-cbt.mjs (paket gratis: maks 2 fungsi) */
 
 export default async ({ req, res, error }) => {
   try {
@@ -17,6 +18,9 @@ export default async ({ req, res, error }) => {
 
     let body = {};
     try { body = req.bodyJson || JSON.parse(req.bodyText || req.body || '{}'); } catch (e) { return res.json({ ok: false, error: 'Data tidak valid.' }, 400); }
+
+    /* Aksi ujian CBT (mulai, simpan, kirim, periksa, ulasan, akhiri, akhiriSemua) dilayani kode CBT yang sama dengan fungsi cbt. */
+    if (CBT_AKSI.has(body.action)) return cbtHandle({ req, res, error, body });
 
     /* Aksi "claim" (semua pengguna login): catat pemetaan ID login -> ID akun aplikasi di uid_map.
        Email diambil dari akun Auth pemanggil di server, bukan dari kiriman klien. Perlu scope databases.read dan databases.write. */

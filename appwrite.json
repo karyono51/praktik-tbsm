@@ -1108,6 +1108,28 @@
           "size": 60000,
           "required": false,
           "array": false
+        },
+        {
+          "key": "ext",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 86400
+        },
+        {
+          "key": "stop",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "pb",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 999
         }
       ],
       "indexes": [
@@ -1132,6 +1154,58 @@
           ]
         }
       ]
+    },
+    {
+      "$id": "soal_kunci",
+      "databaseId": "tbsm",
+      "name": "soal_kunci",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 12000,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": []
     }
-  ]
+  ],
+  "profilAman": {
+    "_catatan": "Izin yang dipakai bila setup dijalankan dengan --profil=aman (mode CBT aman, CFG.CBT_AMAN:true). Siswa tidak lagi boleh membuat atau mengubah soal_run dan soal_hasil; hanya fungsi cbt yang menulisnya.",
+    "soal_hasil": {
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "documentSecurity": true
+    },
+    "soal_run": {
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "documentSecurity": true
+    }
+  }
 }

@@ -186,3 +186,5 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 - Hasil yang disimpan sebelum v89 tidak punya rincian, sehingga tombol Unduh PDF tidak muncul untuk hasil tersebut.
 - **Perlu `appwrite push collections`** agar atribut `payload` (100.000 karakter) ditambahkan ke koleksi `hasil`.
 - Cache service worker: `tbsm-v89`. Skrip `?v=89`.
+
+**CBT online (Bank soal)**: token ujian, layar ujian ala CBT (navigasi nomor, ragu-ragu, layar penuh, kunci saat pindah tab), pemantauan langsung oleh guru (tambah waktu, akhiri, buka kunci), penilaian di server, daftar hadir cetak, dan analisis butir soal. Berkas baru: `js/cbt.js`, `js/cbt-staf.js`, `functions/cbt`, `tools/gabung-cbt.mjs`. Pemasangan di `docs-CBT.md`.

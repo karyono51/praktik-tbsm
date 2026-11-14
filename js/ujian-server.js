@@ -15,7 +15,7 @@
   var k=(String(sesiId)+'_'+String(sid)).replace(/[^a-zA-Z0-9_.-]/g,'_');
   return 'r'+(k.length<=34?k:h32(String(sesiId))+h32(String(sid))+h32(k));
  };
- function pay(r){return JSON.stringify({mode:r.mode,sesiId:r.sesiId,sesiJudul:r.sesiJudul,dur:r.dur,ids:r.ids,oo:r.oo,ans:r.ans,cur:r.cur,chk:r.chk,pindah:r.pindah||0,tampil:r.tampil,kkm:r.kkm})}
+ function pay(r){return JSON.stringify({mode:r.mode,sesiId:r.sesiId,sesiJudul:r.sesiJudul,dur:r.dur,ids:r.ids,oo:r.oo,ans:r.ans,cur:r.cur,chk:r.chk,pindah:r.pindah||0,rg:r.rg||{},tampil:r.tampil,kkm:r.kkm})}
  function lomba(p,ms){return new Promise(function(res,rej){var t=setTimeout(function(){var e=new Error('Waktu tunggu habis');e.code=408;rej(e)},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})})}
 
  /* durasi dan KKM selalu dari sesi guru, bukan dari payload catatan yang bisa diubah siswa lewat API */
@@ -39,6 +39,7 @@
        var p={};try{p=JSON.parse(ex.payload||'{}')}catch(e2){}
        if(p.ids&&p.ids.length){Object.assign(run,p);fixDur(run)}
        run.start=Date.parse(ex.$createdAt)||run.start;run.srv=1;
+       if(window.cbtApply)cbtApply(run,ex);
        toast('Ujian dilanjutkan dari server');
       }catch(e3){}
      }else if(e&&e.code===404)st.noCol=true;
@@ -52,9 +53,15 @@
 
  /* Simpan jawaban ke server: ditunda dan digabung agar ratusan siswa tidak menulis terus-menerus */
  async function push(){
-  st.timer=0;var r=BS.run;
-  if(!r||!r.rid||r.mode!=='ujian'||st.noCol||navigator.onLine===false)return;
+  st.timer=0;var r=BS.run;if(r)r.lastPush=Date.now();
+  if(!r||!r.rid||r.mode!=='ujian'||(st.noCol&&!(window.bsAman&&bsAman()))||navigator.onLine===false)return;
   r.dirty=0;
+  if(window.bsAman&&bsAman()){
+   /* mode CBT aman: fungsi server yang menulis catatan ujian dan membalas ext/stop/pb dari guru */
+   try{var rs=await cbtFn({action:'simpan',rid:r.rid,ans:r.ans,cur:r.cur,pindah:r.pindah||0,rg:r.rg||{}});if(window.cbtApply)cbtApply(r,rs);bsRunSave0()}
+   catch(e){r.dirty=1}
+   return;
+  }
   try{
    if(!r.srv){
     try{
@@ -70,14 +77,15 @@
      }else throw e;
     }
    }
-   await Cloud.db.updateDocument(CFG.DB,COL,r.rid,{payload:pay(r)});
+   var dd=await Cloud.db.updateDocument(CFG.DB,COL,r.rid,{payload:pay(r)});
+   if(window.cbtApply)cbtApply(r,dd);
    bsRunSave0();
   }catch(e){
    if(e&&e.code===404)st.noCol=true;else r.dirty=1;
   }
  }
  function sched(){
-  var r=BS.run;if(!r||r.mode!=='ujian'||!r.rid||st.noCol)return;
+  var r=BS.run;if(!r||r.mode!=='ujian'||!r.rid||(st.noCol&&!(window.bsAman&&bsAman())))return;
   r.dirty=1;
   if(!st.timer)st.timer=setTimeout(push,10000+Math.random()*4000);
  }
@@ -88,7 +96,8 @@
  document.addEventListener('visibilitychange',function(){if(document.hidden)segera()});
  window.addEventListener('pagehide',segera);
  /* denyut: tiap 4 menit satu tulis ringan juga menyegarkan sampel jam server */
- setInterval(function(){if(BS.run&&BS.run.mode==='ujian'&&Jam.age()>240000)sched()},30000);
+ window.bsPushNow=function(){if(st.timer){clearTimeout(st.timer);st.timer=0}return push()};
+ setInterval(function(){var r=BS.run;if(r&&r.mode==='ujian'&&r.rid&&Date.now()-(r.lastPush||0)>(window.cbtDenyutMs?cbtDenyutMs(r):60000))window.bsPushNow()},4000);
  window.addEventListener('online',segera);
 
  /* Tandai selesai di server setelah hasil dibuat */
@@ -114,7 +123,7 @@
   if(BS.D.hasil.some(function(h){return h.sid===S.user.id&&h.sesiId===d.sesiId&&h.mode==='ujian'}))return;
   var p={};try{p=JSON.parse(d.payload||'{}')}catch(e){}
   if(!p.ids||!p.ids.length)return;
-  var r=Object.assign({},p,{start:Date.parse(d.$createdAt)||Jam.now(),sid:S.user.id,rid:d.$id,srv:1,done:0,dirty:0});fixDur(r);
+  var r=Object.assign({},p,{start:Date.parse(d.$createdAt)||Jam.now(),sid:S.user.id,rid:d.$id,srv:1,done:0,dirty:0});fixDur(r);if(window.cbtApply)cbtApply(r,d);
   BS.run=r;BS.resumed=true;
   if(S.tab==='banksoal')BS.sub='run';
   bsRunSave0();
