@@ -14,7 +14,12 @@ Pilih lembar lewat kolom **Lembar observasi** di atas daftar, lalu ketuk **+ Obs
 ## Isi lembar
 - Identitas: nama siswa (pilih dari akun Siswa atau ketik manual), NIS, kelas, tanggal, penguji.
 - Tiap lembar terdiri dari 4 bagian (A Persiapan 4, B Proses kerja sesuai lembar, C K3 dan lingkungan 3, D Hasil dan waktu 3). Tiap aspek dipilih **Kompeten** atau **Belum Kompeten**, dengan keterangan opsional. Spesifikasi (mis. 13,0-13,2 V, idle 1.700 ± 100 rpm) tampil sebagai petunjuk di bawah aspek.
-- Nilai = jumlah aspek Kompeten / jumlah aspek lembar x 100. Hasil akhir **Kompeten** bila nilai minimal KKM aplikasi (menu Akun), selain itu **Belum Kompeten**.
+- Nilai = jumlah aspek Kompeten / jumlah aspek lembar x 100. Kesimpulan akhir dan nilai konversi:
+  - 91-100: **Sangat Kompeten**
+  - 75-90: **Kompeten**
+  - 61-74: **Cukup Kompeten**
+  - di bawah 61: **Belum Kompeten**
+- Kesimpulan selalu dihitung dari nilai, sehingga observasi lama (yang dulu memakai KKM) otomatis tampil sesuai kriteria baru.
 
 ## Hak akses dan penyimpanan
 - Admin melihat dan mengelola semua observasi UKK; Guru hanya miliknya sendiri.
@@ -31,4 +36,4 @@ Pilih lembar lewat kolom **Lembar observasi** di atas daftar, lalu ketuk **+ Obs
 
 ## Pembaruan: 4 lembar
 - `js/observasi-ukk.js` diubah menjadi registri lembar (`OBU.lembar`, `obuLb`, `obuKey`). Lembar 2-4 diambil dari berkas Observasi_2, _3, _4.
-- `service-worker.js` naik ke `tbsm-v91`; `index.html` memuat `observasi-ukk.js?v=90`.
+- `service-worker.js` naik ke `tbsm-v92`; `index.html` memuat `observasi-ukk.js?v=91`.
