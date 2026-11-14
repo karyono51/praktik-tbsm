@@ -77,6 +77,7 @@ document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-act="uji-print"]');
  if(!b)return;
  e.preventDefault();e.stopPropagation();
+ if(typeof V!=='undefined'&&V.job&&V.job.ukk&&typeof ukkCetakPdf==='function'){ukkCetakPdf();return}
  if(typeof V==='undefined'||(V.mode!=='exam'&&V.mode!=='result'))return;
  bersih();
  try{

@@ -2,9 +2,10 @@
    kop dengan kotak RAHASIA dan Paket, identitas, nomor peserta 13 kotak (dari NIS), tabel pemeriksaan,
    lampiran foto bukti (satu per butir), dan pengesahan (NILAI, Penguji Internal dan Eksternal).
    Menggantikan pdfUkk lama di export.js. Dipanggil dari pdfOne saat V.job.ukk. */
-function pdfUkk(){
+function ukkPdfDoc(){
  var ct=$('#catatan');V.catatan=ct?ct.value.trim():'';
- var j=V.job,c=V.res.calc,f=j.form||{},doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+ var fin=!!V.res;
+ var j=V.job,c=fin?V.res.calc:calc(V.job,V.kel?V.cks['*']:(V.cks[V.peserta]||{}),S.kkm),f=j.form||{},doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
  var multi=V.kel&&V.items&&V.items.length>1,key=V.kel?'*':V.peserta;
  var nama=multi?V.items.map(function(x){return x.nama}).join(', '):(V.peserta||'');
  var hs=(V.hs||{})[key]||{},hn=(V.hn||{})[key]||{},ck=V.cks[key]||{},fo=(V.fo||{})[key]||{};
@@ -46,7 +47,7 @@ function pdfUkk(){
  y=doc.lastAutoTable.finalY+5;
 
  /* Ringkasan dan catatan */
- var ringkas='Hasil: '+(c.kompeten?'KOMPETEN':'BELUM KOMPETEN')+', skor '+c.score+' (KKM '+S.kkm+'), waktu '+mmss(V.sec)+' dari '+j.menit+' menit.';
+ var ringkas=fin?('Hasil: '+(c.kompeten?'KOMPETEN':'BELUM KOMPETEN')+', skor '+c.score+' (KKM '+S.kkm+'), waktu '+mmss(V.sec)+' dari '+j.menit+' menit.'):('Lembar belum dihitung. Waktu berjalan '+mmss(V.sec)+' dari '+j.menit+' menit.');
  doc.setFontSize(9).text(ringkas,14,y+3);
  if(V.catatan){var lines=doc.splitTextToSize('Catatan: '+V.catatan,W-28);doc.text(lines,14,y+9);y+=lines.length*4.5}
  y+=14;
@@ -56,8 +57,8 @@ function pdfUkk(){
  var bh=48,lx=14,lw=78,rx=W-14-86,rw=86;
  doc.setFont('helvetica','bold').setFontSize(10).text('NILAI',lx+lw/2,y+6,{align:'center'});
  doc.rect(lx,y,lw,bh).line(lx,y+10,lx+lw,y+10);
- doc.setFont('helvetica','bold').setFontSize(16).text(String(c.score),lx+lw/2,y+24,{align:'center'});
- doc.setFont('helvetica','normal').setFontSize(9).text((c.kompeten?'Kompeten':'Belum kompeten')+' · KKM '+S.kkm,lx+lw/2,y+34,{align:'center'});
+ doc.setFont('helvetica','bold').setFontSize(16).text(fin?String(c.score):'-',lx+lw/2,y+24,{align:'center'});
+ doc.setFont('helvetica','normal').setFontSize(9).text((fin?(c.kompeten?'Kompeten':'Belum kompeten'):'Belum selesai')+' · KKM '+S.kkm,lx+lw/2,y+34,{align:'center'});
  doc.setFontSize(9).text(tempat+', '+tgl,rx+rw,y-3,{align:'right'});
  doc.setFont('helvetica','bold').setFontSize(10).text('PENGUJI',rx+rw/2,y+6,{align:'center'});
  doc.rect(rx,y,rw,bh).line(rx,y+10,rx+rw,y+10);
@@ -82,5 +83,10 @@ function pdfUkk(){
  }
 
  foot(doc);
- doc.save('UKK_'+slug(nama||'siswa')+'_'+j.id+'.pdf');
+ return doc;
 }
+function ukkNamaFile(){var multi=V.kel&&V.items&&V.items.length>1;var nm=multi?V.items.map(function(x){return x.nama}).join(', '):(V.peserta||'');return 'UKK_'+slug(nm||'siswa')+'_'+V.job.id+'.pdf'}
+/* Unduh PDF (hasil) */
+function pdfUkk(){ukkPdfDoc().save(ukkNamaFile())}
+/* Cetak (ujian dan hasil): PDF yang sama dibuka di tab baru untuk dicetak */
+function ukkCetakPdf(){var w=window.open(ukkPdfDoc().output('bloburl'),'_blank');if(!w)toast('Izinkan pop-up untuk membuka PDF cetak, atau pakai Unduh PDF')}

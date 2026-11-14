@@ -166,3 +166,9 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 - Pengesahan: kotak NILAI (skor, status, KKM) dan kotak PENGUJI dengan baris Penguji Internal dan Penguji Eksternal. Tempat dan tanggal diambil dari pengaturan unit.
 - Editor identitas unit punya kolom baru **Nomor paket** (default 1) dan **Tempat pengesahan** (default Sumedang).
 - Cache service worker: `tbsm-v86`. Skrip `?v=86`.
+
+## Pembaruan v87: Cetak UKK memakai PDF baru, latihan bisa selesai lebih awal
+- Tombol **Cetak** pada UKK membuat PDF yang sama dengan **Unduh PDF** (kop, identitas, nomor peserta, tabel, lampiran foto, dan pengesahan), lalu membukanya di tab baru untuk dicetak. Sebelumnya Cetak memakai tampilan HTML lama.
+- PDF bisa dibuat saat ujian masih berjalan. Nilai dan status ditulis "Belum selesai" sampai Hitung hasil ditekan.
+- Mode Latihan boleh menekan Hitung hasil ketika setiap peserta sudah mengisi minimal satu butir dan foto wajib lengkap. Butir yang kosong dihitung belum sesuai. Mode Ujian tetap mensyaratkan semua butir terisi.
+- Cache service worker: `tbsm-v87`. Skrip `?v=87`.

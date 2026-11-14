@@ -110,3 +110,10 @@ function ukIndividu(){return !!(V.job&&V.job.ukk&&V.job.cfg&&V.job.cfg.mode==='u
   return r;
  };
 })();
+
+/* Latihan boleh diselesaikan sebelum semua butir terisi (butir kosong dihitung belum sesuai).
+   Ujian tetap mensyaratkan semua butir terisi. */
+function ukBisaHitung(){
+ if(!(V.job&&V.job.ukk&&V.job.cfg&&V.job.cfg.mode==='latihan'))return groupComplete();
+ return V.kel?doneOf('*')>0:nameList().every(function(n){return doneOf(n)>0});
+}
