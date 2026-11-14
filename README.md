@@ -157,3 +157,12 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 - Perbaikan: `ukk-foto.js` kini dimuat setelah `uji-waktu.js`. Pada v83 dan v84, file itu dimuat terlalu awal sehingga penjaga Hitung hasil (foto wajib belum lengkap) tidak terpasang.
 - UKK mode Ujian dinilai per siswa. Tombol Kelompok dinonaktifkan dan pemulihan kelompok dari draft atau dari Ulangi dibatalkan untuk unit Ujian. Mode Latihan tetap boleh kelompok.
 - Cache service worker: `tbsm-v85`. Skrip `?v=85`.
+
+## Pembaruan v86: tahap 3 PDF UKK sesuai lembar kerja
+- PDF UKK memakai tata letak lembar kerja UKK: kotak RAHASIA dan Paket di kop, judul UJI KOMPETENSI KEAHLIAN, LEMBAR KERJA SISWA, dan UJIAN PRAKTIK KEJURUAN.
+- Identitas memuat satuan, kompetensi keahlian, kode, alokasi waktu, bentuk soal, tipe kendaraan, judul tugas, nama, kelas, dan tanggal. Nomor peserta ditampilkan dalam 13 kotak yang diisi dari NIS.
+- Tabel pemeriksaan memakai kolom No urut, Jenis pekerjaan, Standar/batas servis, Hasil pengukuran/analisis, dan Kesimpulan (Sesuai atau Tidak sesuai). Catatan per butir ikut ditampilkan di kolom hasil.
+- Lampiran foto bukti pada halaman tersendiri, satu foto per butir.
+- Pengesahan: kotak NILAI (skor, status, KKM) dan kotak PENGUJI dengan baris Penguji Internal dan Penguji Eksternal. Tempat dan tanggal diambil dari pengaturan unit.
+- Editor identitas unit punya kolom baru **Nomor paket** (default 1) dan **Tempat pengesahan** (default Sumedang).
+- Cache service worker: `tbsm-v86`. Skrip `?v=86`.
