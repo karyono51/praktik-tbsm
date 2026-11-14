@@ -37,12 +37,13 @@ Untuk setiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** sesuai
 - Observasi UKK tidak muncul di Observasi guru maupun Observasi praktik siswa.
 
 ## Ekspor
-- **PDF** per observasi, mengikuti lembar UKK: kotak RAHASIA dan Paket (Paket = nomor lembar 1-4), judul *Uji Kompetensi Keahlian*, identitas (termasuk tipe kendaraan), 13 kotak Nomor Peserta (NIS), tabel aspek (No urut, Aspek, Capaian, Nilai, Keterangan), lalu pengesahan:
+- **PDF** per observasi, mengikuti lembar UKK: kotak RAHASIA dan Paket (Paket mengacu pada pengaturan paket UKK (FORM_UKK.paket), semua lembar = P1), judul *Uji Kompetensi Keahlian*, identitas (termasuk tipe kendaraan), 13 kotak Nomor Peserta (NIS), tabel aspek (No urut, Aspek, Capaian berisi langsung Belum Kompeten / Cukup Kompeten / Kompeten / Sangat Kompeten tanpa angka skala, Nilai, Keterangan), lalu pengesahan:
   - **NILAI** (nilai akhir dan kesimpulan) di kiri.
-  - **PENGUJI** di kanan: **Penguji 1** = nama akun yang mengisi observasi (akun login, otomatis terisi di kolom Penguji), **Penguji 2** = **Tim AHASS**. Tempat dan tanggal mengikuti pengaturan UKK (Sumedang).
+  - **PENGUJI** di kanan, tanpa border (hanya garis tanda tangan): **Penguji 1** = nama akun yang mengisi observasi (akun login, otomatis terisi di kolom Penguji), **Penguji 2** = **Tim AHASS**. Tempat dan tanggal mengikuti pengaturan UKK (Sumedang).
 - **Excel rincian aspek**: satu sheet per lembar yang sudah berisi data, nilai tiap aspek.
 - **Rekap nilai** (tombol *Rekap nilai* di daftar): satu kartu per siswa dengan nilai tiap lembar (observasi terbaru per lembar), rata-rata dari lembar yang sudah dinilai, dan kesimpulan. Bisa difilter per kelas.
 - **Excel rekap nilai** (tombol *Unduh rekap nilai (Excel)* di halaman Rekap): sheet **Rekap Nilai** (siswa x lembar, rata-rata, kesimpulan), **Daftar Observasi** (semua observasi lengkap dengan Penguji 1 dan 2, jumlah nilai, N, nilai), dan **Ringkasan** (jumlah siswa per kesimpulan, rata-rata per lembar). Mengikuti filter kelas.
+- **Footer** tiap halaman: kiri `paket-tahun pelajaran` (contoh P1-2026/2027), tengah `Hak Cipta pada Kemendikdasmen`, kanan `PP. halaman/jumlah halaman`.
 - Admin merekap semua observasi; Guru hanya miliknya sendiri.
 
 ## Berkas
@@ -51,4 +52,4 @@ Untuk setiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** sesuai
 
 ## Pembaruan: 4 lembar
 - `js/observasi-ukk.js` diubah menjadi registri lembar (`OBU.lembar`, `obuLb`, `obuKey`). Lembar 2-4 diambil dari berkas Observasi_2, _3, _4.
-- `service-worker.js` naik ke `tbsm-v94`; `index.html` memuat `observasi-ukk.js?v=93` dan `css/app.css?v=90`.
+- `service-worker.js` naik ke `tbsm-v97`; `index.html` memuat `observasi-ukk.js?v=96` dan `css/app.css?v=90`.

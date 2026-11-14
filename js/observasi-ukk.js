@@ -146,12 +146,12 @@ async function obuDelete(id){
 function obuTglPanjang(t){
  try{var d=new Date(String(t)+'T00:00:00');if(isNaN(d))throw 0;return d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}catch(e){return obsTgl(t)}
 }
-/* PDF mengikuti lembar UKK: kotak RAHASIA dan Paket, judul UKK, identitas, 13 kotak nomor peserta (NIS), tabel, pengesahan NILAI dan PENGUJI.
+/* PDF mengikuti lembar UKK: kotak RAHASIA (kiri atas) dan Paket (kanan atas; acuan FORM_UKK.paket, semua lembar = P1), judul UKK, identitas, 13 kotak nomor peserta (NIS), tabel, pengesahan NILAI dan PENGUJI.
    Penguji 1 = nama akun yang mengisi (login), Penguji 2 = Tim AHASS. */
 function obuPdf(id){
  var r=(S.observasi||[]).find(function(x){return x.id===id});if(!r||r.tipe!=='ukk'||!needP())return;
  var p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p,lk),m=OBU.meta,doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
- var tempat=(typeof FORM_UKK!=='undefined'&&FORM_UKK.tempat)||'Sumedang',tgl=obuTglPanjang(r.tanggal),paket=String(OBU.lembar.indexOf(LB)+1),pg1=p.penguji||r.pengamat||'',pg2=m.penguji2,kat=obuKat(r.skor);
+ var tempat=(typeof FORM_UKK!=='undefined'&&FORM_UKK.tempat)||'Sumedang',tgl=obuTglPanjang(r.tanggal),paket='P'+String((typeof FORM_UKK!=='undefined'&&FORM_UKK.paket)||'1'),pg1=p.penguji||r.pengamat||'',pg2=m.penguji2,kat=obuKat(r.skor);
  /* Kop */
  doc.setLineWidth(.3).rect(14,10,44,9);
  doc.setFont('helvetica','normal').setFontSize(9).text('RAHASIA',36,16,{align:'center'});
@@ -176,7 +176,7 @@ function obuPdf(id){
  LB.grup.forEach(function(g){
   body.push([{content:g.g,colSpan:5,styles:{fontStyle:'bold',fillColor:235,halign:'left'}}]);
   g.items.forEach(function(it){var v=p.nilai[it.id],l=h.v2?((p.lvl||{})[it.id]||0):0;
-   body.push([String(it.no),it.t+(it.d?'\n'+it.d:''),h.v2?(l?l+' - '+OBU_LVL[l].k:''):(v===1?'Kompeten':v===0?'Belum Kompeten':''),h.v2&&l?String(v):'',p.cat[it.id]||'']);
+   body.push([String(it.no),it.t+(it.d?'\n'+it.d:''),h.v2?(l?OBU_LVL[l].k:''):(v===1?'Kompeten':v===0?'Belum Kompeten':''),h.v2&&l?String(v):'',p.cat[it.id]||'']);
   });
  });
  doc.autoTable({startY:y,theme:'grid',styles:{fontSize:9,cellPadding:1.8,lineColor:60,lineWidth:.2,textColor:0,valign:'top'},
@@ -186,7 +186,7 @@ function obuPdf(id){
  y=doc.lastAutoTable.finalY+5;
  /* Ringkasan dan catatan */
  if(y>H-30){doc.addPage();y=20}
- if(h.v2){doc.setFont('helvetica','normal').setFontSize(8).setTextColor(90).text('Skala: 1 Belum Kompeten (<61) | 2 Cukup Kompeten (61-74) | 3 Kompeten (75-90) | 4 Sangat Kompeten (91-100)',14,y+2);y+=6}
+ if(h.v2){doc.setFont('helvetica','normal').setFontSize(8).setTextColor(90).text('Rentang nilai: Belum Kompeten (<61) | Cukup Kompeten (61-74) | Kompeten (75-90) | Sangat Kompeten (91-100)',14,y+2);y+=6}
  doc.setFont('helvetica','normal').setFontSize(9).setTextColor(0).text((h.v2?'Jumlah nilai '+h.sum+' / '+h.n+' aspek = '+r.skor:'Kompeten '+h.kom+' dari '+h.n+' aspek = '+r.skor)+'. Kesimpulan: '+kat.toUpperCase()+'.',14,y+3);
  if(p.catatan){var lines=doc.splitTextToSize('Catatan: '+p.catatan,W-28);doc.text(lines,14,y+9);y+=lines.length*4.5}
  y+=14;
@@ -199,14 +199,17 @@ function obuPdf(id){
  doc.setFont('helvetica','normal').setFontSize(10).text(kat,lx+lw/2,y+36,{align:'center'});
  doc.setFontSize(9).text(tempat+', '+tgl,rx+rw,y-3,{align:'right'});
  doc.setFont('helvetica','bold').setFontSize(10).text('PENGUJI',rx+rw/2,y+6,{align:'center'});
- doc.rect(rx,y,rw,bh).line(rx,y+10,rx+rw,y+10).line(mid,y+10,mid,y+bh);
  doc.setFont('helvetica','normal').setFontSize(9);
  doc.text('Penguji 1',rx+rw/4,y+17,{align:'center'});doc.line(rx+4,y+38,mid-4,y+38);
  doc.text('Penguji 2',mid+rw/4,y+17,{align:'center'});doc.line(mid+4,y+38,rx+rw-4,y+38);
  doc.setFontSize(8.5);
  doc.text(doc.splitTextToSize(pg1||'-',rw/2-8).slice(0,2),rx+rw/4,y+43,{align:'center'});
  doc.text(doc.splitTextToSize(pg2,rw/2-8).slice(0,2),mid+rw/4,y+43,{align:'center'});
- foot(doc);doc.save('Observasi_UKK_'+lk+'_'+slug(r.guru||'siswa')+'_'+r.tanggal+'.pdf');
+ /* Footer: kiri paket-tahun pelajaran, tengah hak cipta, kanan PP. halaman/jumlah halaman */
+ var np=doc.getNumberOfPages();
+ for(var pg=1;pg<=np;pg++){doc.setPage(pg);doc.setFont('helvetica','normal').setFontSize(8).setTextColor(0);
+  doc.text(paket+'-'+m.tahun,14,H-8);doc.text('Hak Cipta pada Kemendikdasmen',W/2,H-8,{align:'center'});doc.text('PP. '+pg+'/'+np,W-14,H-8,{align:'right'})}
+ doc.save('Observasi_UKK_'+lk+'_'+slug(r.guru||'siswa')+'_'+r.tanggal+'.pdf');
 }
 function obuXls(){
  if(!needX())return;var all=obuVisible().slice().sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))||a.ts-b.ts});
