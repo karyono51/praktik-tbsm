@@ -76,3 +76,20 @@ Diukur dengan `tools/uji-cbt.mjs` (Appwrite tiruan, 300 siswa, bank 200 soal):
 
 ## Status mode saat ini
 `js/config.js` masih `CBT_AMAN:false` (mode biasa). Pada mode ini kunci jawaban ikut dalam soal yang bisa dibaca semua siswa yang login, nilai dihitung di peramban siswa dan siswa boleh menulis `soal_hasil`, jadi nilai bisa dipalsukan dan kunci bisa dibaca lewat alat pengembang peramban. Untuk ujian yang menentukan nilai, aktifkan mode aman dengan urutan di bagian "Pemasangan mode aman" di atas (fungsi dulu, lalu `CBT_AMAN:true`, lalu `--profil=aman`). Perubahan di atas bekerja di kedua mode.
+
+---
+
+# Pembaruan: layar ujian untuk HP
+Berlaku untuk ujian dan latihan (siswa). Kode: `js/cbt.js` (tampilan dan aksi) dan `css/banksoal.css` (bagian "Layar ujian untuk HP").
+
+- **Header aplikasi disembunyikan selama mengerjakan** (kelas `bs-run` pada `body`), begitu juga footer. Ruang layar yang terpakai profil dan chip kelas kini untuk soal.
+- **Bar atas ringkas dan tetap di atas:** judul sesi, "Soal x dari N · terjawab · ragu", tombol **Aa** (ukuran huruf normal/besar/sangat besar, diingat di perangkat), dan **timer** di kanan atas. Timer kuning di bawah 5 menit, merah berkedip di bawah 1 menit. Garis progres tipis di dasar bar.
+- **Navigasi nomor satu baris** yang bisa digeser, nomor aktif otomatis dipusatkan; nomor terjawab, ragu-ragu, dan aktif berbeda warna.
+- **Status simpan** (Tersimpan, Menyimpan, Offline, Belum terkirim), pelanggaran, dan tombol layar penuh dipadatkan ke satu baris di bawah nomor.
+- **Kartu soal:** nomor soal, label mapel/jenis, dan tombol **Ragu-ragu** (bendera) dalam satu baris. Teks 17 px, pilihan jawaban setinggi 54 px dengan tanda centang, tombol Benar/Salah setinggi 50 px dan terisi penuh saat dipilih. Gambar mengikuti lebar layar.
+- **Bar bawah:** Kembali, **Daftar** (menampilkan terjawab/total), dan Lanjut; di soal terakhir menjadi Selesai. Timer pindah ke atas.
+- **Daftar soal** (lembar bawah): ringkasan terjawab/ragu/kosong, semua nomor, legenda, tombol **Ke soal kosong** dan **Selesai dan kirim**. Tutup dengan Tutup, ketuk latar, atau Esc.
+- **Geser kiri/kanan pada kartu soal** untuk pindah soal (tidak pernah menekan Selesai).
+- **Layar tetap menyala** selama mengerjakan bila peramban mendukung (Screen Wake Lock). Pull-to-refresh dimatikan selama ujian.
+- Mode lanskap pendek memadatkan bar atas dan bawah. Layar lebar membatasi lebar soal agar tetap terbaca.
+- Pesan sistem Chrome "tarik dari atas untuk keluar layar penuh" berasal dari peramban dan tidak bisa diubah aplikasi.
