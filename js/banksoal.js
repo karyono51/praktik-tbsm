@@ -68,13 +68,15 @@ async function bsRemote(k,o){
   if(k==='sesi'&&o.tokP&&o.tok){try{await bsRahasiaPut('tk_'+o.id,{token:o.tokP})}catch(e2){if(bsAman()||!(e2&&e2.code===404))throw e2}}
   if(!o.r){try{await db.createDocument(CFG.DB,col,o.id,data)}catch(e){if(e&&e.code===409)await db.updateDocument(CFG.DB,col,o.id,data);else throw e}}
   else{try{await db.updateDocument(CFG.DB,col,o.id,data)}catch(e){if(e&&e.code===404)await db.createDocument(CFG.DB,col,o.id,data);else throw e}}
-  o.r=1;o.d=0;o.bad=0;
+  o.r=1;o.d=0;o.bad=0;o.err='';
   if(k==='soal'&&o.kc){BS.kc[o.id]=o.kc;delete o.kc;bsKcSave()}
   if(k==='sesi'&&o.tokP&&o.tok){BS.tk[o.id]=o.tokP}
   bsSaveLocal();return true;
  }catch(e){
+  o.err=((e&&e.code)?e.code+' · ':'')+((e&&e.message)||String(e));
   if(navigator.onLine===false||bsRetryable(e))bsQueueAdd(k,o.id);
-  else{o.bad=1;bsSaveLocal();toast('Gagal menyimpan ke server: '+((e&&e.message)||e))}
+  else{o.bad=1;toast('Gagal menyimpan ke server: '+((e&&e.message)||e))}
+  bsSaveLocal();
   return false;
  }
 }
@@ -389,7 +391,7 @@ function bsViewResult(){
  var lat=h0.mode==='latihan',sesi=BS.D.sesi.filter(function(s){return s.id===h0.sesiId})[0],kkm=(sesi&&sesi.kkm)||h0.kkm||S.kkm,tampil=lat||(sesi&&sesi.tampil)||h0.tampil===true||isStaff();
  var h='<div class="row"><button type="button" class="btn small" data-bs="home">Kembali</button><h2>Hasil</h2></div><div class="card center"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':'Ujian')+'</span><div class="bs-score mono">'+h0.score+'</div>'+
   (lat?'':'<span class="pill '+(h0.score>=kkm?'ok':'bad')+'">'+(h0.score>=kkm?'Kompeten':'Belum kompeten')+' · KKM '+kkm+'</span>')+
-  '<p class="note">'+h0.benar+' benar dari '+h0.total+' soal · '+Math.max(1,Math.round(h0.detik/60))+' menit'+(h0.pindah?' · keluar halaman '+h0.pindah+'×':'')+'</p>'+(h0.r||!Cloud.on?'':'<p class="note">Menunggu terkirim ke server.</p>')+'</div>';
+  '<p class="note">'+h0.benar+' benar dari '+h0.total+' soal · '+Math.max(1,Math.round(h0.detik/60))+' menit'+(h0.pindah?' · keluar halaman '+h0.pindah+'×':'')+'</p>'+(h0.r||!Cloud.on?'':'<p class="note">Nilai belum masuk ke server guru.'+(h0.err?' Penyebab: '+esc(h0.err):'')+'</p><button type="button" class="btn small primary" data-bs="kirimulang" data-v="'+h0.id+'">Kirim ulang</button>')+'</div>';
  if(!tampil)return h+'<p class="note center">Pembahasan ujian ditampilkan guru setelah sesi berakhir.</p>';
  (h0.order||[]).forEach(function(id,i){var q=bsSoalById(id);h+=q?'<div class="card">'+bsRev(q,(h0.ans||{})[id],i+1,true)+'</div>':'<div class="card"><p class="muted">Soal '+(i+1)+' sudah tidak tersedia.</p></div>'});
  return h;
@@ -726,6 +728,7 @@ document.addEventListener('click',function(e){
  else if(a==='sesiaktif'){var sa=BS.D.sesi.filter(function(x){return x.id===qid})[0];if(sa){sa.aktif=sa.aktif===false;bsPut('sesi',sa).then(function(){render()});render()}}
  else if(a==='sesihasil'){BS.hs=qid;BS.tab='hasil';render();window.scrollTo(0,0)}
  else if(a==='sesihapus'){uiConfirm('Hapus sesi ini?\nHasil siswa yang sudah masuk tidak ikut terhapus.',{ok:'Hapus',danger:true}).then(function(ok){if(ok)bsDel('sesi',qid).then(function(){render()})})}
+ else if(a==='kirimulang'){var hk=BS.D.hasil.filter(function(x){return x.id===v})[0];if(hk){hk.bad=0;toast('Mengirim…');bsRemote('hasil',hk).then(function(ok){toast(ok?'Nilai terkirim':'Masih gagal: '+(hk.err||'periksa koneksi'));render()})}}
  else if(a==='ekspor')bsExport();
  else if(a==='hapushasil'){uiConfirm('Hapus hasil ini?\nSiswa bisa mengerjakan sesi ujian itu lagi.',{ok:'Hapus',danger:true}).then(function(ok){if(ok){var hh=BS.D.hasil.filter(function(x){return x.id===v})[0];bsDel('hasil',v).then(function(){if(hh)return bsHapusRun(hh)}).then(function(){render()})}})}
 });

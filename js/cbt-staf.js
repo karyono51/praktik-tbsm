@@ -76,12 +76,13 @@
    h+='<div class="card center"><span class="label">Token sesi</span><div class="bs-token mono">'+(tk?esc(tk):'—')+'</div><button type="button" class="btn small" data-bs="pn-token">Ganti token</button></div>';
   }
   h+='<div class="stats">'+[['Belum','belum'],['Mengerjakan','on'],['Selesai','done'],['Terkunci','lock'],['Habis','habis']].map(function(x){return '<div class="card"><span class="label">'+x[0]+'</span><b class="mono">'+count[x[1]]+'</b></div>'}).join('')+'</div>';
-  var ongoing=count.on+count.lock;
+  var ongoing=count.on+count.lock,tunggu=rows.filter(function(r){return r.s.k==='done'&&!r.s.h&&r.s.run}).length;
   h+='<div class="row">'+
    '<button type="button" class="btn small" data-bs="pn-refresh">Muat ulang</button>'+
    '<button type="button" class="btn small" data-bs="pn-extall"'+(ongoing?'':' disabled')+'>+5 menit semua</button>'+
-   '<button type="button" class="btn small" data-bs="pn-nilai"'+(count.habis&&bsAman()?'':' disabled')+'>Nilai yang berakhir</button></div>';
-  if(!bsAman())h+='<p class="note">Menilai otomatis peserta yang waktunya habis butuh mode CBT aman (fungsi server cbt).</p>';
+   '<button type="button" class="btn small" data-bs="pn-nilai"'+(count.habis&&bsAman()?'':' disabled')+'>Nilai yang berakhir</button>'+
+   (!bsAman()&&tunggu?'<button type="button" class="btn small primary" data-bs="pn-nilaisemua">Nilai dari jawaban ('+tunggu+')</button>':'')+'</div>';
+  if(!bsAman())h+='<p class="note">Menilai otomatis peserta yang waktunya habis butuh mode CBT aman (fungsi server cbt). Untuk peserta berstatus menunggu nilai, pakai tombol Nilai dari jawaban: nilai dihitung dari jawaban tersimpan di server.</p>';
   h+='<p class="note">'+(PN.err?'Gagal memuat: '+esc(PN.err):'Diperbarui '+jam(PN.at)+' · otomatis tiap 8 detik')+'</p>';
   if(!rows.length)return h+'<p class="muted">Tidak ada siswa terdaftar untuk sesi ini.</p>';
   h+=rows.map(function(r){
@@ -91,7 +92,8 @@
     line='<p class="note">Terjawab '+ans+'/'+tot+' · sisa '+(st.sisa>0?mmss(Math.ceil(st.sisa/1000)):'0:00')+(st.ext?' (+'+Math.round(st.ext/60)+' mnt)':'')+' · keluar halaman '+st.v+(+s.batas?'/'+s.batas:'')+' · terakhir aktif '+Math.round(st.seen/1000)+' dtk lalu'+(st.k==='on'&&st.seen>150000?' <b>(tidak aktif)</b>':'')+'</p>';
    }else if(st.k==='done'){
     var kkm=+s.kkm||S.kkm;
-    line='<p class="note">Nilai <b class="mono">'+(st.h?st.h.score:'-')+'</b>'+(st.h?' · '+st.h.benar+' benar dari '+st.h.total+' · '+(st.h.score>=kkm?'tuntas':'belum tuntas'):'')+'</p>';
+    if(!st.h)line='<p class="note">Jawaban sudah masuk, nilai belum terkirim dari perangkat siswa.'+(bsAman()?'':' Tekan Nilai dari jawaban.')+'</p>';
+    else line='<p class="note">Nilai <b class="mono">'+(st.h?st.h.score:'-')+'</b>'+(st.h?' · '+st.h.benar+' benar dari '+st.h.total+' · '+(st.h.score>=kkm?'tuntas':'belum tuntas'):'')+'</p>';
    }
    var rid=st.run?st.run.$id:'',act='';
    if(st.k==='on'||st.k==='lock'||st.k==='habis'){
@@ -99,6 +101,7 @@
     if(st.v>0||st.lock)act+='<button type="button" class="btn small" data-bs="pn-buka" data-v="'+rid+'">Buka kunci</button>';
     if(st.k!=='habis'||!st.stop)act+='<button type="button" class="btn small" data-bs="pn-akhiri" data-v="'+rid+'">Akhiri</button>';
    }
+   if(st.k==='done'&&!st.h&&st.run&&!bsAman())act+='<button type="button" class="btn small primary" data-bs="pn-nilai1" data-v="'+rid+'">Nilai dari jawaban</button>';
    if(st.k==='done'||st.run)act+='<button type="button" class="btn small danger" data-bs="pn-reset" data-v="'+u.id+'">Ulang</button>';
    return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">Kelas '+esc(u.kelas||'-')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
   }).join('');
@@ -132,6 +135,20 @@
    var m=(e&&e.message)||String(e);
    toast(/attribute|unknown/i.test(m)?'Kolom ext/stop/pb belum ada di soal_run. Jalankan: node tools/setup-appwrite.mjs':'Gagal: '+m);
   }
+ }
+ /* mode biasa: guru menghitung nilai dari jawaban di catatan ujian (soal_run) bila nilai siswa gagal terkirim */
+ async function nilaiRun(run,s){
+  var p=pay(run),ids=p.ids||[],ans=p.ans||{},u=S.users.filter(function(x){return x.id===run.sid})[0];
+  if(!ids.length)throw new Error('Catatan ujian tidak memuat daftar soal');
+  var sum=0,ben=0;
+  ids.forEach(function(id){var q=bsSoalById(id);if(!q)return;var f=bsFrac(q,ans[id]);sum+=f;if(f>=0.9999)ben++});
+  var dur=(s.durasi||0)*60,start=Date.parse(run.$createdAt)||0,end=Date.parse(run.$updatedAt)||start;
+  var h={id:'h'+run.$id.slice(1),ts:end||Jam.now(),sid:run.sid,siswa:u?u.nama:'(siswa)',kelas:u?(u.kelas||''):'',mode:'ujian',sesiId:s.id,sesiJudul:s.judul,
+   score:ids.length?Math.round(sum/ids.length*100):0,benar:ben,total:ids.length,detik:Math.max(0,Math.min(Math.round((end-start)/1000),dur||1e9)),
+   ans:ans,order:ids,oo:p.oo,pindah:p.pindah||0,pts:+sum.toFixed(2),tampil:s.tampil,kkm:s.kkm};
+  var ok=await bsPut('hasil',h);
+  if(!ok)throw new Error(h.err||'Server menolak penyimpanan');
+  return h;
  }
  function runOf(rid){return PN.runs.filter(function(d){return d.$id===rid})[0]}
 
@@ -277,6 +294,16 @@
     if(!ok)return;
     cbtFn({action:'akhiriSemua',sesiId:PN.sesi}).then(function(rs){toast(rs.n+' peserta dinilai');return pnLoad()}).then(pnPaint,function(er){toast('Gagal: '+((er&&er.message)||er))});
    });
+  }
+  else if(a==='pn-nilai1'||a==='pn-nilaisemua'){
+   var s5=sesiById(PN.sesi);if(!s5||bsAman())return;
+   var target=a==='pn-nilai1'?PN.runs.filter(function(d){return d.$id===v}):PN.runs.filter(function(d){return d.done&&!hasilSesi(s5.id)[d.sid]});
+   if(!target.length)return;
+   (async function(){
+    var n=0,gagal='';toast('Menilai '+target.length+' peserta…');
+    for(var i=0;i<target.length;i++){try{await nilaiRun(target[i],s5)  ;n++}catch(er){gagal=(er&&er.message)||String(er)}}
+    toast(n+' peserta dinilai'+(gagal?'. Gagal: '+gagal:''));await pnLoad();pnPaint();render();
+   })();
   }
   else if(a==='pn-reset'){
    var s3=sesiById(PN.sesi),u=S.users.filter(function(x){return x.id===v})[0];
