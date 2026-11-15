@@ -192,3 +192,4 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 ## Pembaruan UKK v90
 - **Ujian siswa (mode Ujian)**: hasil tersimpan otomatis saat dihitung; tombol Ulangi dan catatan dikunci, siswa menekan Selesai. Mode Latihan boleh keluar saat berjalan (waktu tetap jalan, isian tersimpan).
 - **Ekspor Excel UKK**: tombol Ekspor nilai kelas, sheet rincian butir (`js/ukk-butir.js`) dan impor/ekspor UKK (`js/ukk-io.js`).
+- **Hapus satu pengumpulan LKPD (v91)**: Admin kini bisa menghapus satu pengumpulan dari halaman Detail (tombol "Hapus pengumpulan ini", ikut menghapus foto buktinya). Berkas: `js/lkpd-hapus.js`. Hapus nilai massal tetap di Administrasi > Hapus nilai.
