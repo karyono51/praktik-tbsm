@@ -242,12 +242,14 @@ function bsMake(mode,sesi,opt){
   if(sesi.pilih==='manual')ids=(sesi.ids||[]).filter(function(id){return !!bsSoalById(id)});
   else{
    var pool=bsPool('ujian',kelas).filter(function(q){return !(sesi.mapelF&&sesi.mapelF.length)||sesi.mapelF.indexOf(q.mapel)>-1});
-   pool=bsShuffle(pool);ids=pool.slice(0,sesi.jumlah||pool.length).map(function(q){return q.id});
+   pool=bsShuffle(pool);ids=(window.sgrPilih?sgrPilih(pool,sesi.jumlah):pool.slice(0,sesi.jumlah||pool.length)).map(function(q){return q.id});
   }
   if(acak&&sesi.pilih==='manual')ids=bsShuffle(ids);
+  if(window.sgrAturList)ids=sgrAturList(ids,bsSoalById);
  }else{
   var p2=bsPool('latihan',kelas).filter(function(q){return (!opt.mapel||q.mapel===opt.mapel)&&(!opt.tipe||q.tipe===opt.tipe)});
-  ids=bsShuffle(p2).slice(0,opt.n||p2.length).map(function(q){return q.id});
+  ids=(window.sgrPilih?sgrPilih(bsShuffle(p2),opt.n):bsShuffle(p2).slice(0,opt.n||p2.length)).map(function(q){return q.id});
+  if(window.sgrAturList)ids=sgrAturList(ids,bsSoalById);
  }
  var oo={};
  ids.forEach(function(id){var q=bsSoalById(id);if(q&&q.opts){var ix=q.opts.map(function(_,i){return i});oo[id]=acak?bsShuffle(ix):ix}});
@@ -297,7 +299,7 @@ document.addEventListener('visibilitychange',function(){
 
 /* ---------- Tampilan soal ---------- */
 function bsQBody(q,r,mode){
- var a=r?r.ans[q.id]:null,locked=mode==='check'&&r&&r.chk[q.id],h='<p class="bs-q">'+bsText(q.q)+'</p>'+(window.sgQHtml?sgQHtml(q):'');
+ var a=r?r.ans[q.id]:null,locked=mode==='check'&&r&&r.chk[q.id],h=(window.sgrBox&&q.gs?sgrBox(q,r&&r.ids?sgrLabel(r.ids.map(bsSoalById),r.ids.indexOf(q.id)):''):'')+'<p class="bs-q">'+bsText(q.q)+'</p>'+(window.sgQHtml?sgQHtml(q):'');
  if(q.tipe==='pg'||q.tipe==='kompleks'){
   if(q.tipe==='kompleks')h+='<p class="note">Pilih semua jawaban yang benar.</p>';
   var order=(r&&r.oo[q.id])||q.opts.map(function(_,i){return i});
@@ -319,8 +321,8 @@ function bsQBody(q,r,mode){
  if(locked&&q.bahas)h+='<div class="bs-bahas"><b>Pembahasan</b><p>'+bsText(q.bahas)+'</p></div>';
  return h;
 }
-function bsRev(q,a,n,showAns){
- var f=bsFrac(q,a),hd=n===''?'':'<div class="row"><b>'+n+'.</b><span class="pill plain">'+esc(q.mapel||'')+'</span><span class="pill '+(!bsAnswered(q,a)?'plain':f>=0.9999?'ok':f>0?'warn':'bad')+'">'+(!bsAnswered(q,a)?'Tidak dijawab':f>=0.9999?'Benar':f>0?'Sebagian':'Salah')+'</span></div>',h='<div class="bs-rv">'+hd+'<p class="bs-q">'+bsText(q.q)+'</p>'+(window.sgQHtml?sgQHtml(q):'');
+function bsRev(q,a,n,showAns,noStim){
+ var f=bsFrac(q,a),hd=n===''?'':'<div class="row"><b>'+n+'.</b><span class="pill plain">'+esc(q.mapel||'')+'</span><span class="pill '+(!bsAnswered(q,a)?'plain':f>=0.9999?'ok':f>0?'warn':'bad')+'">'+(!bsAnswered(q,a)?'Tidak dijawab':f>=0.9999?'Benar':f>0?'Sebagian':'Salah')+'</span></div>',h='<div class="bs-rv">'+hd+(window.sgrBox&&!noStim?sgrBox(q,''):'')+'<p class="bs-q">'+bsText(q.q)+'</p>'+(window.sgQHtml?sgQHtml(q):'');
  if(q.tipe==='kategori'){
   var lab=q.lab||['Benar','Salah'];
   h+='<div class="bs-kat">'+q.rows.map(function(row,ri){
@@ -408,7 +410,7 @@ function bsViewResult(){
   (lat?'':'<span class="pill '+(h0.score>=kkm?'ok':'bad')+'">'+(h0.score>=kkm?'Kompeten':'Belum kompeten')+' · KKM '+kkm+'</span>')+
   '<p class="note">'+h0.benar+' benar dari '+h0.total+' soal · '+Math.max(1,Math.round(h0.detik/60))+' menit'+(h0.pindah?' · keluar halaman '+h0.pindah+'×':'')+'</p>'+(h0.r||!Cloud.on?'':'<p class="note">Nilai belum masuk ke server guru.'+(h0.err?' Penyebab: '+esc(h0.err):'')+'</p><button type="button" class="btn small primary" data-bs="kirimulang" data-v="'+h0.id+'">Kirim ulang</button>')+'</div>';
  if(!tampil)return h+'<p class="note center">Pembahasan ujian ditampilkan guru setelah sesi berakhir.</p>';
- (h0.order||[]).forEach(function(id,i){var q=bsSoalById(id);h+=q?'<div class="card">'+bsRev(q,(h0.ans||{})[id],i+1,true)+'</div>':'<div class="card"><p class="muted">Soal '+(i+1)+' sudah tidak tersedia.</p></div>'});
+ var prevG='';(h0.order||[]).forEach(function(id,i){var q=bsSoalById(id),dup=!!(q&&q.gs&&q.gs===prevG);prevG=q&&q.gs||'';h+=q?'<div class="card">'+bsRev(q,(h0.ans||{})[id],i+1,true,dup)+'</div>':'<div class="card"><p class="muted">Soal '+(i+1)+' sudah tidak tersedia.</p></div>'});
  return h;
 }
 
@@ -443,7 +445,7 @@ function bsBankList(){
  var all=bsFiltered(),sh=all.slice(0,BS.flt.n);
  return sh.map(function(s){
   var op=BS.open[s.id],ar=bsAturanSalah(s);
-  return '<div class="card"><div class="row"><span class="pill plain">'+esc(s.mapel||'')+'</span><span class="pill plain">'+BS_TIPE[s.tipe]+'</span>'+(s.bawaan?'<span class="pill plain">Bawaan</span>':'<span class="pill">Soal sendiri</span>')+(s.aktif?'':'<span class="pill bad">Nonaktif</span>')+(ar?'<span class="pill warn">Belum sesuai aturan</span>':'')+'</div>'+
+  return '<div class="card"><div class="row"><span class="pill plain">'+esc(s.mapel||'')+'</span><span class="pill plain">'+BS_TIPE[s.tipe]+'</span>'+(s.bawaan?'<span class="pill plain">Bawaan</span>':'<span class="pill">Soal sendiri</span>')+(s.gs?'<span class="pill plain">Grup stimulus</span>':'')+(s.aktif?'':'<span class="pill bad">Nonaktif</span>')+(ar?'<span class="pill warn">Belum sesuai aturan</span>':'')+'</div>'+
    '<p class="bs-qs">'+esc(String(s.q).slice(0,150))+(String(s.q).length>150?'…':'')+'</p>'+
    (s.topik?'<p class="note">Topik: '+esc(s.topik)+(s.kelas?' · Kelas '+esc(s.kelas):'')+'</p>':'')+
    (ar?'<p class="note">Belum sesuai aturan ('+ar+'), hanya dipakai untuk latihan. Ubah soal agar bisa masuk ujian.</p>':'')+'<label class="f">Peruntukan<select data-bs="tuj" data-q="'+s.id+'">'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(s.tujuan===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label>'+
@@ -467,7 +469,7 @@ function bsViewBank(){
 
 /* ---------- Guru: form soal ---------- */
 function bsNewForm(s){
- var f={id:s?s.id:'',tipe:s?s.tipe:'pg',mapel:s?s.mapel:'',topik:s?(s.topik||''):'',kelas:s?(s.kelas||''):'',tujuan:s?s.tujuan:'keduanya',q:s?s.q:'',opts:['','','','',''],kunci:[],rows:[],lab:['Benar','Salah'],bahas:s?(s.bahas||''):'',qi:s?(s.qi||''):'',oi:['','','','','']};
+ var f={id:s?s.id:'',tipe:s?s.tipe:'pg',mapel:s?s.mapel:'',topik:s?(s.topik||''):'',kelas:s?(s.kelas||''):'',tujuan:s?s.tujuan:'keduanya',q:s?s.q:'',opts:['','','','',''],kunci:[],rows:[],lab:['Benar','Salah'],bahas:s?(s.bahas||''):'',qi:s?(s.qi||''):'',oi:['','','','',''],gs:s?(s.gs||''):'',st:s?(s.st||''):'',si:s?(s.si||''):'',gn:s?(s.gn||0):0};
  if(s&&Array.isArray(s.oi))s.oi.forEach(function(g,i){if(i<5)f.oi[i]=g||''});
  if(s&&s.opts){s.opts.forEach(function(t,i){f.opts[i]=t});f.kunci=Array.isArray(s.kunci)?s.kunci.slice():[s.kunci]}
  if(s&&s.rows){f.rows=s.rows.map(function(r){return [r[0],r[1]]});var li=bsLabIdx(s.lab||['Benar','Salah']);f.lab=BS_LABS[li<0?0:li].slice()}
@@ -477,6 +479,7 @@ function bsNewForm(s){
 function bsFormRead(){
  var f=BS.form;if(!f||!document.getElementById('bf-q'))return;
  function v(id){var e=document.getElementById(id);return e?e.value:''}
+ var stE=document.getElementById('bf-st');if(stE)f.st=stE.value;
  f.mapel=v('bf-mapel');f.topik=v('bf-topik');f.kelas=v('bf-kelas');f.tujuan=v('bf-tujuan')||f.tujuan;f.q=v('bf-q');f.bahas=v('bf-bahas');
  for(var i=0;i<5;i++){var e=document.getElementById('bf-o'+i);if(e)f.opts[i]=e.value}
  f.kunci=$$('.bf-k').filter(function(x){return x.checked}).map(function(x){return +x.value});
@@ -492,6 +495,7 @@ function bsViewForm(){
  h+='<label class="f">Topik (opsional)<input id="bf-topik" value="'+esc(f.topik)+'"></label>';
  h+='<div class="two"><label class="f">Kelas<select id="bf-kelas">'+[['','Semua kelas'],['X','Kelas X'],['XI','Kelas XI'],['XII','Kelas XII']].map(function(k){return '<option value="'+k[0]+'"'+(f.kelas===k[0]?' selected':'')+'>'+k[1]+'</option>'}).join('')+'</select></label>'+
   '<label class="f">Peruntukan<select id="bf-tujuan">'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(f.tujuan===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label></div>';
+ if(window.sgrFormHtml)h+=sgrFormHtml(f);
  h+='<label class="f">Teks soal<textarea id="bf-q" rows="4">'+esc(f.q)+'</textarea></label>';
  if(window.sgFormBox)h+=sgFormBox(f,'q');
  if(f.tipe==='kategori'){
@@ -526,8 +530,13 @@ function bsFormSave(){
   if(Array.isArray(f.oi)&&f.oi.some(function(g){return g}))o.oi=f.oi.slice(0,5);
  }
  if(f.qi)o.qi=f.qi;
+ if(f.gs){
+  var stx=String(f.st||'').trim().slice(0,(window.SGR&&SGR.MAXT)||3000);
+  if(!stx&&!f.si){toast('Isi teks atau gambar stimulus, atau pilih Tanpa stimulus');return}
+  o.gs=f.gs;o.gn=f.gn||1;if(stx)o.st=stx;if(f.si)o.si=f.si;
+ }
  BS.form=null;
- (window.sgStash?sgStash(o):Promise.resolve(o)).then(function(){return bsPut('soal',o)}).then(function(ok){toast(ok?'Soal tersimpan':'Soal tersimpan di perangkat, menunggu terkirim');render()});
+ (window.sgStash?sgStash(o):Promise.resolve(o)).then(function(){return bsPut('soal',o)}).then(function(ok){if(window.sgrSebar)sgrSebar(o);toast(ok?'Soal tersimpan':'Soal tersimpan di perangkat, menunggu terkirim');render()});
  render();
 }
 

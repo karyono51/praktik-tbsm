@@ -87,7 +87,7 @@ function lkqRender(q,i,d){
  }
  return h+'</div>';
 }
-function lkqQuizHtml(m,d){return m.quiz.map(function(q,i){return lkqRender(q,i,d)}).join('')}
+function lkqQuizHtml(m,d){return m.quiz.map(function(q,i){return (typeof sgrBox==='function'&&sgrAwal(m.quiz,i)?sgrBox(q,sgrLabel(m.quiz,i)):'')+lkqRender(q,i,d)}).join('')}
 
 /* ---------- Jawaban dan kunci (detail guru, pembahasan latihan) ---------- */
 /* teks pilihan; bila pilihan hanya berisi gambar tampil "(gambar)" */
@@ -159,7 +159,7 @@ function lkqKeyHtml(q,i,a){
   lkmKeyBlock=function(m){
    var d=lkDraft(),on=LKM.reveal[m.id],h='<section class="card" data-lkm="1"><h2>Pembahasan latihan</h2>';
    if(!on)return h+'<p class="note">Jawab soal di atas, lalu periksa jawabanmu dan baca pembahasannya.</p><button type="button" class="btn small primary" data-act="lkm-reveal">Periksa jawaban</button></section>';
-   var sum=0,rows=m.quiz.map(function(q,i){sum+=lkqPoint(q,d['q'+i]);return lkqKeyHtml(q,i,d['q'+i])}).join('');
+   var sum=0,rows=m.quiz.map(function(q,i){sum+=lkqPoint(q,d['q'+i]);return (typeof sgrBox==='function'&&sgrAwal(m.quiz,i)?sgrBox(q,sgrLabel(m.quiz,i)):'')+lkqKeyHtml(q,i,d['q'+i])}).join('');
    return h+'<p><b>Skor '+lkqFmt(sum)+' dari '+m.quiz.length+'</b></p>'+rows+'<button type="button" class="btn small" data-act="lkm-reveal">Sembunyikan pembahasan</button></section>';
   };
  }

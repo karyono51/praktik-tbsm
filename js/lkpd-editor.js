@@ -95,6 +95,7 @@ function lkeClean(q){
   if(anyI)out.oi=oi;
  }
  if(q.qi)out.qi=q.qi;
+ if(q.gs&&(lkeT(q.st)||q.si)){out.gs=q.gs;if(lkeT(q.st))out.st=lkeT(q.st).slice(0,(window.SGR&&SGR.MAXT)||3000);if(q.si)out.si=q.si}
  if(e)out.e=e;
  if(q.src)out.src=q.src;
  return out;
@@ -102,6 +103,7 @@ function lkeClean(q){
 function lkeQIssue(q){
  var c=lkeClean(q),t=lkqType(q);
  if(!c.q)return 'Pertanyaan belum diisi';
+ if(q.gs&&!lkeT(q.st)&&!q.si)return 'Stimulus belum diisi (isi teks atau gambar, atau pilih Tanpa stimulus)';
  if(t==='kategori')return c.rows.length<2?'Isi minimal 2 pernyataan':'';
  if(c.o.length<(t==='pg'?2:3))return 'Isi minimal '+(t==='pg'?2:3)+' pilihan jawaban (teks atau gambar)';
  if(t==='pg'&&c.a<0)return 'Ketuk huruf untuk menandai satu jawaban benar';
@@ -267,10 +269,10 @@ function lkeBar(d){
 function lkeQHtml(d,q,i){
  var t=lkqType(q),c=lkeClean(q),iss=lkeQIssue(q),open=d.qi===i,n=d.S.quiz.length;
  var tl={pg:'PG',kompleks:'PG kompleks',kategori:'PG kategori'}[t];
- var head='<button type="button" class="lke-qh" data-lke-a="q-open" data-i="'+i+'" aria-expanded="'+open+'"><span class="pill'+(iss?' warn':' ok')+'">'+(i+1)+'</span><b>'+(c.q?esc(c.q):'<span class="muted">Soal belum diisi</span>')+'</b><span class="pill plain">'+tl+'</span></button>';
+ var head='<button type="button" class="lke-qh" data-lke-a="q-open" data-i="'+i+'" aria-expanded="'+open+'"><span class="pill'+(iss?' warn':' ok')+'">'+(i+1)+'</span><b>'+(c.q?esc(c.q):'<span class="muted">Soal belum diisi</span>')+'</b>'+(q.gs?'<span class="pill plain">Grup</span>':'')+'<span class="pill plain">'+tl+'</span></button>';
  if(!open)return '<div class="lke-q'+(iss?' err':'')+'">'+head+'</div>';
  var b='<div class="lke-qb"><div class="seg lke-seg3" role="group" aria-label="Jenis soal">'+[['pg','PG'],['kompleks','PG kompleks'],['kategori','PG kategori']].map(function(x){return '<button type="button" data-lke-a="q-type" data-i="'+i+'" data-v="'+x[0]+'" aria-pressed="'+(t===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+
-  '<label class="f">Pertanyaan<textarea rows="3" data-lke="quiz.'+i+'.q" placeholder="Tulis pertanyaan">'+esc(q.q)+'</textarea></label>'+(typeof lkgBox==='function'?lkgBox(q,i,'q'):'');
+  '<label class="f">Pertanyaan<textarea rows="3" data-lke="quiz.'+i+'.q" placeholder="Tulis pertanyaan">'+esc(q.q)+'</textarea></label>'+(typeof lkgBox==='function'?lkgBox(q,i,'q'):'')+(typeof sgrLkeHtml==='function'?sgrLkeHtml(d,q,i):'');
  if(t==='kategori'){
   var lab=q.lab||['Benar','Salah'];
   b+='<div><span class="label">Pernyataan (pilih '+esc(lab[0])+' atau '+esc(lab[1])+' sebagai kunci)</span></div><div class="lke-list">'+q.rows.map(function(r,k){
@@ -409,7 +411,7 @@ document.addEventListener('click',function(e){
  else if(a==='q-down'){lkeMove(s.quiz,i,i+1);d.qi=i+1;lkeRe()}
  else if(a==='q-type'){
   q=s.quiz[i];var cur=lkqType(q);if(cur===v)return;
-  var n=lkeNewQ(v);n.q=q.q||'';n.e=q.e||'';if(q.qi)n.qi=q.qi;
+  var n=lkeNewQ(v);n.q=q.q||'';n.e=q.e||'';if(q.qi)n.qi=q.qi;if(q.gs){n.gs=q.gs;n.st=q.st||'';n.si=q.si||''}
   if(cur!=='kategori'&&v!=='kategori'){n.o=(q.o||[]).slice();while(n.o.length<3)n.o.push('');n.a=v==='pg'?(Array.isArray(q.a)?(q.a.length?q.a[0]:-1):q.a):(Array.isArray(q.a)?q.a.slice():(q.a>=0?[q.a]:[]));if(Array.isArray(q.oi)){n.oi=q.oi.slice(0,n.o.length);while(n.oi.length<n.o.length)n.oi.push('')}}
   s.quiz[i]=n;lkeRe();
  }

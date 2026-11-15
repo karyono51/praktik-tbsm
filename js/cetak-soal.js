@@ -44,6 +44,12 @@ function csSoalHtml(q,n){
  }
  return h+'</div></div>';
 }
+/* soal satu jenis; anggota grup stimulus dibuat berdampingan agar stimulus tercetak sekali di atas deretannya */
+function csJenis(items,t){var g=items.filter(function(q){return q.tipe===t});return typeof sgrAturList==='function'?sgrAturList(g):g}
+function csStimHtml(q,a,b){
+ var lab=b>a?'Bacalah stimulus berikut untuk soal nomor '+a+' sampai '+b+'.':'Bacalah stimulus berikut untuk soal nomor '+a+'.';
+ return '<div class="cs-stim"><div class="cs-sl">'+lab+'</div>'+(q.st?'<div class="cs-st">'+bsText(q.st)+'</div>':'')+csImgHtml(q.si,'cs-qi')+'</div>';
+}
 function csKop(){
  return '<div class="cs-kop"><img src="'+LOGO+'" alt=""><div><b>'+esc(SEK.nama)+'</b><span>'+esc(SEK.program)+'</span><small>'+esc(SEK.alamat)+'</small></div></div>';
 }
@@ -56,15 +62,18 @@ function csBuild(items,o){
   '<tr><td>Jumlah soal</td><td>: '+items.length+'</td><td>Nilai</td><td>: '+csFile()+'</td></tr></table>';
  var n=0;
  CS_TIPE.forEach(function(t){
-  var g=items.filter(function(q){return q.tipe===t});
+  var g=csJenis(items,t);
   if(!g.length)return;
   h+='<div class="cs-sec"><h2>'+CS_JUDUL[t]+'</h2><p class="cs-pt">'+CS_PETUNJUK[t]+'</p></div>';
-  g.forEach(function(q){n++;h+=csSoalHtml(q,n)});
+  g.forEach(function(q,k){
+   if(typeof sgrAwal==='function'&&sgrAwal(g,k)){var sp=sgrSpan(g,k);h+=csStimHtml(q,n+sp[0]-k+1,n+sp[1]-k+1)}
+   n++;h+=csSoalHtml(q,n);
+  });
  });
  h+='<p class="cs-ft">Dicetak '+esc(tgl)+' · '+esc(SEK.nama)+'</p>';
  if(o.kunci){
   var m=0,rows=[];
-  CS_TIPE.forEach(function(t){items.filter(function(q){return q.tipe===t}).forEach(function(q){m++;rows.push([m,q])})});
+  CS_TIPE.forEach(function(t){csJenis(items,t).forEach(function(q){m++;rows.push([m,q])})});
   h+='<div class="cs-kunci"><h1 class="cs-h">Kunci jawaban</h1><p class="cs-pt">'+esc(o.judul||'Lembar Soal')+(o.mapel?' · '+esc(o.mapel):'')+' · Hanya untuk guru. Jangan dibagikan kepada siswa.</p>'+
    '<table class="cs-kt cs-kk"><tr><th>No</th><th>Jenis</th><th>Kunci</th>'+(o.bahas?'<th>Pembahasan</th>':'')+'</tr>'+
    rows.map(function(r){var q=r[1];return '<tr><td class="c">'+r[0]+'</td><td>'+esc(BS_TIPE[q.tipe])+'</td><td>'+esc(csKey(q))+'</td>'+(o.bahas?'<td>'+(q.bahas?bsText(q.bahas):'')+'</td>':'')+'</tr>'}).join('')+'</table>'+
@@ -99,7 +108,7 @@ function csBaca(){
 function csPilih(pool,o){
  var a=o.acak?bsShuffle(pool):pool.slice();
  var n=Math.max(1,Math.min(o.jumlah||a.length,a.length,200));
- return a.slice(0,n);
+ return typeof sgrPilih==='function'?sgrPilih(a,n):a.slice(0,n);
 }
 function csJalan(){
  if(CS.k)return;
@@ -190,6 +199,7 @@ if(typeof bsViewBank==='function'){
  '#cs-print .cs-sec{margin-top:10px;break-after:avoid}#cs-print .cs-sec h2{font-size:12pt;margin:0 0 2px;border-bottom:1px solid #000}#cs-print .cs-pt{margin:2px 0 4px;font-size:10pt;font-style:italic}'+
  '#cs-print .cs-q{display:flex;gap:6px;margin:0 0 8px;break-inside:avoid}#cs-print .cs-n{flex:0 0 8mm;text-align:right;font-weight:700}#cs-print .cs-b{flex:1;min-width:0}'+
  '#cs-print .cs-qi{display:block;max-width:100%;max-height:62mm;object-fit:contain;margin:4px 0;border:1px solid #999}'+
+ '#cs-print .cs-stim{border:1px solid #000!important;padding:2mm 3mm;margin:6px 0 8px;break-inside:avoid}#cs-print .cs-sl{font-weight:700;font-size:10pt;margin-bottom:2px}#cs-print .cs-st{text-align:justify}'+
  '#cs-print .cs-o{display:flex;gap:5px;align-items:flex-start;margin:2px 0}#cs-print .cs-o>b{flex:0 0 6mm}#cs-print .cs-o>span{flex:1;min-width:0}'+
  '#cs-print .cs-oi{display:block;max-width:100%;max-height:36mm;object-fit:contain;margin-top:2px;border:1px solid #bbb}#cs-print .cs-ot+.cs-oi{margin-top:3px}'+
  '#cs-print .cs-box{display:inline-block;flex:0 0 3.4mm;width:3.4mm;height:3.4mm;border:.3mm solid #000;margin-top:1.2mm}'+

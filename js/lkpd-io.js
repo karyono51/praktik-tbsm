@@ -457,11 +457,11 @@ function lkioBuild(id,mr,sec,present,ex){
  if(present.soal||!ex){
   m.quiz=[];
   /* penanda asal soal bank (src) dipertahankan untuk soal yang jenis dan teksnya tidak berubah */
-  var srcOf={},imgOf={};(base.quiz||[]).forEach(function(q){if(q.src)srcOf[lkqType(q)+'|'+q.q]=q.src;if(q.qi||(Array.isArray(q.oi)&&q.oi.some(Boolean)))imgOf[lkqType(q)+'|'+q.q+'|'+JSON.stringify(q.o||q.rows||[])]={qi:q.qi||'',oi:q.oi}});
+  var srcOf={},imgOf={},grpOf={};(base.quiz||[]).forEach(function(q){if(q.src)srcOf[lkqType(q)+'|'+q.q]=q.src;if(q.gs)grpOf[lkqType(q)+'|'+q.q]={gs:q.gs,st:q.st,si:q.si};if(q.qi||(Array.isArray(q.oi)&&q.oi.some(Boolean)))imgOf[lkqType(q)+'|'+q.q+'|'+JSON.stringify(q.o||q.rows||[])]={qi:q.qi||'',oi:q.oi}});
   (sec.soal||[]).forEach(function(r){
    var b=lkioQuiz(r.f);
    if(b.err)E('soal',r.line,b.err);
-   else{var sk=lkqType(b.q)+'|'+b.q.q;if(srcOf[sk])b.q.src=srcOf[sk];var ik=sk+'|'+JSON.stringify(b.q.o||b.q.rows||[]);if(imgOf[ik]){if(imgOf[ik].qi)b.q.qi=imgOf[ik].qi;if(Array.isArray(imgOf[ik].oi)&&imgOf[ik].oi.some(Boolean))b.q.oi=imgOf[ik].oi.slice()}m.quiz.push(b.q)}
+   else{var sk=lkqType(b.q)+'|'+b.q.q;if(srcOf[sk])b.q.src=srcOf[sk];if(grpOf[sk]){b.q.gs=grpOf[sk].gs;if(grpOf[sk].st)b.q.st=grpOf[sk].st;if(grpOf[sk].si)b.q.si=grpOf[sk].si}var ik=sk+'|'+JSON.stringify(b.q.o||b.q.rows||[]);if(imgOf[ik]){if(imgOf[ik].qi)b.q.qi=imgOf[ik].qi;if(Array.isArray(imgOf[ik].oi)&&imgOf[ik].oi.some(Boolean))b.q.oi=imgOf[ik].oi.slice()}m.quiz.push(b.q)}
   });
   need('soal','soal',m.quiz);
   if(lkBuiltin(id))m.quizV=LKQ.VER;
