@@ -18,6 +18,7 @@ function lksOn(){return !!S.user&&isStaff()&&S.tab==='lkpd'}
 function lksMod(){return (LKPD_MODULES||[]).find(function(x){return x.id===LKS.id})}
 function lksIsLat(x){try{return lkmModeOf(x)==='latihan'}catch(e){return false}}
 function lksFlags(){try{return typeof lkiAll==='function'?lkiAll():{}}catch(e){return {}}}
+function lksRev(){try{return typeof lkiRev==='function'?lkiRev():{}}catch(e){return {}}}
 
 /* ---------- Tingkat 1: daftar modul ---------- */
 function lksList(){
@@ -53,7 +54,7 @@ function lksKumpul(m){
  if(!lat.length&&LKS.f!=='ujian')LKS.f='ujian';
  var rows=all.filter(function(x){return LKS.f==='semua'||!lksIsLat(x)}).sort(function(a,b){
   var ka=lkHasK(a)?1:0,kb=lkHasK(b)?1:0;return ka-kb||String(a.siswa).localeCompare(String(b.siswa))});
- var fl=lksFlags(),nilai=rows.map(lkNilai),avg=rows.length?Math.round(nilai.reduce(function(t,v){return t+v},0)/rows.length):0;
+ var fl=lksFlags(),rv=lksRev(),nilai=rows.map(lkNilai),avg=rows.length?Math.round(nilai.reduce(function(t,v){return t+v},0)/rows.length):0;
  var belumK=rows.filter(function(x){return !lkHasK(x)}).length;
  var sent={};all.forEach(function(x){sent[x.sid]=1});
  var tdk=(S.users||[]).filter(function(u){return roleList(u).indexOf('siswa')>-1&&u.aktif!==false&&u.kelas===m.kelas&&!sent[u.id]}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama))});
@@ -62,7 +63,7 @@ function lksKumpul(m){
   var v=lkNilai(x),f=fl[x.id],bad=f&&f.some(function(a){return a.lv==='bad'});
   return '<article class="card"><div class="row sb"><b>'+lkEsc(x.siswa)+'</b><span class="pill '+(v>=S.kkm?'ok':'bad')+'">'+v+'/100</span></div>'+
    '<p class="note">'+new Date(x.ts).toLocaleDateString('id-ID')+(lksIsLat(x)?' · Latihan':'')+(lkHasK(x)?' · dikoreksi guru':' · belum dikoreksi')+'</p>'+
-   '<div class="lks-acts">'+(f?'<span class="pill '+(bad?'bad':'warn')+'">'+(bad?'Cek nilai':'Perlu dicek')+'</span>':'')+'<button type="button" class="btn small primary" data-act="lk-detail" data-v="'+lkEsc(x.id)+'">'+(lkHasK(x)?'Lihat detail':'Detail dan koreksi')+'</button></div></article>';
+   '<div class="lks-acts">'+(f?'<span class="pill '+(bad?'bad':'warn')+'">'+(bad?'Cek nilai':'Perlu dicek')+'</span>':rv[x.id]?'<span class="pill ok" title="'+lkEsc('Ditinjau oleh '+rv[x.id].oleh)+'">Ditinjau</span>':'')+'<button type="button" class="btn small primary" data-act="lk-detail" data-v="'+lkEsc(x.id)+'">'+(lkHasK(x)?'Lihat detail':'Detail dan koreksi')+'</button></div></article>';
  }).join('');
  return '<div class="stats"><div class="card"><span class="label">Terkumpul</span><b class="mono">'+rows.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div><div class="card"><span class="label">Perlu koreksi</span><b class="mono">'+belumK+'</b></div></div>'+chips+
   (list||'<div class="card muted">Belum ada pengumpulan untuk modul ini.</div>')+

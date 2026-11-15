@@ -59,9 +59,26 @@ function lkiFlags(x,ix){
  if(dupA.length)out.push({k:'mirip',lv:'warn',t:'Seluruh hasil aktual identik dengan '+dupA.slice(0,3).join(', ')+(dupA.length>3?' dan '+(dupA.length-3)+' lainnya':'')+'.'});
  return out;
 }
+/* Sudah ditinjau guru: ada nilai koreksi yang dicatat SETELAH pengiriman oleh staf yang dikenal.
+   Tanda otomatis hanyalah petunjuk; keputusan ada pada nilai koreksi, jadi status "Perlu dicek" berhenti setelah ditinjau.
+   Syarat penanda (verifOleh dan verifTs) mempersulit koreksi palsu dari siswa lewat API, tetapi bukan jaminan (lihat docs-PENGAMANAN-V73.md). */
+function lkiDitinjau(x){
+ if(typeof lkHasK!=='function'||!lkHasK(x))return false;
+ var by=String(x.verifOleh||'').trim();
+ if(!by||!(Number(x.verifTs)>=Number(x.ts)))return false;
+ var st=(S.users||[]).filter(function(u){return roleList(u).some(function(r){return r!=='siswa'})});
+ if(st.length&&!st.some(function(u){return String(u.nama||'').trim()===by}))return false;
+ return true;
+}
 function lkiAll(){
  var ix=lkiIndeks(),res={};
- (S.lkpd||[]).forEach(function(x){var f=lkiFlags(x,ix);if(f.length)res[x.id]=f});
+ (S.lkpd||[]).forEach(function(x){var f=lkiFlags(x,ix);if(f.length&&!lkiDitinjau(x))res[x.id]=f});
+ return res;
+}
+/* pengiriman bertanda yang sudah ditinjau guru: id -> {oleh, flags} */
+function lkiRev(){
+ var ix=lkiIndeks(),res={};
+ (S.lkpd||[]).forEach(function(x){if(!lkiDitinjau(x))return;var f=lkiFlags(x,ix);if(f.length)res[x.id]={oleh:String(x.verifOleh||''),f:f}});
  return res;
 }
 function lkiTitle(f){return f.map(function(a){return a.t}).join(' ').replace(/"/g,"'")}
@@ -72,7 +89,8 @@ viewLKPD=function(){
  var detail=LK.detail&&LK.detail.id;
  if(detail){
   var h0=_lkiView(),x=(S.lkpd||[]).filter(function(r){return r.id===detail})[0],fl=x?lkiFlags(x,lkiIndeks()):[];
-  var box='<h3>Pemeriksaan penilaian</h3>'+(fl.length?'<ul class="plain">'+fl.map(function(a){return '<li><span class="pill '+a.lv+'">'+(a.lv==='bad'?'Cek nilai':'Perlu dicek')+'</span> '+lkEsc(a.t)+'</li>'}).join('')+'</ul><p class="note">Tanda ini petunjuk. Putuskan lewat Nilai koreksi di bawah.</p>':'<p class="note">Tidak ada temuan otomatis.</p>');
+  var rev=x&&fl.length&&lkiDitinjau(x);
+  var box='<h3>Pemeriksaan penilaian</h3>'+(fl.length?'<ul class="plain">'+fl.map(function(a){return '<li><span class="pill '+(rev?'ok':a.lv)+'">'+(rev?'Ditinjau':a.lv==='bad'?'Cek nilai':'Perlu dicek')+'</span> '+lkEsc(a.t)+'</li>'}).join('')+'</ul><p class="note">'+(rev?'Sudah ditinjau dan dinilai oleh '+lkEsc(x.verifOleh)+'. Tanda di atas tetap ditampilkan sebagai catatan.':'Tanda ini petunjuk. Putuskan lewat Nilai koreksi di bawah.')+'</p>':'<p class="note">Tidak ada temuan otomatis.</p>');
   return h0.indexOf('<h3>Penilaian guru</h3>')>-1?h0.replace('<h3>Penilaian guru</h3>',box+'<h3>Penilaian guru</h3>'):h0;
  }
  if(!LK.open||LK.tab!=='riwayat'||LK.editor)return _lkiView();
@@ -81,8 +99,10 @@ viewLKPD=function(){
  var orig=S.lkpd,h;
  if(LKI.f==='cek')S.lkpd=(orig||[]).filter(function(r){return all[r.id]});
  try{h=_lkiView()}finally{S.lkpd=orig}
+ var rv=lkiRev();
  h=h.replace(/<button class="btn small" data-act="lk-detail" data-v="([^"]+)">Detail<\/button>/g,function(m,id){
-  var f=all[id];if(!f)return m;
+  var f=all[id];
+  if(!f){var r=rv[id];return r?'<span class="pill ok" title="'+lkEsc('Ditinjau oleh '+r.oleh+'. '+lkiTitle(r.f))+'">Ditinjau</span> '+m:m}
   var bad=f.some(function(a){return a.lv==='bad'});
   return '<span class="pill '+(bad?'bad':'warn')+'" title="'+lkEsc(lkiTitle(f))+'">'+(bad?'Cek nilai':'Perlu dicek')+'</span> '+m;
  });
