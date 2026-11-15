@@ -710,7 +710,7 @@ document.addEventListener('click',function(e){
   if(BS.D.hasil.some(function(x){return x.sid===S.user.id&&x.sesiId===s.id&&x.mode==='ujian'})){toast('Kamu sudah mengerjakan sesi ini');return}
   if(BS.run){toast('Selesaikan pengerjaan yang sedang berjalan dahulu');return}
   var run2=bsMake('ujian',s);if(!run2.ids.length){toast('Sesi ini belum memiliki soal');return}
-  uiConfirm('Mulai ujian "'+s.judul+'"?\n'+run2.ids.length+' soal, '+s.durasi+' menit.\nWaktu berjalan terus meskipun aplikasi ditutup.\nUjian hanya bisa dikerjakan sekali.',{ok:'Mulai'}).then(function(ok){if(ok&&!BS.run&&!BS.starting){if(typeof bsMulaiUjian==='function')bsMulaiUjian(s,run2);else bsStartRun(run2)}});
+  uiConfirm('Mulai ujian "'+s.judul+'"?\n'+run2.ids.length+' soal, '+s.durasi+' menit.\nWaktu berjalan terus meskipun aplikasi ditutup.\nUjian hanya bisa dikerjakan sekali.\n\nSebelum mulai: aktifkan Jangan Ganggu, tutup aplikasi lain, dan jangan membuka aplikasi atau jendela lain. Keluar halaman, layar terbelah, dan jendela melayang dicatat dan dilaporkan ke guru.',{ok:'Saya setuju, mulai'}).then(function(ok){if(ok&&!BS.run&&!BS.starting){if(typeof bsMulaiUjian==='function')bsMulaiUjian(s,run2);else bsStartRun(run2)}});
  }
  else if(a==='ans'&&r){
   var q=bsSoalById(qid);if(!q||r.chk[qid])return;var ov=+v;

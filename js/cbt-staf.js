@@ -83,16 +83,26 @@
    '<button type="button" class="btn small" data-bs="pn-nilai"'+(count.habis&&bsAman()?'':' disabled')+'>Nilai yang berakhir</button>'+
    (!bsAman()&&tunggu?'<button type="button" class="btn small primary" data-bs="pn-nilaisemua">Nilai dari jawaban ('+tunggu+')</button>':'')+'</div>';
   h+='<p class="note">'+(PN.err?'Gagal memuat: '+esc(PN.err):'Diperbarui '+jam(PN.at)+' · otomatis tiap 8 detik')+'</p>';
+  /* ringkasan log pelanggaran siswa (dari catatan ujian): hidden, blur, split, fs, print */
+  function logRingkas(p){
+   var L=(p&&p.log)||[];if(!L.length)return '';
+   var N={hidden:0,blur:0,split:0,fs:0,print:0},D={hidden:0,blur:0};
+   L.forEach(function(e){if(N[e.k]===undefined)return;N[e.k]++;if(D[e.k]!==undefined)D[e.k]+=(+e.d||0)});
+   var T={hidden:'keluar halaman',blur:'fokus hilang',split:'layar terbelah',fs:'keluar layar penuh',print:'cetak'},a=[];
+   Object.keys(T).forEach(function(k){if(N[k])a.push(T[k]+' '+N[k]+'×'+(D[k]?' ('+D[k]+' dtk)':''))});
+   var last=L[L.length-1];
+   return a.length?'<p class="note" style="color:var(--bad,#b91c1c)">Catatan pelanggaran: '+a.join(', ')+' · terakhir '+new Date(last.t).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'</p>':'';
+  }
   if(!rows.length)return h+'<p class="muted">Tidak ada siswa terdaftar untuk sesi ini.</p>';
   h+=rows.map(function(r){
    var u=r.u,st=r.s,line='';
    if(st.k==='on'||st.k==='lock'||st.k==='habis'){
     var tot=(st.p.ids||[]).length,ans=Object.keys(st.p.ans||{}).filter(function(k){return (st.p.ids||[]).indexOf(k)>-1}).length;
-    line='<p class="note">Terjawab '+ans+'/'+tot+' · sisa '+(st.sisa>0?mmss(Math.ceil(st.sisa/1000)):'0:00')+(st.ext?' (+'+Math.round(st.ext/60)+' mnt)':'')+' · keluar halaman '+st.v+(+s.batas?'/'+s.batas:'')+' · terakhir aktif '+Math.round(st.seen/1000)+' dtk lalu'+(st.k==='on'&&st.seen>150000?' <b>(tidak aktif)</b>':'')+'</p>';
+    line='<p class="note">Terjawab '+ans+'/'+tot+' · sisa '+(st.sisa>0?mmss(Math.ceil(st.sisa/1000)):'0:00')+(st.ext?' (+'+Math.round(st.ext/60)+' mnt)':'')+' · keluar halaman '+st.v+(+s.batas?'/'+s.batas:'')+' · terakhir aktif '+Math.round(st.seen/1000)+' dtk lalu'+(st.k==='on'&&st.seen>150000?' <b>(tidak aktif)</b>':'')+'</p>'+logRingkas(st.p);
    }else if(st.k==='done'){
     var kkm=+s.kkm||S.kkm;
     if(!st.h)line='<p class="note">Nilai belum masuk.</p>';
-    else line='<p class="note">Nilai <b class="mono">'+(st.h?st.h.score:'-')+'</b>'+(st.h?' · '+st.h.benar+' benar dari '+st.h.total+' · '+(st.h.score>=kkm?'tuntas':'belum tuntas'):'')+'</p>';
+    else line='<p class="note">Nilai <b class="mono">'+(st.h?st.h.score:'-')+'</b>'+(st.h?' · '+st.h.benar+' benar dari '+st.h.total+' · '+(st.h.score>=kkm?'tuntas':'belum tuntas'):'')+'</p>'+logRingkas(st.p);
    }
    var rid=st.run?st.run.$id:'',act='';
    if(st.k==='on'||st.k==='lock'||st.k==='habis'){

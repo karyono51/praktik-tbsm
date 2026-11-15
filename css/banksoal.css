@@ -112,3 +112,8 @@ body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
  .ex-st{display:none}.ex-nav button{height:36px;width:38px}.ex-foot .btn{height:44px}body.bs-run{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
 }
 @media(min-width:720px){.ex-q,.ex-top .ex-bar,.ex-nav{max-width:760px;margin-left:auto;margin-right:auto}}
+
+/* v81: penanda air, tanpa sentuhan tahan-lama pada soal, cetak diblokir */
+#cbt-wm{position:fixed;inset:0;z-index:40;pointer-events:none;background-repeat:repeat}
+body.cbt-exam .bs-q,body.cbt-exam .bs-opts,body.cbt-exam .bs-kat{-webkit-touch-callout:none}
+@media print{body.cbt-exam *{display:none!important}}

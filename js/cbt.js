@@ -211,6 +211,7 @@
    bc.toggle('bs-run',on);bc.toggle('ex-lock',on&&!!CBT.nav);bc.toggle('ex-fs1',on&&CBT.fs===1);bc.toggle('ex-fs2',on&&CBT.fs===2);
    if(!on)CBT.nav=false;
    wlSync(on);centerNav();
+   wmSync(inExam());if(inExam()){var aw=areaWin();if(aw>SP.max)SP.max=aw}else{SP.max=0;SP.on=0}
    overlay();
   }catch(e){}
  }
@@ -223,15 +224,19 @@
   if(window.bsPushNow&&r.rid)bsPushNow();
   if(p.batas<=0)return;
   if(v>=p.batas&&p.aksi==='kirim'&&!r.done){toast('Batas pelanggaran terlewati. Jawaban dikirim otomatis.');bsFinish(true);return}
-  if(p.aksi==='peringatan'&&!document.hidden)toast('Peringatan: keluar halaman '+v+'×. Batas '+p.batas+'×.');
+  if(p.aksi==='peringatan'&&!document.hidden)toast('Peringatan: pelanggaran '+v+'×. Batas '+p.batas+'×. Jangan keluar halaman, jangan buka layar terbelah atau jendela lain.');
   cbtPost();
  }
  document.addEventListener('visibilitychange',function(){
   var r=BS.run;if(!r||r.mode!=='ujian'||r.done)return;
   if(document.hidden){
    /* banksoal.js sudah menambah r.pindah; di sini hanya menerapkan aturan */
+   clearTimeout(BL.t);BL.t=0;
+   if(BL.on){r.pindah=Math.max(0,(r.pindah||0)-1);BL.on=0}   /* blur yang disusul hidden dihitung satu kali */
+   catat(r,'hidden');CBT.hidAt=Date.now();
    pelanggaran(r,'hidden');
   }else{
+   if(CBT.hidAt){var eh=lastLog(r,'hidden');if(eh&&!eh.d)eh.d=Math.round((Date.now()-CBT.hidAt)/1000);CBT.hidAt=0}
    if(r.dur&&bsRemain(r)<=0)return;
    var p=pol(r);if(p.aksi==='peringatan'&&p.batas>0&&viol(r)>0)toast('Peringatan: keluar halaman '+viol(r)+'×. Batas '+p.batas+'×.');
    cbtPost();
@@ -241,7 +246,7 @@
  function fsChange(){
   var r=BS.run;if(!inExam())return;
   var p=pol(r);
-  if(p.layar&&!isFs()&&Date.now()>CBT.grace){r.pindah=(r.pindah||0)+1;pelanggaran(r,'fs')}
+  if(p.layar&&!isFs()&&Date.now()>CBT.grace){r.pindah=(r.pindah||0)+1;catat(r,'fs');pelanggaran(r,'fs')}
   cbtPost();
  }
  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&CBT.nav&&runOn()){CBT.nav=false;render()}});
@@ -260,6 +265,57 @@
    var b=document.querySelector(dx<0?'.ex-next[data-bs="next"]':'.ex-prev:not([disabled])');if(b)b.click();
   },{passive:true});
  })();
+
+ /* ---------- Pencegahan kecurangan di HP (v81) ----------
+    Semua pelanggaran masuk r.pindah (aturan batas/aksi sesi tetap berlaku) dan dicatat di r.log {t,k,d} untuk guru:
+    hidden = aplikasi/tab disembunyikan, blur = jendela kehilangan fokus >2,5 dtk (layar terbelah, jendela melayang, panel notifikasi),
+    split = ukuran jendela mengecil (layar terbelah), fs = keluar layar penuh. */
+ function catat(r,k,d){if(!r)return;r.log=r.log||[];r.log.push({t:Jam.now(),k:k,d:d||0});if(r.log.length>40)r.log=r.log.slice(-40)}
+ window.cbtCatat=catat;
+ var BL={t:0,on:0},SP={max:0,on:0,t:0};
+ function lastLog(r,k){var l=r&&r.log;return l&&l.length&&l[l.length-1].k===k?l[l.length-1]:null}
+ window.addEventListener('blur',function(){
+  if(!inExam()||document.hidden||Date.now()<CBT.grace)return;
+  clearTimeout(BL.t);
+  BL.t=setTimeout(function(){
+   BL.t=0;var r=BS.run;
+   if(!inExam()||document.hidden||document.hasFocus())return;
+   BL.on=Date.now();r.pindah=(r.pindah||0)+1;catat(r,'blur');pelanggaran(r,'blur');
+  },2500);
+ });
+ window.addEventListener('focus',function(){
+  clearTimeout(BL.t);BL.t=0;
+  if(BL.on){var e=lastLog(BS.run,'blur');if(e&&!e.d)e.d=Math.round((Date.now()-BL.on)/1000);BL.on=0}
+ });
+ function areaWin(){return (window.innerWidth||0)*(window.innerHeight||0)}
+ function spCheck(){
+  if(!inExam()){SP.max=0;SP.on=0;return}
+  var a=areaWin(),ae=document.activeElement,ketik=ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
+  if(a>SP.max)SP.max=a;
+  if(ketik)return;
+  if(a<SP.max*0.65){if(!SP.on){SP.on=1;var r=BS.run;r.pindah=(r.pindah||0)+1;catat(r,'split');pelanggaran(r,'split')}}
+  else if(a>SP.max*0.85)SP.on=0;
+ }
+ window.addEventListener('resize',function(){clearTimeout(SP.t);SP.t=setTimeout(spCheck,700)});
+ /* penanda air: nama dan akun siswa diulang samar di layar soal (menyulitkan foto layar dan tangkapan layar disebar) */
+ function wmSync(on){
+  var el=document.getElementById('cbt-wm');
+  if(!on||!S.user){if(el)el.remove();return}
+  var t=String(S.user.nama||'')+' · '+String(S.user.username||S.user.email||''),k=t.replace(/[<>&"']/g,' ');
+  if(el&&el.dataset.k===k)return;
+  if(!el){el=document.createElement('div');el.id='cbt-wm';el.setAttribute('aria-hidden','true');document.body.appendChild(el)}
+  el.dataset.k=k;
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="260" height="170"><text x="130" y="85" text-anchor="middle" transform="rotate(-24 130 85)" font-family="sans-serif" font-size="14" font-weight="600" fill="#808080" fill-opacity="0.22">'+k+'</text></svg>';
+  el.style.backgroundImage='url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';
+ }
+ function jagaTarget(e){var t=e.target;if(t&&t.nodeType===3)t=t.parentNode;return t&&t.closest&&t.closest('.bs-q,.bs-opts,.bs-kat')}
+ ['paste','dragstart','selectstart'].forEach(function(t){document.addEventListener(t,function(e){if(inExam()&&jagaTarget(e))e.preventDefault()})});
+ document.addEventListener('keydown',function(e){
+  if(!inExam())return;
+  var k=String(e.key||'').toLowerCase();
+  if((e.ctrlKey||e.metaKey)&&(k==='p'||k==='s'||k==='u'))e.preventDefault();
+ });
+ window.addEventListener('beforeprint',function(){var r=BS.run;if(inExam()){catat(r,'print');bsRunSave()}});
  document.addEventListener('fullscreenchange',fsChange);
  document.addEventListener('webkitfullscreenchange',fsChange);
  window.addEventListener('beforeunload',function(e){if(inExam()){e.preventDefault();e.returnValue=''}});
