@@ -4,8 +4,8 @@ Menu baru di laci menu (staf): **Administrasi Akademik** berisi Guru, Kelas, Mat
 
 ## Pasang (sekali)
 1. Buat dua koleksi baru di Appwrite: `node tools/setup-appwrite.mjs --only=akademik,akademik_sdm`
-   - `akademik`: tahun ajaran, rombel, mata pelajaran, tugas mengajar. Dibaca semua pengguna masuk, ditulis admin.
-   - `akademik_sdm`: profil guru (NIP, NUPTK, status, pendidikan). Dibaca guru dan admin saja, ditulis admin.
+   - `akademik`: tahun ajaran, rombel, mata pelajaran, tugas mengajar. Dibaca guru dan admin, ditulis admin.
+   - `akademik_sdm`: profil guru (NIP, NUPTK, status, pendidikan). Dibaca guru dan admin, ditulis admin; dipisah karena memuat data pribadi.
 2. Push ke GitHub seperti biasa. Versi berkas dan cache distempel otomatis oleh `tools/rilis.mjs`.
 3. Masuk sebagai admin, buka Administrasi Akademik. Kurikulum bawaan dimuat otomatis saat pertama dibuka.
 

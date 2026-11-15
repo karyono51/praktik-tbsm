@@ -1,6 +1,6 @@
 /* akademik.js: Administrasi Akademik (Guru, Kelas, Mata pelajaran, Tata kelola).
-   Koleksi Appwrite: akademik (tahun, kelas, mapel, tugas; dibaca semua pengguna masuk) dan akademik_sdm (profil guru: NIP, NUPTK;
-   dibaca hanya guru dan admin). Hanya admin yang menulis. Mode lokal memakai localStorage. Data acuan ada di akademik-data.js. */
+   Koleksi Appwrite: akademik (tahun, kelas, mapel, tugas; dibaca guru dan admin) dan akademik_sdm (profil guru: NIP, NUPTK;
+   dibaca guru dan admin). Hanya admin yang menulis. Mode lokal memakai localStorage. Data acuan ada di akademik-data.js. */
 var AKC={tahun:'akademik',kelas:'akademik',mapel:'akademik',tugas:'akademik',guru:'akademik_sdm'};
 var AKK='tbsm-akd',AKQ='tbsm-akd-queue';
 var AKD={D:{tahun:[],kelas:[],mapel:[],tugas:[],guru:[]},loaded:false,loading:false,err:[],seeded:false,form:null,mem:null,tg:null,tgf:{},q:'',fl:'ALL',tf:'ALL',rep:null,open:{},busy:false};
