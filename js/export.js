@@ -92,22 +92,6 @@ function tplAkun(){
 }
 
 /* ---------- Rekap: Excel ---------- */
-/* Nilai ujian CBT (koleksi soal_hasil) ikut tampil di Rekap nilai, bentuknya disamakan dengan hasil praktik.
-   Hanya mode ujian (latihan tidak masuk rekap). Siswa hanya melihat nilainya sendiri. */
-function cbtRekapList(){
- if(!window.BS||!BS.D||!BS.D.hasil||!S.user)return [];
- var staff=isStaff(),m=staff?schPeta():null,um={};
- (S.users||[]).forEach(function(u){um[u.id]=u});
- return BS.D.hasil.filter(function(h){return h.mode==='ujian'&&(staff?schHasilOk(h,m):h.sid===S.user.id)}).map(function(h){
-  var u=um[h.sid],kkm=+h.kkm||S.kkm,kls=h.kelas||(u&&u.kelas)||'',sc=+h.score||0;
-  return {id:'cbt-'+h.id,cbt:1,ts:h.ts,sid:h.sid,siswa:h.siswa||(u&&u.nama)||'',kelas:kls,jobId:h.sesiJudul||'Ujian CBT',tipe:'Ujian CBT',score:sc,kompeten:sc>=kkm,
-   catatan:(h.benar!=null&&h.total?h.benar+' benar dari '+h.total+' soal':''),detik:h.detik||0,penilai:'CBT Online'};
- });
-}
-/* daftar Rekap nilai = hasil praktik + ujian CBT, mengikuti filter kelas */
-function filtRekap(){
- return filt().concat(cbtRekapList().filter(function(r){return S.filter==='ALL'||r.kelas===S.filter}));
-}
 function filt(){return visibleResults().filter(function(r){return S.filter==='ALL'||r.kelas===S.filter})}
 /* Observasi LKPD Praktik di Rekap nilai (hanya Admin dan Guru; mengikuti filter kelas) */
 function obsRekapList(){return (can('observasi')&&typeof obsVisible==='function')?obsVisible('siswa').filter(function(r){return S.filter==='ALL'||r.kelas===S.filter}):[]}
@@ -121,7 +105,7 @@ function obsRekapUrut(){return obsRekapList().slice().sort(function(a,b){return 
 function agg(list){var n=list.length;return [n,n?Math.round(list.reduce(function(s,r){return s+r.score},0)/n):0,n?Math.round(100*list.filter(function(r){return r.kompeten}).length/n)/100:0]}
 function xlsRekap(){
  if(!needX())return;
- var L=filtRekap().sort(function(a,b){return a.ts-b.ts});
+ var L=filt().sort(function(a,b){return a.ts-b.ts});
  var wb=XLSX.utils.book_new();
  var rows=[['No','Tanggal','Kelas','Siswa','Unit praktik','SKKNI','Jenis','Skor','Status','KKM','Penilai','Durasi (menit)','Catatan']].concat(L.map(function(r,i){var j=jobById(r.jobId)||{};return [i+1,new Date(r.ts).toLocaleDateString('id-ID'),r.kelas,r.siswa||'',j.judul||r.jobId,j.skkni||'',jenisTampil(r),r.score,r.kompeten?'Kompeten':'Belum kompeten',S.kkm,r.penilai||r.oleh||'',r.detik?Math.round(r.detik/6)/10:'',r.catatan||'']}));
  XLSX.utils.book_append_sheet(wb,sheet(rows,[5,12,8,26,44,18,11,7,16,6,20,13,40]),'Rekap');
@@ -161,7 +145,7 @@ function ttd(doc,y,labels){
 var TH={fillColor:[11,107,58],textColor:255,fontStyle:'bold'};
 function pdfRekap(){
  if(!needP())return;
- var L=filtRekap().sort(function(a,b){return a.ts-b.ts}),a=agg(L);
+ var L=filt().sort(function(a,b){return a.ts-b.ts}),a=agg(L);
  var doc=new window.jspdf.jsPDF({orientation:'l',unit:'mm',format:'a4'});
  kop(doc,'Rekap Nilai KBM Praktik TBSM'+(S.filter==='ALL'?'':' - Kelas '+S.filter));
  doc.setFontSize(9.5).text('Data: '+a[0]+'   Rata-rata: '+a[1]+'   Kompeten: '+Math.round(a[2]*100)+'%   KKM: '+S.kkm,14,46);

@@ -15,7 +15,7 @@
   var k=(String(sesiId)+'_'+String(sid)).replace(/[^a-zA-Z0-9_.-]/g,'_');
   return 'r'+(k.length<=34?k:h32(String(sesiId))+h32(String(sid))+h32(k));
  };
- function pay(r){return JSON.stringify({mode:r.mode,sesiId:r.sesiId,sesiJudul:r.sesiJudul,dur:r.dur,ids:r.ids,oo:r.oo,ans:r.ans,cur:r.cur,chk:r.chk,pindah:r.pindah||0,log:(r.log||[]).slice(-40),rg:r.rg||{},tampil:r.tampil,kkm:r.kkm})}
+ function pay(r){return JSON.stringify({mode:r.mode,sesiId:r.sesiId,sesiJudul:r.sesiJudul,dur:r.dur,ids:r.ids,oo:r.oo,ans:r.ans,cur:r.cur,chk:r.chk,pindah:r.pindah||0,rg:r.rg||{},tampil:r.tampil,kkm:r.kkm})}
  function lomba(p,ms){return new Promise(function(res,rej){var t=setTimeout(function(){var e=new Error('Waktu tunggu habis');e.code=408;rej(e)},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})})}
 
  /* durasi dan KKM selalu dari sesi guru, bukan dari payload catatan yang bisa diubah siswa lewat API */
@@ -58,7 +58,7 @@
   r.dirty=0;
   if(window.bsAman&&bsAman()){
    /* mode CBT aman: fungsi server yang menulis catatan ujian dan membalas ext/stop/pb dari guru */
-   try{var rs=await cbtFn({action:'simpan',rid:r.rid,ans:r.ans,cur:r.cur,pindah:r.pindah||0,log:(r.log||[]).slice(-40),rg:r.rg||{}});if(window.cbtApply)cbtApply(r,rs);r.savedAt=Date.now();r.saveErr=0;bsRunSave0()}
+   try{var rs=await cbtFn({action:'simpan',rid:r.rid,ans:r.ans,cur:r.cur,pindah:r.pindah||0,rg:r.rg||{}});if(window.cbtApply)cbtApply(r,rs);r.savedAt=Date.now();r.saveErr=0;bsRunSave0()}
    catch(e){r.dirty=1;r.saveErr=(r.saveErr||0)+1}
    return;
   }

@@ -29,12 +29,12 @@ const ctx = {
   LK: { editor: null }, LKM: { reveal: {} }, LKPD_MODULES: [], LKPD_DEFAULT_MODULES: [], lkBuiltin: () => false,
   lkRefreshModules() {}, lkBuildModule: (v) => v, lkDraft: () => ({}), lkRead: () => ({}), lkmCur: () => null,
   LOGO: 'data:image/png;base64,LOGO', SEK: { nama: 'SMKS Contoh', program: 'TBSM', alamat: 'Jl. Contoh 1' },
-  lkioExport() {}, uiOk: () => true, lkEditorDefaults: () => ({}), lkSerialize: (m) => m, lkModuleStore() {}, lkeLive() {},
+  lkioExport() {}, lkListView() {}, viewLKPD() {}, lkmCfg: () => ({}), uiOk: () => true, lkEditorDefaults: () => ({}), lkSerialize: (m) => m, lkModuleStore() {}, lkeLive() {},
 };
 ctx.window = ctx; ctx.globalThis = ctx; ctx.addEventListener = () => {}; ctx.scrollTo = () => {};
 vm.createContext(ctx);
 const run = (code) => vm.runInContext(code, ctx);
-for (const f of ['js/banksoal.js', 'js/soal-gambar.js', 'js/lkpd-soal.js', 'js/lkpd-editor.js', 'js/lkpd-gambar.js', 'js/cetak-soal.js', 'js/soal-grup.js']) {
+for (const f of ['js/banksoal.js', 'js/soal-gambar.js', 'js/lkpd-soal.js', 'js/lkpd-editor.js', 'js/lkpd-gambar.js', 'js/cetak-soal.js', 'js/soal-grup.js', 'js/banksoal-io.js', 'js/lkpd-io.js', 'js/butir.js']) {
   try { vm.runInContext(baca(f), ctx, { filename: f }); }
   catch (e) { ok('memuat ' + f, false, e.message); }
 }
@@ -133,6 +133,69 @@ ok('csPilih: jumlah memuat grup utuh bila cukup, dan soal tunggal dipakai dulu b
 ok('csMuat mengumpulkan gambar stimulus', run("var refs=[];[{si:'drive:S'}].forEach(function(q){sgRefs(q).forEach(function(r){refs.push(r)})});refs.join()")==='drive:S');
 ok('index.html memuat soal-grup.js setelah lkpd-gambar.js', baca('index.html').indexOf('js/soal-grup.js') > baca('index.html').indexOf('js/lkpd-gambar.js'));
 ok('service worker memuat soal-grup.js', /js\/soal-grup\.js\?v=/.test(baca('service-worker.js')));
+
+console.log('Excel Bank soal');
+run("BS.D.soal=[];BS.all=null;var BASE={mapel:'Dasar',tipe:'PG',kelas:'X',tujuan:'Latihan',status:'Aktif',o0:'a',o1:'b',o2:'c',o3:'d',o4:'e',kunci:'A'};function R(x){return Object.assign({},BASE,x)}");
+run("var RR=bsioProcess([R({q:'Soal satu',gs:'G1',st:'Bacaan umum'}),R({q:'Soal dua',gs:'G1'}),R({q:'Soal tiga',gs:'G1'}),R({q:'Tunggal'})]);");
+ok('impor: 4 soal baru, tanpa galat', run("RR.add.length===4&&RR.err.length===0"), run("JSON.stringify(RR.err)"));
+ok('impor: tiga baris G1 satu grup dengan stimulus sama dan urutan gn', run("var g=RR.add.filter(function(x){return x.gs});g.length===3&&g.every(function(x){return x.gs===g[0].gs&&x.st==='Bacaan umum'})&&g.map(function(x){return x.gn}).join()==='1,2,3'"), run("JSON.stringify(RR.add.map(function(x){return [x.gs,x.gn,x.st]}))"));
+ok('impor: soal tanpa Grup tidak memakai kolom grup', run("var t=RR.add.filter(function(x){return x.q==='Tunggal'})[0];t.gs===undefined&&t.st===undefined"));
+run("var RE=bsioProcess([R({q:'A',gs:'G2'}),R({q:'B',gs:'G2'})]);");
+ok('impor: grup tanpa teks stimulus ditolak per baris', run("RE.add.length===0&&RE.err.length===2&&RE.err[0].msg.indexOf('Stimulus grup')===0"), run("JSON.stringify(RE.err)"));
+run("var RC=bsioProcess([R({q:'A',gs:'G3',st:'x'}),R({q:'B',gs:'G3',st:'y'})]);");
+ok('impor: stimulus berbeda dalam satu grup ditolak', run("RC.err.length>=1&&RC.err[0].msg.indexOf('berbeda')>-1"), run("JSON.stringify(RC.err)"));
+run("BS.D.soal=RR.add.concat([]);BS.all=null;var gsLama=RR.add[0].gs;var RU=bsioProcess([R({q:'Soal empat',gs:'G1'}),R({id:RR.add[0].id,q:'Soal satu',gs:'G1',st:'Bacaan baru'})]);");
+ok('impor: kode grup yang sama memakai ulang grup di Bank soal, stimulus dari file berlaku untuk seluruh grup', run("RU.add.length===1&&RU.add[0].gs===gsLama&&RU.add[0].st==='Bacaan baru'&&RU.add[0].gn===4"), run("JSON.stringify(RU.add.map(function(x){return [x.gs,x.st,x.gn]}))"));
+ok('impor: memperbarui soal sendiri membawa stimulus baru dan mempertahankan gn', run("RU.upd.length===1&&RU.upd[0].st==='Bacaan baru'&&RU.upd[0].gn===1"), run("JSON.stringify(RU.upd.map(function(x){return [x.st,x.gn]}))"));
+run("RR.add[1].si='drive:IMG';BS.D.soal=RR.add.concat([]);BS.all=null;var RI=bsioProcess([R({q:'Soal lima',gs:'G1'})]);");
+ok('impor: gambar stimulus grup ikut diwariskan ke soal baru', run("RI.add[0].si==='drive:IMG'"), run("JSON.stringify(RI.add)"));
+ok('ekspor: kolom Grup dan Stimulus ada di kepala', run("BSIO_HEAD.slice(-2).join()")==='Grup,Stimulus');
+run("BS.D.soal=RR.add.concat([]);BS.all=null;BSIO_SEEN={};var X1=bsioRow(BS.D.soal[0]),X2=bsioRow(BS.D.soal[1]);BSIO_SEEN=null;");
+ok('ekspor: stimulus hanya di baris pertama grup', run("X1[X1.length-2]===BS.D.soal[0].gs&&X1[X1.length-1]==='Bacaan umum'&&X2[X2.length-1]===''&&X2[X2.length-2]===BS.D.soal[1].gs"));
+ok('ekspor lalu impor ulang tidak membuat soal ganda (semua dilewati)', run("var ex=BS.D.soal.map(function(s){var r=bsioRow(s),o={};BSIO_HEAD.forEach(function(h,i){var c=BSIO_HB[bsioKey(h)];if(c&&o[c]===undefined)o[c]=r[i]});return o});BSIO_SEEN=null;var RX=bsioProcess(ex);RX.add.length===0"), run("JSON.stringify(RX&&{a:RX.add.length,e:RX.err})"));
+
+console.log('Excel LKPD');
+ok('kepala sheet Soal LKPD memuat Grup dan Stimulus', run("lkioSoalHead(5,6).slice(-2).join()")==='Grup,Stimulus');
+run("var MQ2={id:'T1',quiz:[{q:'a',o:['x','y'],a:0,gs:'G',st:'Bacaan'},{q:'b',o:['x','y'],a:1,gs:'G',st:'Bacaan'},{q:'c',o:['x','y'],a:0}]};var L1=lkioSoalRow('T1',1,MQ2.quiz[0],5,6,undefined),L2=lkioSoalRow('T1',2,MQ2.quiz[1],5,6,MQ2.quiz[0]),L3=lkioSoalRow('T1',3,MQ2.quiz[2],5,6,MQ2.quiz[1]);");
+ok('ekspor LKPD: stimulus hanya di baris pertama grup', run("L1[L1.length-1]==='Bacaan'&&L1[L1.length-2]==='G'&&L2[L2.length-1]===''&&L2[L2.length-2]==='G'&&L3[L3.length-2]===''"));
+ok('lkioQuiz tidak memperlakukan Grup sebagai bagian soal', run("var qx=lkioQuiz({q:'Soal',o0:'a',o1:'b',kunci:'A',gs:'G',st:'x'});!!qx.q&&qx.q.gs===undefined"));
+ok('kolom Grup dan Stimulus dikenali pemeta kolom LKPD', run("LKIO_COLS.soal.grup==='gs'&&LKIO_COLS.soal.stimulus==='st'"));
+
+console.log('Impor LKPD (lkioBuild)');
+run("lkValidateModule=function(){return ''};lkSerialize=function(m){return JSON.parse(JSON.stringify(m))};LKQ=typeof LKQ==='undefined'?{VER:1}:LKQ;");
+run("var EXM={id:'EX1',version:1,title:'T',quiz:[{q:'Lama',o:['a','b'],a:0,gs:'gold',st:'Teks lama',si:'drive:OLD'}]};function SR(x,l){return {line:l,f:Object.assign({q:'Soal',o0:'a',o1:'b',kunci:'A'},x)}}");
+run("var B1=lkioBuild('EX1',null,{soal:[SR({q:'Satu',gs:'G1',st:'Bacaan'},2),SR({q:'Dua',gs:'G1'},3),SR({q:'Tiga'},4)]},{soal:1},EXM);");
+ok('lkioBuild: dua baris G1 satu grup, stimulus sama, soal tanpa grup tetap lepas', run("!!B1.m&&B1.m.quiz.length===3&&B1.m.quiz[0].gs===B1.m.quiz[1].gs&&B1.m.quiz[0].st==='Bacaan'&&B1.m.quiz[1].st==='Bacaan'&&B1.m.quiz[2].gs===undefined"), run("JSON.stringify(B1)"));
+run("var B2=lkioBuild('EX1',null,{soal:[SR({q:'Satu',gs:'G9'},2)]},{soal:1},EXM);");
+ok('lkioBuild: grup baru tanpa stimulus ditolak', run("!!B2.errs&&B2.errs[0].msg.indexOf('Stimulus grup')===0"), run("JSON.stringify(B2)"));
+run("var B3=lkioBuild('EX1',null,{soal:[SR({q:'Satu',gs:'G1',st:'A'},2),SR({q:'Dua',gs:'G1',st:'B'},3)]},{soal:1},EXM);");
+ok('lkioBuild: stimulus berbeda dalam satu grup ditolak', run("!!B3.errs&&B3.errs[0].msg.indexOf('berbeda')>-1"), run("JSON.stringify(B3)"));
+run("var B4=lkioBuild('EX1',null,{soal:[SR({q:'Lama',gs:'gold'},2),SR({q:'Baru',gs:'gold'},3)]},{soal:1},EXM);");
+ok('lkioBuild: memakai ulang grup lama (stimulus dan gambar lama diwariskan)', run("!!B4.m&&B4.m.quiz.every(function(q){return q.gs==='gold'&&q.st==='Teks lama'&&q.si==='drive:OLD'})"), run("JSON.stringify(B4)"));
+
+console.log('Analisis butir');
+ok('btrKes dan btrDbk memakai ambang yang sama dengan Analisis sesi', run("btrKes(0.29)==='Sukar'&&btrKes(0.3)==='Sedang'&&btrKes(0.7)==='Mudah'&&btrDbk(0.4)==='Baik'&&btrDbk(0.2)==='Cukup'&&btrDbk(0)==='Perlu revisi'&&btrDbk(-0.01)==='Bermasalah'&&btrDbk(null)==='-'"));
+run("var rw=[];for(var i=0;i<20;i++)rw.push({t:100-i*4,f:i<10?1:0});var IT=btrItem(rw);");
+ok('btrItem: soal benar dibenarkan kelompok atas saja: p 0,5 dan DB 1', run("Math.abs(IT.p-0.5)<1e-9&&Math.abs(IT.db-1)<1e-9&&IT.dbk==='Baik'&&IT.kes==='Sedang'"), run("JSON.stringify(IT)"));
+run("var rv=[];for(var i=0;i<20;i++)rv.push({t:100-i*4,f:i<10?0:1});var IV=btrItem(rv);");
+ok('btrItem: soal dijawab benar kelompok bawah saja: DB negatif (Bermasalah)', run("IV.db<0&&IV.dbk==='Bermasalah'"));
+ok('btrItem: kurang dari 6 pengerja: DB kosong', run("btrItem([{t:90,f:1},{t:80,f:0},{t:70,f:1}]).db")===null);
+ok('btrItem: tanpa data', run("btrItem([]).n")===0);
+ok('btrItem: semua benar, DB 0 (Perlu revisi)', run("var ia=btrItem([1,2,3,4,5,6,7,8,9,10].map(function(i){return {t:i,f:1}}));ia.p===1&&ia.db===0&&ia.dbk==='Perlu revisi'"));
+/* data bank: 12 siswa ujian, soal gx dijawab benar oleh 6 teratas, gy oleh 6 terbawah */
+run("BS.D.soal=[{id:'gx',tipe:'pg',mapel:'D',q:'X',opts:['1','2','3','4','5'],kunci:0},{id:'gy',tipe:'pg',mapel:'D',q:'Y',opts:['1','2','3','4','5'],kunci:0},{id:'gz',tipe:'pg',mapel:'D',q:'Z',opts:['1','2','3','4','5'],kunci:0}];BS.all=null;BS.D.hasil=[];for(var k=0;k<12;k++){BS.D.hasil.push({id:'h'+k,mode:'ujian',score:100-k*5,order:['gx','gy'],ans:{gx:k<6?0:1,gy:k<6?1:0}})};BS.D.hasil.push({id:'hl',mode:'latihan',score:50,order:['gx'],ans:{gx:0}});BTR.cache=null;");
+ok('btrBank: hasil latihan tidak dihitung', run("btrBank().gx.n")===12);
+ok('btrBank: soal tanpa hasil tidak punya statistik', run("btrBank().gz")===undefined);
+ok('btrBank: gx daya beda tinggi, gy bermasalah', run("btrBank().gx.db>0.9&&btrBank().gy.db<-0.9"), run("JSON.stringify(btrBank())"));
+ok('btrPill: label p, DB, dan Periksa kunci untuk soal bermasalah', run("var pg=btrPill('gy');pg.indexOf('Periksa kunci')>-1&&pg.indexOf('Bermasalah')>-1&&btrPill('gx').indexOf('Periksa kunci')<0"));
+ok('btrPill: soal tanpa data kosong', run("btrPill('gz')")==='');
+ok('btrPill: data kurang dari minimum diberi catatan', run("BS.D.hasil=BS.D.hasil.slice(0,5);BTR.cache=null;btrPill('gx').indexOf('belum cukup')>-1"));
+run("BS.D.hasil=[];for(var k=0;k<12;k++)BS.D.hasil.push({id:'h'+k,mode:'ujian',score:100-k*5,order:['gx','gy'],ans:{gx:k<6?0:1,gy:k<6?1:0}});BTR.cache=null;");
+ok('filter Statistik: revisi hanya soal bermasalah, kosong hanya yang tanpa data', run("btrCocok('gy','revisi')&&!btrCocok('gx','revisi')&&btrCocok('gz','kosong')&&!btrCocok('gx','kosong')"));
+ok('filter Statistik: sukar dan mudah menurut p', run("btrCocok('gx','sukar')===false&&btrCocok('gx','mudah')===false"));
+ok('bsFiltered menghormati filter Statistik', run("BS.flt.stat='kosong';BS.all=null;var kf=bsFiltered().filter(function(s){return s.id==='gz'}).length;BS.flt.stat='';kf===1"));
+ok('index.html memuat butir.js', baca('index.html').indexOf('js/butir.js')>-1);
+ok('lkpd-analisis memakai daya beda dan Excel-nya memuat kolomnya', /btrItem/.test(baca('js/lkpd-analisis.js'))&&/Daya beda/.test(baca('js/lkpd-analisis.js')));
 
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);

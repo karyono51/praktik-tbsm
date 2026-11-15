@@ -36,7 +36,7 @@ var LKIO_COLS={};
   cek:{id:['idmodul','id'],a:['komponen'],b:['kriteria','kriteriapemeriksaan']},
   gejala:{id:['idmodul','id'],a:['isi','gejala','teks','item','butir']},
   soal:{id:['idmodul','id'],tipe:['jenis','tipe','jenissoal'],q:['soal','pertanyaan','teksoal'],kunci:['kunci','kuncijawaban'],
-   lab0:['label1'],lab1:['label2'],bahas:['pembahasan','bahas']}
+   lab0:['label1'],lab1:['label2'],bahas:['pembahasan','bahas'],gs:['grup','kodegrup'],st:['stimulus','teksstimulus']}
  };
  Object.keys(C).forEach(function(s){
   LKIO_COLS[s]={};
@@ -89,10 +89,10 @@ function lkioSoalHead(nO,nR){
  for(i=0;i<nO;i++)h.push(lkioLtr(i));
  h.push('Kunci','Label 1','Label 2');
  for(i=1;i<=nR;i++)h.push('Pernyataan '+i,'Kunci '+i);
- h.push('Pembahasan');
+ h.push('Pembahasan','Grup','Stimulus');
  return h;
 }
-function lkioSoalRow(id,no,q,nO,nR){
+function lkioSoalRow(id,no,q,nO,nR,prev){
  var t=lkqType(q),r=[id,no,t==='kategori'?'PG kategori':t==='kompleks'?'PG kompleks':'PG',q.q||''],i,o=q.o||[];
  for(i=0;i<nO;i++)r.push(o[i]!==undefined?o[i]:'');
  if(t==='pg')r.push(typeof q.a==='number'?lkioLtr(q.a):'');
@@ -102,7 +102,7 @@ function lkioSoalRow(id,no,q,nO,nR){
   var lab=q.lab||['Benar','Salah'];r.push(lab[0],lab[1]);
   for(i=0;i<nR;i++){var x=(q.rows||[])[i];r.push(x?x[0]:'',x?(x[1]?lab[0]:lab[1]):'')}
  }else{r.push('','');for(i=0;i<nR;i++)r.push('','')}
- r.push(q.e||'');
+ r.push(q.e||'',q.gs||'',q.gs&&q.st&&!(prev&&prev.gs===q.gs)?q.st:'');
  return r;
 }
 /* Mengubah daftar modul menjadi {namaSheet: aoa}. Murni, tanpa efek samping. */
@@ -129,7 +129,7 @@ function lkioSheets(mods){
   (m.steps||[]).forEach(function(x){A.langkah.push([id,x[0],x[1],x[2]])});
   (m.checks||[]).forEach(function(x){A.cek.push([id,x[0],x[1]])});
   (m.symptoms||[]).forEach(function(x){A.gejala.push([id,x])});
-  (m.quiz||[]).forEach(function(q,i){A.soal.push(lkioSoalRow(id,i+1,q,nO,nR))});
+  (m.quiz||[]).forEach(function(q,i){A.soal.push(lkioSoalRow(id,i+1,q,nO,nR,m.quiz[i-1]))});
  });
  Object.keys(LKIO_SHEET).forEach(function(k){out[LKIO_SHEET[k]]=A[k]});
  out.__lossy=lossy;
@@ -140,7 +140,7 @@ function lkioWidths(name,aoa){
   'Pemeriksaan':[14,34,60],'Gejala':[14,70]})[name];
  if(w)return w;
  var n=aoa[0].length,a=[14,5,13,60],i;
- for(i=4;i<n;i++)a.push(/^Pernyataan/.test(aoa[0][i])?34:(/^Kunci /.test(aoa[0][i])?10:(aoa[0][i]==='Pembahasan'?50:(aoa[0][i]==='Kunci'||/^Label/.test(aoa[0][i])?10:26))));
+ for(i=4;i<n;i++)a.push(/^Pernyataan/.test(aoa[0][i])?34:(/^Kunci /.test(aoa[0][i])?10:(aoa[0][i]==='Pembahasan'?50:(aoa[0][i]==='Stimulus'?60:(aoa[0][i]==='Grup'?12:(aoa[0][i]==='Kunci'||/^Label/.test(aoa[0][i])?10:26))))));
  return a;
 }
 function lkioWrite(mods,fname){
@@ -192,6 +192,7 @@ function lkioHelp(){
   ['Soal: Label 1, Label 2','PG kategori saja. Dua pilihan jawaban, kosong = Benar dan Salah. Keduanya harus berbeda.'],
   ['Soal: Pernyataan dan Kunci 1-10','PG kategori saja. Minimal 2 pernyataan. Kunci berisi Label 1 atau Label 2 (atau angka 1 / 2).'],
   ['Soal: Pembahasan','Boleh kosong.'],
+  ['Soal: Grup, Stimulus','Soal grup (opsional). Soal dalam satu modul dengan kode Grup yang sama (misalnya G1) berbagi satu stimulus. Isi kolom Stimulus pada salah satu baris grup (cukup satu, atau samakan bila diisi di beberapa baris). Letakkan soal satu grup berurutan. Kolom Grup kosong tidak mengubah grup soal yang sudah ada. Gambar stimulus tidak ikut Excel: tambahkan lewat Editor Guru.'],
   ['Catatan','Maksimal '+LKIO.MAX_MOD+' modul dan '+LKIO.MAX_ROW+' baris per sheet. Data pengumpulan siswa tidak ikut diekspor dan tidak tersentuh impor. File hasil ekspor bisa diedit lalu diimpor ulang. Hapus baris contoh (CONTOH-1) bila tidak dipakai.']];
 }
 /* ---------- Template ---------- */
@@ -458,10 +459,26 @@ function lkioBuild(id,mr,sec,present,ex){
   m.quiz=[];
   /* penanda asal soal bank (src) dipertahankan untuk soal yang jenis dan teksnya tidak berubah */
   var srcOf={},imgOf={},grpOf={};(base.quiz||[]).forEach(function(q){if(q.src)srcOf[lkqType(q)+'|'+q.q]=q.src;if(q.gs)grpOf[lkqType(q)+'|'+q.q]={gs:q.gs,st:q.st,si:q.si};if(q.qi||(Array.isArray(q.oi)&&q.oi.some(Boolean)))imgOf[lkqType(q)+'|'+q.q+'|'+JSON.stringify(q.o||q.rows||[])]={qi:q.qi||'',oi:q.oi}});
+  var gx={},gq=[];
   (sec.soal||[]).forEach(function(r){
    var b=lkioQuiz(r.f);
    if(b.err)E('soal',r.line,b.err);
-   else{var sk=lkqType(b.q)+'|'+b.q.q;if(srcOf[sk])b.q.src=srcOf[sk];if(grpOf[sk]){b.q.gs=grpOf[sk].gs;if(grpOf[sk].st)b.q.st=grpOf[sk].st;if(grpOf[sk].si)b.q.si=grpOf[sk].si}var ik=sk+'|'+JSON.stringify(b.q.o||b.q.rows||[]);if(imgOf[ik]){if(imgOf[ik].qi)b.q.qi=imgOf[ik].qi;if(Array.isArray(imgOf[ik].oi)&&imgOf[ik].oi.some(Boolean))b.q.oi=imgOf[ik].oi.slice()}m.quiz.push(b.q)}
+   else{var sk=lkqType(b.q)+'|'+b.q.q;if(srcOf[sk])b.q.src=srcOf[sk];if(grpOf[sk]){b.q.gs=grpOf[sk].gs;if(grpOf[sk].st)b.q.st=grpOf[sk].st;if(grpOf[sk].si)b.q.si=grpOf[sk].si}var ik=sk+'|'+JSON.stringify(b.q.o||b.q.rows||[]);if(imgOf[ik]){if(imgOf[ik].qi)b.q.qi=imgOf[ik].qi;if(Array.isArray(imgOf[ik].oi)&&imgOf[ik].oi.some(Boolean))b.q.oi=imgOf[ik].oi.slice()}
+    /* kolom Grup dan Stimulus: kode dipakai ulang bila sudah ada di modul ini, selain itu dibuat baru */
+    var gc=lkioTxt(r.f.gs).slice(0,60);
+    if(gc){
+     var gid=(base.quiz||[]).some(function(x){return x.gs===gc})?gc:'x-'+lkioKey(gc).slice(0,30),gt=lkioTxt(r.f.st),gi=gx[gid]||(gx[gid]={st:'',conf:0});
+     if(gt){if(gi.st&&gi.st!==gt)gi.conf=r.line;else if(!gi.st)gi.st=gt.slice(0,(window.SGR&&SGR.MAXT)||3000)}
+     b.q.gs=gid;gq.push({q:b.q,line:r.line,code:gc,gid:gid});
+    }
+    m.quiz.push(b.q)}
+  });
+  gq.forEach(function(x){
+   var gi=gx[x.gid],mem=(base.quiz||[]).filter(function(y){return y.gs===x.gid&&(y.st||y.si)})[0],memSi=(base.quiz||[]).filter(function(y){return y.gs===x.gid&&y.si})[0];
+   if(gi.conf){E('soal',x.line,'Stimulus grup "'+x.code+'" berbeda di baris '+gi.conf+'. Samakan atau isi di satu baris saja');return}
+   if(!gi.st&&!mem){E('soal',x.line,'Stimulus grup "'+x.code+'" kosong. Isi kolom Stimulus pada salah satu baris grup');return}
+   x.q.st=gi.st||mem.st||'';if(!x.q.st)delete x.q.st;
+   if(memSi)x.q.si=memSi.si;else delete x.q.si;
   });
   need('soal','soal',m.quiz);
   if(lkBuiltin(id))m.quizV=LKQ.VER;

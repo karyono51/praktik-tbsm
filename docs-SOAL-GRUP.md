@@ -24,6 +24,14 @@ Stimulus tercetak sekali di atas deretan soal grup per bagian (PG, PG kompleks, 
 ## Data
 Tiga kolom opsional pada soal: `gs` (penanda grup), `st` (teks, maksimal 3000 karakter), `si` (gambar stimulus, `drive:<id>`). Bank soal juga memakai `gn` (urutan dalam grup). Disimpan di dalam `payload` yang sudah ada, jadi **tidak ada perubahan skema Appwrite dan tidak ada perubahan fungsi server**. Gambar stimulus memakai fungsi `foto-drive` yang sama dengan gambar soal.
 
+## Excel
+Sheet Soal (Bank soal dan LKPD) punya dua kolom di ujung: **Grup** dan **Stimulus**. Baris dengan kode Grup yang sama (misalnya G1) menjadi satu grup, berurutan menurut urutan baris. Isi Stimulus di salah satu baris (atau samakan bila diisi di beberapa baris); stimulus berbeda dalam satu grup ditolak. Kode yang sama dipakai ulang pada impor berikutnya (di Bank soal: untuk mapel yang sama; di LKPD: dalam modul yang sama), dan grup yang sudah punya gambar stimulus mempertahankan gambarnya. Ekspor menulis stimulus di baris pertama tiap grup, dan hasil ekspor bisa diimpor ulang. Kolom Grup kosong tidak mengubah keanggotaan grup soal yang sudah ada. Template Excel sudah memuat kedua kolom.
+
 ## Batasan
-- Impor Excel tidak membuat grup. Soal LKPD yang tidak berubah tetap mempertahankan grupnya saat impor. Ekspor Excel tidak membawa stimulus; aplikasi memberi tahu bila ada.
+- Gambar stimulus tidak ikut Excel; tambahkan lewat form Ubah soal (Bank soal) atau Editor LKPD.
 - Penilaian tidak berubah: tiap soal dinilai sendiri.
+
+## Analisis butir soal (butir.js)
+- **Bank soal:** tiap soal sendiri menampilkan tingkat kesukaran (p) dan daya pembeda (DB) dari semua hasil ujian yang memuat soal itu (latihan tidak dihitung), plus peringatan *Periksa kunci* bila DB negatif. Label baru muncul bila pengerja minimal 10. Filter **Statistik ujian** di daftar Bank soal: Sukar, Mudah, Daya beda rendah atau bermasalah, Belum ada data ujian. Filter ikut ke cetak soal.
+- **LKPD:** halaman Analisis per modul menambah daya pembeda per soal (kelompok atas dan bawah 27% menurut skor total kuis) dan kolomnya di Excel.
+- Ambang sama dengan Analisis sesi: p Sukar di bawah 0,30, Mudah 0,70 ke atas; DB Baik 0,40 ke atas, Cukup 0,20, Perlu revisi 0, Bermasalah di bawah 0. DB butuh minimal 6 pengerja.

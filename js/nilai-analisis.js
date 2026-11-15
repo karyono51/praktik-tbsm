@@ -13,7 +13,7 @@ var NA={tab:'data',mode:'penilaian'};
 document.head.appendChild(st)})();
 
 /* ---------- Data ---------- */
-function naList(){return filtRekap().filter(function(r){return NA.mode==='semua'||r.tipe==='Penilaian'||r.cbt}).sort(function(a,b){return a.ts-b.ts})}
+function naList(){return filt().filter(function(r){return NA.mode==='semua'||r.tipe==='Penilaian'}).sort(function(a,b){return a.ts-b.ts})}
 function naNum(r){return Number(r.score)||0}
 function naAgg(L){
  var n=L.length,sc=L.map(naNum),sum=sc.reduce(function(t,x){return t+x},0);
@@ -65,7 +65,7 @@ function naChips(){
 }
 function naView(){
  var L=naList(),a=naAgg(L);
- var h='<div class="chips" role="group" aria-label="Jenis data">'+[['penilaian','Penilaian + Ujian CBT'],['semua','Semua + Latihan']].map(function(c){
+ var h='<div class="chips" role="group" aria-label="Jenis data">'+[['penilaian','Penilaian'],['semua','Penilaian + Latihan']].map(function(c){
   return '<button type="button" data-act="na-mode" data-v="'+c[0]+'" aria-pressed="'+(NA.mode===c[0])+'">'+c[1]+'</button>'}).join('')+'</div>';
  if(!a.n)return h+'<div class="card"><p class="muted">Belum ada data untuk filter ini.</p></div>';
  var per=naPerSiswa(L),rem=naRemedial(per),dist=naDist(L);
@@ -88,7 +88,7 @@ function naXls(){
  if(!needX())return;
  var L=naList();if(!L.length){toast('Belum ada data untuk diunduh');return}
  var a=naAgg(L),per=naPerSiswa(L),rem=naRemedial(per),wb=XLSX.utils.book_new(),add=function(n,ws){XLSX.utils.book_append_sheet(wb,ws,n)};
- var rows=[['Analisis nilai uji praktik TBSM'],['Filter kelas',S.filter==='ALL'?'Semua kelas':'Kelas '+S.filter],['Jenis data',NA.mode==='semua'?'Semua + Latihan':'Penilaian + Ujian CBT'],['Tanggal ekspor',new Date().toLocaleDateString('id-ID')],['KKM',S.kkm],['Jumlah data',a.n],['Jumlah siswa',per.length],['Rata-rata',a.avg],['Nilai terendah',a.min],['Nilai tertinggi',a.max],['Persen kompeten',Math.round(a.kom*100)],['Remedial (status terakhir belum kompeten)',rem.length]];
+ var rows=[['Analisis nilai uji praktik TBSM'],['Filter kelas',S.filter==='ALL'?'Semua kelas':'Kelas '+S.filter],['Jenis data',NA.mode==='semua'?'Penilaian + Latihan':'Penilaian saja'],['Tanggal ekspor',new Date().toLocaleDateString('id-ID')],['KKM',S.kkm],['Jumlah data',a.n],['Jumlah siswa',per.length],['Rata-rata',a.avg],['Nilai terendah',a.min],['Nilai tertinggi',a.max],['Persen kompeten',Math.round(a.kom*100)],['Remedial (status terakhir belum kompeten)',rem.length]];
  add('Ringkasan',sheet(rows,[42,30]));
  var d=[['Rentang nilai','Jumlah','Persen']].concat(naDist(L).map(function(b){return [b.t,b.n,b.p]}));
  var ds=sheet(d,[16,10,10]);naPct(ds,d.length,'C');add('Distribusi',ds);

@@ -35,6 +35,14 @@ function lkaStats(m){
   var t='pg';try{t=lkqType(q)}catch(e){}
   return {i:i,q:q,t:t,pct:qrecs.length?Math.round(pts/qrecs.length*100):0,na:na,top:top,tv:tv};
  });
+ /* daya pembeda per soal: peringkat dari skor total kuis, kelompok atas dan bawah 27% */
+ if(typeof btrItem==='function'&&qrecs.length){
+  var tot=qrecs.map(function(x){var t=0;m.quiz.forEach(function(q,i){try{t+=lkqPoint(q,x.p['q'+i])}catch(e){}});return t});
+  qs.forEach(function(o){
+   var it=btrItem(qrecs.map(function(x,k){var f=0;try{f=lkqPoint(o.q,x.p['q'+o.i])}catch(e){}return {t:tot[k],f:f}}));
+   o.db=it.db;o.dbk=it.dbk;
+  });
+ }
  function cnt(list,f){return list.map(function(x,i){var c=recs.filter(function(r){return f(r.p,i)}).length;return {i:i,name:lkaName(x),pct:n?Math.round(c/n*100):0}})}
  var steps=cnt(m.steps,function(p,i){return !!p['step'+i]}),safe=cnt(m.safety,function(p,i){return !!p['safe'+i]}),checks=cnt(m.checks,function(p,i){return lkRowOk(p,i)});
  var ana=n?Math.round(recs.filter(function(r){return r.p.evidence&&r.p.cause&&r.p.conclusion}).length/n*100):0;
@@ -61,7 +69,7 @@ function lkaView(){
  var qs=s.qs.slice().sort(function(a,b){return a.pct-b.pct});
  h+='<section class="card"><h3>Soal evaluasi (paling sulit di atas)</h3>'+(s.skip?'<p class="note">'+s.skip+' pengiriman lama dilewati karena susunan soal sudah berubah.</p>':'')+
   (s.qn?qs.map(function(x){
-   var ex=TL[x.t]+(x.pct<60?' · <b>perlu dibahas</b>':'')+(x.na?' · '+x.na+' tidak dijawab':'')+(x.top!==null?' · pengecoh terbanyak '+String.fromCharCode(65+x.top)+' ('+x.tv+' siswa)':'');
+   var ex=TL[x.t]+(x.pct<60?' · <b>perlu dibahas</b>':'')+(x.na?' · '+x.na+' tidak dijawab':'')+(x.top!==null?' · pengecoh terbanyak '+String.fromCharCode(65+x.top)+' ('+x.tv+' siswa)':'')+(x.db!==undefined&&x.db!==null?' · daya beda '+btrF2(x.db)+' ('+x.dbk+')'+(x.db<0?' · <b>periksa kunci</b>':''):'');
    return lkaBar('No. '+(x.i+1)+' · '+lkaCut(x.q.q,80),x.pct,ex);
   }).join(''):'<p class="muted">Tidak ada data soal yang bisa dihitung.</p>')+'</section>';
  h+='<section class="card"><h3>Langkah prosedur</h3><p class="note">Persentase siswa yang menyelesaikan.</p>'+s.steps.map(function(x){return lkaBar((x.i+1)+'. '+lkaCut(x.name,70),x.pct)}).join('')+'</section>'+
@@ -78,7 +86,7 @@ function lkaXls(){
  var s=lkaStats(m);if(!s.n){toast('Belum ada data untuk diunduh');return}
  var wb=XLSX.utils.book_new(),A=XLSX.utils.aoa_to_sheet,add=function(n,r){XLSX.utils.book_append_sheet(wb,A(r),n)};
  add('Ringkasan',[['Modul',m.title],['Kelas',m.kelas],['Mode data',LKA.mode],['Jumlah siswa',s.n],['Rata-rata',s.avg],['Rata-rata praktik',s.prak],['Rata-rata teori',s.teori],['KKM',s.kk],['Kompeten (%)',s.kom]]);
- add('Soal',[['No','Tipe','Soal','% benar','Tidak dijawab']].concat(s.qs.map(function(x){return [x.i+1,x.t,String(x.q.q||''),x.pct,x.na]})));
+ add('Soal',[['No','Tipe','Soal','% benar','Tidak dijawab','Daya beda','Ket. daya beda']].concat(s.qs.map(function(x){return [x.i+1,x.t,String(x.q.q||''),x.pct,x.na,x.db===undefined||x.db===null?'':+x.db.toFixed(3),x.dbk||'']})));
  add('Langkah',[['Jenis','No','Butir','% terpenuhi']].concat(
   s.steps.map(function(x){return ['Langkah',x.i+1,x.name,x.pct]}),s.safe.map(function(x){return ['K3',x.i+1,x.name,x.pct]}),s.checks.map(function(x){return ['Komponen',x.i+1,x.name,x.pct]}),[['Analisis','','Bukti, penyebab, kesimpulan',s.ana]]));
  add('Siswa',[['Nama','Nilai','Praktik','Teori','Status','Tanggal']].concat(s.recs.slice().sort(function(a,b){return a.r.score-b.r.score}).map(function(x){return [x.r.siswa||'',x.r.score,x.r.practice||0,x.r.theory||0,x.r.score>=s.kk?'Kompeten':'Belum kompeten',tgl(x.r.ts)]}),[[],['Belum mengumpulkan']],s.belum.map(function(u){return [u.nama]})));

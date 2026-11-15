@@ -7,12 +7,12 @@ var BSIO={imp:null,busy:false,MAX:500};
 
 /* ---------- Pemetaan kepala kolom ---------- */
 var BSIO_HEAD=['ID','Jenis','Mapel','Topik','Kelas','Peruntukan','Status','Soal','A','B','C','D','E','Kunci','Label 1','Label 2',
- 'Pernyataan 1','Kunci 1','Pernyataan 2','Kunci 2','Pernyataan 3','Kunci 3','Pernyataan 4','Kunci 4','Pernyataan 5','Kunci 5','Pernyataan 6','Kunci 6','Pembahasan'];
+ 'Pernyataan 1','Kunci 1','Pernyataan 2','Kunci 2','Pernyataan 3','Kunci 3','Pernyataan 4','Kunci 4','Pernyataan 5','Kunci 5','Pernyataan 6','Kunci 6','Pembahasan','Grup','Stimulus'];
 var BSIO_HB={};
 (function(){
  var H={id:['id','kodesoal','kode'],tipe:['jenis','tipe','jenissoal'],mapel:['mapel','matapelajaran','mapelajaran'],topik:['topik'],kelas:['kelas'],
   tujuan:['peruntukan','tujuan'],status:['status'],q:['soal','teksoal','pertanyaan'],kunci:['kunci','kuncijawaban'],lab0:['label1','pilihanpertama'],
-  lab1:['label2','pilihankedua'],bahas:['pembahasan','bahas']};
+  lab1:['label2','pilihankedua'],bahas:['pembahasan','bahas'],gs:['grup','kodegrup'],st:['stimulus','teksstimulus']};
  Object.keys(H).forEach(function(c){H[c].forEach(function(a){BSIO_HB[a]=c})});
  for(var i=0;i<5;i++){var L=String.fromCharCode(97+i);BSIO_HB[L]='o'+i;BSIO_HB['pilihan'+L]='o'+i}
  for(var j=1;j<=6;j++){BSIO_HB['pernyataan'+j]='p'+(j-1);BSIO_HB['kunci'+j]='k'+(j-1)}
@@ -34,16 +34,22 @@ function bsioRow(s){
   for(i=0;i<6;i++){var x=(s.rows||[])[i];r.push(x?x[0]:'',x?(x[1]?lab[0]:lab[1]):'')}
  }else{r.push('','');for(i=0;i<6;i++)r.push('','')}
  r.push(s.bahas||'');
+ r.push(s.gs||'',s.gs&&s.st&&!bsioPrevSama(s)?s.st:'');
  return r;
 }
+/* stimulus ditulis hanya di baris pertama tiap grup pada daftar yang sedang diekspor */
+var BSIO_SEEN=null;
+function bsioPrevSama(s){if(!BSIO_SEEN)return false;if(BSIO_SEEN[s.gs])return true;BSIO_SEEN[s.gs]=1;return false}
 function bsioExport(){
  if(!bsioOk())return;
  if(typeof needX==='function'&&!needX())return;
  var list=bsFiltered();
  if(!list.length){toast('Tidak ada soal untuk diekspor');return}
+ BSIO_SEEN={};
  var aoa=[BSIO_HEAD].concat(list.map(bsioRow));
+ BSIO_SEEN=null;
  var wb=XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb,sheet(aoa,[16,13,18,22,8,18,9,60,26,26,26,26,26,8,10,10,34,10,34,10,34,10,34,10,34,10,34,10,50]),'Soal');
+ XLSX.utils.book_append_sheet(wb,sheet(aoa,[16,13,18,22,8,18,9,60,26,26,26,26,26,8,10,10,34,10,34,10,34,10,34,10,34,10,34,10,50,14,60]),'Soal');
  XLSX.utils.book_append_sheet(wb,sheet(bsioHelp(),[16,110]),'Petunjuk');
  XLSX.writeFile(wb,'bank-soal-tka-'+ymd(Date.now())+'.xlsx');
  toast(list.length+' soal diekspor');
@@ -63,6 +69,7 @@ function bsioHelp(){
   ['Label 1, Label 2','PG kategori saja. Pilih satu pasangan: Benar dan Salah, atau Sesuai dan Tidak Sesuai (kosong = Benar dan Salah).'],
   ['Pernyataan 1-6, Kunci 1-6','PG kategori saja. Isi 3 sampai 6 pernyataan. Kunci berisi Label 1 atau Label 2 (atau angka 1 / 2).'],
   ['Pembahasan','Boleh kosong.'],
+  ['Grup, Stimulus','Soal grup (opsional). Baris dengan kode Grup yang sama (misalnya G1) berbagi satu stimulus, dan soalnya berurutan menurut urutan baris. Isi kolom Stimulus pada salah satu baris grup (cukup satu, atau samakan bila diisi di beberapa baris). Kode yang sama dipakai ulang pada impor berikutnya untuk mapel yang sama memperbarui grup itu. Kolom Grup kosong tidak mengubah keanggotaan grup soal yang sudah ada. Gambar stimulus tidak ikut Excel: tambahkan lewat form Ubah soal.'],
   ['Catatan','Soal baru yang jenis, mapel, dan teksnya sama persis dengan soal yang sudah ada dilewati, tidak digandakan. Maksimal '+BSIO.MAX+' baris per impor. Hapus baris contoh sebelum impor. File hasil Ekspor Excel bisa diimpor ulang.']];
 }
 async function bsioTemplate(){
@@ -160,9 +167,20 @@ function bsioBuild(r,tipe){
 }
 /* Memproses baris hasil baca Excel (sudah dipetakan ke nama kolom internal). Tanpa efek samping. */
 function bsioProcess(rows){
- var res={add:[],upd:[],bw:[],err:[],dup:0},all=bsSoalAll(),have={},ownIds={},seenId={},seenKey={},me=(S.user&&S.user.nama?S.user.nama:'').slice(0,64);
+ var res={add:[],upd:[],bw:[],err:[],dup:0},all=bsSoalAll(),have={},ownIds={},seenId={},seenKey={},me=(S.user&&S.user.nama?S.user.nama:'').slice(0,64),GR={},gcnt={},gbase={};
  all.forEach(function(s){have[[s.tipe,bsioNorm(s.mapel),bsioNorm(s.q)].join('|')]=1});
  BS.D.soal.forEach(function(d){if(!BS_IDX[d.id])ownIds[d.id]=d});
+ /* grup: kode di file -> penanda grup (dipakai ulang bila sudah ada di Bank soal), teks stimulus, dan konflik antarbaris */
+ function gsDari(code,mapel){
+  if(BS.D.soal.some(function(d){return d.gs===code&&!BS_IDX[d.id]}))return code;
+  return 'gi-'+bsioKey(mapel).slice(0,20)+'-'+bsioKey(code).slice(0,20);
+ }
+ var gMax=(window.SGR&&SGR.MAXT)||3000;
+ rows.forEach(function(r,idx){
+  var code=bsioTxt(r.gs).slice(0,60);if(!code)return;
+  var g=gsDari(code,bsioTxt(r.mapel).slice(0,64)),t=bsioTxt(r.st),x=GR[g]||(GR[g]={st:'',line:idx+2,conf:0});
+  if(t){if(x.st&&x.st!==t)x.conf=idx+2;else if(!x.st)x.st=t.slice(0,gMax)}
+ });
  rows.forEach(function(r,idx){
   var line=idx+2,id=bsioTxt(r.id);
   function bad(m){res.err.push({line:line,msg:m})}
@@ -188,6 +206,20 @@ function bsioProcess(rows){
   var b=bsioBuild(r,tipe);if(b.err)return bad(b.err);
   var f=b.f,ex=id?ownIds[id]:null;
   f.kelas=kelas;f.tujuan=tuj;
+  var code=bsioTxt(r.gs).slice(0,60);
+  if(code){
+   var g=gsDari(code,f.mapel),gi=GR[g],mem=BS.D.soal.filter(function(d){return d.gs===g&&!BS_IDX[d.id]&&(d.st||d.si)})[0],memSi=BS.D.soal.filter(function(d){return d.gs===g&&!BS_IDX[d.id]&&d.si})[0];
+   if(gi.conf)return bad('Stimulus grup "'+code+'" berbeda di baris '+gi.conf+'. Samakan atau isi di satu baris saja');
+   if(!gi.st&&!(mem&&(mem.st||mem.si)))return bad('Stimulus grup "'+code+'" kosong. Isi kolom Stimulus pada salah satu baris grup');
+   f.gs=g;f.st=gi.st||(mem&&mem.st)||'';
+   if(!f.st)delete f.st;
+   if(memSi)f.si=memSi.si;
+   if(ex&&ex.gs===g)f.gn=ex.gn||1;
+   else{
+    if(gbase[g]===undefined)gbase[g]=window.sgrGnBaru?sgrGnBaru(g,ex&&ex.id):1;
+    f.gn=gbase[g]+(gcnt[g]=(gcnt[g]===undefined?0:gcnt[g]+1));
+   }
+  }
   if(ex){
    var o=Object.assign({},ex);
    delete o.opts;delete o.kunci;delete o.rows;delete o.lab;
@@ -234,7 +266,7 @@ async function bsioApply(){
  BSIO.busy=true;render();
  var pend=0,i,jobs=m.add.concat(m.upd);
  try{
-  for(i=0;i<jobs.length;i++){var ok=await bsPut('soal',jobs[i]);if(!ok&&Cloud.on)pend++}
+  for(i=0;i<jobs.length;i++){var ok=await bsPut('soal',jobs[i]);if(!ok&&Cloud.on)pend++;if(jobs[i].gs&&window.sgrSebar)sgrSebar(jobs[i])}
   for(i=0;i<m.bw.length;i++){var ok2=await bsOverride(m.bw[i].id,m.bw[i].patch);if(!ok2&&Cloud.on)pend++}
  }finally{BSIO.busy=false;BSIO.imp=null;BS.all=null}
  toast((m.add.length+m.upd.length+m.bw.length)+' soal diproses'+(pend?' ('+pend+' menunggu terkirim)':''));

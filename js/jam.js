@@ -8,8 +8,8 @@ var Jam=(function(){
  function pn(){return (window.performance&&performance.now)?performance.now():0}
  o.now=function(){
   var d=Date.now()+o.off;
-  if(o.ok){var m=o.base+(pn()-o.pbase);if(m>d)d=m}
-  return Math.round(d); /* harus bilangan bulat: atribut ts di Appwrite bertipe integer */
+  if(o.ok){var m=o.base+(pn()-o.pbase);if(m>d)return m}
+  return d;
  };
  /* sMs: waktu server (ms epoch) yang dicap kira-kira di tengah permintaan t0..t1 (jam HP) */
  o.sampleMs=function(sMs,t0,t1){

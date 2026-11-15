@@ -9,7 +9,7 @@
    Aksi (body JSON, semua butuh login):
      mulai    {sesiId, token}                  siswa: mulai atau lanjutkan ujian. Server memilih soal, mengacak, memeriksa
                                                jadwal, kelas, sekolah, dan token. -> {rid,start,now,dur,ids,oo,ans,...}
-     simpan   {rid, ans, cur, pindah, rg, log}      siswa: simpan jawaban sementara. -> {ext,stop,pb,now,start}
+     simpan   {rid, ans, cur, pindah, rg}      siswa: simpan jawaban sementara. -> {ext,stop,pb,now,start}
      kirim    {rid, ans, pindah}               siswa: akhiri ujian, server menilai. -> {hasil, kc}
      kirim    {mode:'latihan', ids, oo, ans}   siswa: simpan hasil latihan yang dinilai server.
      periksa  {qid, ans}                       siswa: periksa satu soal latihan. -> {frac, kc}
@@ -292,12 +292,6 @@ async function mulai(me, body) {
     return resumeResp(ex, s, now);
   }
   sesiBoleh(s, me.akun, now);
-  if (s.exb) {
-    /* sesi Wajib Exambro: UserAgent (header atau kiriman klien) harus memuat kata khusus. Ini penghalang, bukan jaminan: UserAgent bisa dipalsukan. */
-    const kata = String((typeof process !== 'undefined' && process.env && process.env.EXAMBRO_UA) || 'TBSM-EXAM').toLowerCase();
-    const ua = (String(body._ua || '') + ' ' + String(body.ua || '').slice(0, 400)).toLowerCase();
-    if (ua.indexOf(kata) < 0) throw new Fail('Ujian ini wajib dikerjakan lewat aplikasi Exambro.', 403);
-  }
   if (s.tok) {
     salahCek(me.akun.$id);
     const tk = await tokenSesi(sesiId);
@@ -359,8 +353,7 @@ async function simpan(me, body) {
     const keep = Object.assign({}, p.ans || {}, ans);          // jawaban hanya bertambah atau berubah, tidak hilang karena klien lama
     ids.forEach((id) => { if (body.ans && Object.prototype.hasOwnProperty.call(body.ans, id) && body.ans[id] === null) delete keep[id]; });
     const rg = {}; if (body.rg && typeof body.rg === 'object') ids.forEach((id) => { if (body.rg[id]) rg[id] = 1; });
-    const log = Array.isArray(body.log) ? body.log.slice(-40).map((e) => ({ t: Number(e && e.t) || 0, k: ['hidden', 'blur', 'split', 'fs', 'print'].includes(e && e.k) ? e.k : 'hidden', d: Math.max(0, Math.min(86400, Number(e && e.d) || 0)) })) : (p.log || []);
-    const next = Object.assign({}, p, { log, ans: keep, cur: Math.max(0, Math.min(ids.length - 1, Number(body.cur) || 0)), pindah: Math.max(p.pindah || 0, Math.min(999, Number(body.pindah) || 0)), rg });
+    const next = Object.assign({}, p, { ans: keep, cur: Math.max(0, Math.min(ids.length - 1, Number(body.cur) || 0)), pindah: Math.max(p.pindah || 0, Math.min(999, Number(body.pindah) || 0)), rg });
     await updateDoc('soal_run', run.$id, { payload: JSON.stringify(next) });
   }
   return { ok: true, ext: st.ext, stop: st.stop, pb: st.pb, now, start: st.start };
@@ -512,7 +505,6 @@ export async function cbtHandle({ req, res, error, body }) {
     const callerId = req.headers['x-appwrite-user-id'];
     if (!callerId) return res.json({ ok: false, error: 'Harus login.' }, 401);
     KEY = req.headers['x-appwrite-key'] || '';
-    body._ua = String(req.headers['user-agent'] || '');
     const me = await whoami(callerId);
     switch (body.action) {
       case 'mulai': return res.json(await mulai(me, body));
