@@ -58,10 +58,10 @@ function bsioHelp(){
   ['Peruntukan','Latihan, Ujian, atau Latihan dan ujian (kosong = Latihan dan ujian).'],
   ['Status','Aktif atau Nonaktif (kosong = Aktif untuk soal baru, tidak berubah untuk soal yang diperbarui).'],
   ['Soal','Wajib. Teks soal.'],
-  ['A sampai E','Pilihan jawaban untuk PG dan PG kompleks. PG minimal 2 pilihan, PG kompleks minimal 3, maksimal 5. Kolom kosong dilewati.'],
-  ['Kunci','PG: satu huruf, misalnya B. PG kompleks: beberapa huruf, misalnya A,C. Huruf mengikuti kolom A sampai E.'],
-  ['Label 1, Label 2','PG kategori saja. Dua pilihan jawaban, kosong = Benar dan Salah. Keduanya harus berbeda.'],
-  ['Pernyataan 1-6, Kunci 1-6','PG kategori saja. Minimal 2 pernyataan. Kunci berisi Label 1 atau Label 2 (atau angka 1 / 2).'],
+  ['A sampai E','Pilihan jawaban untuk PG dan PG kompleks. Wajib 5 pilihan (A sampai E), semuanya terisi.'],
+  ['Kunci','PG: tepat satu huruf, misalnya B. PG kompleks: minimal dua huruf, misalnya A,C. Huruf mengikuti kolom A sampai E.'],
+  ['Label 1, Label 2','PG kategori saja. Pilih satu pasangan: Benar dan Salah, atau Sesuai dan Tidak Sesuai (kosong = Benar dan Salah).'],
+  ['Pernyataan 1-6, Kunci 1-6','PG kategori saja. Isi 3 sampai 6 pernyataan. Kunci berisi Label 1 atau Label 2 (atau angka 1 / 2).'],
   ['Pembahasan','Boleh kosong.'],
   ['Catatan','Soal baru yang jenis, mapel, dan teksnya sama persis dengan soal yang sudah ada dilewati, tidak digandakan. Maksimal '+BSIO.MAX+' baris per impor. Hapus baris contoh sebelum impor. File hasil Ekspor Excel bisa diimpor ulang.']];
 }
@@ -83,9 +83,9 @@ function bsioTemplateFallback(){
  if(typeof needX==='function'&&!needX())return;
  var e=function(a){while(a.length<BSIO_HEAD.length)a.push('');return a};
  var ex=[
-  e(['','PG','Dasar TBSM','Sistem pengapian','X','Latihan dan ujian','Aktif','Busi berfungsi untuk ...','Memutar poros engkol','Memercikkan api pada campuran bahan bakar','Mengalirkan oli','','','B']),
-  e(['','PG kompleks','Dasar TBSM','Sistem pelumasan','XI','Latihan','Aktif','Pilih semua fungsi oli mesin.','Melumasi','Mendinginkan','Membersihkan','Menambah volume bahan bakar','','A,B,C']),
-  (function(){var r=e(['','PG kategori','Dasar TBSM','K3','Semua','Ujian','Aktif','Tentukan benar atau salah pernyataan berikut.','','','','','','','Benar','Salah','Helm wajib dipakai saat praktik uji jalan','Benar','Oli bekas boleh dibuang ke selokan','Salah']);r[28]='Pembahasan boleh dikosongkan.';return r})()
+  e(['','PG','Dasar TBSM','Sistem pengapian','X','Latihan dan ujian','Aktif','Busi berfungsi untuk ...','Memutar poros engkol','Memercikkan api pada campuran bahan bakar','Mengalirkan oli','Mendinginkan mesin','Menyaring udara','B']),
+  e(['','PG kompleks','Dasar TBSM','Sistem pelumasan','XI','Latihan','Aktif','Pilih semua fungsi oli mesin.','Melumasi','Mendinginkan','Membersihkan','Menambah volume bahan bakar','Mengurangi gesekan','A,B,C,E']),
+  (function(){var r=e(['','PG kategori','Dasar TBSM','K3','Semua','Ujian','Aktif','Tentukan benar atau salah pernyataan berikut.','','','','','','','Benar','Salah','Helm wajib dipakai saat praktik uji jalan','Benar','Oli bekas boleh dibuang ke selokan','Salah','Celah busi mengikuti manual servis','Benar']);r[28]='Pembahasan boleh dikosongkan.';return r})()
  ];
  book([['Soal',[BSIO_HEAD].concat(ex),[16,13,18,22,8,18,9,60,26,26,26,26,26,8,10,10,34,10,34,10,34,10,34,10,34,10,34,10,50]],
   ['Petunjuk',bsioHelp(),[16,110]]],'Template_Impor_Bank_Soal');
@@ -130,8 +130,9 @@ function bsioBuild(r,tipe){
  if(!f.q)return {err:'Soal wajib diisi'};
  if(f.q.length>5000)return {err:'Teks soal terlalu panjang (maksimal 5000 karakter)'};
  if(tipe==='kategori'){
-  var l0=bsioTxt(r.lab0)||'Benar',l1=bsioTxt(r.lab1)||'Salah',rows=[];
-  if(bsioKey(l0)===bsioKey(l1))return {err:'Label 1 dan Label 2 harus berbeda'};
+  var l0=bsioTxt(r.lab0)||'Benar',l1=bsioTxt(r.lab1)||'Salah',rows=[],li=bsLabIdx([l0,l1]);
+  if(li<0)return {err:'Label harus Benar dan Salah, atau Sesuai dan Tidak Sesuai'};
+  l0=BS_LABS[li][0];l1=BS_LABS[li][1];
   for(i=0;i<6;i++){
    var t=bsioTxt(r['p'+i]);if(!t)continue;
    var kk=bsioKey(r['k'+i]),val;
@@ -140,20 +141,20 @@ function bsioBuild(r,tipe){
    else return {err:'Kunci '+(i+1)+' harus berisi "'+l0+'" atau "'+l1+'"'};
    rows.push([t,val]);
   }
-  if(rows.length<2)return {err:'PG kategori butuh minimal 2 pernyataan'};
+  if(rows.length<3)return {err:'PG kategori butuh 3 sampai 6 pernyataan'};
   f.lab=[l0,l1];f.rows=rows;
   return {f:f};
  }
  var map=[],opts=[];
  for(i=0;i<5;i++){var o=bsioTxt(r['o'+i]);if(o){map[i]=opts.length;opts.push(o)}}
- if(opts.length<(tipe==='pg'?2:3))return {err:(tipe==='pg'?'PG butuh minimal 2 pilihan':'PG kompleks butuh minimal 3 pilihan')};
+ if(opts.length<5)return {err:(tipe==='pg'?'PG':'PG kompleks')+' wajib 5 pilihan (A sampai E), semuanya terisi'};
  var ks=bsioLetters(r.kunci).map(function(x){return x.charCodeAt(0)-65});
  if(!ks.length)return {err:'Kunci wajib diisi (huruf A sampai E)'};
  var bad=ks.filter(function(x){return map[x]===undefined});
  if(bad.length)return {err:'Kunci '+bad.map(bsLtr).join(',')+' menunjuk pilihan yang kosong'};
  ks=ks.map(function(x){return map[x]}).sort(function(a,b){return a-b});
  if(tipe==='pg'){if(ks.length!==1)return {err:'PG hanya boleh satu kunci'};f.kunci=ks[0]}
- else f.kunci=ks;
+ else{if(ks.length<2)return {err:'PG kompleks butuh minimal 2 kunci'};f.kunci=ks}
  f.opts=opts;
  return {f:f};
 }

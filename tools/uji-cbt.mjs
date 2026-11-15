@@ -55,7 +55,7 @@ function siapkan() {
     col('akun').set('A' + i, { $id: 'A' + i, email: 's' + i + '@x.id', nama: 'Siswa ' + i, kelas: i < N - 1 ? 'XI-A' : 'XI-B', sekolah: 'MEDINA', aktif: true });
   }
   for (let i = 0; i < 30; i++) {
-    col('banksoal').set('q' + i, { $id: 'q' + i, aktif: true, tujuan: 'ujian', payload: JSON.stringify({ tipe: 'pg', q: 'Soal ' + i, opts: ['a', 'b', 'c', 'd'], mapel: 'M' }) });
+    col('banksoal').set('q' + i, { $id: 'q' + i, aktif: true, tujuan: 'ujian', payload: JSON.stringify({ tipe: 'pg', q: 'Soal ' + i, opts: ['a', 'b', 'c', 'd', 'e'], mapel: 'M' }) });
     col('soal_kunci').set('q' + i, { $id: 'q' + i, payload: JSON.stringify({ kunci: i % 4, bahas: '' }) });
   }
   col('soal_sesi').set('S1', { $id: 'S1', aktif: true, payload: JSON.stringify({ judul: 'UH', durasi: 60, jumlah: 20, kelas: 'XI-A', sekolah: 'MEDINA', tok: true, acak: true, tampil: true }) });
@@ -127,6 +127,41 @@ cek('payload hasil tetap utuh (jawaban dan urutan soal)', JSON.parse(h0.payload)
 r = await call('g1', { action: 'nilaiUlang', sesiId: 'S3' }); cek('nilai ulang kedua kali stabil (tidak ada perubahan)', r.body.n === 0);
 col('banksoal').delete(q1);   // soal dihapus setelah ujian: nilai siswa tidak boleh turun karenanya
 r = await call('g1', { action: 'nilaiUlang', sesiId: 'S3' }); cek('hasil yang soalnya hilang dilewati, nilai tidak berubah', r.body.n === 0 && r.body.lewat === 6 && h0.score === 90, JSON.stringify(r.body));
+
+console.log('Aturan bentuk soal TKA dan nilai PG kategori');
+siapkan();
+const tambah = (id, p) => col('banksoal').set(id, { $id: id, aktif: true, tujuan: 'ujian', payload: JSON.stringify(Object.assign({ q: 'Soal ' + id, mapel: 'M' }, p)) });
+tambah('q50', { tipe: 'pg', opts: ['a', 'b', 'c', 'd'] });                                   // 4 pilihan: tidak memenuhi
+tambah('q51', { tipe: 'kompleks', opts: ['a', 'b', 'c', 'd', 'e'] });                       // 1 kunci: tidak memenuhi
+tambah('q52', { tipe: 'kompleks', opts: ['a', 'b', 'c', 'd', 'e'] });                       // 2 kunci: memenuhi
+tambah('q53', { tipe: 'kategori', rows: [['p1'], ['p2'], ['p3']], lab: ['Benar', 'Salah'] }); // 3 pernyataan: memenuhi
+tambah('q54', { tipe: 'kategori', rows: [['p1'], ['p2']], lab: ['Benar', 'Salah'] });         // 2 pernyataan: tidak memenuhi
+tambah('q55', { tipe: 'kategori', rows: [['p1'], ['p2'], ['p3']], lab: ['Setuju', 'Tidak'] }); // label di luar dua pasang: tidak memenuhi
+tambah('q56', { tipe: 'kategori', rows: [['p1'], ['p2'], ['p3']], lab: ['Sesuai', 'Tidak Sesuai'] }); // pasangan kedua: memenuhi
+const kunciSoal = { q50: { kunci: 0 }, q51: { kunci: [0] }, q52: { kunci: [0, 1] }, q53: { rk: [true, false, true] }, q54: { rk: [true, false] }, q55: { rk: [true, false, true] }, q56: { rk: [true, false, true] } };
+Object.keys(kunciSoal).forEach((id) => col('soal_kunci').set(id, { $id: id, payload: JSON.stringify(kunciSoal[id]) }));
+col('soal_sesi').set('S9', { $id: 'S9', aktif: true, payload: JSON.stringify({ judul: 'Aturan', durasi: 30, kelas: 'ALL', pilih: 'manual', ids: ['q50', 'q51', 'q52', 'q53', 'q54', 'q55', 'q56'], acak: false }) });
+r = await call('u10', { action: 'mulai', sesiId: 'S9' });
+cek('sesi manual: hanya soal yang memenuhi aturan dipakai', r.status === 200 && r.body.ids.join() === 'q52,q53,q56', r.body.ids && r.body.ids.join());
+col('soal_sesi').set('S7', { $id: 'S7', aktif: true, payload: JSON.stringify({ judul: 'Otomatis', durasi: 30, kelas: 'ALL', jumlah: 100, acak: true }) });
+r = await call('u11', { action: 'mulai', sesiId: 'S7' });
+cek('sesi otomatis: soal yang belum memenuhi aturan tidak masuk pool', r.status === 200 && r.body.ids.length === 33 && !['q50', 'q51', 'q54', 'q55'].some((x) => r.body.ids.indexOf(x) > -1), r.body.ids && r.body.ids.length);
+col('soal_sesi').set('S8', { $id: 'S8', aktif: true, payload: JSON.stringify({ judul: 'Kategori', durasi: 30, kelas: 'ALL', pilih: 'manual', ids: ['q53'], acak: false }) });
+const kat = [['semua benar', [0, 1, 0], 100], ['2 benar, 1 salah (salah mengurangi benar)', [0, 1, 1], 33], ['2 benar, 1 kosong (kosong tidak mengurangi)', [0, 1, null], 67], ['semua salah (nilai tidak negatif)', [1, 0, 1], 0], ['1 benar, 2 salah (nilai tidak negatif)', [0, 0, 1], 0]];
+for (let i = 0; i < kat.length; i++) {
+  const u = 'u' + (20 + i);
+  const m = await call(u, { action: 'mulai', sesiId: 'S8' });
+  const k = await call(u, { action: 'kirim', rid: m.body.rid, ans: { q53: kat[i][1] }, pindah: 0 });
+  cek('kategori: ' + kat[i][0] + ' = ' + kat[i][2], k.status === 200 && k.body.hasil.score === kat[i][2], k.body.hasil ? k.body.hasil.score : JSON.stringify(k.body));
+}
+col('soal_sesi').set('S6', { $id: 'S6', aktif: true, payload: JSON.stringify({ judul: 'Kompleks', durasi: 30, kelas: 'ALL', pilih: 'manual', ids: ['q52'], acak: false }) });
+const kom = [['kunci lengkap', [0, 1], 100], ['1 kunci benar saja', [0, undefined], 50], ['2 benar, 1 salah', [0, 1, 2], 50], ['1 benar, 1 salah (nilai tidak negatif)', [0, 3], 0]];
+for (let i = 0; i < kom.length; i++) {
+  const u = 'u' + (30 + i);
+  const m = await call(u, { action: 'mulai', sesiId: 'S6' });
+  const k = await call(u, { action: 'kirim', rid: m.body.rid, ans: { q52: kom[i][1].filter((x) => x !== undefined) }, pindah: 0 });
+  cek('kompleks: ' + kom[i][0] + ' = ' + kom[i][2], k.status === 200 && k.body.hasil.score === kom[i][2], k.body.hasil ? k.body.hasil.score : JSON.stringify(k.body));
+}
 
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);

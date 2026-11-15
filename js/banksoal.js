@@ -172,7 +172,7 @@ function bsSoalAll(){
 function bsSoalById(id){return bsSoalAll().filter(function(q){return q.id===id})[0]}
 function bsMapelList(){var m={};bsSoalAll().forEach(function(q){if(q.mapel)m[q.mapel]=1});return Object.keys(m).sort()}
 function bsPool(mode,kelas){
- return bsSoalAll().filter(function(q){return q.aktif&&(q.tujuan==='keduanya'||q.tujuan===mode)&&(!q.kelas||!kelas||q.kelas===kelas)});
+ return bsSoalAll().filter(function(q){return q.aktif&&(q.tujuan==='keduanya'||q.tujuan===mode)&&!(mode==='ujian'&&bsAturanSalah(q))&&(!q.kelas||!kelas||q.kelas===kelas)});
 }
 function bsOverride(id,patch){
  var b=BS_IDX[id],o=BS.D.soal.filter(function(x){return x.id===id})[0];
@@ -180,6 +180,21 @@ function bsOverride(id,patch){
  Object.assign(o,patch);return bsPut('soal',o);
 }
 function bsShuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+/* Aturan bentuk soal TKA (soal bawaan dikecualikan):
+   PG sederhana: 5 pilihan (A sampai E), tepat 1 kunci.
+   PG kompleks (MCMA): 5 pilihan, kunci minimal 2.
+   PG kategori: 3 sampai 6 pernyataan, label Benar/Salah atau Sesuai/Tidak Sesuai.
+   Soal sendiri yang belum memenuhi aturan hanya dipakai untuk latihan (tidak masuk pool ujian). */
+var BS_LABS=[['Benar','Salah'],['Sesuai','Tidak Sesuai']];
+function bsLabIdx(l){var a=String(l&&l[0]||'').trim().toLowerCase(),b=String(l&&l[1]||'').trim().toLowerCase();for(var i=0;i<BS_LABS.length;i++)if(BS_LABS[i][0].toLowerCase()===a&&BS_LABS[i][1].toLowerCase()===b)return i;return -1}
+function bsAturanSalah(q){
+ if(!q||q.bawaan)return '';
+ if(q.tipe==='kategori'){var n=(q.rows||[]).length;if(n<3||n>6)return 'pernyataan harus 3 sampai 6';if(bsLabIdx(q.lab||['Benar','Salah'])<0)return 'label harus Benar/Salah atau Sesuai/Tidak Sesuai';return ''}
+ if((q.opts||[]).length!==5)return 'pilihan harus 5 (A sampai E)';
+ if(q.tipe==='kompleks'&&Array.isArray(q.kunci)&&q.kunci.length<2)return 'kunci minimal 2';
+ return '';
+}
+function bsTujEf(q){return bsAturanSalah(q)&&q.tujuan!=='latihan'?'latihan':q.tujuan}
 function bsFrac(q,a){
  if(a==null||!bsHasKey(q))return 0;
  if(q.tipe==='pg')return a===q.kunci?1:0;
@@ -189,9 +204,9 @@ function bsFrac(q,a){
   return Math.max(0,(b-s)/q.kunci.length);
  }
  if(q.tipe==='kategori'){
-  if(!Array.isArray(a))return 0;var n=0;
-  q.rows.forEach(function(r,i){if(a[i]===(r[1]?0:1))n++});
-  return n/q.rows.length;
+  if(!Array.isArray(a))return 0;var b=0,sl=0;
+  q.rows.forEach(function(r,i){var v=a[i];if(v!==0&&v!==1)return;if(v===(r[1]?0:1))b++;else sl++});
+  return Math.max(0,(b-sl)/q.rows.length);
  }
  return 0;
 }
@@ -427,11 +442,11 @@ function bsFiltered(){
 function bsBankList(){
  var all=bsFiltered(),sh=all.slice(0,BS.flt.n);
  return sh.map(function(s){
-  var op=BS.open[s.id];
-  return '<div class="card"><div class="row"><span class="pill plain">'+esc(s.mapel||'')+'</span><span class="pill plain">'+BS_TIPE[s.tipe]+'</span>'+(s.bawaan?'<span class="pill plain">Bawaan</span>':'<span class="pill">Soal sendiri</span>')+(s.aktif?'':'<span class="pill bad">Nonaktif</span>')+'</div>'+
+  var op=BS.open[s.id],ar=bsAturanSalah(s);
+  return '<div class="card"><div class="row"><span class="pill plain">'+esc(s.mapel||'')+'</span><span class="pill plain">'+BS_TIPE[s.tipe]+'</span>'+(s.bawaan?'<span class="pill plain">Bawaan</span>':'<span class="pill">Soal sendiri</span>')+(s.aktif?'':'<span class="pill bad">Nonaktif</span>')+(ar?'<span class="pill warn">Belum sesuai aturan</span>':'')+'</div>'+
    '<p class="bs-qs">'+esc(String(s.q).slice(0,150))+(String(s.q).length>150?'…':'')+'</p>'+
    (s.topik?'<p class="note">Topik: '+esc(s.topik)+(s.kelas?' · Kelas '+esc(s.kelas):'')+'</p>':'')+
-   '<label class="f">Peruntukan<select data-bs="tuj" data-q="'+s.id+'">'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(s.tujuan===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label>'+
+   (ar?'<p class="note">Belum sesuai aturan ('+ar+'), hanya dipakai untuk latihan. Ubah soal agar bisa masuk ujian.</p>':'')+'<label class="f">Peruntukan<select data-bs="tuj" data-q="'+s.id+'">'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(s.tujuan===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label>'+
    '<div class="row"><button type="button" class="btn small" data-bs="lihat" data-q="'+s.id+'">'+(op?'Tutup':'Lihat')+'</button><button type="button" class="btn small" data-bs="aktif" data-q="'+s.id+'">'+(s.aktif?'Nonaktifkan':'Aktifkan')+'</button>'+
    '<button type="button" class="btn small" data-bs="'+(s.bawaan?'salin':'ubah')+'" data-q="'+s.id+'">'+(s.bawaan?'Salin dan ubah':'Ubah')+'</button>'+
    (!s.bawaan?'<button type="button" class="btn small danger" data-bs="hapussoal" data-q="'+s.id+'">Hapus</button>':'')+'</div>'+
@@ -440,7 +455,7 @@ function bsBankList(){
 }
 function bsViewBank(){
  var all=bsSoalAll(),c={latihan:0,ujian:0,keduanya:0,off:0};
- all.forEach(function(s){if(!s.aktif)c.off++;else c[s.tujuan]++});
+ all.forEach(function(s){if(!s.aktif)c.off++;else c[bsTujEf(s)]++});
  var f=BS.flt,mp=bsMapelList();
  return '<div class="stats"><div class="card"><span class="label">Total</span><b class="mono">'+all.length+'</b></div><div class="card"><span class="label">Latihan</span><b class="mono">'+(c.latihan+c.keduanya)+'</b></div><div class="card"><span class="label">Ujian</span><b class="mono">'+(c.ujian+c.keduanya)+'</b></div></div>'+
   '<button type="button" class="btn primary" data-bs="baru">Tambah soal sendiri</button>'+
@@ -454,7 +469,7 @@ function bsViewBank(){
 function bsNewForm(s){
  var f={id:s?s.id:'',tipe:s?s.tipe:'pg',mapel:s?s.mapel:'',topik:s?(s.topik||''):'',kelas:s?(s.kelas||''):'',tujuan:s?s.tujuan:'keduanya',q:s?s.q:'',opts:['','','','',''],kunci:[],rows:[],lab:['Benar','Salah'],bahas:s?(s.bahas||''):''};
  if(s&&s.opts){s.opts.forEach(function(t,i){f.opts[i]=t});f.kunci=Array.isArray(s.kunci)?s.kunci.slice():[s.kunci]}
- if(s&&s.rows){f.rows=s.rows.map(function(r){return [r[0],r[1]]});f.lab=(s.lab||['Benar','Salah']).slice()}
+ if(s&&s.rows){f.rows=s.rows.map(function(r){return [r[0],r[1]]});var li=bsLabIdx(s.lab||['Benar','Salah']);f.lab=BS_LABS[li<0?0:li].slice()}
  while(f.rows.length<6)f.rows.push(['',true]);
  return f;
 }
@@ -465,7 +480,7 @@ function bsFormRead(){
  for(var i=0;i<5;i++){var e=document.getElementById('bf-o'+i);if(e)f.opts[i]=e.value}
  f.kunci=$$('.bf-k').filter(function(x){return x.checked}).map(function(x){return +x.value});
  if(f.tipe==='kategori'){
-  f.lab=[v('bf-lab0')||'Benar',v('bf-lab1')||'Salah'];
+  f.lab=BS_LABS[+v('bf-lab')===1?1:0].slice();
   for(var j=0;j<6;j++){var t=document.getElementById('bf-r'+j),k=document.getElementById('bf-rk'+j);if(t)f.rows[j]=[t.value,k?k.value==='0':true]}
  }
 }
@@ -478,10 +493,10 @@ function bsViewForm(){
   '<label class="f">Peruntukan<select id="bf-tujuan">'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(f.tujuan===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label></div>';
  h+='<label class="f">Teks soal<textarea id="bf-q" rows="4">'+esc(f.q)+'</textarea></label>';
  if(f.tipe==='kategori'){
-  h+='<div class="two"><label class="f">Pilihan pertama<input id="bf-lab0" value="'+esc(f.lab[0])+'"></label><label class="f">Pilihan kedua<input id="bf-lab1" value="'+esc(f.lab[1])+'"></label></div>';
-  h+=f.rows.map(function(r,i){return '<div class="two"><label class="f">Pernyataan '+(i+1)+'<input id="bf-r'+i+'" value="'+esc(r[0])+'"></label><label class="f">Kunci<select id="bf-rk'+i+'"><option value="0"'+(r[1]?' selected':'')+'>'+esc(f.lab[0])+'</option><option value="1"'+(r[1]?'':' selected')+'>'+esc(f.lab[1])+'</option></select></label></div>'}).join('');
+  h+='<label class="f">Pilihan jawaban<select id="bf-lab" data-bs="flab">'+BS_LABS.map(function(l,i){return '<option value="'+i+'"'+(bsLabIdx(f.lab)===i?' selected':'')+'>'+esc(l[0]+' / '+l[1])+'</option>'}).join('')+'</select></label><p class="note">Wajib 3 sampai 6 pernyataan.</p>';
+  h+=f.rows.map(function(r,i){return '<div class="two"><label class="f">Pernyataan '+(i+1)+(i<3?' (wajib)':'')+'<input id="bf-r'+i+'" value="'+esc(r[0])+'"></label><label class="f">Kunci<select id="bf-rk'+i+'"><option value="0"'+(r[1]?' selected':'')+'>'+esc(f.lab[0])+'</option><option value="1"'+(r[1]?'':' selected')+'>'+esc(f.lab[1])+'</option></select></label></div>'}).join('');
  }else{
-   h+=[0,1,2,3,4].map(function(i){return '<div class="row bs-orow"><input class="bf-k" type="'+(f.tipe==='pg'?'radio':'checkbox')+'" name="bf-kunci" value="'+i+'" aria-label="Kunci '+bsLtr(i)+'"'+(f.kunci.indexOf(i)>-1?' checked':'')+'><label class="f grow">Pilihan '+bsLtr(i)+'<input id="bf-o'+i+'" value="'+esc(f.opts[i])+'"></label></div>'}).join('');
+   h+=[0,1,2,3,4].map(function(i){return '<div class="row bs-orow"><input class="bf-k" type="'+(f.tipe==='pg'?'radio':'checkbox')+'" name="bf-kunci" value="'+i+'" aria-label="Kunci '+bsLtr(i)+'"'+(f.kunci.indexOf(i)>-1?' checked':'')+'><label class="f grow">Pilihan '+bsLtr(i)+'<input id="bf-o'+i+'" value="'+esc(f.opts[i])+'"></label></div>'}).join('');h+='<p class="note">'+(f.tipe==='pg'?'Wajib 5 pilihan (A sampai E), tandai tepat satu kunci.':'Wajib 5 pilihan (A sampai E), tandai minimal 2 kunci.')+'</p>';
  }
  h+='<label class="f">Pembahasan (opsional)<textarea id="bf-bahas" rows="3">'+esc(f.bahas)+'</textarea></label>';
  h+='<button type="button" class="btn primary" data-bs="simpansoal">Simpan soal</button></div>';
@@ -494,18 +509,17 @@ function bsFormSave(){
  var o={id:f.id||uid(),ts:Date.now(),tipe:f.tipe,mapel:mapel.slice(0,64),topik:String(f.topik).trim().slice(0,120),kelas:f.kelas,tujuan:f.tujuan,aktif:true,oleh:S.user.nama.slice(0,64),q:q,bahas:String(f.bahas).trim()};
  var ex=BS.D.soal.filter(function(x){return x.id===o.id})[0];if(ex){o.aktif=ex.aktif!==false;o.oleh=ex.oleh||o.oleh}
  if(f.tipe==='kategori'){
-  var lab=[String(f.lab[0]).trim(),String(f.lab[1]).trim()];
-  if(!lab[0]||!lab[1]||lab[0]===lab[1]){toast('Dua pilihan harus terisi dan berbeda');return}
+  var li2=bsLabIdx(f.lab);
+  if(li2<0){toast('Pilih pasangan jawaban: Benar/Salah atau Sesuai/Tidak Sesuai');return}
   var rows=f.rows.filter(function(r){return String(r[0]).trim()}).map(function(r){return [String(r[0]).trim(),!!r[1]]});
-  if(rows.length<2){toast('Isi minimal 2 pernyataan');return}
-  o.lab=lab;o.rows=rows;
+  if(rows.length<3){toast('Isi minimal 3 pernyataan (maksimal 6)');return}
+  o.lab=BS_LABS[li2].slice();o.rows=rows;
  }else{
-  var map=[],opts=[];
-  f.opts.forEach(function(t,i){if(String(t).trim()){map[i]=opts.length;opts.push(String(t).trim())}});
-  var ks=f.kunci.filter(function(i){return map[i]!==undefined}).map(function(i){return map[i]});
-  if(opts.length<(f.tipe==='pg'?2:3)){toast('Pilihan jawaban kurang');return}
-  if(f.tipe==='pg'){if(ks.length!==1){toast('Tandai tepat satu kunci pada pilihan yang terisi');return}o.kunci=ks[0]}
-  else{if(ks.length<1){toast('Centang minimal satu kunci');return}o.kunci=ks}
+  if(f.opts.some(function(t){return !String(t).trim()})){toast('Isi kelima pilihan (A sampai E)');return}
+  var opts=f.opts.map(function(t){return String(t).trim()});
+  var ks=f.kunci.filter(function(i){return i>=0&&i<5});
+  if(f.tipe==='pg'){if(ks.length!==1){toast('Tandai tepat satu kunci');return}o.kunci=ks[0]}
+  else{if(ks.length<2){toast('Centang minimal 2 kunci');return}o.kunci=ks}
   o.opts=opts;
  }
  BS.form=null;bsPut('soal',o).then(function(ok){toast(ok?'Soal tersimpan':'Soal tersimpan di perangkat, menunggu terkirim');render()});
@@ -736,6 +750,7 @@ document.addEventListener('change',function(e){
  if(t.id==='sf-pilih'||t.id==='sf-kelas'){bsSfRead();render();return}
  var a=t.dataset&&t.dataset.bs;if(!a)return;
  if(a==='tuj'){var id=t.dataset.q;(BS_IDX[id]?bsOverride(id,{tujuan:t.value}):bsPut('soal',Object.assign(BS.D.soal.filter(function(x){return x.id===id})[0],{tujuan:t.value}))).then(function(){toast('Peruntukan diubah')});BS.all=null}
+ else if(a==='flab'){bsFormRead();render()}
  else if(a==='flt'){BS.flt[t.dataset.k]=t.value;BS.flt.n=30;render()}
  else if(a==='hs'){BS.hs=t.value;render()}
 });

@@ -157,7 +157,7 @@ async function buildQ(ids) {
     }
     const d = docs[id]; if (!d) return;
     const s = parse(d), key = keyOf(s, kd[id]);
-    out[id] = { id, bawaan: false, tipe: s.tipe, n: s.tipe === 'kategori' ? (s.rows || []).length : (s.opts || []).length, key,
+    out[id] = { id, bawaan: false, tipe: s.tipe, n: s.tipe === 'kategori' ? (s.rows || []).length : (s.opts || []).length, key, lab: s.lab,
       aktif: s.aktif !== false, tujuan: s.tujuan || 'keduanya', kelas: s.kelas || '' };
   });
   return out;
@@ -169,13 +169,36 @@ async function loadQ(ids, fresh) {
   if (need.length) { const b = await sekali('q:' + (fresh ? 'f:' : '') + need.slice().sort().join(','), () => buildQ(need)); Object.keys(b).forEach((id) => { out[id] = memSet(memo.soal, id, b[id], 3000); }); }
   return out;
 }
+/* Aturan bentuk soal TKA untuk ujian (soal bawaan dikecualikan): PG 5 pilihan; PG kompleks 5 pilihan dan kunci minimal 2;
+   PG kategori 3 sampai 6 pernyataan dengan label Benar/Salah atau Sesuai/Tidak Sesuai. Soal sendiri yang belum memenuhi hanya untuk latihan. */
+const LABS = [['benar', 'salah'], ['sesuai', 'tidak sesuai']];
+function labOk(lab) {
+  const l = Array.isArray(lab) ? lab : ['Benar', 'Salah'];
+  const a = String(l[0] || '').trim().toLowerCase(), b = String(l[1] || '').trim().toLowerCase();
+  return LABS.some((p) => p[0] === a && p[1] === b);
+}
+/* dari dokumen soal (tanpa kunci) */
+function aturanDoc(s) {
+  if (!s || s.bawaan || BAWAAN[s.id]) return true;
+  if (s.tipe === 'kategori') { const n = (s.rows || []).length; return n >= 3 && n <= 6 && labOk(s.lab); }
+  return (s.opts || []).length === 5;
+}
+/* dari soal yang sudah dimuat (dengan kunci) */
+function aturanOk(q) {
+  if (!q) return false;
+  if (q.bawaan) return true;
+  if (q.tipe === 'kategori') return q.n >= 3 && q.n <= 6 && labOk(q.lab);
+  if (q.n !== 5) return false;
+  if (q.tipe === 'kompleks') return !q.key || !Array.isArray(q.key.kunci) || q.key.kunci.length >= 2;
+  return true;
+}
 /* daftar soal yang boleh dipakai ujian otomatis; dibaca sekali lalu dipakai bersama oleh ratusan siswa */
 async function poolUjian() {
   if (memo.pool && Date.now() - memo.pool.t < TTL_SOAL) return memo.pool.v;
   return sekali('pool', async () => {
     const docs = await listDocs('banksoal'), raw = {};
     docs.forEach((d) => { raw[d.$id] = d; });
-    const v = docs.map(parse).filter((q) => !BAWAAN[q.id] && !q.bawaan && q.aktif !== false && (q.tujuan === 'keduanya' || q.tujuan === 'ujian' || !q.tujuan));
+    const v = docs.map(parse).filter((q) => !BAWAAN[q.id] && !q.bawaan && q.aktif !== false && aturanDoc(q) && (q.tujuan === 'keduanya' || q.tujuan === 'ujian' || !q.tujuan));
     memo.pool = { t: Date.now(), v, raw };
     return v;
   });
@@ -191,8 +214,8 @@ function frac(q, a) {
   }
   if (q.tipe === 'kategori') {
     if (!Array.isArray(a) || !Array.isArray(k.rk) || !k.rk.length) return 0;
-    let n = 0; k.rk.forEach((v, i) => { if (a[i] === (v ? 0 : 1)) n++; });
-    return n / k.rk.length;
+    let b = 0, sl = 0; k.rk.forEach((v, i) => { const x = a[i]; if (x !== 0 && x !== 1) return; if (x === (v ? 0 : 1)) b++; else sl++; });
+    return Math.max(0, (b - sl) / k.rk.length);
   }
   return 0;
 }
@@ -283,16 +306,18 @@ async function mulai(me, body) {
   if (s.pilih === 'manual') {
     /* hanya soal yang dipilih guru yang dibaca (bukan seluruh bank soal) */
     const want = Array.from(new Set(s.ids || [])), Q0 = await loadQ(want);
-    ids = want.filter((id) => Q0[id] && !Q0[id].bawaan && Q0[id].aktif && (Q0[id].tujuan === 'keduanya' || Q0[id].tujuan === 'ujian'));
+    ids = want.filter((id) => Q0[id] && !Q0[id].bawaan && Q0[id].aktif && aturanOk(Q0[id]) && (Q0[id].tujuan === 'keduanya' || Q0[id].tujuan === 'ujian'));
     if (s.acak !== false) ids = shuffle(ids);
   } else {
     const all = await poolUjian(), mf = s.mapelF || [];
-    if (all.length <= 600) await loadQ(all.map((q) => q.id));   // kunci seluruh pool diambil sekali untuk semua siswa, bukan per siswa
-    const pool = shuffle(all.filter((q) => okKelas(q) && (!mf.length || mf.indexOf(q.mapel) > -1)));
+    const Qa = all.length <= 600 ? await loadQ(all.map((q) => q.id)) : null;   // kunci seluruh pool diambil sekali untuk semua siswa, bukan per siswa
+    const pool = shuffle(all.filter((q) => okKelas(q) && (!mf.length || mf.indexOf(q.mapel) > -1) && (!Qa || aturanOk(Qa[q.id]))));
     ids = pool.slice(0, s.jumlah || pool.length).map((q) => q.id);
   }
   if (!ids.length) throw new Fail('Sesi ini belum memiliki soal.', 400);
   const Qs = await loadQ(ids), oo = {};
+  ids = ids.filter((id) => aturanOk(Qs[id]));
+  if (!ids.length) throw new Fail('Sesi ini belum memiliki soal.', 400);
   ids.forEach((id) => { const q = Qs[id]; if (q && q.tipe !== 'kategori') { const ix = Array.from({ length: q.n }, (_, i) => i); oo[id] = s.acak !== false ? shuffle(ix) : ix; } });
   const dur = (s.durasi || 0) * 60;
   const p = { mode: 'ujian', sesiId, sesiJudul: s.judul || '', dur, ids, oo, ans: {}, cur: 0, chk: {}, pindah: 0, rg: {}, tampil: !!s.tampil, kkm: s.kkm };

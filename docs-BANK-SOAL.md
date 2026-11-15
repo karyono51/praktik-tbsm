@@ -8,15 +8,31 @@ Fitur terpisah dari LKPD. Menu: **Bank soal** (semua peran).
 - **Riwayat**: semua latihan dan ujian, dengan detail jawaban sesuai aturan di atas.
 
 ## Guru dan Admin
-- **Bank soal**: 60 soal bawaan (40 PG, 10 PG kompleks, 10 PG kategori). Atur *Peruntukan* tiap soal: Latihan, Ujian, atau Latihan dan ujian. Soal bisa dinonaktifkan. Soal bawaan tidak diubah isinya, tetapi bisa **Salin dan ubah**. **Tambah soal sendiri** (PG, PG kompleks, PG kategori) lengkap dengan kelas, topik, dan pembahasan.
+- **Bank soal**: 60 soal bawaan (40 PG, 10 PG kompleks, 10 PG kategori). Atur *Peruntukan* tiap soal: Latihan, Ujian, atau Latihan dan ujian. Soal bisa dinonaktifkan. Soal bawaan tidak diubah isinya, tetapi bisa **Salin dan ubah**. **Tambah soal sendiri** (PG, PG kompleks, PG kategori, sesuai aturan bentuk soal di bawah) lengkap dengan kelas, topik, dan pembahasan.
 - **Sesi ujian**: judul, kelas, durasi, KKM, jadwal buka/tutup (opsional), pilih soal otomatis (jumlah dan batasan mapel; tiap siswa mendapat soal berbeda) atau pilih soal sendiri, acak, tampilkan pembahasan.
 - **Hasil**: filter per sesi atau latihan, nilai, status Kompeten, jumlah keluar halaman, detail jawaban, hapus hasil (siswa bisa mengulang sesi), **ekspor Excel**.
+
+## Aturan bentuk soal (tiga jenis TKA)
+Mengikuti tiga bentuk soal TKA SMA/SMK (Peraturan Kepala BSKAP No. 045 Tahun 2025). Berlaku untuk soal sendiri; soal bawaan dikecualikan.
+
+| | PG sederhana | PG kompleks (MCMA) | PG kompleks kategori |
+|---|---|---|---|
+| Struktur | wajib 5 pilihan (A sampai E), tepat 1 kunci | wajib 5 pilihan, kunci minimal 2 | 3 sampai 6 pernyataan |
+| Label | - | - | Benar/Salah atau Sesuai/Tidak Sesuai |
+| Skor | benar 1, salah 0 | sebagian, pilihan salah mengurangi pilihan benar, minimal 0 | sebagian, respons salah mengurangi respons benar, minimal 0 |
+
+- **Soal baru dan soal yang diubah** (form maupun impor Excel) ditolak bila tidak memenuhi aturan.
+- **Soal sendiri lama atau hasil impor lama yang belum memenuhi aturan** tetap tampil, bertanda *Belum sesuai aturan*, dan hanya dipakai untuk **latihan**. Soal itu tidak masuk pool ujian (otomatis maupun pilihan manual) sampai dilengkapi lewat Ubah. Pemeriksaan ini juga berjalan di fungsi server CBT.
+- **Soal bawaan** dikecualikan: 40 PG bawaan tetap 4 opsi. Soal PG kompleks dan kategori bawaan sudah memenuhi aturan.
+- Label kategori lama di luar dua pasangan itu otomatis menjadi Benar/Salah saat soalnya dibuka di form Ubah.
+- LKPD tidak berubah (modul LKPD punya editor soal sendiri).
 
 ## Penilaian
 - PG: benar = 1, salah = 0.
 - PG kompleks: (kunci terpilih − pilihan salah) ÷ jumlah kunci, minimal 0.
-- PG kategori: jumlah pernyataan yang tepat ÷ jumlah pernyataan.
+- PG kategori: (respons benar − respons salah) ÷ jumlah pernyataan, minimal 0. Pernyataan yang tidak dijawab dihitung kosong (tidak mengurangi).
 - Nilai = jumlah skor ÷ jumlah soal × 100, dibulatkan.
+- Rumus yang sama dipakai di aplikasi dan di fungsi server (`functions/cbt`, salinan di `akun-admin`).
 
 ## Pemasangan
 1. Zip ini hanya berisi berkas yang berubah. Jalankan `unzip -o` di folder `~/tbsm`, lalu `git add . && git commit && git push`.
@@ -46,4 +62,5 @@ Hanya Guru dan Admin, di tab **Bank soal** (tombol Impor soal, Template, Ekspor 
 - Kolom: ID, Jenis, Mapel, Topik, Kelas, Peruntukan, Status, Soal, A sampai E, Kunci, Label 1, Label 2, Pernyataan 1-6, Kunci 1-6, Pembahasan.
 - ID kosong = soal baru. ID soal sendiri yang sudah ada = soal diperbarui. ID soal bawaan (tka-...) = hanya Peruntukan, Kelas, dan Status yang berubah.
 - Soal baru yang jenis, mapel, dan teksnya sama dengan soal yang sudah ada dilewati, jadi aman bila file diimpor dua kali.
-- Kunci PG: satu huruf (B). PG kompleks: beberapa huruf (A,C). PG kategori: isi Label 1 atau Label 2 (atau 1 / 2) pada Kunci 1-6.
+- Kunci PG: satu huruf (B). PG kompleks: minimal dua huruf (A,C). PG kategori: isi Label 1 atau Label 2 (atau 1 / 2) pada Kunci 1-6; pilih pasangan Benar/Salah atau Sesuai/Tidak Sesuai.
+- Baris yang melanggar aturan bentuk soal (kurang dari 5 pilihan, kunci kompleks kurang dari 2, pernyataan kurang dari 3, label di luar dua pasangan) ditolak pada pratinjau beserta alasannya.
