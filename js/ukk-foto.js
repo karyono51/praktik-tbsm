@@ -52,13 +52,14 @@ document.addEventListener('click',function(e){
 
 /* ---------- Tahap 2: simpan foto bukti ke lkpd_bukti (jalur yang sama dengan LKPD) ---------- */
 /* Dipanggil dari aksi Simpan, sebelum draft dihapus. n0 = jumlah hasil sebelum penyimpanan.
-   Foto dicatat per hasil: lkpdId = ID hasil, moduleId = ID unit. Di mode Latihan kelompok, foto hanya dicatat sekali (pada anggota pertama). */
+   Foto dicatat per hasil: lkpdId = ID hasil, moduleId = ID unit. Di mode Latihan kelompok, foto dicatat untuk setiap anggota agar PDF dan Lihat foto lengkap bagi semua. */
 function ukFotoLampirkan(n0){
  if(!V.job||!V.job.ukk||!V.fo)return;
  S.lkpdBukti=S.lkpdBukti||[];
  var idx={};V.job.items.forEach(function(i,k){idx[i.id]={no:k,t:i.t}});
  S.results.slice(n0).filter(function(r){return r.jobId===V.job.id}).forEach(function(r,n){
-  if(V.kel&&n>0)return;
+  /* Kelompok: tiap anggota mendapat catatan foto sendiri (izin baca milik anggota itu); berkas di Drive hanya diunggah sekali (lihat ldUpload). Mode lokal tanpa server hanya mencatat anggota pertama agar penyimpanan perangkat tidak penuh. */
+  if(V.kel&&n>0&&!Cloud.on)return;
   var map=V.fo[V.kel?'*':r.siswa]||{},ids=Object.keys(map).filter(function(id){return idx[id]&&map[id]});
   if(!ids.length)return;
   ids.forEach(function(id){

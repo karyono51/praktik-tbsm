@@ -136,12 +136,18 @@ function ldFileName(o){
  return [ldSlug(u.kelas,8),ldSlug(u.nama,30),ldSlug(o.moduleId,20),part,stamp,ldSlug(String(o.id||'').slice(-4),4)].filter(Boolean).join('_');
 }
 /* Unggah ke Drive sebelum dokumen lkpd_bukti dibuat (dipanggil dari createOwned di pwa.js). */
+/* Sidik jari isi foto (panjang + FNV-1a) agar foto yang sama (foto kelompok UKK untuk beberapa anggota) hanya diunggah sekali */
+function ldPrint(d){var h=2166136261;for(var i=0;i<d.length;i++){h^=d.charCodeAt(i);h=Math.imul(h,16777619)}return d.length+':'+(h>>>0)}
 async function ldUpload(o){
  if(!Cloud.on||LD.off||typeof o.data!=='string'||o.data.indexOf('data:')!==0)return;
+ LD.up=LD.up||{};
+ var key=ldPrint(o.data),data=o.data;
  try{
-  var r=await ldCall({action:'upload',data:o.data,nama:ldFileName(o)});
-  LD.cache[r.fileId]=o.data;o.data='drive:'+r.fileId;
+  if(!LD.up[key])LD.up[key]=ldCall({action:'upload',data:data,nama:ldFileName(o)}).then(function(r){return r.fileId});
+  var fid=await LD.up[key];
+  LD.cache[fid]=data;o.data='drive:'+fid;
  }catch(e){
+  delete LD.up[key];
   if(e&&(e.code===404||/could not be found|not found/i.test(e.message||''))&&!e.status){LD.off=true;return}
   throw e;
  }

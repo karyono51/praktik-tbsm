@@ -149,7 +149,7 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 
 ## Pembaruan v84: tahap 2 foto wajib UKK (unggah dan penyimpanan)
 - Saat Simpan, foto per butir UKK dicatat ke koleksi `lkpd_bukti` memakai jalur yang sama dengan LKPD: label `c<nomor>|<nama komponen>`, ID hasil sebagai `lkpdId`, ID unit sebagai `moduleId`. Unggah ke Google Drive dilakukan oleh fungsi `foto-drive` yang sama dan dengan pengaturan folder dan ukuran yang sama.
-- Pada mode Latihan kelompok, foto hanya dicatat sekali untuk anggota pertama.
+- Pada mode Latihan kelompok, foto kini dicatat untuk setiap anggota (berkas di Drive hanya diunggah sekali, lalu dipakai bersama). Hasil kelompok yang disimpan sebelum perubahan ini tetap hanya punya foto pada anggota pertama.
 - Hasil yang punya foto bukti mendapat catatan "Foto bukti: n butir" dan tombol **Lihat foto** di Hasil penilaian.
 - Cache service worker: `tbsm-v84`. Skrip `?v=84`.
 
@@ -182,7 +182,7 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 ## Pembaruan v89: PDF UKK bisa diunduh ulang dari Rekap
 - Saat **Simpan**, rincian setiap butir UKK (status, hasil ukur, catatan, standar, dan identitas lembar) disimpan di kolom `payload` pada koleksi `hasil`. Identitas dan standar disimpan sebagai salinan saat ujian, jadi PDF lama tidak berubah walaupun unitnya diedit kemudian.
 - Kartu hasil UKK di **Rekap nilai** (siswa dan guru) dan di **Hasil penilaian** (guru) punya tombol **Unduh PDF**. PDF memakai tata letak yang sama dengan Unduh PDF di layar hasil, termasuk foto bukti. Foto diambil dari perangkat, atau dari Google Drive bila belum ada di perangkat.
-- Kelompok: PDF setiap anggota menampilkan nama seluruh anggota. Foto hanya tersimpan pada anggota pertama, sehingga PDF anggota lain tidak memuat lampiran foto.
+- Kelompok: PDF setiap anggota menampilkan nama seluruh anggota. Foto kini tersimpan untuk setiap anggota, sehingga PDF semua anggota memuat lampiran foto (hasil kelompok lama hanya punya foto pada anggota pertama).
 - Hasil yang disimpan sebelum v89 tidak punya rincian, sehingga tombol Unduh PDF tidak muncul untuk hasil tersebut.
 - **Perlu `appwrite push collections`** agar atribut `payload` (100.000 karakter) ditambahkan ke koleksi `hasil`.
 - Cache service worker: `tbsm-v89`. Skrip `?v=89`.
