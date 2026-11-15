@@ -24,12 +24,15 @@
  function groups(staff,admin){
   return [
    {key:'home',label:'',   ic:null,   keys:['beranda']},
-   {key:'lkpd',label:staff?'LKPD Praktik':'LKPD Praktik kelas saya',ic:'kelas',pre:'lkpd:',post:['observasi-siswa']},
-   {key:'ukk',label:staff?'UKK':'UKK kelas saya',ic:'kelas',pre:'kelas:',post:['observasi-ukk','nilai-akhir-ukk']},
+   {key:'akd',label:'Administrasi Akademik',ic:'akdTata',keys:['akd-guru','akd-kelas','akd-mapel','akd-tata']},
+   {key:'lkpd',label:staff?'LKPD Praktik':'LKPD Praktik kelas saya',ic:'kelas',pre:'lkpd:'},
+   {key:'ukk',label:staff?'UKK':'UKK kelas saya',ic:'kelas',pre:'kelas:',post:['nilai-akhir-ukk']},
    {key:'soal',label:'Soal dan ujian',ic:'menu',keys:['banksoal','cbtonline']},
-   {key:'nilai',label:staff?'Penilaian dan acuan':'Nilai dan acuan',ic:'menu',keys:['rekap','kompetensi','observasi','acuan']},
-   {key:'admin',label:'Administrasi',ic:'menu',keys:['akun','hapusnilai']},
-   {key:'app',label:'Akun dan aplikasi',ic:'keluar',keys:['sinkron','gantisandi','segarkan','perbarui'],compact:true},
+   {key:'nilai',label:staff?'Penilaian dan kompetensi':'Nilai dan acuan',ic:'menu',keys:staff?['rekap','kompetensi']:['rekap','kompetensi','acuan']},
+   {key:'obs',label:'Supervisi dan observasi',ic:'observasi',keys:['observasi','observasi-siswa','observasi-ukk']},
+   {key:'acuan',label:'Acuan dan regulasi',ic:'menu',keys:staff?['acuan']:[]},
+   {key:'admin',label:'Pengelolaan sistem',ic:'menu',keys:['akun','hapusnilai','sinkron']},
+   {key:'app',label:'Akun dan aplikasi',ic:'keluar',keys:['gantisandi','segarkan','perbarui'],compact:true},
    {key:'keluar',label:'',ic:null,keys:['keluar'],compact:true}
   ];
  }

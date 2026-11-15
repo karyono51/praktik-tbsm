@@ -2,7 +2,7 @@
 var CFG=window.APP_CONFIG||{};
 var KEY='tbsm-uji-v2',SES='tbsm-sesi';
 var PERAN={admin:'Admin',guru:'Guru',siswa:'Siswa'};
-var PERM={admin:['akun','kkm','hapus','nilai','observasi','observasi-semua'],guru:['nilai','observasi'],siswa:[]};
+var PERM={admin:['akun','kkm','hapus','nilai','observasi','observasi-semua','akademik'],guru:['nilai','observasi'],siswa:[]};
 var S={role:'siswa',tab:'katalog',kelas:'X',kkm:+localStorage.getItem('tbsm-kkm')||75,siswaName:'',filter:'ALL',user:null,users:[],roster:[],results:[],lkpd:[],lkpdModules:[],observasi:[]};
 var V={mode:'list',job:null,checks:{},peserta:'',catatan:'',sec:0,running:false,res:null},timer=null;
 var CLOUD_ON=!!(CFG.APPWRITE_ENDPOINT&&CFG.APPWRITE_PROJECT&&window.Appwrite);

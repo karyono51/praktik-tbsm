@@ -1181,6 +1181,147 @@
         }
       ],
       "indexes": []
+    },
+    {
+      "$id": "akademik",
+      "databaseId": "tbsm",
+      "name": "akademik",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"users\")",
+        "create(\"label:admin\")",
+        "update(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "jenis",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 12
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 60000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_akd_jenis",
+          "type": "key",
+          "attributes": [
+            "jenis"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "akademik_sdm",
+      "databaseId": "tbsm",
+      "name": "akademik_sdm",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "create(\"label:admin\")",
+        "update(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "jenis",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 12
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 60000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_akdsdm_jenis",
+          "type": "key",
+          "attributes": [
+            "jenis"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
     }
   ],
   "profilAman": {
