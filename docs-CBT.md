@@ -1,5 +1,10 @@
 # CBT online dari Bank soal
 
+## Menu (v terbaru)
+- **Bank soal**: khusus soal (tambah, impor, ekspor, filter, peruntukan). Siswa: latihan dan riwayat latihan.
+- **CBT Online** (menu baru, kelompok *Soal dan ujian*): guru/admin punya tab **Sesi**, **Pantau**, **Hasil**, **Analisis** dengan ringkasan (sesi, dibuka, selesai, rata-rata). Siswa: daftar ujian dan riwayat ujian.
+- Tidak ada perubahan koleksi Appwrite. Soal ujian tetap diambil dari Bank soal.
+
 ## Fitur
 - **Token ujian** per sesi (guru bisa mengganti token), batas pelanggaran, dan aksi: peringatan, kunci, atau kirim otomatis.
 - **Layar ujian CBT**: navigasi nomor, tanda ragu-ragu, layar penuh, penghitung pelanggaran, kunci layar.

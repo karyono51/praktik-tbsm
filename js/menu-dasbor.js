@@ -26,7 +26,7 @@
    {key:'home',label:'',   ic:null,   keys:['beranda']},
    {key:'lkpd',label:staff?'LKPD Praktik':'LKPD Praktik kelas saya',ic:'kelas',pre:'lkpd:',post:['observasi-siswa']},
    {key:'ukk',label:staff?'UKK':'UKK kelas saya',ic:'kelas',pre:'kelas:',post:['observasi-ukk']},
-   {key:'soal',label:'Soal dan ujian',ic:'menu',keys:['banksoal']},
+   {key:'soal',label:'Soal dan ujian',ic:'menu',keys:['banksoal','cbtonline']},
    {key:'nilai',label:staff?'Penilaian dan acuan':'Nilai dan acuan',ic:'menu',keys:['rekap','kompetensi','observasi','acuan']},
    {key:'admin',label:'Administrasi',ic:'menu',keys:['akun']},
    {key:'app',label:'Akun dan aplikasi',ic:'keluar',keys:['sinkron','gantisandi','segarkan','perbarui'],compact:true},

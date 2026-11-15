@@ -23,6 +23,7 @@ function bsHasKey(q){
 var BS_TIPE={pg:'PG',kompleks:'PG kompleks',kategori:'PG kategori'};
 var BS_TUJ={latihan:'Latihan',ujian:'Ujian',keduanya:'Latihan dan ujian'};
 var BS_IDX={};(window.SOAL_TKA||[]).forEach(function(b){BS_IDX[b.id]=b});
+ICO.cbtonline='<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m9 10 2 2 4-4"/>';
 ICO.banksoal='<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="m9 14 2 2 4-4"/>';
 
 /* ---------- Penyimpanan ---------- */
@@ -202,6 +203,7 @@ function bsText(s){return esc(s).replace(/\n/g,'<br>')}
 function bsLtr(i){return String.fromCharCode(65+i)}
 function bsWaktu(ts){return ts?new Date(ts).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'-'}
 function bsDtv(ts){if(!ts)return '';var d=new Date(ts-new Date(ts).getTimezoneOffset()*60000);return d.toISOString().slice(0,16)}
+function bsOn(){return S.tab==='banksoal'||S.tab==='cbtonline'}
 function bsEdit(){return !!S.user&&isStaff()&&can('nilai')}
 
 /* ---------- Sesi dan percobaan ---------- */
@@ -261,13 +263,13 @@ async function bsFinish(auto){
  if(typeof bsRunDone==='function')bsRunDone(r);
  if(auto)toast('Waktu habis. Jawaban dikirim otomatis.');
  render();window.scrollTo(0,0);
- sp.then(function(){if(BS.sub==='result'&&BS.res===h.id&&S.tab==='banksoal')render()});
+ sp.then(function(){if(BS.sub==='result'&&BS.res===h.id&&bsOn())render()});
 }
 function bsResume(){
  if(BS.resumed||!S.user)return;BS.resumed=true;
  var r=null;try{r=JSON.parse(localStorage.getItem(bsRunKey())||'null')}catch(e){}
  if(!r||r.sid!==S.user.id||r.done)return;
- BS.run=r;if(S.tab==='banksoal')BS.sub='run';
+ BS.run=r;if(bsOn())BS.sub='run';
  if(r.dur&&bsRemain(r)<=0){setTimeout(function(){bsFinish(true)},0);return}
  bsTimerOn();
 }
@@ -321,6 +323,7 @@ function bsRev(q,a,n,showAns){
 
 /* ---------- Siswa ---------- */
 function bsViewSiswa(){
+ var cbt=S.tab==='cbtonline';
  if(BS.sub==='run'&&BS.run)return bsViewRun();
  if(BS.sub==='result')return bsViewResult();
  if(BS.sub==='latsetup')return bsViewLatSetup();
@@ -328,20 +331,26 @@ function bsViewSiswa(){
  var kelas=S.user.kelas||'',h='',run=BS.run;
  if(run)h+='<div class="card bs-resume"><b>'+(run.mode==='ujian'?'Ujian sedang berjalan':'Latihan belum selesai')+'</b><p class="note">'+esc(run.sesiJudul||'Latihan soal')+' · '+Object.keys(run.ans).length+' dari '+run.ids.length+' soal terjawab</p><button type="button" class="btn primary" data-bs="lanjut">Lanjutkan</button></div>';
  var sesi=bsSesiUntuk(kelas).filter(function(s){return bsSesiStatus(s).k!=='off'}).sort(function(a,b){return (b.ts||0)-(a.ts||0)});
- h+='<section class="recent"><div class="sechead"><h2>Ujian</h2></div>';
- if(!sesi.length)h+='<p class="muted">Belum ada sesi ujian untuk kelasmu.</p>';
- h+=sesi.map(function(s){
+ if(cbt)h+='<section class="recent"><div class="sechead"><h2>Ujian</h2></div>';
+ if(cbt&&!sesi.length)h+='<p class="muted">Belum ada sesi ujian untuk kelasmu.</p>';
+ if(cbt)h+=sesi.map(function(s){
   var st=bsSesiStatus(s),done=BS.D.hasil.filter(function(x){return x.sid===S.user.id&&x.sesiId===s.id&&x.mode==='ujian'})[0],go=st.k==='on'&&!done&&!(run&&run.sesiId===s.id);
   var jml=s.pilih==='manual'?(s.ids||[]).length:(s.jumlah||'semua');
   return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+(done?'ok':st.c)+'">'+(done?'Selesai':st.t)+'</span></div><p class="note">'+jml+' soal · '+(s.durasi||0)+' menit'+(s.mulai?' · mulai '+bsWaktu(s.mulai):'')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+(s.tok?' · pakai token':'')+'</p>'+
    (done?'<p>Nilai: <b class="mono">'+done.score+'</b> ('+done.benar+' benar dari '+done.total+')</p>':'')+
    (go?'<button type="button" class="btn primary" data-bs="mulaiujian" data-v="'+s.id+'">Mulai ujian</button>':'')+'</div>';
  }).join('')+'</section>';
+ if(cbt)return h+bsRiwayatBlok('ujian');
  var pool=bsPool('latihan',kelas).length;
  h+='<section class="recent"><div class="sechead"><h2>Latihan</h2></div><div class="card"><p>Latihan tanpa batas waktu. Setiap soal bisa diperiksa langsung disertai pembahasan.</p><p class="note">'+pool+' soal latihan tersedia.</p><button type="button" class="btn primary" data-bs="latsetup"'+(pool?'':' disabled')+'>Mulai latihan</button></div></section>';
- var rw=bsHasilSaya();
- h+='<section class="recent"><div class="sechead"><h2>Riwayat</h2>'+(rw.length>5?'<button type="button" class="link" data-bs="riwayat">Lihat semua</button>':'')+'</div>';
- h+=rw.length?rw.slice(0,5).map(bsRiwayatRow).join(''):'<p class="muted">Belum ada riwayat pengerjaan.</p>';
+return h+bsRiwayatBlok('latihan');
+}
+/* riwayat per jenis: Bank soal menampilkan latihan, CBT Online menampilkan ujian */
+function bsRwList(mode){return bsHasilSaya().filter(function(x){return mode==='ujian'?x.mode==='ujian':x.mode==='latihan'})}
+function bsRiwayatBlok(mode){
+ var rw=bsRwList(mode);BS.rwMode=mode;
+ var h='<section class="recent"><div class="sechead"><h2>Riwayat '+(mode==='ujian'?'ujian':'latihan')+'</h2>'+(rw.length>5?'<button type="button" class="link" data-bs="riwayat">Lihat semua</button>':'')+'</div>';
+ h+=rw.length?rw.slice(0,5).map(bsRiwayatRow).join(''):'<p class="muted">Belum ada riwayat '+(mode==='ujian'?'ujian':'latihan')+'.</p>';
  return h+'</section>';
 }
 function bsRiwayatRow(x){
@@ -349,7 +358,7 @@ function bsRiwayatRow(x){
  return '<div class="card"><div class="row sb"><span class="row"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':'Ujian')+'</span><b>'+esc(x.sesiJudul||'Latihan soal')+'</b></span><b class="mono">'+x.score+'</b></div><div class="row sb"><span class="note">'+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round(x.detik/60))+' menit</span><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail</button></div></div>';
 }
 function bsViewRiwayat(){
- var rw=bsHasilSaya();
+ var rw=bsRwList(S.tab==='cbtonline'?'ujian':'latihan');
  return '<div class="row"><button type="button" class="btn small" data-bs="home">Kembali</button><h2>Riwayat</h2></div>'+(rw.length?rw.map(bsRiwayatRow).join(''):'<p class="muted">Belum ada riwayat.</p>');
 }
 function bsViewLatSetup(){
@@ -388,16 +397,25 @@ function bsViewResult(){
 
 /* ---------- Guru: kerangka ---------- */
 function bsViewStaff(){
- var tabs=[['bank','Bank soal'],['sesi','Sesi'],['pantau','Pantau'],['hasil','Hasil'],['analisis','Analisis']];
- var h='<div class="seg bs5" role="tablist">'+tabs.map(function(t){return '<button type="button" role="tab" data-bs="tab" data-v="'+t[0]+'" aria-pressed="'+(BS.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>';
- if(BS.tab==='bank')return h+(BS.form?bsViewForm():bsViewBank());
+ /* Bank soal: khusus soal. CBT Online: Sesi, Pantau, Hasil, Analisis. */
+ if(S.tab!=='cbtonline'){BS.tab='bank';return BS.form?bsViewForm():bsViewBank()}
+ if(BS.tab==='bank')BS.tab='sesi';
+ var tabs=[['sesi','Sesi'],['pantau','Pantau'],['hasil','Hasil'],['analisis','Analisis']];
+ var h=bsCbtRingkas()+'<div class="seg bs4" role="tablist">'+tabs.map(function(t){return '<button type="button" role="tab" data-bs="tab" data-v="'+t[0]+'" aria-pressed="'+(BS.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>';
  if(BS.tab==='sesi')return h+(BS.sf?bsViewSesiForm():bsViewSesi()+bsCobaInfo());
  if(BS.tab==='pantau')return h+(window.bsViewPantau?bsViewPantau():'');
  if(BS.tab==='analisis')return h+(window.bsViewAnalisis?bsViewAnalisis():'');
  return h+bsViewHasil();
 }
+/* ringkasan CBT Online (guru): sesi, sesi dibuka, hasil ujian masuk, rata-rata nilai */
+function bsCbtRingkas(){
+ if(BS.sf)return '';
+ var pm=schPeta(),ses=BS.D.sesi.filter(schAkunOk),buka=ses.filter(function(x){return bsSesiStatus(x).k==='on'}).length;
+ var hs=BS.D.hasil.filter(function(x){return x.mode==='ujian'&&schHasilOk(x,pm)}),avg=hs.length?Math.round(hs.reduce(function(a,x){return a+x.score},0)/hs.length):0;
+ return '<div class="stats"><div class="card"><span class="label">Sesi</span><b class="mono">'+ses.length+'</b></div><div class="card"><span class="label">Dibuka</span><b class="mono">'+buka+'</b></div><div class="card"><span class="label">Selesai</span><b class="mono">'+hs.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+(hs.length?avg:'-')+'</b></div></div>';
+}
 function bsCobaInfo(){
- return '<div class="card"><b>Coba sebagai siswa</b><p class="note">Ganti peran ke Siswa lewat tombol peran di header (bila akunmu punya peran ganda) untuk mencoba latihan dan ujian. Sesi ujian dan soal yang kamu atur di sini langsung terlihat oleh siswa kelas yang dipilih. Saat ujian berlangsung, pakai tab Pantau.</p></div>';
+ return '<div class="card"><b>Coba sebagai siswa</b><p class="note">Ganti peran ke Siswa lewat tombol peran di header (bila akunmu punya peran ganda) untuk mencoba latihan dan ujian. Sesi ujian dan soal yang kamu atur di sini langsung terlihat oleh siswa kelas yang dipilih. Soalnya diambil dari menu Bank soal. Saat ujian berlangsung, pakai tab Pantau.</p></div>';
 }
 
 /* ---------- Guru: bank soal ---------- */
@@ -609,7 +627,10 @@ function bsExport(){
 /* ---------- Tampilan utama ---------- */
 function viewBankSoal(){
  if(!BS.loaded&&!BS.loading)setTimeout(bsLoad,0);
- var staff=bsEdit(),h='<div class="sechead"><span class="ico">'+svg(ICO.banksoal,18)+'</span><h2>Bank soal</h2></div>';
+ /* pindah antara Bank soal dan CBT Online: kembali ke halaman utama menu, kecuali ujian/latihan yang sedang berjalan */
+ if(BS.lastTab&&BS.lastTab!==S.tab){if(!(BS.sub==='run'&&BS.run))BS.sub='home';BS.res=null;BS.form=null;BS.sf=null}
+ BS.lastTab=S.tab;
+ var staff=bsEdit(),cbt=S.tab==='cbtonline',h='<div class="sechead"><span class="ico">'+svg(cbt?ICO.cbtonline:ICO.banksoal,18)+'</span><h2>'+(cbt?'CBT Online':'Bank soal')+'</h2></div>';
  if(!BS.loaded)return h+'<p class="muted center" style="padding:32px 0">Memuat soal…</p>';
  if(BS.err.length)h+='<div class="err">'+BS.err.map(esc).join('<br>')+(BS.err.some(function(e){return /collection|not found|could not be found/i.test(e)})?'<br>Koleksi belum dibuat di Appwrite. Jalankan: node tools/setup-appwrite.mjs --only=banksoal,soal_sesi,soal_hasil':'')+'</div>';
  if(BS.sub==='detail'||BS.sub==='result')return h+bsViewResult();
@@ -618,7 +639,7 @@ function viewBankSoal(){
 }
 var _bsViewKat=viewKatalog;
 viewKatalog=function(){
- if(S.tab==='banksoal'&&S.user)return viewBankSoal();
+ if(bsOn()&&S.user)return viewBankSoal();
  return _bsViewKat.apply(this,arguments);
 };
 var _bsRender=render;
@@ -627,18 +648,19 @@ render=function(){
  try{
   if(!S.user)return;
   bsResume();
-  if(BS.run&&S.tab==='banksoal'&&BS.sub==='run')document.body.classList.add('has-bar');
+  if(BS.run&&bsOn()&&BS.sub==='run')document.body.classList.add('has-bar');
   var sb=document.querySelector('.sbody');
   if(sb&&!sb.querySelector('[data-v="banksoal"]')){
    var cur=V.mode==='list'?S.tab:'',rk=sb.querySelector('.srow[data-v="rekap"]');
-   var html='<button type="button" class="srow" data-act="menu" data-v="banksoal"'+(cur==='banksoal'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.banksoal,22)+'</span><span class="st"><b>Bank soal</b><small>Soal per unit LKPD, bentuk TKA</small></span>'+svg(ICO.chev,18)+'</button>';
+   var html='<button type="button" class="srow" data-act="menu" data-v="banksoal"'+(cur==='banksoal'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.banksoal,22)+'</span><span class="st"><b>Bank soal</b><small>Kumpulan soal latihan dan ujian</small></span>'+svg(ICO.chev,18)+'</button>';
+   html+='<button type="button" class="srow" data-act="menu" data-v="cbtonline"'+(cur==='cbtonline'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.cbtonline,22)+'</span><span class="st"><b>CBT Online</b><small>'+(isStaff()&&actRole()!=='siswa'?'Sesi, pantau, hasil, analisis':'Ujian online dan riwayat')+'</small></span>'+svg(ICO.chev,18)+'</button>';
    if(rk)rk.insertAdjacentHTML('afterend',html);else sb.insertAdjacentHTML('beforeend',html);
   }
  }catch(e){}
 };
-if(typeof NAVTABS!=='undefined'&&NAVTABS.indexOf('banksoal')<0)NAVTABS.push('banksoal');
+if(typeof NAVTABS!=='undefined'&&NAVTABS.indexOf('banksoal')<0)NAVTABS.push('banksoal','cbtonline');
 if(typeof doLogout==='function'){var _bsLogout=doLogout;doLogout=async function(){bsClear();return _bsLogout.apply(this,arguments)}}
-if(typeof refreshData==='function'){var _bsRefresh=refreshData;refreshData=async function(){await _bsRefresh.apply(this,arguments);BS.loaded=false;if(S.tab==='banksoal')render()}}
+if(typeof refreshData==='function'){var _bsRefresh=refreshData;refreshData=async function(){await _bsRefresh.apply(this,arguments);BS.loaded=false;if(bsOn())render()}}
 window.addEventListener('online',function(){if(S.user&&Cloud.on)bsFlushQ()});
 
 /* ---------- Aksi ---------- */

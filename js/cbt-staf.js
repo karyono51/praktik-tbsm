@@ -111,7 +111,7 @@
   return '<div class="card">'+selSesi('pn-sesi',PN.sesi)+'</div><div id="pn-body">'+pnBody()+'</div>';
  };
  function pnPaint(){var e=document.getElementById('pn-body');if(e)e.innerHTML=pnBody()}
- function inPantau(){return !!S.user&&S.tab==='banksoal'&&BS.tab==='pantau'&&isStaff()&&Cloud.on}
+ function inPantau(){return !!S.user&&bsOn()&&BS.tab==='pantau'&&isStaff()&&Cloud.on}
  function pnTimer(){
   if(inPantau()&&!PN.timer){PN.timer=setInterval(function(){if(!inPantau()){pnStop();return}if(document.hidden)return;pnLoad().then(pnPaint)},8000)}
   else if(!inPantau())pnStop();

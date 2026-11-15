@@ -73,7 +73,7 @@
    SC.fail=0;SC.next=0;
    try{netbar()}catch(e){}
    if(sebelum>0)toast('Data tersinkron ke Appwrite');
-   try{if(typeof BS!=='undefined'&&BS.sub==='result'&&S.tab==='banksoal'&&!BS.run)render()}catch(e){}
+   try{if(typeof BS!=='undefined'&&BS.sub==='result'&&bsOn()&&!BS.run)render()}catch(e){}
   }
  }
  SC.tick=tick;

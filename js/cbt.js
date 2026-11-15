@@ -21,7 +21,7 @@
  function pol(r){var s=sesiOf(r);return {batas:s.batas!==undefined?(+s.batas||0):(+r.batas||0),aksi:s.aksi||r.aksi||'peringatan',layar:s.layar!==undefined?!!s.layar:!!r.layar}}
  function viol(r){return Math.max(0,(r.pindah||0)-(r.pb||0))}
  function locked(r){var p=pol(r);return !!r&&r.mode==='ujian'&&p.aksi==='kunci'&&p.batas>0&&viol(r)>=p.batas}
- function inExam(){var r=BS.run;return !!(r&&r.mode==='ujian'&&!r.done&&S.tab==='banksoal'&&BS.sub==='run')}
+ function inExam(){var r=BS.run;return !!(r&&r.mode==='ujian'&&!r.done&&bsOn()&&BS.sub==='run')}
  window.cbtDenyutMs=function(r){return locked(r)?8000:((window.CFG&&CFG.CBT_DENYUT)||60000)};
  /* ext (tambahan detik), stop (diakhiri guru), pb (batas pelanggaran yang dibuka guru) dari catatan ujian */
  window.cbtApply=function(r,d){
@@ -232,7 +232,7 @@
    pendDel();CBT.retry=0;CBT.err='';
    simpanHasil(h);cbtKc(rs.kc);
    if(BS.sub==='sending'){BS.res=h.id;BS.sub='result'}
-   if(S.tab==='banksoal'||BS.sub==='result')render();
+   if(bsOn()||BS.sub==='result')render();
   }catch(e){
    CBT.err=pesan(e);
    if(e&&e.fatal&&e.code!==408&&e.code!==429){
@@ -243,7 +243,7 @@
     CBT.retry=Math.min(CBT.retry+1,6);
     CBT.retryTimer=setTimeout(function(){var q=pendGet();if(q)kirimPend(q)},Math.min(5000*CBT.retry,30000));
    }
-   if(S.tab==='banksoal')render();
+   if(bsOn())render();
   }finally{CBT.kirimBusy=false}
  }
  async function finLatihan(r){
@@ -290,7 +290,7 @@
   if(CBT.kcErr[h0.id])return viewResult0.apply(this,arguments).replace(/<div class="card"><div class="bs-rv">[\s\S]*$/,'')+'<p class="note center">Pembahasan belum bisa dimuat: '+esc(CBT.kcErr[h0.id])+'</p>';
   if(!CBT.kcBusy[h0.id]){
    CBT.kcBusy[h0.id]=1;
-   cbtFn({action:'ulasan',hasilId:h0.id}).then(function(rs){cbtKc(rs.kc)},function(e){CBT.kcErr[h0.id]=pesan(e)}).then(function(){CBT.kcBusy[h0.id]=0;if(S.tab==='banksoal')render()});
+   cbtFn({action:'ulasan',hasilId:h0.id}).then(function(rs){cbtKc(rs.kc)},function(e){CBT.kcErr[h0.id]=pesan(e)}).then(function(){CBT.kcBusy[h0.id]=0;if(bsOn())render()});
   }
   return '<div class="row"><button type="button" class="btn small" data-bs="home">Kembali</button><h2>Hasil</h2></div><div class="card center"><div class="bs-score mono">'+h0.score+'</div><p class="note">'+h0.benar+' benar dari '+h0.total+' soal</p></div><p class="muted center">Memuat pembahasan…</p>';
  };

@@ -125,7 +125,7 @@
   if(!p.ids||!p.ids.length)return;
   var r=Object.assign({},p,{start:Date.parse(d.$createdAt)||Jam.now(),sid:S.user.id,rid:d.$id,srv:1,done:0,dirty:0});fixDur(r);if(window.cbtApply)cbtApply(r,d);
   BS.run=r;BS.resumed=true;
-  if(S.tab==='banksoal')BS.sub='run';
+  if(bsOn())BS.sub='run';
   bsRunSave0();
   if(r.dur&&bsRemain(r)<=0)setTimeout(function(){bsFinish(true)},0);else bsTimerOn();
   toast('Ujian yang sedang berjalan dilanjutkan');
