@@ -72,9 +72,9 @@ function lkqStale(m,p){return p&&p.qsig?p.qsig!==lkqSig(m):m.quizV===LKQ.VER}
 /* ---------- Tampilan soal siswa ---------- */
 var LKQ_HINT={pg:'Pilihan ganda · pilih satu jawaban.',kompleks:'PG kompleks · pilih semua jawaban yang benar.',kategori:'PG kategori · tentukan tiap pernyataan.'};
 function lkqRender(q,i,d){
- var t=lkqType(q),a=d['q'+i],h='<div class="qbox lkq" data-t="'+t+'"><b>'+(i+1)+'. '+lkEsc(q.q)+'</b><span class="lkq-hint">'+LKQ_HINT[t]+'</span>';
+ var t=lkqType(q),a=d['q'+i],h='<div class="qbox lkq" data-t="'+t+'"><b>'+(i+1)+'. '+lkEsc(q.q)+'</b><span class="lkq-hint">'+LKQ_HINT[t]+'</span>'+(typeof lkgQHtml==='function'?lkgQHtml(q):'');
  if(t==='kompleks'){
-  h+=q.o.map(function(o,k){return '<label class="lk-option"><input type="checkbox" data-lkq-multi="'+i+'" value="'+k+'"'+(Array.isArray(a)&&a.indexOf(k)>-1?' checked':'')+'>'+String.fromCharCode(65+k)+'. '+lkEsc(o)+'</label>'}).join('');
+  h+=q.o.map(function(o,k){return '<label class="lk-option"><input type="checkbox" data-lkq-multi="'+i+'" value="'+k+'"'+(Array.isArray(a)&&a.indexOf(k)>-1?' checked':'')+'>'+String.fromCharCode(65+k)+'. '+lkEsc(o)+(typeof lkgOHtml==='function'?lkgOHtml(q,k):'')+'</label>'}).join('');
  }else if(t==='kategori'){
   var lab=q.lab||['Benar','Salah'];
   h+=q.rows.map(function(r,k){
@@ -83,24 +83,26 @@ function lkqRender(q,i,d){
     [[1,lab[0],true],[0,lab[1],false]].map(function(c){return '<label class="lkq-chip"><input type="radio" name="lkq'+i+'r'+k+'" data-lkq-cat="'+i+'" data-row="'+k+'" value="'+c[0]+'"'+(v===c[2]?' checked':'')+'><span>'+lkEsc(c[1])+'</span></label>'}).join('')+'</span></div>';
   }).join('');
  }else{
-  h+=q.o.map(function(o,k){return '<label class="lk-option"><input type="radio" name="lkq'+i+'" data-lk-answer="'+i+'" value="'+k+'"'+(a===k?' checked':'')+'>'+String.fromCharCode(65+k)+'. '+lkEsc(o)+'</label>'}).join('');
+  h+=q.o.map(function(o,k){return '<label class="lk-option"><input type="radio" name="lkq'+i+'" data-lk-answer="'+i+'" value="'+k+'"'+(a===k?' checked':'')+'>'+String.fromCharCode(65+k)+'. '+lkEsc(o)+(typeof lkgOHtml==='function'?lkgOHtml(q,k):'')+'</label>'}).join('');
  }
  return h+'</div>';
 }
 function lkqQuizHtml(m,d){return m.quiz.map(function(q,i){return lkqRender(q,i,d)}).join('')}
 
 /* ---------- Jawaban dan kunci (detail guru, pembahasan latihan) ---------- */
+/* teks pilihan; bila pilihan hanya berisi gambar tampil "(gambar)" */
+function lkqOT(q,k){var t=q.o&&q.o[k];return t||(Array.isArray(q.oi)&&q.oi[k]?'(gambar)':'')}
 function lkqAnsText(q,a){
  var t=lkqType(q);
- if(t==='kompleks')return Array.isArray(a)&&a.length?a.slice().sort(function(x,y){return x-y}).map(function(k){return String.fromCharCode(65+k)+'. '+(q.o[k]||'')}).join('; '):'';
+ if(t==='kompleks')return Array.isArray(a)&&a.length?a.slice().sort(function(x,y){return x-y}).map(function(k){return String.fromCharCode(65+k)+'. '+lkqOT(q,k)}).join('; '):'';
  if(t==='kategori'){var lab=q.lab||['Benar','Salah'];return a&&typeof a==='object'?q.rows.map(function(r,k){return typeof a[k]==='boolean'?(k+1)+') '+lab[a[k]?0:1]:(k+1)+') -'}).join('; '):''}
- return typeof a==='number'?String.fromCharCode(65+a)+'. '+(q.o[a]||''):'';
+ return typeof a==='number'?String.fromCharCode(65+a)+'. '+lkqOT(q,a):'';
 }
 function lkqKeyText(q){
  var t=lkqType(q);
- if(t==='kompleks')return q.a.map(function(k){return String.fromCharCode(65+k)+'. '+q.o[k]}).join('; ');
+ if(t==='kompleks')return q.a.map(function(k){return String.fromCharCode(65+k)+'. '+lkqOT(q,k)}).join('; ');
  if(t==='kategori'){var lab=q.lab||['Benar','Salah'];return q.rows.map(function(r,k){return (k+1)+') '+lab[r[1]?0:1]}).join('; ')}
- return String.fromCharCode(65+q.a)+'. '+q.o[q.a];
+ return String.fromCharCode(65+q.a)+'. '+lkqOT(q,q.a);
 }
 function lkqVerdict(q,a){
  var t=lkqType(q),touched=t==='pg'?typeof a==='number':t==='kompleks'?Array.isArray(a)&&a.length>0:!!a&&typeof a==='object'&&Object.keys(a).length>0;
@@ -109,11 +111,11 @@ function lkqVerdict(q,a){
 }
 function lkqDetail(q,i,a){
  var v=lkqVerdict(q,a),txt=lkqAnsText(q,a);
- return '<p><b>'+(i+1)+'. '+lkEsc(q.q)+'</b><br>'+(txt&&v[1]!=='Belum dijawab'?lkEsc(txt)+' · <b>'+v[1].toLowerCase()+'</b>':'<span class="muted">Belum dijawab</span>')+'</p>';
+ return '<p><b>'+(i+1)+'. '+lkEsc(q.q)+'</b>'+(typeof lkgAda==='function'&&lkgAda(q)?' <span class="pill plain">Soal bergambar</span>':'')+'<br>'+(txt&&v[1]!=='Belum dijawab'?lkEsc(txt)+' · <b>'+v[1].toLowerCase()+'</b>':'<span class="muted">Belum dijawab</span>')+'</p>';
 }
 function lkqKeyHtml(q,i,a){
  var v=lkqVerdict(q,a),good=lkqPoint(q,a)>=1;
- return '<div class="qbox"><b>'+(i+1)+'. '+lkEsc(q.q)+'</b><div><span class="pill '+v[0]+'">'+v[1]+'</span></div>'+
+ return '<div class="qbox"><b>'+(i+1)+'. '+lkEsc(q.q)+'</b>'+(typeof lkgQHtml==='function'?lkgQHtml(q):'')+'<div><span class="pill '+v[0]+'">'+v[1]+'</span></div>'+
   (good?'':'<p>Kunci: <b>'+lkEsc(lkqKeyText(q))+'</b></p>')+(q.e?'<p class="note">'+lkEsc(q.e)+'</p>':'')+'</div>';
 }
 

@@ -75,3 +75,12 @@ Hanya Guru dan Admin, di tab **Bank soal** (tombol Impor soal, Template, Ekspor 
 - Siswa: gambar dimuat lewat `getsoal` dan disimpan di IndexedDB perangkat. Saat ujian dimulai semua gambar soal dimuat di latar belakang, jadi ujian yang sedang berjalan tetap utuh walau sinyal hilang.
 - Impor Excel tidak membawa gambar; tambahkan gambar lewat Ubah soal setelah impor. Ekspor Excel tidak menyertakan gambar (aplikasi memberi tahu bila ada soal bergambar).
 - Soal bawaan tidak bergambar.
+
+## Cetak soal untuk ujian kertas
+
+- Tab Bank soal (guru/admin): tombol **Cetak soal untuk ujian kertas**. Yang dicetak adalah soal aktif sesuai pencarian dan filter yang sedang dipakai, jadi atur filter mapel, jenis, atau peruntukan dulu.
+- Pilihan di dialog: judul, mata pelajaran, kelas, waktu, jumlah soal, acak urutan soal, kunci jawaban (halaman terpisah untuk guru), dan pembahasan di kunci.
+- Soal dikelompokkan PG, PG kompleks, PG kategori. PG kompleks memakai kotak centang, PG kategori berbentuk tabel Benar/Salah. Nomor berlanjut sesuai kunci jawaban.
+- Gambar soal dan gambar pilihan ikut tercetak. Gambar dimuat dulu ke perangkat; bila ada yang belum termuat, aplikasi bertanya apakah tetap dicetak dan tempat gambarnya diberi keterangan.
+- Lembar bukan hasil sesi ujian online (sesi memilih soal per siswa saat ujian dimulai). Untuk ujian kertas, pilih soal lewat filter lalu cetak.
+- Di dialog cetak ponsel pilih "Simpan sebagai PDF" bila ingin berkas. Kode: `js/cetak-soal.js`.

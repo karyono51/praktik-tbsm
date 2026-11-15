@@ -96,3 +96,13 @@ Tombol ada di daftar LKPD per kelas (Admin dan Guru). Berkas: `js/lkpd-io.js`, t
 - **Pengaturan**: Mode, Kesempatan, Tampilkan kunci, Sembunyikan teori/langkah/petunjuk, Buka, Tutup, dan Foto wajib ikut diekspor dan diimpor. Format jadwal `2026-11-12 08:00` (isi sebagai teks).
 - **Validasi**: sama dengan Editor (`lkValidateModule`, `lkqValid`): jumlah menit langkah = alokasi waktu, bobot tepat 100, format soal, ukuran modul maksimal sekitar 450 KB.
 - **Penyimpanan**: lewat `lkModuleStore`, jalur yang sama dengan Editor Guru. Mode Appwrite tetap memerlukan label `lkpdeditor`; berkas yang sama bisa dipakai untuk memindahkan modul antar akun guru.
+
+## Gambar pada soal evaluasi (kuis) modul
+
+- Editor Guru, tab Soal: tombol Tambah/Ganti/Hapus gambar pada pertanyaan dan pada tiap pilihan (PG dan PG kompleks). PG kategori: hanya pertanyaannya. Pilihan boleh teks, gambar, atau keduanya.
+- Format soal bertambah dua kolom opsional: `qi` (gambar soal) dan `oi` (daftar gambar pilihan, sejajar dengan `o`); isinya `drive:<fileId>`. Modul lama tetap terbaca.
+- Mesinnya sama dengan Bank soal (`js/soal-gambar.js`): gambar dikecilkan (sisi terpanjang 800 px), disimpan di Google Drive lewat `foto-drive` (unggah hanya guru/admin, baca semua pengguna login), dan disalin ke IndexedDB perangkat.
+- Alur guru: gambar dipilih -> disimpan di perangkat (`tmp:`) -> modul disimpan lokal -> saat sinkron ke server, gambar diunggah lebih dulu, baru modul dikirim dengan penanda `drive:`. Bila unggah gagal, modul tetap di antrean dan terkirim saat sinyal kembali.
+- Siswa: gambar soal bisa diketuk untuk diperbesar; gambar pilihan tidak, supaya ketukan tidak salah memilih jawaban. Gambar modul yang terbit diunduh di latar belakang agar tetap tampil saat offline. Pembahasan dan detail guru menampilkan gambar soal; pilihan yang hanya berisi gambar ditulis "(gambar)" pada teks kunci dan jawaban.
+- Impor Excel tidak membawa gambar, tetapi soal yang jenis, teks, dan pilihannya tidak berubah mempertahankan gambarnya. Ekspor Excel tidak menyertakan gambar (aplikasi memberi tahu).
+- Modul bawaan tidak bergambar. Kode: `js/lkpd-gambar.js`.
