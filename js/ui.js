@@ -62,7 +62,7 @@ function viewLogin(){
  var reg=Cloud.on&&A.reg,c=schCfg();
  var head=c?'<img class="logo big" src="'+c.logo+'" alt="Logo '+c.nama+'"><h1>KBM Praktik TBSM</h1><p class="muted">'+c.nama+'</p>'
   :'<div class="duo"><img class="logo big" src="'+LOGO_DF+'" alt="Logo SMKS Darul Fatwa"><img class="logo big" src="'+LOGO_MEDINA+'" alt="Logo SMKS Medina Bandung"></div><h1>KBM Praktik TBSM</h1><p class="muted">SMKS Darul Fatwa · SMKS Medina Bandung</p>';
- var dev='<div class="devcard"><span class="av" aria-hidden="true">K</span><div><b>Karyono, S.T.</b><small>Guru Teknik Bisnis Sepeda Motor · pengembang sistem KBM Praktik TBSM</small><small>SMKS Darul Fatwa · SMKS Medina Bandung</small></div></div>';
+ var dev='<div class="devcard"><span class="av" aria-hidden="true">K</span><div><b>Karyono, S.T.</b><small>Guru Teknik Bisnis Sepeda Motor · pengembang sistem KBM Praktik TBSM</small></div></div>';
  return '<div class="auth">'+head+
  '<form class="card" data-form="'+(reg?'register':'login')+'">'+
  (reg?'<label class="f">Nama lengkap<input name="nama" required autocomplete="name"></label>':'')+
