@@ -12,6 +12,9 @@
  function runOn(){return !!(BS.run&&bsOn()&&BS.sub==='run')}
 
  /* ---------- Layar penuh ---------- */
+ /* Mode Exambro: UserAgent memuat kata khusus (CFG.EXAMBRO_UA). Exambro sudah mengunci aplikasi, jadi layar penuh wajib, deteksi blur dan layar terbelah dilewati (WebView sering tidak mendukungnya dan akan memicu pelanggaran palsu). */
+ function exambro(){var t=String((window.CFG&&CFG.EXAMBRO_UA)||'TBSM-EXAM').toLowerCase();return String(navigator.userAgent||'').toLowerCase().indexOf(t)>-1}
+ window.cbtExambro=exambro;
  function fsSupported(){var d=document.documentElement;return !!(d.requestFullscreen||d.webkitRequestFullscreen)}
  function isFs(){return !!(document.fullscreenElement||document.webkitFullscreenElement)}
  function fsReq(){var d=document.documentElement,f=d.requestFullscreen||d.webkitRequestFullscreen;if(!f)return;CBT.grace=Date.now()+3000;try{var p=f.call(d);if(p&&p.catch)p.catch(function(){})}catch(e){}}
@@ -20,7 +23,7 @@
 
  /* ---------- Kebijakan sesi ---------- */
  function sesiOf(r){return BS.D.sesi.filter(function(x){return x.id===r.sesiId})[0]||{}}
- function pol(r){var s=sesiOf(r);return {batas:s.batas!==undefined?(+s.batas||0):(+r.batas||0),aksi:s.aksi||r.aksi||'peringatan',layar:s.layar!==undefined?!!s.layar:!!r.layar}}
+ function pol(r){var s=sesiOf(r);return {batas:s.batas!==undefined?(+s.batas||0):(+r.batas||0),aksi:s.aksi||r.aksi||'peringatan',layar:(s.layar!==undefined?!!s.layar:!!r.layar)&&!exambro()}}
  function viol(r){return Math.max(0,(r.pindah||0)-(r.pb||0))}
  function locked(r){var p=pol(r);return !!r&&r.mode==='ujian'&&p.aksi==='kunci'&&p.batas>0&&viol(r)>=p.batas}
  function inExam(){var r=BS.run;return !!(r&&r.mode==='ujian'&&!r.done&&bsOn()&&BS.sub==='run')}
@@ -71,7 +74,8 @@
      if(!s.tokH||hh!==s.tokH){toast('Token salah');return}
     }
    }
-   if(s.layar&&fsSupported())fsReq();
+   if(s.exb&&!exambro()){toast('Ujian ini wajib dikerjakan lewat aplikasi Exambro.');return}
+   if(s.layar&&fsSupported()&&!exambro())fsReq();
    if(!bsAman()){
     run.batas=s.batas||0;run.aksi=s.aksi||'peringatan';run.layar=!!s.layar;run.rg=run.rg||{};run.ext=0;run.pb=0;
     CBT.mulai=false;
@@ -80,7 +84,7 @@
    }
    BS.starting=true;toast('Menyiapkan ujian…');
    try{
-    var rs=await cbtFn({action:'mulai',sesiId:s.id,token:token});
+    var rs=await cbtFn({action:'mulai',sesiId:s.id,token:token,ua:String(navigator.userAgent||'').slice(0,400)});
     if(BS.run)return;
     var r={mode:'ujian',sesiId:s.id,sesiJudul:rs.sesiJudul,start:rs.start,dur:rs.dur,ids:rs.ids,oo:rs.oo||{},ans:rs.ans||{},cur:rs.cur||0,chk:rs.chk||{},pindah:rs.pindah||0,rg:rs.rg||{},sid:S.user.id,tampil:!!rs.tampil,kkm:rs.kkm,
      rid:rs.rid,srv:1,ext:rs.ext||0,stop:!!rs.stop,pb:rs.pb||0,batas:rs.batas||0,aksi:rs.aksi||'peringatan',layar:!!rs.layar};
@@ -275,7 +279,7 @@
  var BL={t:0,on:0},SP={max:0,on:0,t:0};
  function lastLog(r,k){var l=r&&r.log;return l&&l.length&&l[l.length-1].k===k?l[l.length-1]:null}
  window.addEventListener('blur',function(){
-  if(!inExam()||document.hidden||Date.now()<CBT.grace)return;
+  if(!inExam()||exambro()||document.hidden||Date.now()<CBT.grace)return;
   clearTimeout(BL.t);
   BL.t=setTimeout(function(){
    BL.t=0;var r=BS.run;
@@ -289,7 +293,7 @@
  });
  function areaWin(){return (window.innerWidth||0)*(window.innerHeight||0)}
  function spCheck(){
-  if(!inExam()){SP.max=0;SP.on=0;return}
+  if(!inExam()||exambro()){SP.max=0;SP.on=0;return}
   var a=areaWin(),ae=document.activeElement,ketik=ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
   if(a>SP.max)SP.max=a;
   if(ketik)return;

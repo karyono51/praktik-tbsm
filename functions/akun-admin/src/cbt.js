@@ -292,6 +292,12 @@ async function mulai(me, body) {
     return resumeResp(ex, s, now);
   }
   sesiBoleh(s, me.akun, now);
+  if (s.exb) {
+    /* sesi Wajib Exambro: UserAgent (header atau kiriman klien) harus memuat kata khusus. Ini penghalang, bukan jaminan: UserAgent bisa dipalsukan. */
+    const kata = String((typeof process !== 'undefined' && process.env && process.env.EXAMBRO_UA) || 'TBSM-EXAM').toLowerCase();
+    const ua = (String(body._ua || '') + ' ' + String(body.ua || '').slice(0, 400)).toLowerCase();
+    if (ua.indexOf(kata) < 0) throw new Fail('Ujian ini wajib dikerjakan lewat aplikasi Exambro.', 403);
+  }
   if (s.tok) {
     salahCek(me.akun.$id);
     const tk = await tokenSesi(sesiId);
@@ -506,6 +512,7 @@ export async function cbtHandle({ req, res, error, body }) {
     const callerId = req.headers['x-appwrite-user-id'];
     if (!callerId) return res.json({ ok: false, error: 'Harus login.' }, 401);
     KEY = req.headers['x-appwrite-key'] || '';
+    body._ua = String(req.headers['user-agent'] || '');
     const me = await whoami(callerId);
     switch (body.action) {
       case 'mulai': return res.json(await mulai(me, body));

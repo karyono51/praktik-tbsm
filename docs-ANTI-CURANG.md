@@ -32,3 +32,10 @@ hitungan keluar halaman dengan aksi peringatan / kirim otomatis / kunci, layar t
 
 Penerapan fungsi server: deploy ulang `akun-admin` (atau `cbt`) agar `simpan` menerima `log`. Tanpa itu, log tetap
 tampil di perangkat siswa tetapi tidak sampai ke Pantau pada mode aman.
+
+## Mode Exambro (v82)
+- Isi `EXAMBRO_UA:'TBSM-EXAM'` di `js/config.js` (bawaan sudah ada). Pada konfigurasi Exambro Ex (QR atau URL terenkripsi) isi **UserAgent** dengan kata yang memuat `TBSM-EXAM`, dan alamat aplikasi sebagai URL ujian.
+- Di Exambro, aplikasi otomatis melewati layar penuh wajib serta deteksi blur dan layar terbelah (Exambro sudah mengunci aplikasi; WebView sering tak mendukung layar penuh). Pelanggaran keluar halaman tetap dicatat.
+- Sesi: centang **Wajib Exambro** di form sesi. Siswa yang membuka dari Chrome tidak bisa memulai ujian.
+- Mode CBT aman: fungsi `mulai` memeriksa UserAgent. Kata khusus server bisa diubah lewat variabel `EXAMBRO_UA` fungsi; harus sama dengan di `config.js`. Deploy ulang fungsi `akun-admin`.
+- UserAgent bisa dipalsukan oleh yang paham; anggap sebagai penghalang. Uji di 3-5 HP berbeda sebelum ujian sungguhan.
