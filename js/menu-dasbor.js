@@ -23,15 +23,11 @@
  /* Kelompok menurut urutan tampil. keys/pre: pengenal data-v baris; post: baris yang ditaruh setelah baris berawalan pre. */
  function groups(staff,admin){
   return [
-   {key:'home',label:'',   ic:null,   keys:['beranda']},
-   {key:'akd',label:'Administrasi Akademik',ic:'akdTata',keys:['akd-guru','akd-kelas','akd-mapel','akd-tata']},
-   {key:'lkpd',label:staff?'LKPD Praktik':'LKPD Praktik kelas saya',ic:'kelas',pre:'lkpd:'},
-   {key:'ukk',label:staff?'UKK':'UKK kelas saya',ic:'kelas',pre:'kelas:',post:['nilai-akhir-ukk']},
-   {key:'soal',label:'Soal dan ujian',ic:'menu',keys:['banksoal','cbtonline']},
-   {key:'nilai',label:staff?'Penilaian dan kompetensi':'Nilai dan acuan',ic:'menu',keys:staff?['rekap','kompetensi']:['rekap','kompetensi','acuan']},
-   {key:'obs',label:'Supervisi dan observasi',ic:'observasi',keys:['observasi','observasi-siswa','observasi-ukk']},
-   {key:'acuan',label:'Acuan dan regulasi',ic:'menu',keys:staff?['acuan']:[]},
-   {key:'admin',label:'Pengelolaan sistem',ic:'menu',keys:['akun','hapusnilai','sinkron']},
+   {key:'home',label:'',ic:null,keys:['beranda','akd-guru']},
+   {key:'ajar',label:staff?'Pembelajaran':'Pembelajaran kelas saya',ic:'kelas',pre:['lkpd:','kelas:'],post:['nilai-akhir-ukk']},
+   {key:'uji',label:staff?'Ujian dan nilai':'Ujian, nilai, dan acuan',ic:'menu',keys:staff?['banksoal','cbtonline','rekap','kompetensi']:['banksoal','cbtonline','rekap','kompetensi','acuan']},
+   {key:'obs',label:'Supervisi',ic:'observasi',keys:['observasi','observasi-siswa','observasi-ukk']},
+   {key:'sys',label:'Pengaturan',ic:'menu',keys:['acuan','akun','hapusnilai','sinkron']},
    {key:'app',label:'Akun dan aplikasi',ic:'keluar',keys:['gantisandi','segarkan','perbarui'],compact:true},
    {key:'keluar',label:'',ic:null,keys:['keluar'],compact:true}
   ];
@@ -53,7 +49,7 @@
    var mine=[];
    /* urutan: baris keys, lalu baris berawalan pre (kelas dalam urutan aslinya), lalu baris post */
    (g.keys||[]).forEach(function(k){rows.forEach(function(r){if(r.dataset.v===k&&used.indexOf(r)<0){mine.push(r);used.push(r)}})});
-   if(g.pre)rows.forEach(function(r){if(String(r.dataset.v).indexOf(g.pre)===0&&used.indexOf(r)<0){mine.push(r);used.push(r)}});
+   [].concat(g.pre||[]).forEach(function(p){rows.forEach(function(r){if(String(r.dataset.v).indexOf(p)===0&&used.indexOf(r)<0){mine.push(r);used.push(r)}})});
    (g.post||[]).forEach(function(k){rows.forEach(function(r){if(r.dataset.v===k&&used.indexOf(r)<0){mine.push(r);used.push(r)}})});
    if(!mine.length)return;
    if(g.compact)mine.forEach(function(r){r.classList.add('compact')});

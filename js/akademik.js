@@ -364,9 +364,9 @@ function viewAkdTata(){
   h+='</div>';
  }
  /* hak akses */
- h+='<div class="card"><b>Hak akses data akademik</b><div class="note">Admin: kelola tahun ajaran, rombel, mata pelajaran, profil dan tugas guru. Guru: melihat mata pelajaran, rombel, dan profil sendiri. Siswa: tidak mengakses menu ini. NIP dan NUPTK disimpan di koleksi terpisah yang hanya bisa dibaca guru dan admin.</div></div>';
+ h+='<div class="card"><details><summary><b>Hak akses data akademik</b></summary><div class="note">Admin: kelola tahun ajaran, rombel, mata pelajaran, profil dan tugas guru. Guru: melihat mata pelajaran, rombel, dan profil sendiri. Siswa: tidak mengakses menu ini. NIP dan NUPTK disimpan di koleksi terpisah yang hanya bisa dibaca guru dan admin.</div></details></div>';
  /* regulasi */
- h+='<div class="card"><b>Acuan regulasi</b>'+AKD_REF.regulasi.map(function(r){return '<div class="note" style="margin-top:8px"><b>'+esc(r.k)+'</b><br>'+esc(r.t)+'</div>'}).join('')+'<div class="note" style="margin-top:8px">'+esc(AKD_REF.catatan)+'</div></div>';
+ h+='<div class="card"><details><summary><b>Acuan regulasi</b></summary>'+AKD_REF.regulasi.map(function(r){return '<div class="note" style="margin-top:8px"><b>'+esc(r.k)+'</b><br>'+esc(r.t)+'</div>'}).join('')+'<div class="note" style="margin-top:8px">'+esc(AKD_REF.catatan)+'</div></details></div>';
  /* katalog SKKNI */
  h+='<div class="card"><details><summary><b>Katalog SKKNI Teknik Sepeda Motor</b> <span class="note">55 unit</span></summary>'+Object.keys(AKD_SKKNI).map(function(c){return '<div class="note" style="margin-top:4px"><span class="mono">'+akSkkniKode(c)+'</span> '+esc(AKD_SKKNI[c])+'</div>'}).join('')+'</details></div>';
  return h;
@@ -515,8 +515,8 @@ render=function(){
   if(!S.user||!isStaff())return;
   var sb=document.querySelector('.sbody');
   if(sb&&!sb.querySelector('[data-v="akd-guru"]')){
-   var cur=V.mode==='list'?S.tab:'',sub={'akd-guru':akEdit()?'Profil dan tugas mengajar':'Profil dan tugas saya','akd-kelas':'Rombel, wali kelas, anggota','akd-mapel':'Kurikulum, elemen CP, SKKNI','akd-tata':'Tahun ajaran, pemeriksaan, regulasi'};
-   var html=AKTABS.map(function(t){return '<button type="button" class="srow" data-act="menu" data-v="'+t+'"'+(cur===t?' aria-current="page"':'')+'><span class="ico">'+svg(ICO[AKICO[t]],22)+'</span><span class="st"><b>'+AKNAMA[t]+'</b><small>'+sub[t]+'</small></span>'+svg(ICO.chev,18)+'</button>'}).join('');
+   var cur=V.mode==='list'?S.tab:'';
+   var html='<button type="button" class="srow" data-act="menu" data-v="akd-guru"'+(AKTABS.indexOf(cur)>-1?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.akdTata,22)+'</span><span class="st"><b>Administrasi Akademik</b><small>'+(akEdit()?'Guru, kelas, mata pelajaran, tata kelola':'Guru, kelas, dan mata pelajaran')+'</small></span>'+svg(ICO.chev,18)+'</button>';
    var br=sb.querySelector('.srow[data-v="beranda"]');
    if(br)br.insertAdjacentHTML('afterend',html);else sb.insertAdjacentHTML('beforeend',html);
   }
