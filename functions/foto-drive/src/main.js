@@ -8,7 +8,11 @@
      upload: {action:'upload', data:'data:image/jpeg;base64,...', nama:'X_Budi_X-1_K03-Terminal_20261112-1345'}  -> {ok:true, fileId}   (semua pengguna login)
      ping:   {action:'ping'} -> {ok:true, google:true, folder:true, pakaiMB, batasMB}   (cek token Google dan folder Drive)
      get:    {action:'get', lkpdId, fileId}                          -> {ok:true, data:'data:...'}
-             hanya guru/admin (label) atau pemilik foto (izin baca dokumen lkpd_bukti). */
+             hanya guru/admin (label) atau pemilik foto (izin baca dokumen lkpd_bukti).
+     Gambar soal (bank soal):
+     upload: {action:'upload', kind:'soal', data, nama}              -> {ok:true, fileId}   (hanya guru/admin; berkas ditandai kind=soal)
+     getsoal:{action:'getsoal', fileId}                                -> {ok:true, data:'data:...'}   (semua pengguna login, tetapi hanya berkas bertanda kind=soal,
+             jadi foto bukti praktik tidak bisa dibaca lewat aksi ini) */
 // Tanpa pustaka node-appwrite: panggilan ke Appwrite memakai fetch bawaan Node (pustaka lama gagal di runtime Node terbaru: "fetch failed").
 
 const FOLDER_NAME = 'TBSM Bukti Praktik';
@@ -71,7 +75,15 @@ function decodeImage(dataUrl) {
   return { mime: m[1], buf, ext: m[1] === 'image/png' ? 'png' : m[1] === 'image/webp' ? 'webp' : 'jpg' };
 }
 
-async function upload(callerId, body) {
+async function bolehSoal(callerId, key) {
+  if (!key) throw new Fail('Izin fungsi belum lengkap: beri scope users.read agar peran guru/admin bisa diperiksa.', 500);
+  const caller = await aw('/users/' + encodeURIComponent(callerId), { 'X-Appwrite-Key': key });
+  return (caller.labels || []).some((l) => l === 'guru' || l === 'admin');
+}
+
+async function upload(callerId, body, key) {
+  const soal = body.kind === 'soal';
+  if (soal && !(await bolehSoal(callerId, key))) throw new Fail('Hanya guru atau admin yang boleh mengunggah gambar soal.', 403);
   const img = decodeImage(body.data);
   const tok = await accessToken();
   const parent = await folderId(tok);
@@ -79,7 +91,7 @@ async function upload(callerId, body) {
   const label = String(body.nama || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 150);
   const name = (label || callerId.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 36) + '_' + Date.now()) + '.' + img.ext;
   const boundary = 'tbsm' + Date.now().toString(36);
-  const meta = JSON.stringify({ name, parents: [parent], mimeType: img.mime, appProperties: { uid: callerId } });
+  const meta = JSON.stringify({ name, parents: [parent], mimeType: img.mime, appProperties: soal ? { uid: callerId, kind: 'soal' } : { uid: callerId } });
   const payload = Buffer.concat([
     Buffer.from('--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + meta + '\r\n--' + boundary + '\r\nContent-Type: ' + img.mime + '\r\n\r\n'),
     img.buf,
@@ -134,6 +146,22 @@ async function get(callerId, body, auth, asUser) {
   return { ok: true, data: 'data:' + (/^image\//.test(mime) ? mime : 'image/jpeg') + ';base64,' + b64 };
 }
 
+/* Gambar soal: boleh dibaca semua pengguna login, tetapi hanya berkas yang diunggah guru/admin dengan penanda kind=soal. */
+async function getSoal(body) {
+  const fileId = String(body.fileId || '');
+  if (!ID_RE.test(fileId)) throw new Fail('Permintaan tidak valid.', 400);
+  const tok = await accessToken();
+  const m = await gfetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?fields=appProperties,mimeType,trashed', {}, tok);
+  if (!m.ok) throw new Fail('Gambar soal tidak ditemukan.', 404);
+  const meta = await m.json().catch(() => ({}));
+  if (meta.trashed || !meta.appProperties || meta.appProperties.kind !== 'soal') throw new Fail('Gambar soal tidak ditemukan.', 404);
+  const r = await gfetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?alt=media', {}, tok);
+  if (!r.ok) throw new Fail('Gambar tidak bisa diambil dari Drive (' + r.status + ').', r.status === 404 ? 404 : 502);
+  const mime = (r.headers.get('content-type') || meta.mimeType || 'image/jpeg').split(';')[0];
+  const b64 = Buffer.from(await r.arrayBuffer()).toString('base64');
+  return { ok: true, data: 'data:' + (/^image\/(jpeg|png|webp)$/.test(mime) ? mime : 'image/jpeg') + ';base64,' + b64 };
+}
+
 // ping: pemeriksaan kesehatan untuk panel Cek sinkronisasi. Hanya mengembalikan status dan angka kuota, tidak ada rahasia.
 async function ping() {
   const tok = await accessToken();
@@ -155,7 +183,8 @@ export default async ({ req, res, error }) => {
     if (!callerId) return res.json({ ok: false, error: 'Harus login.' }, 401);
     let body = {};
     try { body = req.bodyJson || JSON.parse(req.bodyText || req.body || '{}'); } catch (e) { return res.json({ ok: false, error: 'Data tidak valid.' }, 400); }
-    if (body.action === 'upload') return res.json(await upload(callerId, body));
+    if (body.action === 'upload') return res.json(await upload(callerId, body, req.headers['x-appwrite-key']));
+    if (body.action === 'getsoal') return res.json(await getSoal(body));
     if (body.action === 'ping') return res.json(await ping());
     if (body.action === 'get') {
       // Utama: baca dokumen atas nama pengguna (JWT) sehingga izin dokumen Appwrite yang menentukan, tanpa scope tambahan.

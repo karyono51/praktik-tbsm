@@ -64,3 +64,14 @@ Hanya Guru dan Admin, di tab **Bank soal** (tombol Impor soal, Template, Ekspor 
 - Soal baru yang jenis, mapel, dan teksnya sama dengan soal yang sudah ada dilewati, jadi aman bila file diimpor dua kali.
 - Kunci PG: satu huruf (B). PG kompleks: minimal dua huruf (A,C). PG kategori: isi Label 1 atau Label 2 (atau 1 / 2) pada Kunci 1-6; pilih pasangan Benar/Salah atau Sesuai/Tidak Sesuai.
 - Baris yang melanggar aturan bentuk soal (kurang dari 5 pilihan, kunci kompleks kurang dari 2, pernyataan kurang dari 3, label di luar dua pasangan) ditolak pada pratinjau beserta alasannya.
+
+## Gambar pada soal dan pilihan
+
+- Berlaku untuk PG dan PG kompleks: satu gambar pada soal, dan satu gambar pada tiap pilihan (A sampai E). Pilihan boleh berisi teks, gambar, atau keduanya, tetapi tidak boleh kosong dua-duanya (aturan 5 pilihan tetap berlaku).
+- PG kategori: hanya soalnya yang boleh bergambar, pernyataannya tidak.
+- Gambar dipilih dari galeri atau kamera di form soal, lalu dikecilkan otomatis (sisi terpanjang 800 px, sekitar 100 KB).
+- Penyimpanan: Google Drive lewat fungsi `foto-drive` (lihat docs-FOTO-DRIVE.md). Di soal hanya tersimpan penanda `qi` (gambar soal) dan `oi` (lima gambar pilihan) di kolom payload, jadi tidak perlu koleksi Appwrite baru.
+- Saat soal disimpan, gambar baru ditaruh dulu di IndexedDB perangkat guru (`tmp:`), lalu diunggah ke Drive sebelum dokumen soal dikirim ke server. Bila unggah gagal (offline), soal tetap di antrean dan terkirim saat sinyal kembali.
+- Siswa: gambar dimuat lewat `getsoal` dan disimpan di IndexedDB perangkat. Saat ujian dimulai semua gambar soal dimuat di latar belakang, jadi ujian yang sedang berjalan tetap utuh walau sinyal hilang.
+- Impor Excel tidak membawa gambar; tambahkan gambar lewat Ubah soal setelah impor. Ekspor Excel tidak menyertakan gambar (aplikasi memberi tahu bila ada soal bergambar).
+- Soal bawaan tidak bergambar.

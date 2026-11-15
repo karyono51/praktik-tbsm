@@ -65,3 +65,12 @@ Paket Appwrite gratis hanya mengizinkan 2 fungsi per project: `akun-admin` dan `
   2. `node tools/foto-drive.mjs migrasi --jalankan --batas 50` : unggah ke Drive lalu ganti isi dokumen menjadi `drive:<id>`. Aman diulang; dokumen yang sudah di Drive dilewati. Foto diunggah dulu, dokumen baru diubah setelah unggahan berhasil.
   3. Gunakan `GOOGLE_*` yang **sama** dengan fungsi `foto-drive` (agar fungsi bisa membaca berkas itu kembali) dan API key Appwrite dengan scope `documents.read` dan `documents.write`.
 - Urutan aman: pasang fungsi, jalankan **Tes foto Drive**, uji satu LKPD baru, baru jalankan migrasi.
+
+## Gambar soal (bank soal)
+
+Fungsi yang sama dipakai untuk gambar soal. Dua aksi tambahan, dan **fungsi harus di-deploy ulang** setelah memasang pembaruan ini:
+
+- `upload` dengan `kind:'soal'`: hanya guru dan admin (label akun, dibaca lewat scope `users.read` yang sudah dimiliki fungsi). Berkas di Drive diberi penanda `appProperties.kind = soal`.
+- `getsoal` dengan `fileId`: semua pengguna login boleh membaca, tetapi hanya berkas yang bertanda `kind=soal`. Foto bukti praktik tidak bisa dibaca lewat aksi ini; aksi `get` untuk foto bukti tidak berubah.
+
+Tanpa deploy ulang, soal bergambar tetap tersimpan di perangkat guru tetapi tidak terkirim (muncul pesan galat saat unggah), karena fungsi lama menolak `kind:'soal'` sebagai foto biasa. Uji: `node tools/uji-gambar.mjs`.
