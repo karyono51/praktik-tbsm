@@ -15,7 +15,10 @@
      periksa  {qid, ans}                       siswa: periksa satu soal latihan. -> {frac, kc}
      ulasan   {hasilId}                        pemilik hasil: ambil kunci dan pembahasan (latihan, atau ujian bila guru menampilkan).
      akhiri   {rid}                            guru/admin: nilai dari jawaban tersimpan.
-     akhiriSemua {sesiId}                      guru/admin: nilai semua peserta yang waktunya habis atau diakhiri. -> {n}
+     akhiriSemua {sesiId}                      guru/admin: nilai peserta yang waktunya habis atau diakhiri, secukupnya dalam satu panggilan
+                                               (batas waktu ~18 dtk). -> {n, sisa, gagal}; ulangi selama sisa > 0 dan n > 0.
+     nilaiUlang  {sesiId}                      guru/admin: hitung ulang nilai hasil ujian sesi dengan kunci terbaru (setelah kunci dikoreksi).
+                                               -> {total, n, sisa, lewat, gagal}; ulangi selama sisa > 0 dan n > 0.
 */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -31,6 +34,37 @@ const GRACE_MS = 90000;               // toleransi pengiriman jawaban setelah wa
 const ID_RE = /^[A-Za-z0-9_.-]{1,36}$/;
 
 class Fail extends Error { constructor(msg, status) { super(msg); this.status = status || 400; } }
+
+/* ---------- Cache ringan di instans fungsi yang hangat ----------
+   Ratusan siswa memulai, menyimpan, dan mengirim bersamaan. Tanpa cache, tiap aksi memanggil Appwrite 4 sampai 10 kali
+   (termasuk membaca seluruh bank soal). Isi cache hanya di memori fungsi, tidak pernah dikirim ke siswa, dan kedaluwarsa singkat. */
+const TTL_USER = 60000, TTL_SOAL = 60000, TTL_SESI = 10000;   // sesi dan token sengaja singkat: perubahan guru berlaku dalam 10 detik
+const BUDGET_MS = Number(process.env.CBT_BUDGET_MS) || 18000, PAR = 4;     // satu panggilan massal berhenti sebelum batas waktu fungsi (disarankan 30 dtk)
+const MAX_SALAH = 10, JENDELA_SALAH = 5 * 60000;
+const memo = { user: new Map(), soal: new Map(), sesi: new Map(), tok: new Map(), pool: null, salah: new Map() };
+function memGet(m, k, ttl) { const e = m.get(k); return e && Date.now() - e.t < ttl ? e.v : undefined; }
+function memSet(m, k, v, cap) { if (m.size >= cap) m.delete(m.keys().next().value); m.set(k, { t: Date.now(), v }); return v; }
+function memReset() { memo.user.clear(); memo.soal.clear(); memo.sesi.clear(); memo.tok.clear(); memo.pool = null; }
+/* satu pekerjaan yang sama dari banyak siswa sekaligus hanya dikerjakan sekali (mencegah serbuan saat cache masih kosong) */
+const inflight = new Map();
+function sekali(key, fn) { if (inflight.has(key)) return inflight.get(key); const p = Promise.resolve().then(fn).finally(() => inflight.delete(key)); inflight.set(key, p); return p; }
+/* batas tebakan token per akun (per instans fungsi; cukup untuk menahan tebakan beruntun) */
+function salahCek(id) {
+  const e = memo.salah.get(id);
+  if (e && Date.now() - e.t0 < JENDELA_SALAH && e.n >= MAX_SALAH) throw new Fail('Terlalu banyak token salah. Tunggu ' + Math.max(1, Math.ceil((JENDELA_SALAH - (Date.now() - e.t0)) / 60000)) + ' menit lalu coba lagi, atau minta pengawas.', 429);
+}
+function salahCatat(id) {
+  const e = memo.salah.get(id), now = Date.now();
+  if (!e || now - e.t0 >= JENDELA_SALAH) { if (memo.salah.size >= 5000) memo.salah.delete(memo.salah.keys().next().value); memo.salah.set(id, { n: 1, t0: now }); }
+  else e.n++;
+}
+/* jalankan pekerjaan dengan paralelisme terbatas dan batas waktu; sisa pekerjaan dilaporkan, bukan dipaksa */
+async function jalankan(items, fn, deadline) {
+  let i = 0, ok = 0, gagal = 0, pesan = '';
+  const w = async () => { for (;;) { if (Date.now() > deadline) return; const k = i++; if (k >= items.length) return; try { await fn(items[k]); ok++; } catch (e) { gagal++; pesan = String((e && e.message) || e); } } };
+  await Promise.all(Array.from({ length: PAR }, w));
+  return { ok, gagal, pesan };
+}
 
 /* ---------- REST Appwrite memakai kunci dinamis fungsi ---------- */
 let KEY = '';
@@ -58,6 +92,18 @@ const Q = {
 };
 async function getDoc(col, id) { return aw('GET', colPath(col) + '/' + encodeURIComponent(id)); }
 async function tryGet(col, id) { try { return await getDoc(col, id); } catch (e) { if (e.code === 404) return null; throw e; } }
+async function sesiDoc(id) {
+  const c = memGet(memo.sesi, id, TTL_SESI); if (c) return c;
+  return sekali('sesi:' + id, async () => { const d = await tryGet('soal_sesi', id); if (d) memSet(memo.sesi, id, d, 500); return d; });
+}
+async function tokenSesi(id) {
+  const c = memGet(memo.tok, id, TTL_SESI); if (c !== undefined) return c;
+  return sekali('tok:' + id, async () => {
+    const kd = await tryGet('soal_kunci', 'tk_' + id); let tk = '';
+    try { tk = String(JSON.parse((kd && kd.payload) || '{}').token || ''); } catch (e) { tk = ''; }
+    return memSet(memo.tok, id, tk, 500);
+  });
+}
 async function listDocs(col, queries) {
   const out = []; let cur = null;
   for (;;) {
@@ -94,9 +140,12 @@ function keyOf(soal, kdoc) {
   return null;
 }
 /* kumpulkan {tipe, n, key} tiap soal; bawaan dari bawaan.json */
-async function loadQ(ids) {
+async function buildQ(ids) {
   const own = ids.filter((id) => !BAWAAN[id]);
-  const docs = own.length ? await byIds('banksoal', own) : {};
+  /* dokumen soal yang baru dibaca untuk pool ujian dipakai lagi; hanya kunci yang masih perlu diambil */
+  const raw = memo.pool && Date.now() - memo.pool.t < TTL_SOAL ? memo.pool.raw : {}, docs = {}, miss = [];
+  own.forEach((id) => { if (raw[id]) docs[id] = raw[id]; else miss.push(id); });
+  if (miss.length) Object.assign(docs, await byIds('banksoal', miss));
   const kd = own.length ? await byIds('soal_kunci', own) : {};
   const out = {};
   ids.forEach((id) => {
@@ -112,6 +161,24 @@ async function loadQ(ids) {
       aktif: s.aktif !== false, tujuan: s.tujuan || 'keduanya', kelas: s.kelas || '' };
   });
   return out;
+}
+/* fresh = true: lewati cache (dipakai saat nilai ulang, supaya kunci yang baru dikoreksi ikut terbaca) */
+async function loadQ(ids, fresh) {
+  const out = {}, need = [];
+  ids.forEach((id) => { const c = fresh ? undefined : memGet(memo.soal, id, TTL_SOAL); if (c) out[id] = c; else if (need.indexOf(id) < 0) need.push(id); });
+  if (need.length) { const b = await sekali('q:' + (fresh ? 'f:' : '') + need.slice().sort().join(','), () => buildQ(need)); Object.keys(b).forEach((id) => { out[id] = memSet(memo.soal, id, b[id], 3000); }); }
+  return out;
+}
+/* daftar soal yang boleh dipakai ujian otomatis; dibaca sekali lalu dipakai bersama oleh ratusan siswa */
+async function poolUjian() {
+  if (memo.pool && Date.now() - memo.pool.t < TTL_SOAL) return memo.pool.v;
+  return sekali('pool', async () => {
+    const docs = await listDocs('banksoal'), raw = {};
+    docs.forEach((d) => { raw[d.$id] = d; });
+    const v = docs.map(parse).filter((q) => !BAWAAN[q.id] && !q.bawaan && q.aktif !== false && (q.tujuan === 'keduanya' || q.tujuan === 'ujian' || !q.tujuan));
+    memo.pool = { t: Date.now(), v, raw };
+    return v;
+  });
 }
 function frac(q, a) {
   if (!q || !q.key || a == null) return 0;
@@ -153,6 +220,7 @@ function kcOf(ids, Qs) {
 
 /* ---------- Pengguna ---------- */
 async function whoami(callerId) {
+  const c = memGet(memo.user, callerId, TTL_USER); if (c) return c;
   const u = await aw('GET', '/users/' + encodeURIComponent(callerId));
   const labels = u.labels || [], staff = labels.includes('guru') || labels.includes('admin');
   const email = String(u.email || '').trim().toLowerCase();
@@ -161,7 +229,7 @@ async function whoami(callerId) {
   const akun = f[0];
   if (!akun) throw new Fail('Email belum terdaftar di daftar akun.', 404);
   if (akun.aktif === false) throw new Fail('Akun nonaktif.', 403);
-  return { id: callerId, staff, akun };
+  return memSet(memo.user, callerId, { id: callerId, staff, akun }, 3000);
 }
 function sesiBoleh(s, akun, now) {
   if (s.aktif === false) throw new Fail('Sesi ujian tidak aktif.', 403);
@@ -193,7 +261,7 @@ function endOf(st) { return st.start + (st.dur + st.ext) * 1000; }
 /* ---------- Aksi ---------- */
 async function mulai(me, body) {
   const sesiId = String(body.sesiId || ''); if (!ID_RE.test(sesiId)) throw new Fail('Sesi tidak valid.');
-  const sd = await tryGet('soal_sesi', sesiId); if (!sd) throw new Fail('Sesi tidak ditemukan.', 404);
+  const sd = await sesiDoc(sesiId); if (!sd) throw new Fail('Sesi tidak ditemukan.', 404);
   const s = parse(sd), now = Date.now(), sid = me.akun.$id, rid = runId(sesiId, sid);
   const ex = await tryGet('soal_run', rid);
   if (ex) {
@@ -202,22 +270,24 @@ async function mulai(me, body) {
   }
   sesiBoleh(s, me.akun, now);
   if (s.tok) {
-    const kd = await tryGet('soal_kunci', 'tk_' + sesiId);
-    let tk = ''; try { tk = String(JSON.parse((kd && kd.payload) || '{}').token || ''); } catch (e) { tk = ''; }
+    salahCek(me.akun.$id);
+    const tk = await tokenSesi(sesiId);
     const got = String(body.token || '').trim().toUpperCase();
     if (!tk) throw new Fail('Token sesi belum diatur guru.', 403);
-    if (!got || !same(got, tk.toUpperCase())) throw new Fail('Token salah.', 403);
+    if (!got || !same(got, tk.toUpperCase())) { salahCatat(me.akun.$id); throw new Fail('Token salah.', 403); }
+    memo.salah.delete(me.akun.$id);
   }
   if (await tryGet('soal_hasil', 'h' + rid.slice(1))) throw new Fail('Kamu sudah mengerjakan sesi ini.', 409);
   let ids;
-  const all = (await listDocs('banksoal')).map(parse).filter((q) => !BAWAAN[q.id] && !q.bawaan && q.aktif !== false && (q.tujuan === 'keduanya' || q.tujuan === 'ujian' || !q.tujuan));
   const okKelas = (q) => !q.kelas || !me.akun.kelas || q.kelas === me.akun.kelas;
   if (s.pilih === 'manual') {
-    const have = {}; all.forEach((q) => { have[q.id] = 1; });
-    ids = (s.ids || []).filter((id) => have[id]);
+    /* hanya soal yang dipilih guru yang dibaca (bukan seluruh bank soal) */
+    const want = Array.from(new Set(s.ids || [])), Q0 = await loadQ(want);
+    ids = want.filter((id) => Q0[id] && !Q0[id].bawaan && Q0[id].aktif && (Q0[id].tujuan === 'keduanya' || Q0[id].tujuan === 'ujian'));
     if (s.acak !== false) ids = shuffle(ids);
   } else {
-    const mf = s.mapelF || [];
+    const all = await poolUjian(), mf = s.mapelF || [];
+    if (all.length <= 600) await loadQ(all.map((q) => q.id));   // kunci seluruh pool diambil sekali untuk semua siswa, bukan per siswa
     const pool = shuffle(all.filter((q) => okKelas(q) && (!mf.length || mf.indexOf(q.mapel) > -1)));
     ids = pool.slice(0, s.jumlah || pool.length).map((q) => q.id);
   }
@@ -268,8 +338,6 @@ async function selesaikan(run, me, opt) {
   /* menilai satu catatan ujian dan membuat dokumen hasil (idempoten) */
   const st = runState(run), p = st.p, ids = p.ids || [], now = Date.now();
   const hid = 'h' + run.$id.slice(1);
-  const old = await tryGet('soal_hasil', hid);
-  if (old) { if (!run.done) await updateDoc('soal_run', run.$id, { done: true }); return { hasil: old, p: parse(old), dup: true, ids, Qs: await loadQ(ids) }; }
   const Qs = await loadQ(ids);
   const ans = opt.ans ? Object.assign({}, p.ans || {}, cleanAns(opt.ans, ids)) : (p.ans || {});
   const g = nilai(ids, Qs, ans);
@@ -280,7 +348,13 @@ async function selesaikan(run, me, opt) {
     payload: JSON.stringify({ ans, order: ids, oo: p.oo || {}, pindah: Math.max(p.pindah || 0, opt.pindah || 0), pts: g.pts, tampil: !!p.tampil, kkm: p.kkm }) };
   let doc;
   try { doc = await createDoc('soal_hasil', hid, data, opt.perms || userRead(me.id)); }
-  catch (e) { if (e.code === 409) doc = await getDoc('soal_hasil', hid); else throw e; }
+  catch (e) {
+    if (e.code !== 409) throw e;
+    /* hasil sudah ada (kirim ganda atau guru sudah menilai): jangan menimpa, cukup tandai selesai */
+    const old = await getDoc('soal_hasil', hid);
+    if (!run.done) await updateDoc('soal_run', run.$id, { done: true });
+    return { hasil: old, p: parse(old), dup: true, ids, Qs };
+  }
   const pindahAkhir = Math.max(p.pindah || 0, opt.pindah || 0);
   await updateDoc('soal_run', run.$id, { done: true, payload: JSON.stringify(Object.assign({}, p, { ans, pindah: pindahAkhir })) });
   return { hasil: doc, p: parse(doc), ids, Qs };
@@ -348,24 +422,57 @@ async function permsFor(sid, me) {
     return ids.length ? ids.map((i) => 'read("user:' + i + '")') : [];
   } catch (e) { return []; }
 }
+/* ID login siswa (untuk izin baca hasil) lewat uid_map, per kelompok agar tidak satu per satu */
+async function uidMapFor(sids) {
+  const out = {};
+  try {
+    for (let i = 0; i < sids.length; i += 50) {
+      (await listDocs('uid_map', [Q.equal('sid', sids.slice(i, i + 50))])).forEach((d) => { (out[d.sid] = out[d.sid] || []).push(d.$id); });
+    }
+  } catch (e) { /* izin tidak tersedia: hanya guru/admin yang membaca */ }
+  return out;
+}
+const permsOf = (map, sid) => (map[sid] || []).slice(0, 3).map((i) => 'read("user:' + i + '")');
+
 async function akhiriSemua(me, body) {
   needStaff(me);
   const sesiId = String(body.sesiId || ''); if (!ID_RE.test(sesiId)) throw new Fail('Sesi tidak valid.');
+  const deadline = Date.now() + BUDGET_MS;
   const runs = await listDocs('soal_run', [Q.equal('sesiId', [sesiId])]), now = Date.now();
-  let n = 0;
-  for (const run of runs) {
-    if (run.done) continue;
-    const st = runState(run);
-    if (!(run.stop === true || now > endOf(st))) continue;
-    const a = await akun(run.sid);
-    await selesaikan(run, me, { akun: a || { nama: '', kelas: '' }, perms: await permsFor(run.sid, me) });
-    n++;
-  }
-  return { ok: true, n };
+  const due = runs.filter((run) => !run.done && (run.stop === true || now > endOf(runState(run))));
+  if (!due.length) return { ok: true, n: 0, sisa: 0, gagal: 0 };
+  const sids = Array.from(new Set(due.map((r) => r.sid)));
+  const aMap = await byIds('akun', sids), uMap = await uidMapFor(sids);
+  const r = await jalankan(due, async (run) => {
+    const d = aMap[run.sid], a = d ? Object.assign({ id: d.$id }, d) : { nama: '', kelas: '' };
+    await selesaikan(run, me, { akun: a, perms: permsOf(uMap, run.sid) });
+  }, deadline);
+  return { ok: true, n: r.ok, gagal: r.gagal, sisa: due.length - r.ok, pesan: r.pesan };
 }
 
-export const _uji = { frac, nilai, cleanAns, runId, parse };
-export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua']);
+/* hitung ulang nilai hasil ujian satu sesi dengan kunci terbaru. Hasil yang soalnya sudah dihapus atau kuncinya hilang
+   dilewati (tidak diubah) supaya nilai siswa tidak turun karena soal yang hilang. */
+async function nilaiUlang(me, body) {
+  needStaff(me);
+  const sesiId = String(body.sesiId || ''); if (!ID_RE.test(sesiId)) throw new Fail('Sesi tidak valid.');
+  memReset();
+  const deadline = Date.now() + BUDGET_MS;
+  const hs = (await listDocs('soal_hasil', [Q.equal('sesiId', [sesiId])])).filter((h) => h.mode === 'ujian');
+  const pj = (h) => { try { return JSON.parse(h.payload || '{}'); } catch (e) { return null; } };
+  const semua = Array.from(new Set(hs.reduce((a, h) => a.concat((pj(h) || {}).order || []), [])));
+  const Qs = await loadQ(semua, true), kerja = []; let lewat = 0;
+  hs.forEach((h) => {
+    const p = pj(h), ids = (p && p.order) || [];
+    if (!p || !ids.length || ids.some((id) => !Qs[id] || !Qs[id].key)) { lewat++; return; }
+    const g = nilai(ids, Qs, p.ans || {});
+    if (g.score !== h.score || g.benar !== h.benar) kerja.push({ h, p, g });
+  });
+  const r = await jalankan(kerja, ({ h, p, g }) => updateDoc('soal_hasil', h.$id, { score: g.score, benar: g.benar, payload: JSON.stringify(Object.assign({}, p, { pts: g.pts })) }), deadline);
+  return { ok: true, total: hs.length, n: r.ok, gagal: r.gagal, sisa: kerja.length - r.ok, lewat, pesan: r.pesan };
+}
+
+export const _uji = { frac, nilai, cleanAns, runId, parse, memReset, semuaReset: () => { memReset(); memo.salah.clear(); inflight.clear(); } };
+export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua', 'nilaiUlang']);
 
 /* Dipakai sebagai fungsi sendiri (default export) atau dipanggil dari fungsi lain, mis. akun-admin (lihat tools/gabung-cbt.mjs). */
 export async function cbtHandle({ req, res, error, body }) {
@@ -382,6 +489,7 @@ export async function cbtHandle({ req, res, error, body }) {
       case 'ulasan': return res.json(await ulasan(me, body));
       case 'akhiri': return res.json(await akhiri(me, body));
       case 'akhiriSemua': return res.json(await akhiriSemua(me, body));
+      case 'nilaiUlang': return res.json(await nilaiUlang(me, body));
       default: return res.json({ ok: false, error: 'Aksi tidak dikenal.' }, 400);
     }
   } catch (e) {

@@ -34,7 +34,7 @@
  function hasilSesi(id){
   var m={};
   BS.D.hasil.filter(function(h){return h.sesiId===id&&h.mode==='ujian'}).forEach(function(h){m[h.sid]=h});
-  PN.hasil.forEach(function(h){if(h.sesiId===id&&h.mode==='ujian')m[h.sid]=fromDoc(h)});
+  PN.hasil.forEach(function(h){if(h.sesiId===id&&h.mode==='ujian')m[h.sid]=bsFromDoc(h)});
   return m;
  }
 
@@ -115,7 +115,7 @@
  function pnPaint(){var e=document.getElementById('pn-body');if(e)e.innerHTML=pnBody()}
  function inPantau(){return !!S.user&&bsOn()&&BS.tab==='pantau'&&isStaff()&&Cloud.on}
  function pnTimer(){
-  if(inPantau()&&!PN.timer){PN.timer=setInterval(function(){if(!inPantau()){pnStop();return}if(document.hidden)return;pnLoad().then(pnPaint)},8000)}
+  if(inPantau()&&!PN.timer){PN.timer=setInterval(function(){if(!inPantau()){pnStop();return}if(document.hidden)return;if(PN.runs.length>150&&Date.now()-PN.at<14000)return;pnLoad().then(pnPaint)},8000)}
   else if(!inPantau())pnStop();
  }
  function pnStop(){if(PN.timer){clearInterval(PN.timer);PN.timer=0}}
@@ -151,6 +151,34 @@
  }
  function runOf(rid){return PN.runs.filter(function(d){return d.$id===rid})[0]}
 
+ /* aksi massal di server (akhiriSemua, nilaiUlang): server berhenti di batas waktunya dan melapor sisa; diulang sampai selesai */
+ async function cbtMassal(aksi,sesiId,kata){
+  var tot={n:0,sisa:0,gagal:0,lewat:0,total:0},putaran=0,rs;
+  do{
+   rs=await cbtFn({action:aksi,sesiId:sesiId});putaran++;
+   tot.n+=rs.n||0;tot.gagal+=rs.gagal||0;tot.sisa=rs.sisa||0;tot.lewat=Math.max(tot.lewat,rs.lewat||0);tot.total=Math.max(tot.total,rs.total||0);
+   if(rs.sisa>0)toast(tot.n+' '+kata+', sisa '+rs.sisa+'…');
+  }while(rs.sisa>0&&rs.n>0&&putaran<30);
+  return tot;
+ }
+ /* mode biasa (kunci ada di perangkat guru): hitung ulang di sini. Hasil yang soalnya hilang atau tanpa kunci dilewati. */
+ async function nilaiUlangKlien(s){
+  var hm=hasilSesi(s.id),kerja=[],lewat=0,tot=0,n=0;
+  Object.keys(hm).forEach(function(k){
+   var h=hm[k];tot++;
+   var o=BS.D.hasil.filter(function(x){return x.id===h.id})[0]||h,ids=o.order||[];
+   if(!ids.length||ids.some(function(id){var q=bsSoalById(id);return !q||!bsHasKey(q)})){lewat++;return}
+   var sum=0,ben=0;ids.forEach(function(id){var f=bsFrac(bsSoalById(id),o.ans?o.ans[id]:null);sum+=f;if(f>=0.9999)ben++});
+   var sc=Math.round(sum/ids.length*100);
+   if(sc!==o.score||ben!==o.benar)kerja.push({o:o,sc:sc,ben:ben,pts:+sum.toFixed(2)});
+  });
+  for(var i=0;i<kerja.length;i+=6){
+   var rs=await Promise.all(kerja.slice(i,i+6).map(function(w){w.o.score=w.sc;w.o.benar=w.ben;w.o.pts=w.pts;return bsPut('hasil',w.o)}));
+   rs.forEach(function(ok){if(ok)n++});
+  }
+  return {total:tot,n:n,sisa:kerja.length-n,lewat:lewat};
+ }
+
  /* ================= Analisis ================= */
  function stat(arr){
   var n=arr.length;if(!n)return null;
@@ -160,9 +188,9 @@
  }
  function analisis(sesiId){
   var s=sesiById(sesiId);if(!s)return null;
-  var H=Object.keys(hasilSesi(sesiId)).map(function(k){return hasilSesi(sesiId)[k]});
+  var hm=hasilSesi(sesiId),H=Object.keys(hm).map(function(k){return hm[k]});
   var skor=H.map(function(h){return +h.score||0});
-  var res={sesi:s,H:H,st:stat(skor),items:[]};
+  var res={sesi:s,H:H,st:stat(skor),items:[],rel:reliabilitas(H)};
   var kkm=+s.kkm||S.kkm;res.tuntas=skor.filter(function(x){return x>=kkm}).length;res.kkm=kkm;
   var urut=H.slice().sort(function(a,b){return b.score-a.score}),g=Math.max(1,Math.round(H.length*0.27));
   var atas={},bawah={};urut.slice(0,g).forEach(function(h){atas[h.id]=1});urut.slice(-g).forEach(function(h){bawah[h.id]=1});
@@ -197,6 +225,24 @@
   });
   return res;
  }
+
+ /* reliabilitas (Cronbach alpha, skor sebagian ikut dihitung) atas soal yang dikerjakan SEMUA peserta.
+    Pada sesi dengan soal acak per siswa, irisan soal bisa terlalu kecil: hasilnya kosong (bukan nol). */
+ function reliabilitas(H){
+  if(H.length<5)return null;
+  var common=null;
+  H.forEach(function(h){var ids=h.order||[];common=common===null?ids.slice():common.filter(function(x){return ids.indexOf(x)>-1})});
+  common=(common||[]).filter(function(id){var q=bsSoalById(id);return q&&bsHasKey(q)});
+  if(common.length<5)return null;
+  var k=common.length,M=H.map(function(h){return common.map(function(id){var q=bsSoalById(id),a=h.ans?h.ans[id]:null;return bsFrac(q,a==null?null:a)})});
+  function vr(a){var m=a.reduce(function(x,y){return x+y},0)/a.length;return a.reduce(function(x,y){return x+(y-m)*(y-m)},0)/(a.length-1)}
+  var vt=vr(M.map(function(r){return r.reduce(function(x,y){return x+y},0)}));
+  if(!(vt>0))return null;
+  var sv=0;for(var j=0;j<k;j++)sv+=vr(M.map(function(r){return r[j]}));
+  var al=(k/(k-1))*(1-sv/vt);
+  return {a:al,k:k,n:H.length,common:common,M:M,ket:al>=0.8?'Sangat baik':al>=0.7?'Baik':al>=0.5?'Cukup':'Rendah'};
+ }
+ window.cbtReliabilitas=reliabilitas;
  var HURUF='ABCDEFGHIJ';
  function sebaran(o){
   var q=o.q;if(q.tipe==='kategori'||!q.opts)return '';
@@ -212,8 +258,8 @@
   var a=analisis(AN.sesi),h='<div class="card">'+selSesi('an-sesi',AN.sesi)+'</div>';
   if(!a||!a.H.length)return h+'<p class="muted">Belum ada peserta yang selesai pada sesi ini.</p><div class="row"><button type="button" class="btn small" data-bs="an-hadir">Cetak daftar hadir</button></div>';
   var st=a.st,f=function(x){return Math.round(x*10)/10};
-  h+='<div class="stats"><div class="card"><span class="label">Peserta</span><b class="mono">'+st.n+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+f(st.mean)+'</b></div><div class="card"><span class="label">Median</span><b class="mono">'+f(st.med)+'</b></div><div class="card"><span class="label">Simpangan baku</span><b class="mono">'+f(st.sd)+'</b></div><div class="card"><span class="label">Tertinggi</span><b class="mono">'+st.max+'</b></div><div class="card"><span class="label">Terendah</span><b class="mono">'+st.min+'</b></div><div class="card"><span class="label">Tuntas (KKM '+a.kkm+')</span><b class="mono">'+Math.round(a.tuntas/st.n*100)+'%</b></div></div>';
-  h+='<div class="row"><button type="button" class="btn small" data-bs="an-ekspor">Ekspor Excel</button><button type="button" class="btn small" data-bs="an-hadir">Cetak daftar hadir</button><label class="f" style="min-width:150px">Urutkan<select data-bs="an-urut"><option value="p"'+(AN.urut==='p'?' selected':'')+'>Tersukar dulu</option><option value="db"'+(AN.urut==='db'?' selected':'')+'>Daya beda terendah</option><option value="n"'+(AN.urut==='n'?' selected':'')+'>Paling banyak diujikan</option></select></label></div>';
+  h+='<div class="stats"><div class="card"><span class="label">Peserta</span><b class="mono">'+st.n+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+f(st.mean)+'</b></div><div class="card"><span class="label">Median</span><b class="mono">'+f(st.med)+'</b></div><div class="card"><span class="label">Simpangan baku</span><b class="mono">'+f(st.sd)+'</b></div><div class="card"><span class="label">Tertinggi</span><b class="mono">'+st.max+'</b></div><div class="card"><span class="label">Terendah</span><b class="mono">'+st.min+'</b></div><div class="card"><span class="label">Tuntas (KKM '+a.kkm+')</span><b class="mono">'+Math.round(a.tuntas/st.n*100)+'%</b></div>'+(a.rel?'<div class="card"><span class="label">Reliabilitas (α)</span><b class="mono">'+a.rel.a.toFixed(2)+'</b><span class="note">'+a.rel.ket+' · '+a.rel.k+' soal</span></div>':'')+'</div>';
+  h+='<div class="row"><button type="button" class="btn small" data-bs="an-ekspor">Ekspor Excel</button><button type="button" class="btn small" data-bs="an-hadir">Cetak daftar hadir</button>'+(bsEdit()?'<button type="button" class="btn small" data-bs="an-ulang">Nilai ulang dengan kunci terbaru</button>':'')+'<label class="f" style="min-width:150px">Urutkan<select data-bs="an-urut"><option value="p"'+(AN.urut==='p'?' selected':'')+'>Tersukar dulu</option><option value="db"'+(AN.urut==='db'?' selected':'')+'>Daya beda terendah</option><option value="n"'+(AN.urut==='n'?' selected':'')+'>Paling banyak diujikan</option></select></label></div>';
   h+=a.items.map(function(o){
    if(o.nokey)return '<div class="card"><p class="note">'+esc(String(o.q.q||'').slice(0,100))+'</p><p class="note">Kunci tidak tersedia di perangkat ini, soal dilewati.</p></div>';
    var warn=o.db!==null&&o.db<0?'<span class="pill bad">Periksa kunci</span>':'';
@@ -235,6 +281,11 @@
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(items),'Analisis butir');
   var had=ros.map(function(u,i){var h=hs[u.id];return {No:i+1,Nama:u.nama,Kelas:u.kelas||'',Kehadiran:h?'Hadir':'Tidak hadir',Nilai:h?h.score:''}});
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(had),'Daftar hadir');
+  if(a.rel){
+   var mx=a.H.map(function(h,i){var o={No:i+1,Nama:h.siswa,Kelas:h.kelas||''},tot=0;a.rel.common.forEach(function(id,j){var v=+a.rel.M[i][j].toFixed(3);o['S'+(j+1)]=v;tot+=v});o.Jumlah=+tot.toFixed(2);return o}).sort(function(x,y){return String(x.Nama).localeCompare(String(y.Nama),'id')});
+   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mx),'Matriks skor');
+   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{Reliabilitas_alpha:+a.rel.a.toFixed(3),Keterangan:a.rel.ket,Jumlah_soal:a.rel.k,Peserta:a.rel.n}]),'Reliabilitas');
+  }
   XLSX.writeFile(wb,'analisis-'+String(s.judul).replace(/[^\w-]+/g,'_').slice(0,40)+'-'+ymd(Date.now())+'.xlsx');
  }
 
@@ -282,15 +333,19 @@
   else if(a==='pn-extall'){
    var s=sesiById(PN.sesi);
    uiConfirm('Tambah 5 menit untuk semua siswa yang sedang mengerjakan?',{ok:'Tambah'}).then(async function(ok){
-    if(!ok)return;var n=0;
-    for(var i=0;i<PN.runs.length;i++){var d=PN.runs[i];if(d.done)continue;try{await Cloud.db.updateDocument(CFG.DB,'soal_run',d.$id,{ext:(Number(d.ext)||0)+300});n++}catch(er){}}
-    toast(n+' siswa ditambah waktunya');await pnLoad();pnPaint();
+    if(!ok)return;var n=0,aktif=PN.runs.filter(function(d){return !d.done});
+    /* bertahap 8 sekaligus: ratusan siswa tidak menunggu satu per satu */
+    for(var i=0;i<aktif.length;i+=8){
+     var rs=await Promise.all(aktif.slice(i,i+8).map(function(d){return Cloud.db.updateDocument(CFG.DB,'soal_run',d.$id,{ext:(Number(d.ext)||0)+300}).then(function(){return 1},function(){return 0})}));
+     rs.forEach(function(x){n+=x});
+    }
+    toast(n+' dari '+aktif.length+' siswa ditambah waktunya');await pnLoad();pnPaint();
    });
   }
   else if(a==='pn-nilai'){
    uiConfirm('Nilai semua peserta yang waktunya habis atau diakhiri, memakai jawaban tersimpan?',{ok:'Nilai'}).then(function(ok){
     if(!ok)return;
-    cbtFn({action:'akhiriSemua',sesiId:PN.sesi}).then(function(rs){toast(rs.n+' peserta dinilai');return pnLoad()}).then(pnPaint,function(er){toast('Gagal: '+((er&&er.message)||er))});
+    cbtMassal('akhiriSemua',PN.sesi,'dinilai').then(function(t){toast(t.n+' peserta dinilai'+(t.sisa?', '+t.sisa+' belum selesai. Tekan lagi.':''));return pnLoad()}).then(pnPaint,function(er){toast('Gagal: '+((er&&er.message)||er))});
    });
   }
   else if(a==='pn-nilai1'||a==='pn-nilaisemua'){
@@ -325,6 +380,21 @@
     BS.tk[s4.id]=s4.tokP;await bsPut('sesi',s4);bsKcSave();toast('Token diganti: '+s4.tokP);pnPaint();
    })();
   }
+  else if(a==='an-ulang'){
+   var s6=sesiById(AN.sesi);if(!s6||!bsEdit())return;
+   uiConfirm('Hitung ulang nilai semua peserta sesi ini dengan kunci jawaban yang sekarang? Nilai siswa ikut berubah bila kunci sudah dikoreksi. Hasil yang soalnya sudah dihapus dilewati.',{ok:'Nilai ulang'}).then(async function(ok){
+    if(!ok)return;
+    try{
+     toast('Menghitung ulang…');
+     var t=bsAman()?await cbtMassal('nilaiUlang',s6.id,'diperbarui'):await nilaiUlangKlien(s6);
+     PN.sesi=s6.id;PN.sesiLoaded='';await pnLoad();   /* muat ulang nilai dari server; salinan lama tidak boleh menimpa */
+     if(bsAman()){BS.loaded=false;bsLoad()}
+     toast(t.n+' dari '+t.total+' hasil diperbarui'+(t.lewat?', '+t.lewat+' dilewati (soal atau kunci tidak tersedia)':'')+(t.sisa?', '+t.sisa+' belum selesai. Tekan lagi.':''));
+     render();
+    }catch(er){toast('Gagal: '+((er&&er.message)||er))}
+   });
+  }
+  else if(a==='hmore'){BS.hmax=(BS.hmax||100)+100;render()}
   else if(a==='an-ekspor')ekspor();
   else if(a==='an-hadir')cetakHadir(AN.sesi);
  });

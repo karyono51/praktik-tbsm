@@ -601,10 +601,11 @@ function bsViewHasil(){
  h+='<div class="stats"><div class="card"><span class="label">Pengumpulan</span><b class="mono">'+rows.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div><div class="card"><span class="label">Tertinggi</span><b class="mono">'+(rows.length?Math.max.apply(null,rows.map(function(x){return x.score})):0)+'</b></div></div>';
  h+='<div class="row"><button type="button" class="btn small" data-bs="ekspor"'+(rows.length?'':' disabled')+'>Ekspor Excel</button></div>';
  if(!rows.length)return h+'<p class="muted">Belum ada hasil.</p>';
- h+=rows.slice(0,100).map(function(x){
+ var hmax=BS.hmax||100;
+ h+=rows.slice(0,hmax).map(function(x){
   var lat=x.mode==='latihan',kkm=((BS.D.sesi.filter(function(s){return s.id===x.sesiId})[0]||{}).kkm)||S.kkm;
   return '<div class="card"><div class="row sb"><b>'+esc(x.siswa)+'</b><b class="mono">'+x.score+'</b></div><div class="row"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':'Ujian')+'</span>'+(lat?'':'<span class="pill '+(x.score>=kkm?'ok':'bad')+'">'+(x.score>=kkm?'Kompeten':'Belum')+'</span>')+'<span class="pill plain">Kelas '+esc(x.kelas||'-')+'</span>'+(x.pindah?'<span class="pill bad">Keluar halaman '+x.pindah+'×</span>':'')+'</div><p class="note">'+esc(x.sesiJudul||'Latihan soal')+' · '+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round(x.detik/60))+' menit</p><div class="row"><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail jawaban</button>'+(can('hapus')||can('nilai')?'<button type="button" class="btn small danger" data-bs="hapushasil" data-v="'+x.id+'">Hapus</button>':'')+'</div></div>';
- }).join('')+'';
+ }).join('')+(rows.length>hmax?'<button type="button" class="btn" data-bs="hmore">Tampilkan lebih banyak ('+(rows.length-hmax)+' lagi)</button>':'');
  return h;
 }
 /* hapus catatan ujian di server (soal_run) bersama hasilnya, jika tidak siswa tetap dianggap sudah selesai dan tidak bisa mengulang */

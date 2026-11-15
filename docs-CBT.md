@@ -42,3 +42,37 @@ Soal lama yang kuncinya ada di payload dipindahkan otomatis ke `soal_kunci` saat
 - Pelanggaran dihitung dari perpindahan tab/keluar layar penuh; kunci dibuka guru lewat Pantau (menyetel `pb`).
 - Jawaban dikirim berkala ke server; pengiriman akhir yang gagal disimpan di perangkat dan dicoba ulang.
 - Kunci jawaban tetap perlu dijaga: jangan beri label guru kepada siswa.
+
+---
+
+# Pembaruan: pemeriksaan dan penguatan CBT
+
+## Perbaikan galat
+- **Analisis butir dan "Keluar halaman" kosong setelah membuka Pantau.** Hasil yang dimuat dari server tidak diurai (jawaban, urutan soal, jumlah keluar halaman ada di `payload`), lalu menimpa salinan yang sudah benar. Sekarang diurai dengan `bsFromDoc`. Terukur pada uji: 0 dari 8 kartu analisis tampil sebelum perbaikan, 8 dari 8 sesudahnya.
+- **Layar penuh tetap menyala bila ujian gagal dimulai** (mode biasa: sesi sudah dikerjakan, token salah di server, dan sejenisnya). Sekarang keluar otomatis.
+- **Daftar Hasil terpotong di 100 baris** tanpa tanda apa pun. Sekarang ada tombol "Tampilkan lebih banyak" (ekspor Excel memang sudah memuat semua baris).
+
+## Beban server (ratusan siswa sekaligus)
+Fungsi CBT kini memakai cache singkat di memori (akun 60 dtk, soal dan kunci 60 dtk, sesi dan token 10 dtk) dan membaca bank soal sekali untuk semua siswa, bukan sekali per siswa. Perubahan guru pada sesi atau token berlaku dalam 10 detik; kunci soal dalam 60 detik (nilai ulang selalu membaca kunci terbaru).
+
+Diukur dengan `tools/uji-cbt.mjs` (Appwrite tiruan, 300 siswa, bank 200 soal):
+
+| Aksi | Sebelum | Sesudah |
+|---|---|---|
+| Mulai ujian | 3300 panggilan (11 per siswa) | 1508 (5 per siswa) |
+| Kirim jawaban akhir | 2400 (8 per siswa) | 900 (3 per siswa) |
+| Simpan berkala (tiap 10 sampai 14 dtk) | 4 per simpan | 2 per simpan |
+
+## Fitur baru
+- **Nilai ulang dengan kunci terbaru** (CBT Online, tab Analisis). Bila analisis menandai "Periksa kunci" dan guru memperbaiki kunci di Bank soal, semua nilai sesi dihitung ulang. Mode aman: dikerjakan fungsi server (`nilaiUlang`). Mode biasa: dihitung di perangkat guru. Hasil yang soalnya sudah dihapus atau kuncinya hilang **dilewati** supaya nilai siswa tidak turun karena soal yang hilang.
+- **Reliabilitas (Cronbach alpha)** di ringkasan Analisis, serta lembar *Matriks skor* dan *Reliabilitas* pada ekspor Excel. Dihitung atas soal yang dikerjakan semua peserta; pada sesi dengan soal acak per siswa irisan bisa terlalu kecil sehingga kartu tidak tampil.
+- **Status penyimpanan untuk siswa** di layar ujian: "Tersimpan 09:14:03", "Menyimpan…", "Offline · jawaban aman di perangkat", atau "Belum terkirim ke server · jangan tutup halaman". Percobaan ulang simpan dipercepat menjadi 15 detik bila ada yang belum terkirim.
+- **Batas tebakan token**: 10 token salah dalam 5 menit membuat akun itu ditahan 5 menit (per instans fungsi, cukup menahan tebakan beruntun).
+- **Nilai yang berakhir** (Pantau) kini berhenti rapi di batas waktu fungsi (±18 dtk) dan aplikasi mengulang otomatis sampai semua peserta ternilai, tanpa kena batas waktu fungsi pada sesi besar.
+- **+5 menit semua** berjalan 8 siswa sekaligus; Pantau memuat lebih jarang bila peserta lebih dari 150.
+
+## Uji otomatis
+`node tools/uji-cbt.mjs` menguji fungsi server tanpa internet (25 pemeriksaan: token, kelas, jadwal, penilaian, kirim ganda, batas tebakan, beban, akhiri massal, nilai ulang). Jalankan setelah mengubah `functions/cbt/src/main.js`, lalu `node tools/gabung-cbt.mjs` dan deploy ulang `akun-admin`.
+
+## Status mode saat ini
+`js/config.js` masih `CBT_AMAN:false` (mode biasa). Pada mode ini kunci jawaban ikut dalam soal yang bisa dibaca semua siswa yang login, nilai dihitung di peramban siswa dan siswa boleh menulis `soal_hasil`, jadi nilai bisa dipalsukan dan kunci bisa dibaca lewat alat pengembang peramban. Untuk ujian yang menentukan nilai, aktifkan mode aman dengan urutan di bagian "Pemasangan mode aman" di atas (fungsi dulu, lalu `CBT_AMAN:true`, lalu `--profil=aman`). Perubahan di atas bekerja di kedua mode.

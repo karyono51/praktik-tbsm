@@ -58,8 +58,8 @@
   r.dirty=0;
   if(window.bsAman&&bsAman()){
    /* mode CBT aman: fungsi server yang menulis catatan ujian dan membalas ext/stop/pb dari guru */
-   try{var rs=await cbtFn({action:'simpan',rid:r.rid,ans:r.ans,cur:r.cur,pindah:r.pindah||0,rg:r.rg||{}});if(window.cbtApply)cbtApply(r,rs);bsRunSave0()}
-   catch(e){r.dirty=1}
+   try{var rs=await cbtFn({action:'simpan',rid:r.rid,ans:r.ans,cur:r.cur,pindah:r.pindah||0,rg:r.rg||{}});if(window.cbtApply)cbtApply(r,rs);r.savedAt=Date.now();r.saveErr=0;bsRunSave0()}
+   catch(e){r.dirty=1;r.saveErr=(r.saveErr||0)+1}
    return;
   }
   try{
@@ -79,9 +79,10 @@
    }
    var dd=await Cloud.db.updateDocument(CFG.DB,COL,r.rid,{payload:pay(r)});
    if(window.cbtApply)cbtApply(r,dd);
+   r.savedAt=Date.now();r.saveErr=0;
    bsRunSave0();
   }catch(e){
-   if(e&&e.code===404)st.noCol=true;else r.dirty=1;
+   if(e&&e.code===404)st.noCol=true;else{r.dirty=1;r.saveErr=(r.saveErr||0)+1}
   }
  }
  function sched(){
@@ -97,7 +98,7 @@
  window.addEventListener('pagehide',segera);
  /* denyut: tiap 4 menit satu tulis ringan juga menyegarkan sampel jam server */
  window.bsPushNow=function(){if(st.timer){clearTimeout(st.timer);st.timer=0}return push()};
- setInterval(function(){var r=BS.run;if(r&&r.mode==='ujian'&&r.rid&&Date.now()-(r.lastPush||0)>(window.cbtDenyutMs?cbtDenyutMs(r):60000))window.bsPushNow()},4000);
+ setInterval(function(){var r=BS.run;if(!r||r.mode!=='ujian'||!r.rid)return;var gap=window.cbtDenyutMs?cbtDenyutMs(r):60000;if(r.dirty)gap=Math.min(gap,15000);if(Date.now()-(r.lastPush||0)>gap)window.bsPushNow()},4000);
  window.addEventListener('online',segera);
 
  /* Tandai selesai di server setelah hasil dibuat */

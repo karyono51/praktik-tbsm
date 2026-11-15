@@ -73,7 +73,7 @@
    if(!bsAman()){
     run.batas=s.batas||0;run.aksi=s.aksi||'peringatan';run.layar=!!s.layar;run.rg=run.rg||{};run.ext=0;run.pb=0;
     CBT.mulai=false;
-    if(typeof legacyMulai==='function')return await legacyMulai(s,run);
+    if(typeof legacyMulai==='function'){var lr=await legacyMulai(s,run);if(!BS.run)fsExit();return lr}
     bsStartRun(run);return;
    }
    BS.starting=true;toast('Menyiapkan ujian…');
@@ -91,6 +91,24 @@
   }finally{CBT.mulai=false}
  };
 
+ /* ---------- Status penyimpanan jawaban (agar siswa tahu jawabannya sudah aman) ---------- */
+ function svInfo(r){
+  if(!r||r.mode!=='ujian'||!r.rid)return null;
+  var off=navigator.onLine===false,lama=r.dirty&&Date.now()-(r.lastPush||0)>30000;
+  if(off)return {t:'Offline · jawaban aman di perangkat, terkirim saat online',c:'warn'};
+  if(r.saveErr>=2||lama)return {t:'Belum terkirim ke server · jangan tutup halaman',c:'bad'};
+  if(r.dirty)return {t:'Menyimpan…',c:'plain'};
+  if(r.savedAt)return {t:'Tersimpan '+new Date(r.savedAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),c:'ok'};
+  return {t:'Jawaban disimpan otomatis',c:'plain'};
+ }
+ function svPaint(r){
+  var el=document.getElementById('cbt-sv'),i=svInfo(r);
+  if(!el||!i)return;
+  if(el.textContent!==i.t)el.textContent=i.t;
+  var cl='pill '+i.c;if(el.className!==cl)el.className=cl;
+ }
+ window.cbtSvInfo=svInfo;
+
  /* ---------- Tampilan soal ---------- */
  function nAns(r){return Object.keys(r.ans).filter(function(k){var s=bsSoalById(k);return s&&bsAnswered(s,r.ans[k])}).length}
  function nRg(r){return Object.keys(r.rg||{}).filter(function(k){return r.rg[k]&&r.ids.indexOf(k)>-1}).length}
@@ -105,6 +123,7 @@
    var ex=[];
    if(p.batas>0)ex.push('<span class="pill '+(v?'warn':'plain')+'">Keluar halaman '+v+' dari '+p.batas+'</span>');
    if(p.layar&&fsSupported()&&!isFs())ex.push('<button type="button" class="btn small" data-bs="layar">Layar penuh</button>');
+   var sv=svInfo(r);if(sv)ex.push('<span class="pill '+sv.c+'" id="cbt-sv" role="status">'+esc(sv.t)+'</span>');
    if(ex.length)h+='<div class="row">'+ex.join('')+'</div>';
   }
   h+='</div>';
@@ -127,6 +146,7 @@
    if(r.dur){var ms=bsRemain(r);if(el){el.textContent=mmss(Math.ceil(ms/1000));el.classList.toggle('low',ms<300000)}if(ms<=0){bsFinish(true);return}}
    else if(el)el.textContent=mmss(Math.floor((Jam.now()-r.start)/1000));
    if(r.mode==='ujian'&&r.stop&&!r.done){toast('Pengawas mengakhiri ujian. Jawaban dikirim.');bsFinish(true);return}
+   svPaint(r);
    cbtPost();
   },1000);
  };
