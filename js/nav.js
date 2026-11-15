@@ -2,6 +2,9 @@
 var NAV={restore:false,busy:false,hadCtl:false,updated:false};
 var NAVK='tbsm-nav',NAVTTL=24*3600*1000;
 var NAVTABS=['beranda','katalog','rekap','akun','acuan','lkpd','observasi','observasi-siswa'];
+/* tab modul lain (banksoal, cbtonline, kompetensi, sinkron, hapusnilai, observasi-ukk, nilai-akhir-ukk) didaftarkan oleh modulnya sendiri */
+/* izin yang dibutuhkan tiap tab agar bisa dipulihkan (peran aktif bisa berubah sejak posisi disimpan) */
+var NAVPERM={akun:'akun',observasi:'observasi','observasi-siswa':'observasi','observasi-ukk':'observasi','nilai-akhir-ukk':'observasi',kompetensi:'nilai',hapusnilai:'hapus'};
 
 /* ---- Simpan dan pulihkan posisi halaman ---- */
 function navSave(){
@@ -11,7 +14,7 @@ function navSave(){
 function navApply(u){
  var j;try{j=JSON.parse(localStorage.getItem(NAVK)||'null')}catch(e){j=null}
  if(!j||j.u!==u.id||Date.now()-j.t>NAVTTL)return;
- if(NAVTABS.indexOf(j.tab)<0||(j.tab==='akun'&&!can('akun'))||((j.tab==='observasi'||j.tab==='observasi-siswa')&&!can('observasi')))return;
+ if(NAVTABS.indexOf(j.tab)<0||(NAVPERM[j.tab]&&!can(NAVPERM[j.tab])))return;
  if(kelasBoleh().indexOf(j.kelas)>-1)S.kelas=j.kelas;
  S.tab=j.tab;
  if(j.tab==='lkpd'){
