@@ -62,6 +62,7 @@ function bsKcSave(){try{if(isStaff())localStorage.setItem('tbsm-bs-kunci',JSON.s
 function bsKcLoadLocal(){try{var j=JSON.parse(localStorage.getItem('tbsm-bs-kunci')||'null');if(j){BS.kc=j.kc||{};BS.tk=j.tk||{}}}catch(e){}}
 async function bsRemote(k,o){
  var col=BSC[k],data=pick(o,BSF[k]);
+ if(typeof data.ts==='number')data.ts=Math.round(data.ts); /* hasil lama bisa bertanda waktu pecahan */
  try{
   var db=Cloud.db;
   if(k==='soal'&&o.kc){await bsRahasiaPut(o.id,{kunci:o.kc.kunci,rk:o.kc.rk,bahas:o.kc.bahas})}
