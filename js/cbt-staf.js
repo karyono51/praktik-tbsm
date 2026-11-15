@@ -263,7 +263,7 @@
   h+=a.items.map(function(o){
    if(o.nokey)return '<div class="card"><p class="note">'+esc(String(o.q.q||'').slice(0,100))+'</p><p class="note">Kunci tidak tersedia di perangkat ini, soal dilewati.</p></div>';
    var warn=o.db!==null&&o.db<0?'<span class="pill bad">Periksa kunci</span>':'';
-   return '<div class="card"><div class="row sb"><span class="note">'+esc(o.q.mapel||'')+' · '+BS_TIPE[o.q.tipe]+' · '+o.n+' siswa</span>'+warn+'</div><p>'+esc(String(o.q.q||'').slice(0,160))+'</p>'+
+   return '<div class="card"><div class="row sb"><span class="note">'+esc(o.q.mapel||'')+' · '+BS_TIPE[o.q.tipe]+' · '+o.n+' siswa</span>'+warn+'</div><p>'+esc(String(o.q.q||'').slice(0,160))+'</p>'+(window.sgAda&&sgAda(o.q)?'<div class="sg-box">'+(o.q.qi?sgImg(o.q.qi,'sg-th ld-zoom','Gambar soal'):'')+'<span class="pill plain">Soal bergambar</span></div>':'')+
     '<div class="row"><span class="pill '+(o.kes==='Mudah'?'ok':o.kes==='Sukar'?'bad':'warn')+'">p '+(o.p===null?'-':o.p.toFixed(2))+' · '+o.kes+'</span><span class="pill '+(o.dbk==='Baik'?'ok':o.dbk==='Cukup'?'warn':o.dbk==='-'?'plain':'bad')+'">DB '+(o.db===null?'-':o.db.toFixed(2))+' · '+o.dbk+'</span>'+(o.kosong?'<span class="pill plain">kosong '+o.kosong+'</span>':'')+'</div>'+
     (sebaran(o)?'<div class="row">'+sebaran(o)+'</div>':'')+'</div>';
   }).join('');
