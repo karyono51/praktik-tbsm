@@ -86,3 +86,5 @@ Untuk setiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** sesuai
 - Nilai akhir = rata-rata nilai pasangan yang lengkap; "lengkap" bila keempat pasangan lengkap, selain itu "sementara". Kesimpulan mengikuti tabel konversi 91-100 / 75-90 / 61-74 / <61.
 - Remedial: pasangan di bawah 61 mengulang unit dan observasinya; hasil terbaru otomatis menggantikan yang lama.
 - Siswa dicocokkan lewat akun (ID), bila tidak ada lewat nama. Guru hanya melihat observasi miliknya, jadi rekap lengkap paling cocok dilihat admin. Unduhan Excel tersedia.
+
+Layar hasil unit UKK kini menampilkan alasan tiap butir yang belum dapat nilai ("Belum lengkap: ..." atau "Status tidak cocok dengan hasil aktual dan standar"), termasuk butir yang bertanda Wajib.

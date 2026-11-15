@@ -56,9 +56,9 @@ function viewResult(){
     return '<div><div class="row sb"><span>'+ASPEK[a].n+'</span><span class="mono">'+c.by[a].y+'/'+t+'</span></div><div class="meter"><i class="'+(p<S.kkm?'low':'')+'" style="width:'+p+'%"></i></div></div>'}).join('');
   var why='';
   if(c.crit.length)why='<div class="card" style="border-color:var(--bad)"><h3>Butir wajib belum terpenuhi</h3><ul class="plain">'+c.crit.map(function(i){return '<li>'+esc(i.t)+'</li>'}).join('')+'</ul></div>';
-  else if(c.score<S.kkm)why='<div class="card" style="border-color:var(--warn)"><h3>Skor di bawah KKM</h3><p class="note">Semua butir wajib terpenuhi, tetapi skor '+c.score+' belum mencapai KKM '+S.kkm+'.</p></div>';
+  else if(c.score<S.kkm)why='<div class="card" style="border-color:var(--warn)"><h3>Skor di bawah KKM</h3><p class="note">'+(j.ukk?'Nilai unit ':'Semua butir wajib terpenuhi, tetapi skor ')+c.score+' belum mencapai KKM '+S.kkm+'.</p></div>';
   var other=c.unmet.filter(function(i){return !i.k});
-  var tl=other.length?'<div class="card"><h3>Perlu diperbaiki</h3><ul class="plain">'+other.map(function(i){return '<li>'+esc(i.t)+'</li>'}).join('')+'</ul></div>':'';
+  var tl=other.length?'<div class="card"><h3>Perlu diperbaiki</h3><ul class="plain">'+other.map(function(i){return '<li>'+esc(i.t)+(i.alasan?' <span class="note">'+esc(i.alasan)+'</span>':'')+'</li>'}).join('')+'</ul></div>':'';
   var wk=V.sec?'<span class="pill plain mono">Waktu '+mmss(V.sec)+' / '+j.menit+':00</span>':'';
   var rtabs='';
   if(multi&&!V.kel)rtabs='<div class="ptabs" role="group" aria-label="Hasil per siswa">'+its.map(function(it,k){return '<div class="ptab" '+(k===V.rc?'aria-current="true"':'')+'><button type="button" class="pn" data-act="rtab" data-v="'+k+'">'+esc(it.nama||'Tanpa nama')+' <span class="mono pb">'+it.calc.score+'</span><i class="dot '+(it.calc.kompeten?'ok':'bad')+'"></i></button></div>'}).join('')+'</div>';

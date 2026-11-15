@@ -31,6 +31,7 @@ var UKK_ATURAN={
  'UKK-3-9':{p:[{max:111}],h:'Diameter dalam (mm)'}
 };
 var UKK_EPS=1e-9;
+var UKK_KURANG={hasil:'hasil aktual',status:'status',angka:'angka',teks:'teks',catatan:'catatan'};
 /* angka dari teks: koma = desimal, titik ribuan (1.700) dibuang */
 function ukkAngka(s){
  var t=String(s==null?'':s).replace(/(\d)\.(\d{3})(?!\d)/g,'$1$2').replace(/(\d),(\d)/g,'$1.$2');
@@ -69,7 +70,9 @@ function ukkCalc(job,checks,kkm,hs,hn){
  Object.keys(ASPEK).forEach(function(a){by[a]={y:0,n:0}});
  job.items.forEach(function(i){
   var r=ukkNilaiButir(i,checks[i.id],hs[i.id],hn[i.id]);det[i.id]=r;
-  if(r.poin){y++;by[i.a||'R'].y++}else{unmet.push(i);by[i.a||'R'].n++}});
+  if(r.poin){y++;by[i.a||'R'].y++}else{
+   var al=r.kurang.length?'Belum lengkap: '+r.kurang.map(function(x){return UKK_KURANG[x]}).join(', '):(r.benar!==null&&checks[i.id]!==r.benar?'Status tidak cocok dengan hasil aktual dan standar':'');
+   unmet.push(Object.assign({},i,{k:false,alasan:al}));by[i.a||'R'].n++}});
  var n=job.items.length,score=n?Math.round(100*y/n):0;
  return {score:score,by:by,crit:[],unmet:unmet,kompeten:score>=kkm,butir:det}}
 (function(){
@@ -80,7 +83,6 @@ function ukkCalc(job,checks,kkm,hs,hn){
 })();
 /* petunjuk isian dan penanda kekurangan di form */
 function ukkHint(i){var a=UKK_ATURAN[i.id];return a&&a.h?a.h:'Hasil aktual'}
-var UKK_KURANG={hasil:'hasil aktual',status:'status',angka:'angka',teks:'teks',catatan:'catatan'};
 function ukkNeedHtml(i,status,hasil,catatan){
  var r=ukkNilaiButir(i,status,hasil,catatan),k=r.kurang;
  return k.length?'Perlu: '+k.map(function(x){return UKK_KURANG[x]}).join(', '):''}
