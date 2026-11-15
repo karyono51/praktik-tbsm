@@ -547,9 +547,16 @@ function bsViewSesi(){
  h+=ss.map(function(s){
   var st=bsSesiStatus(s),n=BS.D.hasil.filter(function(x){return x.sesiId===s.id}).length,jml=s.pilih==='manual'?(s.ids||[]).length+' soal pilihan':(s.jumlah||'semua')+' soal acak'+((s.mapelF&&s.mapelF.length)?' ('+s.mapelF.join(', ')+')':'');
   return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">'+schLabelModul(s.sekolah)+' · Kelas '+(s.kelas==='ALL'||!s.kelas?'semua':esc(s.kelas))+' · '+jml+' · '+(s.durasi||0)+' menit · KKM '+(s.kkm||S.kkm)+'</p><p class="note">'+(s.mulai?'Mulai '+bsWaktu(s.mulai):'Tanpa jadwal mulai')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+' · '+n+' pengumpulan'+(s.acak!==false?' · diacak':'')+(s.tampil?' · pembahasan ditampilkan':'')+'</p>'+
-   '<div class="row"><button type="button" class="btn small" data-bs="sesiubah" data-q="'+s.id+'">Ubah</button><button type="button" class="btn small" data-bs="sesiaktif" data-q="'+s.id+'">'+(s.aktif===false?'Aktifkan':'Nonaktifkan')+'</button><button type="button" class="btn small" data-bs="sesihasil" data-q="'+s.id+'">Lihat hasil</button><button type="button" class="btn small danger" data-bs="sesihapus" data-q="'+s.id+'">Hapus</button></div></div>';
+   '<div class="row"><button type="button" class="btn small" data-bs="sesiubah" data-q="'+s.id+'">Ubah</button><button type="button" class="btn small" data-bs="sesiaktif" data-q="'+s.id+'">'+(s.aktif===false?'Aktifkan':'Nonaktifkan')+'</button><button type="button" class="btn small" data-bs="sesihasil" data-q="'+s.id+'">Lihat hasil</button><button type="button" class="btn small" data-bs="sesigandakan" data-q="'+s.id+'">Gandakan</button><button type="button" class="btn small danger" data-bs="sesihapus" data-q="'+s.id+'">Hapus</button></div></div>';
  }).join('');
  return h;
+}
+/* geser waktu n hari kerja ke depan (Sabtu dan Minggu dilewati); 0 tetap 0 */
+function bsGeserKerja(ts,n){
+ if(!ts)return 0;
+ var d=new Date(ts),k=0;
+ while(k<n){d.setDate(d.getDate()+1);var w=d.getDay();if(w!==0&&w!==6)k++}
+ return d.getTime();
 }
 function bsNewSesi(s){
  return s?{id:s.id,judul:s.judul,kelas:s.kelas||'ALL',durasi:s.durasi||60,jumlah:s.jumlah||20,pilih:s.pilih||'otomatis',mapelF:(s.mapelF||[]).slice(),ids:(s.ids||[]).slice(),acak:s.acak!==false,tampil:!!s.tampil,kkm:s.kkm||S.kkm,mulai:s.mulai||0,selesai:s.selesai||0,aktif:s.aktif!==false,sekolah:s.sekolah||'',q:'',tok:!!s.tok,tokP:BS.tk[s.id]||s.tokP||'',batas:s.batas||0,aksi:s.aksi||'peringatan',layar:!!s.layar}:
@@ -632,7 +639,7 @@ function bsViewHasil(){
  var hmax=BS.hmax||100;
  h+=rows.slice(0,hmax).map(function(x){
   var lat=x.mode==='latihan',kkm=((BS.D.sesi.filter(function(s){return s.id===x.sesiId})[0]||{}).kkm)||S.kkm;
-  return '<div class="card"><div class="row sb"><b>'+esc(x.siswa)+'</b><b class="mono">'+x.score+'</b></div><div class="row"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':'Ujian')+'</span>'+(lat?'':'<span class="pill '+(x.score>=kkm?'ok':'bad')+'">'+(x.score>=kkm?'Kompeten':'Belum')+'</span>')+'<span class="pill plain">Kelas '+esc(x.kelas||'-')+'</span>'+(x.pindah?'<span class="pill bad">Keluar halaman '+x.pindah+'×</span>':'')+'</div><p class="note">'+esc(x.sesiJudul||'Latihan soal')+' · '+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round(x.detik/60))+' menit</p><div class="row"><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail jawaban</button>'+(can('hapus')||can('nilai')?'<button type="button" class="btn small danger" data-bs="hapushasil" data-v="'+x.id+'">Hapus</button>':'')+'</div></div>';
+  return '<div class="card"><div class="row sb"><b>'+esc(x.siswa)+'</b><b class="mono">'+x.score+'</b></div><div class="row"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':x.mode==='arsip'?'Arsip':'Ujian')+'</span>'+(lat||x.mode==='arsip'?'':'<span class="pill '+(x.score>=kkm?'ok':'bad')+'">'+(x.score>=kkm?'Kompeten':'Belum')+'</span>')+'<span class="pill plain">Kelas '+esc(x.kelas||'-')+'</span>'+(x.pindah?'<span class="pill bad">Keluar halaman '+x.pindah+'×</span>':'')+'</div><p class="note">'+esc(x.sesiJudul||'Latihan soal')+' · '+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round(x.detik/60))+' menit</p><div class="row"><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail jawaban</button>'+(can('hapus')||can('nilai')?'<button type="button" class="btn small danger" data-bs="hapushasil" data-v="'+x.id+'">Hapus</button>':'')+'</div></div>';
  }).join('')+(rows.length>hmax?'<button type="button" class="btn" data-bs="hmore">Tampilkan lebih banyak ('+(rows.length-hmax)+' lagi)</button>':'');
  return h;
 }
@@ -644,7 +651,7 @@ async function bsHapusRun(h){
 }
 function bsExport(){
  if(typeof XLSX==='undefined'){toast('Pustaka Excel belum termuat. Periksa koneksi.');return}
- var rows=bsHasilRows().map(function(x){return {Nama:x.siswa,Kelas:x.kelas||'',Jenis:x.mode==='latihan'?'Latihan':'Ujian',Sesi:x.sesiJudul||'Latihan soal',Nilai:x.score,'Soal benar':x.benar,'Jumlah soal':x.total,'Durasi (menit)':Math.round(x.detik/6)/10,'Keluar halaman':x.pindah||0,Waktu:new Date(x.ts).toLocaleString('id-ID')}});
+ var rows=bsHasilRows().map(function(x){return {Nama:x.siswa,Kelas:x.kelas||'',Jenis:x.mode==='latihan'?'Latihan':x.mode==='arsip'?'Arsip':'Ujian',Sesi:x.sesiJudul||'Latihan soal',Nilai:x.score,'Soal benar':x.benar,'Jumlah soal':x.total,'Durasi (menit)':Math.round(x.detik/6)/10,'Keluar halaman':x.pindah||0,Waktu:new Date(x.ts).toLocaleString('id-ID')}});
  var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Hasil');
  XLSX.writeFile(wb,'hasil-bank-soal-'+ymd(Date.now())+'.xlsx');
 }
@@ -749,6 +756,20 @@ document.addEventListener('click',function(e){
  else if(a==='sftoken'){var te=document.getElementById('sf-tokp');if(te){te.value=bsTokenBaru();var tc=document.getElementById('sf-tok');if(tc)tc.checked=true}}
  else if(a==='sfmapel'){bsSfRead();var mf=BS.sf.mapelF,ix=mf.indexOf(v);if(ix>-1)mf.splice(ix,1);else mf.push(v);render()}
  else if(a==='sesiaktif'){var sa=BS.D.sesi.filter(function(x){return x.id===qid})[0];if(sa){sa.aktif=sa.aktif===false;bsPut('sesi',sa).then(function(){render()});render()}}
+ else if(a==='sesigandakan'){
+  var sg=BS.D.sesi.filter(function(x){return x.id===qid})[0];if(!sg)return;
+  uiPrompt('Gandakan untuk berapa hari kerja berikutnya? (1 sampai 5)',{title:'Gandakan sesi',label:'Jumlah hari',ok:'Gandakan'}).then(async function(t){
+   if(t===null)return;
+   var n=Math.max(1,Math.min(5,parseInt(t,10)||1)),HR=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+   for(var i=1;i<=n;i++){
+    var f=bsNewSesi(sg);f.id='';f.tokP='';f.mulai=bsGeserKerja(sg.mulai,i);f.selesai=bsGeserKerja(sg.selesai,i);
+    f.judul=sg.judul+' ('+(f.mulai?HR[new Date(f.mulai).getDay()]:'salinan '+i)+')';
+    if(n===1){BS.sf=f;render();window.scrollTo(0,0);return}
+    BS.sf=f;await bsSfSave();
+   }
+   toast(n+' sesi digandakan. Ubah judul atau soal bila perlu');render();
+  });
+ }
  else if(a==='sesihasil'){BS.hs=qid;BS.tab='hasil';render();window.scrollTo(0,0)}
  else if(a==='sesihapus'){uiConfirm('Hapus sesi ini?\nHasil siswa yang sudah masuk tidak ikut terhapus.',{ok:'Hapus',danger:true}).then(function(ok){if(ok)bsDel('sesi',qid).then(function(){render()})})}
  else if(a==='kirimulang'){var hk=BS.D.hasil.filter(function(x){return x.id===v})[0];if(hk){hk.bad=0;toast('Mengirim…');bsRemote('hasil',hk).then(function(ok){toast(ok?'Nilai terkirim':'Masih gagal: '+(hk.err||'periksa koneksi'));render()})}}
@@ -773,3 +794,47 @@ document.addEventListener('input',function(e){
  if(t.id==='bq-q'){BS.flt.q=t.value;BS.flt.n=30;bsRerenderList()}
  else if(t.id==='sf-q'&&BS.sf){BS.sf.q=t.value;var l=document.getElementById('sf-list');if(l)l.outerHTML=bsSfManual()}
 });
+
+/* ---------- Pemberitahuan ujian di beranda ---------- */
+function bsHitung(ms){
+ var m=Math.max(1,Math.round(ms/60000));
+ if(m<60)return m+' menit';
+ if(m<1440)return Math.floor(m/60)+' jam'+(m%60?' '+(m%60)+' menit':'');
+ return Math.round(m/1440)+' hari';
+}
+/* sesi yang relevan: siswa = dibuka atau terjadwal untuk kelasnya dan belum dikerjakan; guru = sesi dibuka */
+function bsSesiInfo(){
+ if(!S.user||!BS.loaded)return [];
+ if(isStaff()&&actRole()!=='siswa')return BS.D.sesi.filter(function(x){return schAkunOk(x)&&bsSesiStatus(x).k==='on'});
+ return bsSesiUntuk(S.user.kelas||'').filter(function(x){
+  var k=bsSesiStatus(x).k;
+  return (k==='on'||k==='soon')&&!BS.D.hasil.some(function(h){return h.sid===S.user.id&&h.sesiId===x.id&&h.mode==='ujian'});
+ }).sort(function(a,b){return (a.mulai||0)-(b.mulai||0)});
+}
+function bsInfoCard(){
+ if(isStaff()&&actRole()!=='siswa')return '';
+ var L=bsSesiInfo();if(!L.length)return '';
+ var now=Jam.now();
+ return '<div class="card" id="ujian-info"><b>Ujian CBT</b>'+L.map(function(x){
+  var on=bsSesiStatus(x).k==='on';
+  return '<div class="row sb"><span><b>'+esc(x.judul)+'</b><br><span class="note">'+(on?'Dibuka'+(x.selesai?' · tutup '+bsWaktu(x.selesai):''):'Dimulai '+bsWaktu(x.mulai)+' · '+bsHitung(x.mulai-now)+' lagi')+' · '+(x.durasi||0)+' menit</span></span><button type="button" class="btn small'+(on?' primary':'')+'" data-act="menu" data-v="cbtonline">'+(on?'Buka':'Lihat')+'</button></div>';
+ }).join('')+'</div>';
+}
+var _bsBeranda=viewBeranda;
+viewBeranda=function(){
+ var h=_bsBeranda.apply(this,arguments);
+ try{
+  if(S.user&&!BS.loaded&&!BS.loading)setTimeout(bsLoad,0);
+  var n=bsSesiInfo().filter(function(x){return bsSesiStatus(x).k==='on'}).length;
+  if(n)h=h.replace('<span>CBT Online</span>','<span>CBT Online <small class="pill ok">'+n+' dibuka</small></span>');
+  h=bsInfoCard()+h;
+ }catch(e){}
+ return h;
+};
+setInterval(function(){
+ if(!S.user||S.tab!=='beranda'||V.mode!=='list'||document.hidden||!BS.loaded)return;
+ var el=document.getElementById('ujian-info'),h=bsInfoCard();
+ if(el&&h)el.outerHTML=h;
+ else if(el&&!h)el.remove();
+ else if(!el&&h)render();
+},30000);

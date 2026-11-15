@@ -60,6 +60,7 @@
   if(BS.starting||BS.run||CBT.mulai)return;
   CBT.mulai=true;
   try{
+   if(window.bsRunLain){var lain=await bsRunLain(s);if(lain){toast('Kamu masih mengerjakan ujian "'+lain+'" (mungkin di perangkat lain). Selesaikan dahulu.');return}}
    var token='';
    if(s.tok){
     var t=await uiPrompt('Masukkan token ujian dari pengawas.',{title:'Token ujian',label:'Token',ok:'Mulai'});

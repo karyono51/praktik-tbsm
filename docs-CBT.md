@@ -93,3 +93,12 @@ Berlaku untuk ujian dan latihan (siswa). Kode: `js/cbt.js` (tampilan dan aksi) d
 - **Layar tetap menyala** selama mengerjakan bila peramban mendukung (Screen Wake Lock). Pull-to-refresh dimatikan selama ujian.
 - Mode lanskap pendek memadatkan bar atas dan bawah. Layar lebar membatasi lebar soal agar tetap terbaca.
 - Pesan sistem Chrome "tarik dari atas untuk keluar layar penuh" berasal dari peramban dan tidak bisa diubah aplikasi.
+
+## Pengembangan CBT Online
+- **Nilai otomatis (mode Biasa):** saat guru membuka Pantau, peserta yang sudah selesai tetapi nilainya belum masuk dinilai dari jawaban di server. Tombol Nilai dari jawaban tetap ada sebagai cadangan.
+- **Pantau gabungan:** pilih Semua sesi dibuka untuk melihat ringkasan semua sesi yang berjalan, lalu Pantau sesi ini untuk detail.
+- **Satu ujian per siswa dicek ke server:** siswa tidak bisa memulai ujian kedua selama ujian lain di perangkat apa pun belum selesai.
+- **Cetak dan ekspor:** Hadir dan berita acara, Kartu token (satu kartu per siswa), Rekap per kelas (Excel, sheet Ringkasan dan per kelas).
+- **Susulan:** tombol Susulan di Pantau mengarsipkan hasil lama (jenis Arsip, tidak dihitung di analisis) dan membuka kesempatan baru. Mode Biasa saja. Ulang tetap menghapus hasil.
+- **Gandakan sesi:** salin sesi untuk 1 sampai 5 hari kerja berikutnya (Sabtu dan Minggu dilewati), token baru otomatis.
+- **Pemberitahuan:** beranda siswa menampilkan ujian yang dibuka atau akan mulai, pintasan CBT Online menampilkan jumlah sesi dibuka.

@@ -21,6 +21,21 @@
  /* durasi dan KKM selalu dari sesi guru, bukan dari payload catatan yang bisa diubah siswa lewat API */
  function fixDur(r){try{var ss=BS.D.sesi.filter(function(x){return x.id===r.sesiId})[0];if(ss){r.dur=(ss.durasi||0)*60;if(ss.kkm!==undefined)r.kkm=ss.kkm}}catch(e){}}
 
+ /* ujian lain milik siswa ini yang belum selesai dan waktunya belum habis (mis. dibuka di HP lain); mengembalikan judul sesinya atau null */
+ window.bsRunLain=async function(s){
+  if(st.noCol||navigator.onLine===false)return null;
+  try{
+   var docs=await lomba(Cloud.list(COL,[Appwrite.Query.equal('sid',[S.user.id])]),8000),now=Jam.now();
+   for(var i=0;i<docs.length;i++){
+    var x=docs[i];if(x.done||x.stop===true||x.sesiId===s.id)continue;
+    var ss=BS.D.sesi.filter(function(y){return y.id===x.sesiId})[0];if(!ss)continue;
+    if(BS.D.hasil.some(function(h){return h.sid===S.user.id&&h.sesiId===x.sesiId&&h.mode==='ujian'}))continue;
+    if(Date.parse(x.$createdAt)+((ss.durasi||0)*60+(Number(x.ext)||0))*1000>now)return ss.judul||'sesi lain';
+   }
+  }catch(e){}
+  return null;
+ };
+
  /* Mulai ujian: ambil atau buat catatan di server, lalu jalankan. Gagal terhubung: lanjut dengan jam yang ada dan sinkron menyusul. */
  window.bsMulaiUjian=async function(s,run){
   if(BS.starting||BS.run)return;

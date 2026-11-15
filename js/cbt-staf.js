@@ -5,7 +5,7 @@
    Dimuat setelah cbt.js. Dokumen: docs-CBT.md */
 (function(){
  if(typeof BS==='undefined')return;
- var PN={sesi:'',runs:[],hasil:[],at:0,busy:false,err:'',timer:0,sesiLoaded:''};
+ var PN={sesi:'',runs:[],hasil:[],at:0,busy:false,err:'',timer:0,sesiLoaded:'',coba:{}};
  var AN={sesi:'',urut:'p'};
 
  function sesiList(){return BS.D.sesi.filter(schAkunOk).sort(function(a,b){return (b.ts||0)-(a.ts||0)})}
@@ -15,10 +15,17 @@
   var on=L.filter(function(s){return bsSesiStatus(s).k==='on'})[0];
   return (on||L[0]||{}).id||'';
  }
+ function bukaList(){return sesiList().filter(function(s){return bsSesiStatus(s).k==='on'})}
+ function pilihPantau(cur){
+  var on=bukaList();
+  if(cur==='ALL')return on.length?'ALL':pilihSesi('');
+  if(cur&&sesiList().some(function(s){return s.id===cur}))return cur;
+  return on.length>1?'ALL':pilihSesi('');
+ }
  function sesiById(id){return BS.D.sesi.filter(function(s){return s.id===id})[0]}
- function selSesi(act,cur){
+ function selSesi(act,cur,all){
   var L=sesiList();
-  return '<label class="f">Sesi ujian<select data-bs="'+act+'">'+L.map(function(s){return '<option value="'+s.id+'"'+(s.id===cur?' selected':'')+'>'+esc(s.judul)+' · Kelas '+(s.kelas==='ALL'?'semua':s.kelas)+'</option>'}).join('')+'</select></label>';
+  return '<label class="f">Sesi ujian<select data-bs="'+act+'">'+(all?'<option value="ALL"'+(cur==='ALL'?' selected':'')+'>Semua sesi dibuka</option>':'')+L.map(function(s){return '<option value="'+s.id+'"'+(s.id===cur?' selected':'')+'>'+esc(s.judul)+' · Kelas '+(s.kelas==='ALL'?'semua':s.kelas)+'</option>'}).join('')+'</select></label>';
  }
  function roster(s){
   return S.users.filter(function(u){
@@ -40,13 +47,14 @@
 
  /* ================= Pantau ================= */
  async function pnLoad(){
-  var s=sesiById(PN.sesi);
-  if(!Cloud.on||!s||PN.busy)return;
+  var semua=PN.sesi==='ALL',s=semua?null:sesiById(PN.sesi),ids=semua?bukaList().map(function(x){return x.id}):(s?[s.id]:[]);
+  if(!Cloud.on||!ids.length||PN.busy)return;
   PN.busy=true;
   try{
    var Q=Appwrite.Query;
-   var r=await Promise.all([Cloud.list('soal_run',[Q.equal('sesiId',[s.id])]),Cloud.list('soal_hasil',[Q.equal('sesiId',[s.id])])]);
-   PN.runs=r[0];PN.hasil=r[1];PN.at=Date.now();PN.err='';PN.sesiLoaded=s.id;
+   var r=await Promise.all([Cloud.list('soal_run',[Q.equal('sesiId',ids)]),Cloud.list('soal_hasil',[Q.equal('sesiId',ids)])]);
+   PN.runs=r[0];PN.hasil=r[1];PN.at=Date.now();PN.err='';PN.sesiLoaded=PN.sesi;
+   await autoNilai();
   }catch(e){PN.err=(e&&e.message)||String(e)}
   PN.busy=false;
  }
@@ -63,7 +71,18 @@
   if(sisa<=0||info.stop)return Object.assign({k:'habis',t:info.stop?'Diakhiri':'Waktu habis',c:'warn'},info);
   return Object.assign({k:'on',t:'Mengerjakan',c:'warn'},info);
  }
+ function pnSemua(){
+  var on=bukaList(),by={};PN.runs.forEach(function(d){(by[d.sesiId]=by[d.sesiId]||{})[d.sid]=d});
+  var h='<p class="note">'+(PN.err?'Gagal memuat: '+esc(PN.err):'Diperbarui '+jam(PN.at)+' · otomatis tiap 8 detik')+'</p>';
+  if(!on.length)return h+'<p class="muted">Tidak ada sesi yang sedang dibuka.</p>';
+  return h+on.map(function(s){
+   var runs=by[s.id]||{},hs=hasilSesi(s.id),c={belum:0,on:0,done:0,lock:0,habis:0},ros=roster(s);
+   ros.forEach(function(u){var k=statusRow(u,s,runs,hs).k;c[k]=(c[k]||0)+1});
+   return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill ok">Kelas '+(s.kelas==='ALL'||!s.kelas?'semua':esc(s.kelas))+'</span></div><p class="note">'+ros.length+' peserta'+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+'</p><p class="note">Belum <b class="mono">'+c.belum+'</b> · Mengerjakan <b class="mono">'+c.on+'</b> · Selesai <b class="mono">'+c.done+'</b> · Terkunci <b class="mono">'+c.lock+'</b> · Habis <b class="mono">'+c.habis+'</b></p><button type="button" class="btn small primary" data-bs="pn-bukasesi" data-v="'+s.id+'">Pantau sesi ini</button></div>';
+  }).join('');
+ }
  function pnBody(){
+  if(PN.sesi==='ALL')return pnSemua();
   var s=sesiById(PN.sesi);
   if(!s)return '<p class="muted">Belum ada sesi ujian. Buat sesi di tab Sesi.</p>';
   var runs={};PN.runs.forEach(function(d){runs[d.sid]=d});
@@ -101,16 +120,18 @@
     if(st.k!=='habis'||!st.stop)act+='<button type="button" class="btn small" data-bs="pn-akhiri" data-v="'+rid+'">Akhiri</button>';
    }
    if(st.k==='done'&&!st.h&&st.run&&!bsAman())act+='<button type="button" class="btn small primary" data-bs="pn-nilai1" data-v="'+rid+'">Nilai dari jawaban</button>';
+   if(st.k==='done'&&st.h&&!bsAman())act+='<button type="button" class="btn small" data-bs="pn-susulan" data-v="'+u.id+'">Susulan</button>';
    if(st.k==='done'||st.run)act+='<button type="button" class="btn small danger" data-bs="pn-reset" data-v="'+u.id+'">Ulang</button>';
    return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">Kelas '+esc(u.kelas||'-')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
   }).join('');
   return h;
  }
+ var CETAK='<button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button>';
  window.bsViewPantau=function(){
   if(!Cloud.on)return '<div class="card"><p>Pantau langsung butuh mode server (Appwrite). Aplikasi ini sedang berjalan tanpa server, jadi hanya data di perangkat ini yang ada.</p></div>';
-  PN.sesi=pilihSesi(PN.sesi);
+  PN.sesi=pilihPantau(PN.sesi);
   if(PN.sesi&&PN.sesiLoaded!==PN.sesi&&!PN.busy)pnLoad().then(pnPaint);
-  return '<div class="card">'+selSesi('pn-sesi',PN.sesi)+'</div><div id="pn-body">'+pnBody()+'</div>';
+  return '<div class="card">'+selSesi('pn-sesi',PN.sesi,true)+'</div><div id="pn-body">'+pnBody()+'</div>'+(PN.sesi&&PN.sesi!=='ALL'?'<div class="row">'+CETAK+'</div>':'');
  };
  function pnPaint(){var e=document.getElementById('pn-body');if(e)e.innerHTML=pnBody()}
  function inPantau(){return !!S.user&&bsOn()&&BS.tab==='pantau'&&isStaff()&&Cloud.on}
@@ -148,6 +169,18 @@
   var ok=await bsPut('hasil',h);
   if(!ok)throw new Error(h.err||'Server menolak penyimpanan');
   return h;
+ }
+ /* mode Biasa: peserta yang sudah selesai tetapi nilainya belum masuk dinilai otomatis dari jawaban di server; tiap catatan dicoba sekali */
+ async function autoNilai(){
+  if(bsAman()||!bsEdit())return;
+  var n=0;
+  for(var i=0;i<PN.runs.length;i++){
+   var d=PN.runs[i];if(!d.done||PN.coba[d.$id])continue;
+   var s=sesiById(d.sesiId);if(!s||hasilSesi(s.id)[d.sid])continue;
+   PN.coba[d.$id]=1;
+   try{await nilaiRun(d,s);n++}catch(e){}
+  }
+  if(n)toast(n+' nilai dihitung otomatis dari jawaban');
  }
  function runOf(rid){return PN.runs.filter(function(d){return d.$id===rid})[0]}
 
@@ -256,10 +289,10 @@
   AN.sesi=pilihSesi(AN.sesi);
   if(!AN.sesi)return '<p class="muted">Belum ada sesi ujian.</p>';
   var a=analisis(AN.sesi),h='<div class="card">'+selSesi('an-sesi',AN.sesi)+'</div>';
-  if(!a||!a.H.length)return h+'<p class="muted">Belum ada peserta yang selesai pada sesi ini.</p><div class="row"><button type="button" class="btn small" data-bs="an-hadir">Cetak daftar hadir</button></div>';
+  if(!a||!a.H.length)return h+'<p class="muted">Belum ada peserta yang selesai pada sesi ini.</p><div class="row"><button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button></div>';
   var st=a.st,f=function(x){return Math.round(x*10)/10};
   h+='<div class="stats"><div class="card"><span class="label">Peserta</span><b class="mono">'+st.n+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+f(st.mean)+'</b></div><div class="card"><span class="label">Median</span><b class="mono">'+f(st.med)+'</b></div><div class="card"><span class="label">Simpangan baku</span><b class="mono">'+f(st.sd)+'</b></div><div class="card"><span class="label">Tertinggi</span><b class="mono">'+st.max+'</b></div><div class="card"><span class="label">Terendah</span><b class="mono">'+st.min+'</b></div><div class="card"><span class="label">Tuntas (KKM '+a.kkm+')</span><b class="mono">'+Math.round(a.tuntas/st.n*100)+'%</b></div>'+(a.rel?'<div class="card"><span class="label">Reliabilitas (α)</span><b class="mono">'+a.rel.a.toFixed(2)+'</b><span class="note">'+a.rel.ket+' · '+a.rel.k+' soal</span></div>':'')+'</div>';
-  h+='<div class="row"><button type="button" class="btn small" data-bs="an-ekspor">Ekspor Excel</button><button type="button" class="btn small" data-bs="an-hadir">Cetak daftar hadir</button>'+(bsEdit()?'<button type="button" class="btn small" data-bs="an-ulang">Nilai ulang dengan kunci terbaru</button>':'')+'<label class="f" style="min-width:150px">Urutkan<select data-bs="an-urut"><option value="p"'+(AN.urut==='p'?' selected':'')+'>Tersukar dulu</option><option value="db"'+(AN.urut==='db'?' selected':'')+'>Daya beda terendah</option><option value="n"'+(AN.urut==='n'?' selected':'')+'>Paling banyak diujikan</option></select></label></div>';
+  h+='<div class="row"><button type="button" class="btn small" data-bs="an-ekspor">Ekspor Excel</button><button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button>'+(bsEdit()?'<button type="button" class="btn small" data-bs="an-ulang">Nilai ulang dengan kunci terbaru</button>':'')+'<label class="f" style="min-width:150px">Urutkan<select data-bs="an-urut"><option value="p"'+(AN.urut==='p'?' selected':'')+'>Tersukar dulu</option><option value="db"'+(AN.urut==='db'?' selected':'')+'>Daya beda terendah</option><option value="n"'+(AN.urut==='n'?' selected':'')+'>Paling banyak diujikan</option></select></label></div>';
   h+=a.items.map(function(o){
    if(o.nokey)return '<div class="card"><p class="note">'+esc(String(o.q.q||'').slice(0,100))+'</p><p class="note">Kunci tidak tersedia di perangkat ini, soal dilewati.</p></div>';
    var warn=o.db!==null&&o.db<0?'<span class="pill bad">Periksa kunci</span>':'';
@@ -291,6 +324,42 @@
 
  /* ================= Daftar hadir dan berita acara ================= */
  function teks(v){var d=document.createElement('div');d.textContent=v==null?'':String(v);return d.innerHTML}
+function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:AN.sesi}
+ function cetakHtml(html){
+  var old=document.getElementById('uj-print');if(old)old.remove();
+  var el=document.createElement('div');el.id='uj-print';el.innerHTML=html;document.body.appendChild(el);
+  document.body.classList.add('uj-printing');
+  setTimeout(function(){window.print()},50);
+ }
+ /* kartu peserta dan token: satu kartu per siswa terdaftar di sesi */
+ function kartuToken(id){
+  var s=sesiById(id);if(!s)return;
+  var tk=BS.tk[s.id]||s.tokP||'';
+  if(!s.tok||!tk){toast('Sesi ini tidak memakai token');return}
+  var jd=(s.mulai?bsWaktu(s.mulai):'Sesuai jadwal guru')+(s.selesai?' sampai '+bsWaktu(s.selesai):'');
+  var cards=roster(s).map(function(u){return '<div style="border:1px solid #000;padding:8px 10px;break-inside:avoid;font-size:10pt"><b>KARTU PESERTA UJIAN ONLINE</b><br>'+teks(SEK.nama)+'<hr style="margin:4px 0">Nama: <b>'+teks(u.nama)+'</b><br>Kelas: '+teks(u.kelas||'-')+'<br>Sesi: '+teks(s.judul)+'<br>Jadwal: '+teks(jd)+'<br>Durasi: '+(s.durasi||0)+' menit<br>Token: <b style="font-size:18pt;letter-spacing:3px">'+teks(tk)+'</b></div>'}).join('');
+  if(!cards){toast('Tidak ada siswa terdaftar untuk sesi ini');return}
+  cetakHtml('<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+cards+'</div>');
+ }
+ /* rekap nilai per kelas: sheet Ringkasan dan satu sheet per kelas */
+ async function rekapKelas(id){
+  if(typeof XLSX==='undefined'){toast('Pustaka Excel belum termuat. Periksa koneksi.');return}
+  var s=sesiById(id);if(!s)return;
+  if(Cloud.on&&PN.sesiLoaded!==id){PN.sesi=id;await pnLoad()}
+  var hs=hasilSesi(id),kkm=+s.kkm||S.kkm,kls={};
+  roster(s).forEach(function(u){var k=u.kelas||'-';(kls[k]=kls[k]||[]).push(u)});
+  var wb=XLSX.utils.book_new(),ring=[];
+  Object.keys(kls).sort().forEach(function(k){
+   var rows=kls[k].map(function(u,i){var h=hs[u.id];return {No:i+1,Nama:u.nama,Kelas:k,Status:h?'Selesai':'Belum mengerjakan',Nilai:h?h.score:'','Soal benar':h?h.benar:'','Jumlah soal':h?h.total:'','Keluar halaman':h?(h.pindah||0):'',Keterangan:h?(h.score>=kkm?'Tuntas':'Belum tuntas'):''}});
+   var sk=kls[k].map(function(u){return hs[u.id]}).filter(Boolean).map(function(h){return +h.score||0});
+   ring.push({Kelas:k,Peserta:kls[k].length,Selesai:sk.length,'Belum mengerjakan':kls[k].length-sk.length,'Rata-rata':sk.length?Math.round(sk.reduce(function(a,b){return a+b},0)/sk.length*10)/10:'',Tertinggi:sk.length?Math.max.apply(null,sk):'',Terendah:sk.length?Math.min.apply(null,sk):'','Tuntas (%)':sk.length?Math.round(sk.filter(function(x){return x>=kkm}).length/sk.length*100):''});
+   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),String('Kelas '+k).replace(/[:\\\/?*\[\]]/g,'-').slice(0,31));
+  });
+  if(!ring.length){toast('Tidak ada siswa terdaftar untuk sesi ini');return}
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ring),'Ringkasan');
+  wb.SheetNames.unshift(wb.SheetNames.pop());
+  XLSX.writeFile(wb,'rekap-kelas-'+String(s.judul).replace(/[^a-zA-Z0-9]+/g,'-').slice(0,40)+'-'+ymd(Date.now())+'.xlsx');
+ }
  async function cetakHadir(id){
   var s=sesiById(id);if(!s)return;
   if(Cloud.on&&PN.sesiLoaded!==id){PN.sesi=id;await pnLoad()}
@@ -327,6 +396,7 @@
   var b=e.target.closest&&e.target.closest('[data-bs]');if(!b||b.tagName==='SELECT')return;
   var a=b.dataset.bs,v=b.dataset.v;
   if(a==='pn-refresh'){pnLoad().then(pnPaint)}
+  else if(a==='pn-bukasesi'){PN.sesi=v;PN.runs=[];PN.hasil=[];PN.sesiLoaded='';render()}
   else if(a==='pn-ext'){var run=runOf(v);if(run)tulisRun(v,{ext:(Number(run.ext)||0)+(+b.dataset.n||300)},'Waktu ditambah')}
   else if(a==='pn-akhiri'){uiConfirm('Akhiri ujian siswa ini? Jawabannya dikirim otomatis dan tidak bisa dilanjutkan.',{ok:'Akhiri',danger:true}).then(function(ok){if(ok)tulisRun(v,{stop:true},'Siswa akan mengirim jawabannya dalam beberapa detik')})}
   else if(a==='pn-buka'){var r2=runOf(v);if(r2)tulisRun(v,{pb:pay(r2).pindah||0},'Kunci dibuka')}
@@ -349,7 +419,7 @@
    });
   }
   else if(a==='pn-nilai1'||a==='pn-nilaisemua'){
-   var s5=sesiById(PN.sesi);if(!s5||bsAman())return;
+   var s5=sesiById(PN.sesi);if(!s5||bsAman())return;PN.coba={};
    var target=a==='pn-nilai1'?PN.runs.filter(function(d){return d.$id===v}):PN.runs.filter(function(d){return d.done&&!hasilSesi(s5.id)[d.sid]});
    if(!target.length)return;
    (async function(){
@@ -357,6 +427,23 @@
     for(var i=0;i<target.length;i++){try{await nilaiRun(target[i],s5)  ;n++}catch(er){gagal=(er&&er.message)||String(er)}}
     toast(n+' peserta dinilai'+(gagal?'. Gagal: '+gagal:''));await pnLoad();pnPaint();render();
    })();
+  }
+  else if(a==='pn-susulan'){
+   var s6=sesiById(PN.sesi),u6=S.users.filter(function(x){return x.id===v})[0];
+   if(!s6||bsAman())return;
+   uiConfirm('Beri kesempatan susulan untuk '+(u6?u6.nama:'siswa ini')+'? Hasil sebelumnya disimpan sebagai arsip, siswa bisa mengerjakan lagi.',{ok:'Beri susulan'}).then(async function(ok){
+    if(!ok)return;
+    try{
+     var h6=hasilSesi(s6.id)[v];if(!h6)return;
+     var arsip=Object.assign({},h6,{id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,8),mode:'arsip',r:0,d:0,bad:0,err:''});
+     if(!(await bsPut('hasil',arsip)))throw new Error(arsip.err||'Arsip gagal disimpan');
+     await bsDel('hasil',h6.id);try{await Cloud.db.deleteDocument(CFG.DB,'soal_hasil',h6.id)}catch(er){}
+     var run6=PN.runs.filter(function(d){return d.sid===v})[0];
+     if(run6){try{await Cloud.db.deleteDocument(CFG.DB,'soal_run',run6.$id)}catch(er){}}
+     PN.hasil=PN.hasil.filter(function(d){return d.sid!==v||d.mode!=='ujian'});
+     toast('Susulan dibuka. Hasil lama diarsipkan');await pnLoad();pnPaint();render();
+    }catch(er){toast('Gagal: '+((er&&er.message)||er))}
+   });
   }
   else if(a==='pn-reset'){
    var s3=sesiById(PN.sesi),u=S.users.filter(function(x){return x.id===v})[0];
@@ -396,6 +483,8 @@
   }
   else if(a==='hmore'){BS.hmax=(BS.hmax||100)+100;render()}
   else if(a==='an-ekspor')ekspor();
-  else if(a==='an-hadir')cetakHadir(AN.sesi);
+  else if(a==='an-hadir')cetakHadir(sesiAktif());
+  else if(a==='an-kartu')kartuToken(sesiAktif());
+  else if(a==='an-rekap')rekapKelas(sesiAktif());
  });
 })();
