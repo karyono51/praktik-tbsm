@@ -78,3 +78,11 @@ Untuk setiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** sesuai
 - **Warna skala 1-4**: 1 merah, 2 kuning, 3 hijau, 4 hijau dengan cincin; label Sangat Kompeten di rekap dan daftar berwarna hijau penuh.
 - **Daftar**: tombol utama Observasi baru, lalu Rekap nilai dan menu **Ekspor** (Rekap nilai Excel, Rincian aspek Excel). Tombol PDF dan Excel menampilkan "Menyiapkan..." selama diproses. Tombol aksi tingginya minimal 42 px.
 - Urutan skrip: `observasi-ukk.js` dimuat sebelum `menu-dasbor.js` agar baris menunya ikut dikelompokkan. `service-worker.js` naik ke `tbsm-v104`.
+
+## Nilai Akhir UKK (menu "Nilai Akhir UKK")
+`js/ukk-akhir.js`: rekap per siswa dari nilai unit UKK (hasil Penilaian terbaru tiap unit; Latihan tidak dihitung) dan nilai Observasi UKK terbaru tiap lembar.
+- Pasangan: UKK-1 + Observasi 1 (Engine), UKK-2 + Observasi 2 (CVT), UKK-3 + Observasi 3 (Rem), UKK-4 + Observasi 4 (Bodi).
+- Nilai pasangan = bobot unit x nilai unit + bobot observasi x nilai observasi (bawaan 40 : 60). Bobot unit diubah admin di halaman ini (observasi = 100 dikurangi bobot unit), tersimpan di perangkat (`tbsm-ukk-bobot`).
+- Nilai akhir = rata-rata nilai pasangan yang lengkap; "lengkap" bila keempat pasangan lengkap, selain itu "sementara". Kesimpulan mengikuti tabel konversi 91-100 / 75-90 / 61-74 / <61.
+- Remedial: pasangan di bawah 61 mengulang unit dan observasinya; hasil terbaru otomatis menggantikan yang lama.
+- Siswa dicocokkan lewat akun (ID), bila tidak ada lewat nama. Guru hanya melihat observasi miliknya, jadi rekap lengkap paling cocok dilihat admin. Unduhan Excel tersedia.
