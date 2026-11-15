@@ -12,6 +12,9 @@
  function runOn(){return !!(BS.run&&bsOn()&&BS.sub==='run')}
 
  /* ---------- Layar penuh ---------- */
+ /* Exambro: UserAgent memuat kata EXAMBRO_UA (config.js). Di sana layar penuh wajib dilewati karena WebView sering tak mendukungnya. */
+ function isExambro(){var k=(window.APP_CONFIG&&APP_CONFIG.EXAMBRO_UA)||'TBSM-EXAM';return String(navigator.userAgent||'').toUpperCase().indexOf(String(k).toUpperCase())>=0}
+ window.cbtIsExambro=isExambro;
  function fsSupported(){var d=document.documentElement;return !!(d.requestFullscreen||d.webkitRequestFullscreen)}
  function isFs(){return !!(document.fullscreenElement||document.webkitFullscreenElement)}
  function fsReq(){var d=document.documentElement,f=d.requestFullscreen||d.webkitRequestFullscreen;if(!f)return;CBT.grace=Date.now()+3000;try{var p=f.call(d);if(p&&p.catch)p.catch(function(){})}catch(e){}}
@@ -20,7 +23,7 @@
 
  /* ---------- Kebijakan sesi ---------- */
  function sesiOf(r){return BS.D.sesi.filter(function(x){return x.id===r.sesiId})[0]||{}}
- function pol(r){var s=sesiOf(r);return {batas:s.batas!==undefined?(+s.batas||0):(+r.batas||0),aksi:s.aksi||r.aksi||'peringatan',layar:s.layar!==undefined?!!s.layar:!!r.layar}}
+ function pol(r){var s=sesiOf(r);return {batas:s.batas!==undefined?(+s.batas||0):(+r.batas||0),aksi:s.aksi||r.aksi||'peringatan',layar:!isExambro()&&(s.layar!==undefined?!!s.layar:!!r.layar)}}
  function viol(r){return Math.max(0,(r.pindah||0)-(r.pb||0))}
  function locked(r){var p=pol(r);return !!r&&r.mode==='ujian'&&p.aksi==='kunci'&&p.batas>0&&viol(r)>=p.batas}
  function inExam(){var r=BS.run;return !!(r&&r.mode==='ujian'&&!r.done&&bsOn()&&BS.sub==='run')}
@@ -61,6 +64,7 @@
   CBT.mulai=true;
   try{
    if(window.bsRunLain){var lain=await bsRunLain(s);if(lain){toast('Kamu masih mengerjakan ujian "'+lain+'" (mungkin di perangkat lain). Selesaikan dahulu.');return}}
+   if(s.exambro&&!isExambro()){toast('Sesi ini wajib dikerjakan lewat aplikasi Exambro. Buka alamat ujian dari Exambro.');return}
    var token='';
    if(s.tok){
     var t=await uiPrompt('Masukkan token ujian dari pengawas.',{title:'Token ujian',label:'Token',ok:'Mulai'});
@@ -72,7 +76,7 @@
      if(!s.tokH||hh!==s.tokH){toast('Token salah');return}
     }
    }
-   if(s.layar&&fsSupported())fsReq();
+   if(s.layar&&!isExambro()&&fsSupported())fsReq();
    if(!bsAman()){
     run.batas=s.batas||0;run.aksi=s.aksi||'peringatan';run.layar=!!s.layar;run.rg=run.rg||{};run.ext=0;run.pb=0;
     CBT.mulai=false;
@@ -81,7 +85,7 @@
    }
    BS.starting=true;toast('Menyiapkan ujian…');
    try{
-    var rs=await cbtFn({action:'mulai',sesiId:s.id,token:token});
+    var rs=await cbtFn({action:'mulai',sesiId:s.id,token:token,ua:String(navigator.userAgent||'').slice(0,400)});
     if(BS.run)return;
     var r={mode:'ujian',sesiId:s.id,sesiJudul:rs.sesiJudul,start:rs.start,dur:rs.dur,ids:rs.ids,oo:rs.oo||{},ans:rs.ans||{},cur:rs.cur||0,chk:rs.chk||{},pindah:rs.pindah||0,rg:rs.rg||{},sid:S.user.id,tampil:!!rs.tampil,kkm:rs.kkm,
      rid:rs.rid,srv:1,ext:rs.ext||0,stop:!!rs.stop,pb:rs.pb||0,batas:rs.batas||0,aksi:rs.aksi||'peringatan',layar:!!rs.layar};

@@ -40,6 +40,7 @@ class Fail extends Error { constructor(msg, status) { super(msg); this.status = 
    (termasuk membaca seluruh bank soal). Isi cache hanya di memori fungsi, tidak pernah dikirim ke siswa, dan kedaluwarsa singkat. */
 const TTL_USER = 60000, TTL_SOAL = 60000, TTL_SESI = 10000;   // sesi dan token sengaja singkat: perubahan guru berlaku dalam 10 detik
 const BUDGET_MS = Number(process.env.CBT_BUDGET_MS) || 18000, PAR = 4;     // satu panggilan massal berhenti sebelum batas waktu fungsi (disarankan 30 dtk)
+const EXAMBRO_UA = String(process.env.EXAMBRO_UA || 'TBSM-EXAM').toUpperCase();   // harus sama dengan EXAMBRO_UA di js/config.js
 const MAX_SALAH = 10, JENDELA_SALAH = 5 * 60000;
 const memo = { user: new Map(), soal: new Map(), sesi: new Map(), tok: new Map(), pool: null, salah: new Map() };
 function memGet(m, k, ttl) { const e = m.get(k); return e && Date.now() - e.t < ttl ? e.v : undefined; }
@@ -286,6 +287,8 @@ async function mulai(me, body) {
   const sesiId = String(body.sesiId || ''); if (!ID_RE.test(sesiId)) throw new Fail('Sesi tidak valid.');
   const sd = await sesiDoc(sesiId); if (!sd) throw new Fail('Sesi tidak ditemukan.', 404);
   const s = parse(sd), now = Date.now(), sid = me.akun.$id, rid = runId(sesiId, sid);
+  /* Wajib Exambro: UserAgent dikirim klien; bisa dipalsukan, jadi ini penghalang, bukan jaminan. */
+  if (s.exambro && !String(body.ua || '').toUpperCase().includes(EXAMBRO_UA)) throw new Fail('Sesi ini wajib dikerjakan lewat aplikasi Exambro.', 403);
   const ex = await tryGet('soal_run', rid);
   if (ex) {
     if (ex.done) throw new Fail('Kamu sudah mengerjakan sesi ini.', 409);

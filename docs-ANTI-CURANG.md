@@ -34,8 +34,9 @@ Penerapan fungsi server: deploy ulang `akun-admin` (atau `cbt`) agar `simpan` me
 tampil di perangkat siswa tetapi tidak sampai ke Pantau pada mode aman.
 
 ## Mode Exambro (v82)
-- Isi `EXAMBRO_UA:'TBSM-EXAM'` di `js/config.js` (bawaan sudah ada). Pada konfigurasi Exambro Ex (QR atau URL terenkripsi) isi **UserAgent** dengan kata yang memuat `TBSM-EXAM`, dan alamat aplikasi sebagai URL ujian.
-- Di Exambro, aplikasi otomatis melewati layar penuh wajib serta deteksi blur dan layar terbelah (Exambro sudah mengunci aplikasi; WebView sering tak mendukung layar penuh). Pelanggaran keluar halaman tetap dicatat.
-- Sesi: centang **Wajib Exambro** di form sesi. Siswa yang membuka dari Chrome tidak bisa memulai ujian.
-- Mode CBT aman: fungsi `mulai` memeriksa UserAgent. Kata khusus server bisa diubah lewat variabel `EXAMBRO_UA` fungsi; harus sama dengan di `config.js`. Deploy ulang fungsi `akun-admin`.
+- `js/config.js` memuat `EXAMBRO_UA:'TBSM-EXAM'`. Pada konfigurasi Exambro (QR atau URL terenkripsi) isi **UserAgent** dengan kata yang memuat `TBSM-EXAM`, dan alamat aplikasi sebagai URL ujian.
+- Sesi: centang **Wajib Exambro** di form sesi (bagian Pengamanan CBT). Siswa yang membuka dari Chrome atau peramban lain tidak bisa memulai ujian pada sesi itu.
+- Di Exambro, **layar penuh wajib dilewati** (WebView sering tak mendukung layar penuh, sedangkan Exambro sudah mengunci aplikasi). Pelanggaran keluar halaman tetap dicatat.
+- Mode CBT aman (`CBT_AMAN:true`): klien mengirim UserAgent dalam aksi `mulai`, dan fungsi server menolak bila tidak memuat kata penanda. Kata di server dapat diubah lewat variabel lingkungan fungsi `EXAMBRO_UA` (bawaan `TBSM-EXAM`) dan harus sama dengan di `config.js`. **Deploy ulang fungsi `akun-admin`** (atau `cbt`).
+- Mode biasa (`CBT_AMAN:false`): pemeriksaan hanya di peramban siswa, jadi lebih mudah dilewati.
 - UserAgent bisa dipalsukan oleh yang paham; anggap sebagai penghalang. Uji di 3-5 HP berbeda sebelum ujian sungguhan.
