@@ -344,7 +344,7 @@ function bsViewSiswa(){
  }).join('')+'</section>';
  if(cbt)return h+bsRiwayatBlok('ujian');
  var pool=bsPool('latihan',kelas).length;
- h+='<section class="recent"><div class="sechead"><h2>Latihan</h2></div><div class="card"><p>Latihan tanpa batas waktu. Setiap soal bisa diperiksa langsung disertai pembahasan.</p><p class="note">'+pool+' soal latihan tersedia.</p><button type="button" class="btn primary" data-bs="latsetup"'+(pool?'':' disabled')+'>Mulai latihan</button></div></section>';
+ h+='<section class="recent"><div class="sechead"><h2>Latihan</h2></div><div class="card"><p class="note">'+pool+' soal latihan tersedia.</p><button type="button" class="btn primary" data-bs="latsetup"'+(pool?'':' disabled')+'>Mulai latihan</button></div></section>';
 return h+bsRiwayatBlok('latihan');
 }
 /* riwayat per jenis: Bank soal menampilkan latihan, CBT Online menampilkan ujian */
@@ -404,7 +404,7 @@ function bsViewStaff(){
  if(BS.tab==='bank')BS.tab='sesi';
  var tabs=[['sesi','Sesi'],['pantau','Pantau'],['hasil','Hasil'],['analisis','Analisis']];
  var h=bsCbtRingkas()+'<div class="seg bs4" role="tablist">'+tabs.map(function(t){return '<button type="button" role="tab" data-bs="tab" data-v="'+t[0]+'" aria-pressed="'+(BS.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>';
- if(BS.tab==='sesi')return h+(BS.sf?bsViewSesiForm():bsViewSesi()+bsCobaInfo());
+ if(BS.tab==='sesi')return h+(BS.sf?bsViewSesiForm():bsViewSesi());
  if(BS.tab==='pantau')return h+(window.bsViewPantau?bsViewPantau():'');
  if(BS.tab==='analisis')return h+(window.bsViewAnalisis?bsViewAnalisis():'');
  return h+bsViewHasil();
@@ -414,10 +414,7 @@ function bsCbtRingkas(){
  if(BS.sf)return '';
  var pm=schPeta(),ses=BS.D.sesi.filter(schAkunOk),buka=ses.filter(function(x){return bsSesiStatus(x).k==='on'}).length;
  var hs=BS.D.hasil.filter(function(x){return x.mode==='ujian'&&schHasilOk(x,pm)}),avg=hs.length?Math.round(hs.reduce(function(a,x){return a+x.score},0)/hs.length):0;
- return '<div class="stats"><div class="card"><span class="label">Sesi</span><b class="mono">'+ses.length+'</b></div><div class="card"><span class="label">Dibuka</span><b class="mono">'+buka+'</b></div><div class="card"><span class="label">Selesai</span><b class="mono">'+hs.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+(hs.length?avg:'-')+'</b></div></div>'+(can('akun')?'<p class="note">Mode ujian: <b>'+(bsAman()?'Aman (nilai dihitung server)':'Biasa (nilai dihitung di HP siswa)')+'</b>. Diatur di config.js (CBT_AMAN).</p>':'');
-}
-function bsCobaInfo(){
- return '<div class="card"><b>Coba sebagai siswa</b><p class="note">Ganti peran ke Siswa lewat tombol peran di header (bila akunmu punya peran ganda) untuk mencoba latihan dan ujian. Sesi ujian dan soal yang kamu atur di sini langsung terlihat oleh siswa kelas yang dipilih. Soalnya diambil dari menu Bank soal. Saat ujian berlangsung, pakai tab Pantau.</p></div>';
+ return '<div class="stats"><div class="card"><span class="label">Sesi</span><b class="mono">'+ses.length+'</b></div><div class="card"><span class="label">Dibuka</span><b class="mono">'+buka+'</b></div><div class="card"><span class="label">Selesai</span><b class="mono">'+hs.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+(hs.length?avg:'-')+'</b></div></div>'+(can('akun')?'<p class="note">Mode ujian: <b>'+(bsAman()?'Aman':'Biasa')+'</b></p>':'');
 }
 
 /* ---------- Guru: bank soal ---------- */
@@ -449,7 +446,7 @@ function bsViewBank(){
   '<button type="button" class="btn primary" data-bs="baru">Tambah soal sendiri</button>'+
   '<div class="card"><label class="f">Cari<input id="bq-q" type="search" value="'+esc(f.q)+'" placeholder="Kata dalam soal atau topik"></label><div class="two"><label class="f">Mapel<select data-bs="flt" data-k="mapel"><option value="">Semua</option>'+mp.map(function(m){return '<option'+(f.mapel===m?' selected':'')+'>'+esc(m)+'</option>'}).join('')+'</select></label>'+
   '<label class="f">Jenis<select data-bs="flt" data-k="tipe"><option value="">Semua</option>'+Object.keys(BS_TIPE).map(function(t){return '<option value="'+t+'"'+(f.tipe===t?' selected':'')+'>'+BS_TIPE[t]+'</option>'}).join('')+'</select></label></div>'+
-  '<label class="f">Peruntukan<select data-bs="flt" data-k="tuj"><option value="">Semua</option>'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(f.tuj===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label>'+(c.off?'<p class="note">'+c.off+' soal nonaktif tidak muncul di latihan maupun ujian.</p>':'')+'</div>'+
+  '<label class="f">Peruntukan<select data-bs="flt" data-k="tuj"><option value="">Semua</option>'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(f.tuj===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label>'+(c.off?'<p class="note">'+c.off+' soal nonaktif.</p>':'')+'</div>'+
   '<div class="stack" id="bq-list">'+bsBankList()+'</div>';
 }
 
@@ -481,11 +478,10 @@ function bsViewForm(){
   '<label class="f">Peruntukan<select id="bf-tujuan">'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(f.tujuan===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label></div>';
  h+='<label class="f">Teks soal<textarea id="bf-q" rows="4">'+esc(f.q)+'</textarea></label>';
  if(f.tipe==='kategori'){
-  h+='<div class="two"><label class="f">Pilihan pertama<input id="bf-lab0" value="'+esc(f.lab[0])+'"></label><label class="f">Pilihan kedua<input id="bf-lab1" value="'+esc(f.lab[1])+'"></label></div><p class="note">Isi minimal 2 pernyataan (maksimal 6). Pilih kunci untuk tiap pernyataan.</p>';
+  h+='<div class="two"><label class="f">Pilihan pertama<input id="bf-lab0" value="'+esc(f.lab[0])+'"></label><label class="f">Pilihan kedua<input id="bf-lab1" value="'+esc(f.lab[1])+'"></label></div>';
   h+=f.rows.map(function(r,i){return '<div class="two"><label class="f">Pernyataan '+(i+1)+'<input id="bf-r'+i+'" value="'+esc(r[0])+'"></label><label class="f">Kunci<select id="bf-rk'+i+'"><option value="0"'+(r[1]?' selected':'')+'>'+esc(f.lab[0])+'</option><option value="1"'+(r[1]?'':' selected')+'>'+esc(f.lab[1])+'</option></select></label></div>'}).join('');
  }else{
-  h+='<p class="note">'+(f.tipe==='pg'?'Isi minimal 2 pilihan (maksimal 5) dan tandai satu kunci.':'Isi minimal 3 pilihan (maksimal 5) dan centang semua kunci yang benar.')+'</p>';
-  h+=[0,1,2,3,4].map(function(i){return '<div class="row bs-orow"><input class="bf-k" type="'+(f.tipe==='pg'?'radio':'checkbox')+'" name="bf-kunci" value="'+i+'" aria-label="Kunci '+bsLtr(i)+'"'+(f.kunci.indexOf(i)>-1?' checked':'')+'><label class="f grow">Pilihan '+bsLtr(i)+'<input id="bf-o'+i+'" value="'+esc(f.opts[i])+'"></label></div>'}).join('');
+   h+=[0,1,2,3,4].map(function(i){return '<div class="row bs-orow"><input class="bf-k" type="'+(f.tipe==='pg'?'radio':'checkbox')+'" name="bf-kunci" value="'+i+'" aria-label="Kunci '+bsLtr(i)+'"'+(f.kunci.indexOf(i)>-1?' checked':'')+'><label class="f grow">Pilihan '+bsLtr(i)+'<input id="bf-o'+i+'" value="'+esc(f.opts[i])+'"></label></div>'}).join('');
  }
  h+='<label class="f">Pembahasan (opsional)<textarea id="bf-bahas" rows="3">'+esc(f.bahas)+'</textarea></label>';
  h+='<button type="button" class="btn primary" data-bs="simpansoal">Simpan soal</button></div>';
@@ -570,8 +566,6 @@ function bsViewSesiForm(){
  h+='<div class="row"><label class="f grow">Token<input id="sf-tokp" value="'+esc(f.tokP)+'" maxlength="12" autocapitalize="characters" placeholder="Kosong = dibuat otomatis"></label><button type="button" class="btn small" data-bs="sftoken">Acak</button></div>';
  h+='<div class="two"><label class="f">Batas keluar halaman<input id="sf-batas" type="number" inputmode="numeric" min="0" max="50" value="'+(f.batas||0)+'"></label><label class="f">Bila melewati batas<select id="sf-aksi">'+[['peringatan','Beri peringatan saja'],['kunci','Kunci layar, guru yang membuka'],['kirim','Kirim jawaban otomatis']].map(function(a){return '<option value="'+a[0]+'"'+(f.aksi===a[0]?' selected':'')+'>'+a[1]+'</option>'}).join('')+'</select></label></div>';
  h+='<label class="bs-ck"><input id="sf-layar" type="checkbox"'+(f.layar?' checked':'')+'> Wajib layar penuh (keluar dari layar penuh dihitung pelanggaran)</label>';
- h+='<p class="note">Batas 0 = tidak dibatasi. Layar penuh hanya berlaku di peramban yang mendukungnya (umumnya komputer dan tablet Android).</p>';
- if(bsAman())h+='<p class="note">Mode CBT aman aktif: token diperiksa dan nilai dihitung di server.</p>';
  h+='</div>';
  h+='<label class="bs-ck"><input id="sf-aktif" type="checkbox"'+(f.aktif?' checked':'')+'> Sesi aktif (terlihat oleh siswa)</label>';
  h+='<button type="button" class="btn primary" data-bs="sesisimpan">Simpan sesi</button></div>';
@@ -610,7 +604,7 @@ function bsViewHasil(){
  h+=rows.slice(0,100).map(function(x){
   var lat=x.mode==='latihan',kkm=((BS.D.sesi.filter(function(s){return s.id===x.sesiId})[0]||{}).kkm)||S.kkm;
   return '<div class="card"><div class="row sb"><b>'+esc(x.siswa)+'</b><b class="mono">'+x.score+'</b></div><div class="row"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':'Ujian')+'</span>'+(lat?'':'<span class="pill '+(x.score>=kkm?'ok':'bad')+'">'+(x.score>=kkm?'Kompeten':'Belum')+'</span>')+'<span class="pill plain">Kelas '+esc(x.kelas||'-')+'</span>'+(x.pindah?'<span class="pill bad">Keluar halaman '+x.pindah+'×</span>':'')+'</div><p class="note">'+esc(x.sesiJudul||'Latihan soal')+' · '+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round(x.detik/60))+' menit</p><div class="row"><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail jawaban</button>'+(can('hapus')||can('nilai')?'<button type="button" class="btn small danger" data-bs="hapushasil" data-v="'+x.id+'">Hapus</button>':'')+'</div></div>';
- }).join('')+(rows.length>100?'<p class="note">Menampilkan 100 terbaru. Ekspor Excel memuat semuanya.</p>':'');
+ }).join('')+'';
  return h;
 }
 /* hapus catatan ujian di server (soal_run) bersama hasilnya, jika tidak siswa tetap dianggap sudah selesai dan tidak bisa mengulang */

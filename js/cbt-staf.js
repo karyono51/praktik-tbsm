@@ -82,7 +82,6 @@
    '<button type="button" class="btn small" data-bs="pn-extall"'+(ongoing?'':' disabled')+'>+5 menit semua</button>'+
    '<button type="button" class="btn small" data-bs="pn-nilai"'+(count.habis&&bsAman()?'':' disabled')+'>Nilai yang berakhir</button>'+
    (!bsAman()&&tunggu?'<button type="button" class="btn small primary" data-bs="pn-nilaisemua">Nilai dari jawaban ('+tunggu+')</button>':'')+'</div>';
-  if(!bsAman())h+='<p class="note">Menilai otomatis peserta yang waktunya habis butuh mode CBT aman (fungsi server cbt). Untuk peserta berstatus menunggu nilai, pakai tombol Nilai dari jawaban: nilai dihitung dari jawaban tersimpan di server.</p>';
   h+='<p class="note">'+(PN.err?'Gagal memuat: '+esc(PN.err):'Diperbarui '+jam(PN.at)+' · otomatis tiap 8 detik')+'</p>';
   if(!rows.length)return h+'<p class="muted">Tidak ada siswa terdaftar untuk sesi ini.</p>';
   h+=rows.map(function(r){
@@ -92,7 +91,7 @@
     line='<p class="note">Terjawab '+ans+'/'+tot+' · sisa '+(st.sisa>0?mmss(Math.ceil(st.sisa/1000)):'0:00')+(st.ext?' (+'+Math.round(st.ext/60)+' mnt)':'')+' · keluar halaman '+st.v+(+s.batas?'/'+s.batas:'')+' · terakhir aktif '+Math.round(st.seen/1000)+' dtk lalu'+(st.k==='on'&&st.seen>150000?' <b>(tidak aktif)</b>':'')+'</p>';
    }else if(st.k==='done'){
     var kkm=+s.kkm||S.kkm;
-    if(!st.h)line='<p class="note">Jawaban sudah masuk, nilai belum terkirim dari perangkat siswa.'+(bsAman()?'':' Tekan Nilai dari jawaban.')+'</p>';
+    if(!st.h)line='<p class="note">Nilai belum masuk.</p>';
     else line='<p class="note">Nilai <b class="mono">'+(st.h?st.h.score:'-')+'</b>'+(st.h?' · '+st.h.benar+' benar dari '+st.h.total+' · '+(st.h.score>=kkm?'tuntas':'belum tuntas'):'')+'</p>';
    }
    var rid=st.run?st.run.$id:'',act='';
@@ -215,7 +214,6 @@
   var st=a.st,f=function(x){return Math.round(x*10)/10};
   h+='<div class="stats"><div class="card"><span class="label">Peserta</span><b class="mono">'+st.n+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+f(st.mean)+'</b></div><div class="card"><span class="label">Median</span><b class="mono">'+f(st.med)+'</b></div><div class="card"><span class="label">Simpangan baku</span><b class="mono">'+f(st.sd)+'</b></div><div class="card"><span class="label">Tertinggi</span><b class="mono">'+st.max+'</b></div><div class="card"><span class="label">Terendah</span><b class="mono">'+st.min+'</b></div><div class="card"><span class="label">Tuntas (KKM '+a.kkm+')</span><b class="mono">'+Math.round(a.tuntas/st.n*100)+'%</b></div></div>';
   h+='<div class="row"><button type="button" class="btn small" data-bs="an-ekspor">Ekspor Excel</button><button type="button" class="btn small" data-bs="an-hadir">Cetak daftar hadir</button><label class="f" style="min-width:150px">Urutkan<select data-bs="an-urut"><option value="p"'+(AN.urut==='p'?' selected':'')+'>Tersukar dulu</option><option value="db"'+(AN.urut==='db'?' selected':'')+'>Daya beda terendah</option><option value="n"'+(AN.urut==='n'?' selected':'')+'>Paling banyak diujikan</option></select></label></div>';
-  h+='<p class="note">Kesukaran (p): mudah ≥ 0,70, sedang 0,30 sampai 0,69, sukar &lt; 0,30. Daya beda dihitung dari kelompok atas dan bawah 27% menurut nilai total; baik ≥ 0,40, cukup 0,20 sampai 0,39, di bawah 0,20 perlu direvisi, negatif berarti soal bermasalah (periksa kunci). Soal diacak per siswa, jadi tiap soal dianalisis dari siswa yang mendapatkannya.</p>';
   h+=a.items.map(function(o){
    if(o.nokey)return '<div class="card"><p class="note">'+esc(String(o.q.q||'').slice(0,100))+'</p><p class="note">Kunci tidak tersedia di perangkat ini, soal dilewati.</p></div>';
    var warn=o.db!==null&&o.db<0?'<span class="pill bad">Periksa kunci</span>':'';

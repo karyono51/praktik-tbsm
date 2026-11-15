@@ -254,8 +254,6 @@ function bsioHtml(){
   h+='<div class="card"><h3>Pratinjau impor soal</h3><div class="row"><span class="pill ok">'+m.add.length+' baru</span><span class="pill">'+m.upd.length+' diperbarui</span>'+
    (m.bw.length?'<span class="pill">'+m.bw.length+' soal bawaan diatur</span>':'')+
    '<span class="pill plain">'+m.dup+' dilewati</span><span class="pill '+(m.err.length?'bad':'plain')+'">'+m.err.length+' ditolak</span></div>'+
-   (m.dup?'<p class="note">Dilewati: soal yang sudah ada atau tidak ada perubahan.</p>':'')+
-   (m.bw.length?'<p class="note">Soal bawaan hanya diubah peruntukan, kelas, dan statusnya. Isi soal bawaan tidak diubah.</p>':'')+
    (m.err.length?'<ul class="plain note">'+m.err.slice(0,8).map(function(x){return '<li>Baris '+x.line+': '+esc(x.msg)+'</li>'}).join('')+(m.err.length>8?'<li>dan '+(m.err.length-8)+' lainnya</li>':'')+'</ul>':'')+
    '<div class="row"><button type="button" class="btn" data-bs="bsio-cancel"'+(BSIO.busy?' disabled':'')+'>Batal</button><button type="button" class="btn primary grow" data-bs="bsio-apply"'+(tot&&!BSIO.busy?'':' disabled')+'>'+(BSIO.busy?'Menyimpan…':'Terapkan '+tot+' soal')+'</button></div></div>';
  }
