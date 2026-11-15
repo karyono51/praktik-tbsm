@@ -64,9 +64,9 @@ function viewResult(){
   if(multi&&!V.kel)rtabs='<div class="ptabs" role="group" aria-label="Hasil per siswa">'+its.map(function(it,k){return '<div class="ptab" '+(k===V.rc?'aria-current="true"':'')+'><button type="button" class="pn" data-act="rtab" data-v="'+k+'">'+esc(it.nama||'Tanpa nama')+' <span class="mono pb">'+it.calc.score+'</span><i class="dot '+(it.calc.kompeten?'ok':'bad')+'"></i></button></div>'}).join('')+'</div>';
   else if(multi&&V.kel)rtabs='<div class="card"><span class="label">Anggota kelompok</span><div class="ptabs">'+its.map(function(it){return '<div class="ptab mem"><span class="pn">'+esc(it.nama||'Tanpa nama')+'</span></div>'}).join('')+'</div></div>';
   return rtabs+'<div class="card"><div class="row sb"><span class="label">'+esc(j.judul)+'</span>'+wk+'</div>'+
-    '<div class="row" style="gap:16px"><div class="score mono">'+c.score+'</div><div class="stack" style="gap:6px"><span class="pill '+(c.kompeten?'ok':'bad')+'" style="font-size:14px">'+(c.kompeten?'Kompeten':'Belum kompeten')+'</span><span class="note">'+esc(rname)+' · KKM '+S.kkm+'</span></div></div>'+asp+'</div>'+why+tl+
-    '<div class="card"><label class="f">Catatan '+(isStaff()?'asesor':'untuk diri sendiri')+'<textarea id="catatan" placeholder="Temuan, saran perbaikan, atau bukti pendukung">'+esc(V.notes[noteKey()]||'')+'</textarea></label></div>'+
-    '<div class="row"><button type="button" class="btn" data-act="redo">Ulangi</button><button type="button" class="btn" data-act="pdfone">Unduh PDF</button><button type="button" class="btn" data-act="uji-print">Cetak</button><button type="button" class="btn primary grow" data-act="save">'+(multi?'Simpan '+its.length+' hasil':'Simpan ke rekap')+'</button></div>';
+    '<div class="row" style="gap:16px"><div class="score mono">'+c.score+'</div><div class="stack" style="gap:6px"><span class="pill '+(c.kompeten?'ok':'bad')+'" style="font-size:14px">'+(c.kompeten?'Kompeten':'Belum kompeten')+'</span><span class="note">'+esc(rname)+' · KKM '+S.kkm+'</span></div></div>'+asp+'</div>'+why+tl+ukkUjianNote()+
+    '<div class="card"><label class="f">Catatan '+(isStaff()?'asesor':'untuk diri sendiri')+'<textarea id="catatan" placeholder="Temuan, saran perbaikan, atau bukti pendukung"'+(V.saved?' readonly':'')+'>'+esc(V.notes[noteKey()]||'')+'</textarea></label></div>'+
+    ukkHasilBtns(multi,its.length);
 }
 function viewAcuan(){
   function card(t,body){return '<div class="card"><h3>'+t+'</h3>'+body+'</div>'}
@@ -147,3 +147,15 @@ document.addEventListener('change',function(e){
   var row=t.closest('.ukk-row');if(row)row.dataset.v=val===null?'':val;
   syncProg();
 });
+
+/* ---- Ujian siswa: hasil tersimpan otomatis (v90) ---- */
+function ukkUjianNote(){
+  if(!V.job||!V.job.ukk||!ukUjianSiswa())return '';
+  return '<div class="card" style="border-color:var(--warn)"><h3>'+(V.saved?'Hasil ujian tersimpan':'Hasil ujian')+'</h3><p class="note">Pada mode Ujian hasil dikirim otomatis saat dihitung dan tidak bisa diulang dari sini. Kesempatan berikutnya mengikuti pengaturan guru.</p></div>';
+}
+function ukkHasilBtns(multi,n){
+  var pdf='<button type="button" class="btn" data-act="pdfone">Unduh PDF</button>',cetak='<button type="button" class="btn" data-act="uji-print">Cetak</button>';
+  if(V.saved)return '<div class="row">'+pdf+cetak+'<button type="button" class="btn primary grow" data-act="ukb-selesai">Selesai</button></div>';
+  var redo=(V.job&&V.job.ukk&&ukUjianSiswa())?'':'<button type="button" class="btn" data-act="redo">Ulangi</button>';
+  return '<div class="row">'+redo+pdf+cetak+'<button type="button" class="btn primary grow" data-act="save">'+(multi?'Simpan '+n+' hasil':'Simpan ke rekap')+'</button></div>';
+}

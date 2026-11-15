@@ -131,7 +131,9 @@ function ukkNilai(r){return Number(r.score)||0}
 /* ---------- Tingkat 1: daftar unit ---------- */
 window.ukkTopBar=function(){
  if(!isStaff())return '';
- return '<div class="lks-acts"><button type="button" class="btn primary small" data-act="ukm-baru">+ UKK baru</button><button type="button" class="btn small" data-act="ukm-showall">Tampilkan semua</button><button type="button" class="btn small" data-act="ukm-hideall">Sembunyikan semua</button></div>';
+ return '<div class="lks-acts"><button type="button" class="btn primary small" data-act="ukm-baru">+ UKK baru</button><button type="button" class="btn small" data-act="ukm-showall">Tampilkan semua</button><button type="button" class="btn small" data-act="ukm-hideall">Sembunyikan semua</button></div>'+
+  '<div class="lks-acts"><button type="button" class="btn small primary" data-act="ukb-xls-kelas">Ekspor nilai kelas (Excel)</button></div>'+
+  (typeof ukiBar==='function'?ukiBar():'');
 };
 window.ukkCardInfo=function(j){
  var c=j.cfg||{},tags='';
@@ -205,7 +207,7 @@ function ukkHub(){
   '<section class="card lks-card"><div class="row sb"><h2 class="grow">'+esc(j.judul)+'</h2><span class="pill '+(pub?'ok':'warn')+'">'+(pub?'Tampil':'Tersembunyi')+'</span></div>'+
   '<div class="meta"><span>'+esc(j.unit)+'</span><span class="mono">'+j.menit+' menit</span><span>'+j.items.length+' butir, '+wajib+' wajib</span></div>'+
   (j.skkni?'<div><span class="pill plain mono">SKKNI '+esc(j.skkni)+'</span></div>':'')+
-  '<div class="lks-acts"><button type="button" class="btn small" data-act="ukm-prev" data-v="'+id+'">Pratinjau</button><button type="button" class="btn small" data-act="ukm-edit" data-v="'+id+'">Edit isi</button><button type="button" class="btn small" data-act="ukm-dup" data-v="'+id+'">Duplikat</button>'+
+  '<div class="lks-acts"><button type="button" class="btn small" data-act="ukm-prev" data-v="'+id+'">Pratinjau</button><button type="button" class="btn small" data-act="ukm-edit" data-v="'+id+'">Edit isi</button><button type="button" class="btn small" data-act="ukm-dup" data-v="'+id+'">Duplikat</button><button type="button" class="btn small" data-act="uki-exp" data-v="'+id+'">Ekspor isi unit</button>'+
   '<button type="button" class="btn small" data-act="ukm-toggle" data-v="'+id+'">'+(pub?'Sembunyikan':'Tampilkan')+'</button>'+
   (j.diubah&&ukkIsBase(j.id)?'<button type="button" class="btn small" data-act="ukm-reset" data-v="'+id+'">Kembalikan bawaan</button>':'')+
   (!ukkIsBase(j.id)?'<button type="button" class="btn small danger" data-act="ukm-hapus" data-v="'+id+'">Hapus</button>':'')+'</div></section>'+

@@ -17,7 +17,7 @@ function ukkAnalisis(j){
  h+='</section><section class="card"><h3>Belum dinilai ('+belum.length+')</h3>'+(belum.length?
   '<p class="note">Siswa kelas '+esc(KELAS[j.kelas].judul)+' yang belum punya penilaian untuk unit ini.</p>'+belum.map(function(u){return '<div class="row sb"><span>'+esc(u.nama)+'</span><span class="note">'+esc(u.kelas||'')+'</span></div>'}).join(''):
   '<p class="muted">Semua siswa kelas ini sudah dinilai, atau data siswa belum tersedia.</p>')+'</section>';
- return h;
+ return h+(typeof ukbButirHtml==='function'?ukbButirHtml(j):'');
 }
 function ukkXls(j){
  if(!needX())return;
@@ -34,5 +34,6 @@ function ukkXls(j){
  var dsh=sheet(ds,[16,10,10]);naPct(dsh,ds.length,'C');XLSX.utils.book_append_sheet(wb,dsh,'Distribusi');
  var bl=[['Siswa','Kelas']].concat(ukxBelum(j).map(function(u){return [u.nama,u.kelas||'']}));
  XLSX.utils.book_append_sheet(wb,sheet(bl,[28,10]),'Belum dinilai');
+ if(typeof ukbSheets==='function')ukbSheets(j,L).forEach(function(p){XLSX.utils.book_append_sheet(wb,sheet(p[1],p[2]),p[0])});
  dl(wb,'UKK_'+String(j.id).replace(/[^A-Za-z0-9_-]/g,''));
 }

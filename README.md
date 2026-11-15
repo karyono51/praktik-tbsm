@@ -188,3 +188,7 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 - Cache service worker: `tbsm-v89`. Skrip `?v=89`.
 
 **CBT online (Bank soal)**: token ujian, layar ujian ala CBT (navigasi nomor, ragu-ragu, layar penuh, kunci saat pindah tab), pemantauan langsung oleh guru (tambah waktu, akhiri, buka kunci), penilaian di server, daftar hadir cetak, dan analisis butir soal. Berkas baru: `js/cbt.js`, `js/cbt-staf.js`, `functions/cbt`, `tools/gabung-cbt.mjs`. Pemasangan di `docs-CBT.md`.
+
+## Pembaruan UKK v90
+- **Ujian siswa (mode Ujian)**: hasil tersimpan otomatis saat dihitung; tombol Ulangi dan catatan dikunci, siswa menekan Selesai. Mode Latihan boleh keluar saat berjalan (waktu tetap jalan, isian tersimpan).
+- **Ekspor Excel UKK**: tombol Ekspor nilai kelas, sheet rincian butir (`js/ukk-butir.js`) dan impor/ekspor UKK (`js/ukk-io.js`).

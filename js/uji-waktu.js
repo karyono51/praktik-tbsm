@@ -77,6 +77,8 @@ window.finishExam=function(){
  if(V.sec>lim())V.sec=lim();
  finish0();
  if(id)ujiDraftDel(id);
+ /* Ujian siswa: hasil langsung tersimpan, tidak bisa dibuang lalu diulang tanpa memakai kesempatan */
+ if(V.mode==='result'&&typeof ukUjianSiswa==='function'&&ukUjianSiswa()&&typeof saveResults==='function')saveResults(true);
 };
 
 /* ---- Buka unit: lanjutkan draft bila ada ---- */

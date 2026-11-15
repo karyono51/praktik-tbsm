@@ -4,7 +4,7 @@
    Cara kerja: riwayat peramban diberi satu entri penjaga. Setiap back yang jatuh ke entri dasar dipasang penjaga lagi. */
 function bkUjian(){
  if(!S.user||isStaff())return false;
- if(V.mode==='exam')return true;
+ if(V.mode==='exam')return !(V.job&&V.job.ukk&&V.job.cfg&&V.job.cfg.mode==='latihan'); /* Latihan UKK boleh keluar (waktu tetap berjalan, isian tersimpan) */
  if(S.tab!=='lkpd'||!LK.open||LK.detail||LK.editor||['materi','kerja','evaluasi'].indexOf(LK.tab)<0)return false;
  var m=typeof lkmCur==='function'?lkmCur():null;
  return !!(m&&lkmCfg(m).mode==='ujian');
