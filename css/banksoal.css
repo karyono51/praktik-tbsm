@@ -66,6 +66,8 @@ body.ex-lock{overflow:hidden}
 @keyframes exblink{50%{opacity:.55}}
 .ex-nav{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px 0 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .ex-nav::-webkit-scrollbar{display:none}
+/* Baris nomor soal di bilah atas disembunyikan; pindah soal lewat Kembali/Lanjut dan tombol daftar soal di bawah */
+.ex-top .ex-nav{display:none}
 .ex-nav button,.ex-grid button{flex:none;scroll-snap-align:center;border:1px solid var(--line);background:var(--bg);border-radius:12px;font-weight:650;font-size:14px}
 .ex-nav button{width:42px;height:42px}
 .ex-nav button.dn,.ex-grid button.dn{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
