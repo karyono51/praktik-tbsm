@@ -147,7 +147,7 @@
    if(p.layar&&fsSupported()&&!isFs())ex.push('<button type="button" class="btn small" data-bs="layar">Layar penuh</button>');
    var sv=svInfo(r);if(sv)ex.push('<span class="pill '+sv.c+'" id="cbt-sv" role="status">'+esc(sv.t)+'</span>');
   }
-  h+='<div class="ex-top"><div class="ex-bar"><div class="ex-ttl"><b>'+esc(r.sesiJudul||'Latihan soal')+'</b><span>Soal '+(r.cur+1)+' dari '+n+' · terjawab '+na+(exam&&rgc?' · ragu '+rgc:'')+'</span></div>'+
+  h+='<div class="ex-top">'+(exam?'<div class="ex-kick">CBT Online '+esc(schNama())+'</div>':'')+'<div class="ex-bar"><div class="ex-ttl"><b>'+esc(r.sesiJudul||'Latihan soal')+'</b><span>Soal '+(r.cur+1)+' dari '+n+' · terjawab '+na+(exam&&rgc?' · ragu '+rgc:'')+'</span></div>'+
    '<button type="button" class="ex-aa" data-bs="huruf" aria-label="Ukuran huruf soal">Aa</button>'+
    '<span class="bsclock ex-clock'+(r.dur&&rem<300000?' low':'')+(r.dur&&rem<60000?' crit':'')+'" id="bs-clock" role="timer">'+clock+'</span></div>'+
    '<div class="ex-nav" id="ex-nav" role="group" aria-label="Navigasi soal">'+r.ids.map(function(x,i){var st=qState(r,x,i);return '<button type="button" class="'+st.cls+'" data-bs="goto" data-v="'+i+'" aria-label="'+st.lab+'"'+(i===r.cur?' aria-current="true"':'')+'>'+(i+1)+'</button>'}).join('')+'</div>'+

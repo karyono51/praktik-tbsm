@@ -6,6 +6,21 @@ var NAVTABS=['beranda','katalog','rekap','akun','acuan','lkpd','observasi','obse
 /* izin yang dibutuhkan tiap tab agar bisa dipulihkan (peran aktif bisa berubah sejak posisi disimpan) */
 var NAVPERM={akun:'akun',observasi:'observasi','observasi-siswa':'observasi','observasi-ukk':'observasi','nilai-akhir-ukk':'observasi',kompetensi:'nilai',hapusnilai:'hapus'};
 
+/* ---- Tautan langsung: ?go=cbt membuka halaman CBT Online (sesi ujian) setelah masuk ---- */
+var NAVGO='tbsm-go',NAVGOTAB={cbt:'cbtonline',bank:'banksoal'};
+(function(){
+ try{var g=String(new URLSearchParams(location.search).get('go')||'').toLowerCase();
+  if(NAVGOTAB[g]){sessionStorage.setItem(NAVGO,g);
+   var q=new URLSearchParams(location.search);q.delete('go');
+   history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash)}}catch(e){}
+})();
+function navGo(u){
+ var g='';try{g=sessionStorage.getItem(NAVGO)||''}catch(e){}
+ if(!g||!NAVGOTAB[g])return;
+ try{sessionStorage.removeItem(NAVGO)}catch(e){}
+ S.tab=NAVGOTAB[g];
+}
+
 /* ---- Simpan dan pulihkan posisi halaman ---- */
 function navSave(){
  if(!S.user||V.mode!=='list')return;
@@ -24,7 +39,7 @@ function navApply(u){
 }
 (function(){
  var render0=render;render=function(){render0();navSave();navFillVer()};
- var enter0=enter;enter=function(u){enter0(u);if(NAV.restore)navApply(u)};
+ var enter0=enter;enter=function(u){enter0(u);if(NAV.restore)navApply(u);navGo(u)};
  var boot0=boot;boot=async function(){NAV.restore=true;try{await boot0()}finally{NAV.restore=false}};
  window.addEventListener('pagehide',navSave);
 })();
