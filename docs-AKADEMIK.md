@@ -33,7 +33,8 @@ Data mengikuti sekolah yang sedang aktif di header (DF atau Medina); data tanpa 
 Periksa dokumen resmi sebelum dipakai sebagai dasar keputusan.
 
 ## Daftar mata pelajaran per kelompok (v100)
-- Mata pelajaran dikelompokkan: **Kelompok Umum**, **Kelompok Kejuruan**, **Mata Pelajaran Pilihan**. Ketuk judul kelompok untuk menyembunyikan atau menampilkannya (pencarian otomatis membuka semua kelompok).
+- Mata pelajaran dikelompokkan: **Kelompok Umum**, **Kelompok Kejuruan**, **Dasar-Dasar Program Keahlian Teknik Otomotif** (Dasar-Dasar Teknik Otomotif dan elemennya), **Kompetensi Keahlian Teknik Sepeda Motor** (Teknik Sepeda Motor dan elemennya), dan **Mata Pelajaran Pilihan**. Kolom Kelompok di data tidak diubah; pengelompokan ini hanya tampilan (mengikuti kolom Komponen). Ketuk judul kelompok untuk menyembunyikan atau menampilkannya (pencarian otomatis membuka semua kelompok).
 - Urutan mengikuti struktur kurikulum SMK: Umum (PABP, Pendidikan Pancasila, Bahasa Indonesia, PJOK, Sejarah, Seni dan Budaya, Muatan Lokal);
   Kejuruan (Matematika, Bahasa Inggris, Informatika, Projek IPAS, Dasar-Dasar Teknik Otomotif, Teknik Sepeda Motor, Kreativitas/Inovasi/Kewirausahaan, PKL); lalu Pilihan.
   Elemen CP mengikuti induknya sesuai nomor elemen; mapel tambahan menyusul di akhir kelompoknya. Urutan yang sama dipakai di pilihan mapel dan ekspor Excel.
+- Judul yang diawali "LKPD" (mis. LKPD X-1 Pemeriksaan Baterai dan Sistem Starter, yang masuk dari soal modul di bank soal) bukan mata pelajaran: disembunyikan dari daftar, pilihan mapel, dan tidak lagi diimpor oleh Sinkronkan kurikulum.
