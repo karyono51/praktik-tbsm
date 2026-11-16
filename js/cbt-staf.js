@@ -349,7 +349,7 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   roster(s).forEach(function(u){var k=u.kelas||'-';(kls[k]=kls[k]||[]).push(u)});
   var wb=XLSX.utils.book_new(),ring=[];
   Object.keys(kls).sort().forEach(function(k){
-   var rows=kls[k].map(function(u,i){var h=hs[u.id];return {No:i+1,Nama:u.nama,Kelas:k,Status:h?'Selesai':'Belum mengerjakan',Nilai:h?h.score:'','Soal benar':h?h.benar:'','Jumlah soal':h?h.total:'','Keluar halaman':h?(h.pindah||0):'',Keterangan:h?(h.score>=kkm?'Tuntas':'Belum tuntas'):''}});
+   var rows=kls[k].map(function(u,i){var h=hs[u.id];return {No:i+1,Nama:u.nama,Kelas:k,Status:h?'Selesai':'Belum mengerjakan',Nilai:h?h.score:'','Soal benar':h?h.benar:'','Jumlah soal':h?h.total:'','Keluar halaman':h?(h.pindah||0):'',Keterangan:h?(h.pend?'Nilai sementara, '+h.pend+' uraian belum dinilai':(h.score>=kkm?'Tuntas':'Belum tuntas')):''}});
    var sk=kls[k].map(function(u){return hs[u.id]}).filter(Boolean).map(function(h){return +h.score||0});
    ring.push({Kelas:k,Peserta:kls[k].length,Selesai:sk.length,'Belum mengerjakan':kls[k].length-sk.length,'Rata-rata':sk.length?Math.round(sk.reduce(function(a,b){return a+b},0)/sk.length*10)/10:'',Tertinggi:sk.length?Math.max.apply(null,sk):'',Terendah:sk.length?Math.min.apply(null,sk):'','Tuntas (%)':sk.length?Math.round(sk.filter(function(x){return x>=kkm}).length/sk.length*100):''});
    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),String('Kelas '+k).replace(/[:\\\/?*\[\]]/g,'-').slice(0,31));

@@ -756,7 +756,7 @@ function bsViewHasil(){
  var hmax=BS.hmax||100;
  h+=rows.slice(0,hmax).map(function(x){
   var lat=x.mode==='latihan',kkm=((BS.D.sesi.filter(function(s){return s.id===x.sesiId})[0]||{}).kkm)||S.kkm;
-  return '<div class="card"><div class="row sb"><b>'+esc(x.siswa)+'</b><b class="mono">'+x.score+'</b></div><div class="row"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':x.mode==='arsip'?'Arsip':'Ujian')+'</span>'+(lat||x.mode==='arsip'?'':'<span class="pill '+(x.score>=kkm?'ok':'bad')+'">'+(x.score>=kkm?'Kompeten':'Belum')+'</span>')+'<span class="pill plain">Kelas '+esc(x.kelas||'-')+'</span>'+(x.pindah?'<span class="pill bad">Keluar halaman '+x.pindah+'×</span>':'')+'</div><p class="note">'+esc(bsJudul(x))+' · '+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round(x.detik/60))+' menit</p><div class="row"><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail jawaban</button>'+(can('hapus')||can('nilai')?'<button type="button" class="btn small danger" data-bs="hapushasil" data-v="'+x.id+'">Hapus</button>':'')+'</div></div>';
+  return '<div class="card"><div class="row sb"><b>'+esc(x.siswa)+'</b><b class="mono">'+x.score+'</b></div><div class="row">'+(x.pend?'<span class="pill warn">'+x.pend+' uraian menunggu</span>':'')+'<span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':x.mode==='arsip'?'Arsip':'Ujian')+'</span>'+(lat||x.mode==='arsip'?'':'<span class="pill '+(x.score>=kkm?'ok':'bad')+'">'+(x.score>=kkm?'Kompeten':'Belum')+'</span>')+'<span class="pill plain">Kelas '+esc(x.kelas||'-')+'</span>'+(x.pindah?'<span class="pill bad">Keluar halaman '+x.pindah+'×</span>':'')+'</div><p class="note">'+esc(bsJudul(x))+' · '+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round(x.detik/60))+' menit</p><div class="row"><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail jawaban</button>'+(can('hapus')||can('nilai')?'<button type="button" class="btn small danger" data-bs="hapushasil" data-v="'+x.id+'">Hapus</button>':'')+'</div></div>';
  }).join('')+(rows.length>hmax?'<button type="button" class="btn" data-bs="hmore">Tampilkan lebih banyak ('+(rows.length-hmax)+' lagi)</button>':'');
  return h;
 }
@@ -768,7 +768,7 @@ async function bsHapusRun(h){
 }
 function bsExport(){
  if(typeof XLSX==='undefined'){if(window.Pustaka)Pustaka.muat();toast('Pustaka Excel sedang disiapkan. Coba lagi sebentar.');return}
- var rows=bsHasilRows().map(function(x){return {Nama:x.siswa,Kelas:x.kelas||'',Jenis:x.mode==='latihan'?'Latihan':x.mode==='arsip'?'Arsip':'Ujian',Sesi:bsJudul(x),Nilai:x.score,'Soal benar':x.benar,'Jumlah soal':x.total,'Durasi (menit)':Math.round(x.detik/6)/10,'Keluar halaman':x.pindah||0,Waktu:new Date(x.ts).toLocaleString('id-ID')}});
+ var rows=bsHasilRows().map(function(x){return {Nama:x.siswa,Kelas:x.kelas||'',Jenis:x.mode==='latihan'?'Latihan':x.mode==='arsip'?'Arsip':'Ujian',Sesi:bsJudul(x),Nilai:x.score,'Status nilai':x.pend?('Sementara, '+x.pend+' uraian belum dinilai'):'Final','Soal benar':x.benar,'Jumlah soal':x.total,'Durasi (menit)':Math.round(x.detik/6)/10,'Keluar halaman':x.pindah||0,Waktu:new Date(x.ts).toLocaleString('id-ID')}});
  var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Hasil');
  XLSX.writeFile(wb,'hasil-bank-soal-'+ymd(Date.now())+'.xlsx');
 }

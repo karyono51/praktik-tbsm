@@ -6,12 +6,13 @@
    - Mencetak memakai window.print(): di dialog cetak ponsel pilih "Simpan sebagai PDF" bila ingin berkas.
    Bergantung pada: banksoal.js (bs*), soal-gambar.js (sg*), sekolah.js (SEK), logo.js (LOGO), dialog.js (uiConfirm). */
 var CS={img:{},k:null};
-var CS_TIPE=['pg','kompleks','kategori'];
-var CS_JUDUL={pg:'A. Pilihan ganda',kompleks:'B. Pilihan ganda kompleks',kategori:'C. Pilihan ganda kategori'};
+var CS_TIPE=['pg','kompleks','kategori','uraian'];
+var CS_JUDUL={pg:'A. Pilihan ganda',kompleks:'B. Pilihan ganda kompleks',kategori:'C. Pilihan ganda kategori',uraian:'D. Uraian'};
 var CS_PETUNJUK={
  pg:'Pilih satu jawaban yang paling tepat. Beri tanda silang (X) pada huruf pilihan yang benar.',
  kompleks:'Pilih semua jawaban yang benar (lebih dari satu). Beri tanda centang pada kotak di depan pilihan yang benar.',
- kategori:'Tentukan setiap pernyataan, lalu beri tanda centang pada kolom yang sesuai.'
+ kategori:'Tentukan setiap pernyataan, lalu beri tanda centang pada kolom yang sesuai.',
+ uraian:'Jawablah pertanyaan berikut dengan uraian pada tempat yang disediakan. Skor maksimum tiap soal tertera di akhir soal.'
 };
 
 function csPool(){return (typeof bsFiltered==='function'?bsFiltered():[]).filter(function(q){return q.aktif})}
@@ -19,6 +20,7 @@ function csKey(q){
  if(!bsHasKey(q))return '-';
  if(q.tipe==='pg')return bsLtr(q.kunci);
  if(q.tipe==='kompleks')return q.kunci.slice().sort(function(a,b){return a-b}).map(bsLtr).join(', ');
+ if(q.tipe==='uraian')return 'Skor maks '+q.maks+'. Rubrik: '+q.rub.map(function(k){return k[0]+' ('+k[1]+')'}).join('; ')+(q.kj?'. Kunci: '+q.kj:'');
  var lab=q.lab||['Benar','Salah'];
  return q.rows.map(function(r,i){return (i+1)+') '+lab[r[1]?0:1]}).join('; ');
 }
@@ -32,7 +34,10 @@ function csImgHtml(ref,cls){
 }
 function csSoalHtml(q,n){
  var h='<div class="cs-q"><div class="cs-n">'+n+'.</div><div class="cs-b"><div class="cs-t">'+bsText(q.q)+'</div>'+csImgHtml(q.qi,'cs-qi');
- if(q.tipe==='kategori'){
+ if(q.tipe==='uraian'){
+  var nl=q.maks>=10||(q.pj||0)>=1500?9:6,ln='';for(var z=0;z<nl;z++)ln+='<div class="cs-ul"></div>';
+  h+='<div class="cs-sk">(skor maksimum '+(q.maks||'')+')</div><div class="cs-ua">'+ln+'</div>';
+ }else if(q.tipe==='kategori'){
   var lab=q.lab||['Benar','Salah'];
   h+='<table class="cs-kt"><tr><th>Pernyataan</th><th>'+esc(lab[0])+'</th><th>'+esc(lab[1])+'</th></tr>'+
    q.rows.map(function(r){return '<tr><td>'+esc(r[0])+'</td><td class="c"><i class="cs-box"></i></td><td class="c"><i class="cs-box"></i></td></tr>'}).join('')+'</table>';
@@ -77,7 +82,7 @@ function csBuild(items,o){
   h+='<div class="cs-kunci"><h1 class="cs-h">Kunci jawaban</h1><p class="cs-pt">'+esc(o.judul||'Lembar Soal')+(o.mapel?' · '+esc(o.mapel):'')+' · Hanya untuk guru. Jangan dibagikan kepada siswa.</p>'+
    '<table class="cs-kt cs-kk"><tr><th>No</th><th>Jenis</th><th>Kunci</th>'+(o.bahas?'<th>Pembahasan</th>':'')+'</tr>'+
    rows.map(function(r){var q=r[1];return '<tr><td class="c">'+r[0]+'</td><td>'+esc(BS_TIPE[q.tipe])+'</td><td>'+esc(csKey(q))+'</td>'+(o.bahas?'<td>'+(q.bahas?bsText(q.bahas):'')+'</td>':'')+'</tr>'}).join('')+'</table>'+
-   '<p class="cs-pt">Penilaian: PG benar = 1, salah = 0. PG kompleks = (pilihan benar dipilih dikurangi pilihan salah dipilih) dibagi jumlah kunci, minimal 0. PG kategori = jumlah pernyataan tepat dibagi jumlah pernyataan. Nilai = rata-rata skor soal x 100, sama dengan penilaian di aplikasi.</p></div>';
+   '<p class="cs-pt">Penilaian: PG benar = 1, salah = 0. PG kompleks = (pilihan benar dipilih dikurangi pilihan salah dipilih) dibagi jumlah kunci, minimal 0. PG kategori = jumlah pernyataan tepat dibagi jumlah pernyataan. Nilai = rata-rata skor soal x 100, sama dengan penilaian di aplikasi. Soal uraian dinilai guru memakai rubrik; skor uraian dibagi skor maksimum, lalu dikalikan bobot soal (bawaan 2) dalam rata-rata nilai.</p></div>';
  }
  return h;
 }
@@ -200,6 +205,7 @@ if(typeof bsViewBank==='function'){
  '#cs-print .cs-q{display:flex;gap:6px;margin:0 0 8px;break-inside:avoid}#cs-print .cs-n{flex:0 0 8mm;text-align:right;font-weight:700}#cs-print .cs-b{flex:1;min-width:0}'+
  '#cs-print .cs-qi{display:block;max-width:100%;max-height:62mm;object-fit:contain;margin:4px 0;border:1px solid #999}'+
  '#cs-print .cs-stim{border:1px solid #000!important;padding:2mm 3mm;margin:6px 0 8px;break-inside:avoid}#cs-print .cs-sl{font-weight:700;font-size:10pt;margin-bottom:2px}#cs-print .cs-st{text-align:justify}'+
+ '#cs-print .cs-sk{font-size:90%;margin:3px 0 0;font-style:italic}#cs-print .cs-ua{margin-top:2mm}#cs-print .cs-ul{border-bottom:1px dotted #444;height:8mm}'+
  '#cs-print .cs-o{display:flex;gap:5px;align-items:flex-start;margin:2px 0}#cs-print .cs-o>b{flex:0 0 6mm}#cs-print .cs-o>span{flex:1;min-width:0}'+
  '#cs-print .cs-oi{display:block;max-width:100%;max-height:36mm;object-fit:contain;margin-top:2px;border:1px solid #bbb}#cs-print .cs-ot+.cs-oi{margin-top:3px}'+
  '#cs-print .cs-box{display:inline-block;flex:0 0 3.4mm;width:3.4mm;height:3.4mm;border:.3mm solid #000;margin-top:1.2mm}'+

@@ -31,6 +31,7 @@ Mengikuti tiga bentuk soal TKA SMA/SMK (Peraturan Kepala BSKAP No. 045 Tahun 202
 - PG: benar = 1, salah = 0.
 - PG kompleks: (kunci terpilih − pilihan salah) ÷ jumlah kunci, minimal 0.
 - PG kategori: (respons benar − respons salah) ÷ jumlah pernyataan, minimal 0. Pernyataan yang tidak dijawab dihitung kosong (tidak mengurangi).
+- Uraian (bukan bentuk soal TKA, hanya untuk ujian sekolah): dinilai guru memakai rubrik di tab Uraian (CBT Online). Skor uraian ÷ skor maksimum dikalikan bobot (bawaan 2) dalam rata-rata nilai; soal PG bobotnya 1. Uraian yang belum dinilai belum dihitung dan nilai siswa ditandai sementara. Lihat docs-URAIAN.md.
 - Nilai = jumlah skor ÷ jumlah soal × 100, dibulatkan.
 - Rumus yang sama dipakai di aplikasi dan di fungsi server (`functions/cbt`, salinan di `akun-admin`).
 
@@ -63,6 +64,7 @@ Hanya Guru dan Admin, di tab **Bank soal** (tombol Impor soal, Template, Ekspor 
 - ID kosong = soal baru. ID soal sendiri yang sudah ada = soal diperbarui. ID soal bawaan (tka-...) = hanya Peruntukan, Kelas, dan Status yang berubah.
 - Soal baru yang jenis, mapel, dan teksnya sama dengan soal yang sudah ada dilewati, jadi aman bila file diimpor dua kali.
 - Kunci PG: satu huruf (B). PG kompleks: minimal dua huruf (A,C). PG kategori: isi Label 1 atau Label 2 (atau 1 / 2) pada Kunci 1-6; pilih pasangan Benar/Salah atau Sesuai/Tidak Sesuai.
+- Uraian: Jenis Uraian, kosongkan A sampai E; Kunci = kunci jawaban teks; Rubrik = satu kriteria per baris sel, format `kriteria | skor` (maks 6 kriteria, jumlah skor maks 100); Bobot dan Batas karakter opsional.
 - Baris yang melanggar aturan bentuk soal (kurang dari 5 pilihan, kunci kompleks kurang dari 2, pernyataan kurang dari 3, label di luar dua pasangan) ditolak pada pratinjau beserta alasannya.
 
 ## Gambar pada soal dan pilihan

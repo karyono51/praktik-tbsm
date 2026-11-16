@@ -7,12 +7,12 @@ var BSIO={imp:null,busy:false,MAX:500};
 
 /* ---------- Pemetaan kepala kolom ---------- */
 var BSIO_HEAD=['ID','Jenis','Mapel','Topik','Kelas','Peruntukan','Status','Soal','A','B','C','D','E','Kunci','Label 1','Label 2',
- 'Pernyataan 1','Kunci 1','Pernyataan 2','Kunci 2','Pernyataan 3','Kunci 3','Pernyataan 4','Kunci 4','Pernyataan 5','Kunci 5','Pernyataan 6','Kunci 6','Pembahasan','Grup','Stimulus'];
+ 'Pernyataan 1','Kunci 1','Pernyataan 2','Kunci 2','Pernyataan 3','Kunci 3','Pernyataan 4','Kunci 4','Pernyataan 5','Kunci 5','Pernyataan 6','Kunci 6','Pembahasan','Grup','Stimulus','Rubrik','Bobot','Batas karakter'];
 var BSIO_HB={};
 (function(){
  var H={id:['id','kodesoal','kode'],tipe:['jenis','tipe','jenissoal'],mapel:['mapel','matapelajaran','mapelajaran'],topik:['topik'],kelas:['kelas'],
   tujuan:['peruntukan','tujuan'],status:['status'],q:['soal','teksoal','pertanyaan'],kunci:['kunci','kuncijawaban'],lab0:['label1','pilihanpertama'],
-  lab1:['label2','pilihankedua'],bahas:['pembahasan','bahas'],gs:['grup','kodegrup'],st:['stimulus','teksstimulus']};
+  lab1:['label2','pilihankedua'],bahas:['pembahasan','bahas'],gs:['grup','kodegrup'],st:['stimulus','teksstimulus'],rubrik:['rubrik','kriteria','rubrikpenilaian'],bobot:['bobot'],pj:['bataskarakter','batasjawaban']};
  Object.keys(H).forEach(function(c){H[c].forEach(function(a){BSIO_HB[a]=c})});
  for(var i=0;i<5;i++){var L=String.fromCharCode(97+i);BSIO_HB[L]='o'+i;BSIO_HB['pilihan'+L]='o'+i}
  for(var j=1;j<=6;j++){BSIO_HB['pernyataan'+j]='p'+(j-1);BSIO_HB['kunci'+j]='k'+(j-1)}
@@ -28,6 +28,7 @@ function bsioRow(s){
  for(i=0;i<5;i++)r.push(o[i]!==undefined?o[i]:'');
  if(s.tipe==='pg')r.push(typeof s.kunci==='number'?bsLtr(s.kunci):'');
  else if(s.tipe==='kompleks')r.push((Array.isArray(s.kunci)?s.kunci:[]).map(bsLtr).join(','));
+ else if(s.tipe==='uraian')r.push(s.kj||'');
  else r.push('');
  if(s.tipe==='kategori'){
   var lab=s.lab||['Benar','Salah'];r.push(lab[0],lab[1]);
@@ -35,6 +36,8 @@ function bsioRow(s){
  }else{r.push('','');for(i=0;i<6;i++)r.push('','')}
  r.push(s.bahas||'');
  r.push(s.gs||'',s.gs&&s.st&&!bsioPrevSama(s)?s.st:'');
+ if(s.tipe==='uraian')r.push((s.rub||[]).map(function(k){return k[0]+' | '+k[1]}).join('\n'),s.bobot||2,s.pj||1500);
+ else r.push('','','');
  return r;
 }
 /* stimulus ditulis hanya di baris pertama tiap grup pada daftar yang sedang diekspor */
@@ -49,7 +52,7 @@ function bsioExport(){
  var aoa=[BSIO_HEAD].concat(list.map(bsioRow));
  BSIO_SEEN=null;
  var wb=XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb,sheet(aoa,[16,13,18,22,8,18,9,60,26,26,26,26,26,8,10,10,34,10,34,10,34,10,34,10,34,10,34,10,50,14,60]),'Soal');
+ XLSX.utils.book_append_sheet(wb,sheet(aoa,[16,13,18,22,8,18,9,60,26,26,26,26,26,8,10,10,34,10,34,10,34,10,34,10,34,10,34,10,50,14,60,44,8,12]),'Soal');
  XLSX.utils.book_append_sheet(wb,sheet(bsioHelp(),[16,110]),'Petunjuk');
  XLSX.writeFile(wb,'bank-soal-tka-'+ymd(Date.now())+'.xlsx');
  toast(list.length+' soal diekspor');
@@ -57,7 +60,7 @@ function bsioExport(){
 function bsioHelp(){
  return [['Kolom','Aturan'],
   ['ID','Kosong = soal baru. Jika diisi dengan ID soal sendiri yang sudah ada, soal itu diperbarui. ID soal bawaan (tka-...) hanya mengubah Peruntukan, Kelas, dan Status.'],
-  ['Jenis','PG, PG kompleks, atau PG kategori. Kosong = ditebak dari kolom Kunci dan Pernyataan.'],
+  ['Jenis','PG, PG kompleks, PG kategori, atau Uraian. Kosong = ditebak dari kolom Kunci dan Pernyataan.'],
   ['Mapel','Wajib. Maksimal 64 karakter.'],
   ['Topik','Boleh kosong. Maksimal 120 karakter.'],
   ['Kelas','X, XI, XII, atau Semua (kosong = Semua).'],
@@ -69,6 +72,8 @@ function bsioHelp(){
   ['Label 1, Label 2','PG kategori saja. Pilih satu pasangan: Benar dan Salah, atau Sesuai dan Tidak Sesuai (kosong = Benar dan Salah).'],
   ['Pernyataan 1-6, Kunci 1-6','PG kategori saja. Isi 3 sampai 6 pernyataan. Kunci berisi Label 1 atau Label 2 (atau angka 1 / 2).'],
   ['Pembahasan','Boleh kosong.'],
+  ['Uraian: Soal, Kunci, Rubrik','Jenis Uraian dinilai guru, hanya untuk Ujian (Peruntukan kosong atau Latihan dan ujian otomatis menjadi Ujian). Kolom A sampai E dikosongkan. Kolom Kunci berisi kunci jawaban atau pedoman (teks bebas, maksimal 3000 karakter). Kolom Rubrik wajib: satu kriteria per baris di dalam sel (Alt+Enter), format  kriteria | skor, misalnya Menyebut 3 langkah dengan benar | 6. Maksimal 6 kriteria, tiap skor lebih dari 0, jumlah skor = skor maksimum soal (maksimal 100).'],
+  ['Uraian: Bobot, Batas karakter','Bobot (0,5 sampai 10, kosong = 2) menentukan pengaruh soal uraian terhadap nilai akhir dibanding soal PG yang bobotnya 1. Batas karakter jawaban siswa 100 sampai 3000 (kosong = 1500).'],
   ['Grup, Stimulus','Soal grup (opsional). Baris dengan kode Grup yang sama (misalnya G1) berbagi satu stimulus, dan soalnya berurutan menurut urutan baris. Isi kolom Stimulus pada salah satu baris grup (cukup satu, atau samakan bila diisi di beberapa baris). Kode yang sama dipakai ulang pada impor berikutnya untuk mapel yang sama memperbarui grup itu. Kolom Grup kosong tidak mengubah keanggotaan grup soal yang sudah ada. Gambar stimulus tidak ikut Excel: tambahkan lewat form Ubah soal.'],
   ['Catatan','Soal baru yang jenis, mapel, dan teksnya sama persis dengan soal yang sudah ada dilewati, tidak digandakan. Maksimal '+BSIO.MAX+' baris per impor. Hapus baris contoh sebelum impor. File hasil Ekspor Excel bisa diimpor ulang.']];
 }
@@ -99,7 +104,10 @@ function bsioTemplateFallback(){
   g2=e(['','PG','Dasar TBSM','Alat ukur','X','Latihan dan ujian','Aktif','Berdasarkan data pada stimulus, alat ukur yang paling tepat untuk mengukur diameter luar poros adalah ...','Mistar','Jangka sorong','Meteran gulung','Busur derajat','Penggaris siku','B']);
  g1[29]='G1';g1[30]='Hasil pengukuran diameter luar poros memakai jangka sorong: skala utama 24 mm, skala nonius 10 (garis ke-10 berimpit), ketelitian 0,01 mm.';g2[29]='G1';
  ex.push(g1,g2);
- book([['Soal',[BSIO_HEAD].concat(ex),[16,13,18,22,8,18,9,60,26,26,26,26,26,8,10,10,34,10,34,10,34,10,34,10,34,10,34,10,50]],
+ var u1=e(['','Uraian','Dasar TBSM','Alat ukur','X','Ujian','Aktif','Jelaskan langkah membaca hasil ukur jangka sorong dan sebutkan ketelitiannya.','','','','','','Skala utama dibaca dahulu, lalu skala nonius yang berimpit dengan garis skala utama. Ketelitian 0,05 mm atau 0,02 mm sesuai alat.']);
+ u1[31]='Menyebut skala utama dibaca lebih dulu | 4\nMenyebut skala nonius yang berimpit | 4\nMenyebut ketelitian alat | 2';u1[32]='2';u1[33]='1500';
+ ex.push(u1);
+ book([['Soal',[BSIO_HEAD].concat(ex),[16,13,18,22,8,18,9,60,26,26,26,26,26,8,10,10,34,10,34,10,34,10,34,10,34,10,34,10,50,14,60,44,8,12]],
   ['Petunjuk',bsioHelp(),[16,110]]],'Template_Impor_Bank_Soal');
 }
 
@@ -125,6 +133,7 @@ function bsioStatus(v){
 function bsioTipe(v){
  var k=bsioKey(v);
  if(!k)return '';
+ if(/uraian|essay|esai/.test(k))return 'uraian';
  if(/kategori/.test(k))return 'kategori';
  if(/kompleks/.test(k))return 'kompleks';
  if(k==='pg'||/pilihanganda/.test(k))return 'pg';
@@ -141,6 +150,25 @@ function bsioBuild(r,tipe){
  if(!f.mapel)return {err:'Mapel wajib diisi'};
  if(!f.q)return {err:'Soal wajib diisi'};
  if(f.q.length>5000)return {err:'Teks soal terlalu panjang (maksimal 5000 karakter)'};
+ if(tipe==='uraian'){
+  var rub=[],ls=bsioTxt(r.rubrik).split('\n').map(function(x){return x.trim()}).filter(Boolean);
+  if(!ls.length)return {err:'Rubrik wajib diisi untuk soal uraian (format: kriteria | skor)'};
+  if(ls.length>6)return {err:'Rubrik maksimal 6 kriteria'};
+  for(i=0;i<ls.length;i++){
+   var mm=/^(.*\S)\s*[|;]\s*([0-9]+(?:[.,][0-9]+)?)$/.exec(ls[i]);
+   if(!mm)return {err:'Rubrik baris '+(i+1)+' harus berformat: kriteria | skor'};
+   var sk=Math.round(parseFloat(mm[2].replace(',','.'))*100)/100;
+   if(!(sk>0))return {err:'Skor rubrik baris '+(i+1)+' harus lebih dari 0'};
+   rub.push([mm[1].slice(0,120),sk]);
+  }
+  var mk=Math.round(rub.reduce(function(a,x){return a+x[1]},0)*100)/100;
+  if(mk>100)return {err:'Jumlah skor rubrik maksimal 100 (sekarang '+mk+')'};
+  var bb=bsioTxt(r.bobot)?parseFloat(bsioTxt(r.bobot).replace(',','.')):2,pj=bsioTxt(r.pj)?parseInt(bsioTxt(r.pj),10):1500;
+  if(!(bb>=0.5&&bb<=10))return {err:'Bobot harus antara 0,5 dan 10'};
+  if(!(pj>=100&&pj<=3000))return {err:'Batas karakter harus antara 100 dan 3000'};
+  f.rub=rub;f.maks=mk;f.bobot=bb;f.pj=pj;f.kj=bsioTxt(r.kunci).slice(0,3000);
+  return {f:f};
+ }
  if(tipe==='kategori'){
   var l0=bsioTxt(r.lab0)||'Benar',l1=bsioTxt(r.lab1)||'Salah',rows=[],li=bsLabIdx([l0,l1]);
   if(li<0)return {err:'Label harus Benar dan Salah, atau Sesuai dan Tidak Sesuai'};
@@ -203,14 +231,16 @@ function bsioProcess(rows){
    res.bw.push({id:id,patch:patch,q:cur.q});return;
   }
   var tipe=bsioTipe(r.tipe);
-  if(tipe==='?')return bad('Jenis harus PG, PG kompleks, atau PG kategori');
+  if(tipe==='?')return bad('Jenis harus PG, PG kompleks, PG kategori, atau Uraian');
   if(!tipe){
-   if(bsioTxt(r.p0)||bsioTxt(r.p1))tipe='kategori';
+   if(bsioTxt(r.rubrik))tipe='uraian';
+   else if(bsioTxt(r.p0)||bsioTxt(r.p1))tipe='kategori';
    else tipe=bsioLetters(r.kunci).length>1?'kompleks':'pg';
   }
   var b=bsioBuild(r,tipe);if(b.err)return bad(b.err);
   var f=b.f,ex=id?ownIds[id]:null;
   f.kelas=kelas;f.tujuan=tuj;
+  if(tipe==='uraian'){if(tuj==='latihan')return bad('Soal uraian hanya untuk Ujian');f.tujuan='ujian'}
   var code=bsioTxt(r.gs).slice(0,60);
   if(code){
    var g=gsDari(code,f.mapel),gi=GR[g],mem=BS.D.soal.filter(function(d){return d.gs===g&&!BS_IDX[d.id]&&(d.st||d.si)})[0],memSi=BS.D.soal.filter(function(d){return d.gs===g&&!BS_IDX[d.id]&&d.si})[0];
@@ -227,7 +257,7 @@ function bsioProcess(rows){
   }
   if(ex){
    var o=Object.assign({},ex);
-   delete o.opts;delete o.kunci;delete o.rows;delete o.lab;
+   delete o.opts;delete o.kunci;delete o.rows;delete o.lab;delete o.rub;delete o.kj;delete o.maks;delete o.bobot;delete o.pj;
    Object.assign(o,f);o.ts=Date.now();o.aktif=st===undefined?ex.aktif!==false:st;o.oleh=ex.oleh||me;
    res.upd.push(o);return;
   }

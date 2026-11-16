@@ -1,6 +1,6 @@
 # Rancangan: soal uraian (essay) di Bank soal dan CBT Online
 
-Status: fase 1 sudah dikerjakan (soal, jawab siswa, penilaian guru, nilai akhir). Fase 2 (impor Excel, cetak) dan fase 3 belum. Soal uraian untuk sementara hanya untuk ujian (bukan latihan).
+Status: fase 1 dan fase 2 selesai (soal, jawab siswa, penilaian guru, nilai akhir, impor/ekspor Excel, cetak soal, status di rekap). Fase 3 belum (analisis butir uraian, penilaian ulang massal). Soal uraian hanya untuk ujian, bukan latihan.
 
 ## 1. Tujuan dan batas
 - Tambah jenis soal **Uraian** untuk ujian sekolah dan latihan. Bukan bagian TKA: bentuk TKA resmi hanya PG, PG kompleks, PG kategori (Perkaban BSKAP 045/2025; kerangka asesmen TKA SMK/MAK 2026).
@@ -77,3 +77,9 @@ Catatan penting: perubahan fungsi server `cbt` harus **dideploy ulang di Appwrit
 2. Batas jawaban 1500 karakter cukup?
 3. Siswa boleh melihat komentar dan rubrik yang terisi per soal setelah dinilai?
 4. Mode anonim dinyalakan otomatis atau pilihan guru?
+
+## Catatan pelaksanaan fase 2
+- **Impor Excel:** Jenis `Uraian`; kolom baru `Rubrik` (satu kriteria per baris sel, format `kriteria | skor`), `Bobot` (default 2), `Batas karakter` (default 1500). Kolom `Kunci` berisi kunci jawaban teks. Peruntukan Latihan ditolak; kosong atau "Latihan dan ujian" menjadi Ujian. Ekspor Excel memuat kolom yang sama sehingga bisa diimpor ulang.
+- **Cetak soal:** bagian "D. Uraian" dengan garis jawab dan skor maksimum; lembar kunci memuat rubrik dan kunci jawaban.
+- **Rekap:** daftar Hasil menampilkan lencana "N uraian menunggu"; Excel hasil punya kolom Status nilai (Final / Sementara); rekap kelas menulis "Nilai sementara" pada Keterangan bila ada uraian belum dinilai.
+- **Uji:** `node tools/uji-uraian.mjs` (impor) dan bagian "Soal uraian" di `node tools/uji-cbt.mjs` (nilai).
