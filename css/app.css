@@ -376,3 +376,7 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 @keyframes obuflash{0%,60%{box-shadow:0 0 0 3px var(--warn)}100%{box-shadow:0 0 0 0 transparent}}
 @media(prefers-reduced-motion:reduce){.obu-item.obu-flash{animation:none;box-shadow:0 0 0 3px var(--warn)}}
 .pill.sk{background:var(--ok);color:var(--onc)}
+
+/* v100: kelompok mata pelajaran yang dapat disembunyikan (Administrasi Akademik > Mata pelajaran) */
+.akd-grp{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;margin:12px 0 6px;padding:11px 14px;border:1px solid var(--line);border-radius:14px;background:var(--accent-soft);color:var(--ink)}
+.akd-grp .akd-chev{font-size:16px;color:var(--accent)}

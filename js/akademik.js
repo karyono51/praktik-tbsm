@@ -101,7 +101,24 @@ function akTerap(){try{var t=akTahunAktif();if(t&&typeof FORM_UKK!=='undefined')
 function akOk(o){return schAkunOk(o)}
 function akAktif(a){return a.filter(function(x){return x.aktif!==false})}
 function akTahunAktif(){return AKD.D.tahun.filter(function(t){return t.aktif})[0]||null}
-function akMapelAll(){return AKD.D.mapel.filter(akOk).sort(function(a,b){return String(a.kode||'').localeCompare(String(b.kode||''),'id',{numeric:true})||String(a.nama).localeCompare(String(b.nama),'id')})}
+/* Urutan mengikuti struktur kurikulum SMK: Kelompok Umum (PABP, Pancasila, B. Indonesia, PJOK, Sejarah, Seni, Muatan Lokal),
+   Kelompok Kejuruan (Matematika, B. Inggris, Informatika, Projek IPAS, Dasar Program Keahlian, Konsentrasi Keahlian, Kreativitas/Kewirausahaan, PKL), lalu Pilihan.
+   Mapel tambahan di luar daftar bawaan menyusul di akhir kelompoknya menurut kode. Elemen CP mengikuti induknya menurut nomor elemen. */
+var AK_URUT=['m_pabp','m_pan','m_bind','m_pjok','m_sej','m_seni','m_mulok','m_mtk','m_bing','m_info','m_ipas','m_ddo','m_tsm','m_kik','m_pkl','m_kka'];
+var AK_GRUP=[['umum','Kelompok Umum'],['kejuruan','Kelompok Kejuruan'],['pilihan','Mata Pelajaran Pilihan']];
+function akMapelAll(){
+ var by={};AKD.D.mapel.forEach(function(m){by[m.id]=m});
+ function rank(m){
+  var t=(m.induk&&by[m.induk])||m,g=AK_GRUP.map(function(x){return x[0]}).indexOf(t.kelompok);if(g<0)g=1;
+  var i=AK_URUT.indexOf(t.id);
+  return [g,i>-1?i:AK_URUT.length,m===t?0:1,m===t?0:(+m.urut||0)];
+ }
+ return AKD.D.mapel.filter(akOk).sort(function(a,b){
+  var x=rank(a),y=rank(b);
+  for(var i=0;i<4;i++)if(x[i]!==y[i])return x[i]-y[i];
+  return String(a.kode||'').localeCompare(String(b.kode||''),'id',{numeric:true})||String(a.nama).localeCompare(String(b.nama),'id');
+ });
+}
 function akKelasAll(){return AKD.D.kelas.filter(akOk).sort(function(a,b){return AKTK.indexOf(a.tingkat)-AKTK.indexOf(b.tingkat)||String(a.nama).localeCompare(String(b.nama),'id',{numeric:true})})}
 function akGuruList(){
  var L=S.users.filter(function(u){return hasRole(u,'guru')&&u.aktif!==false&&akOk(u)});
@@ -336,10 +353,17 @@ function akMapelCards(){
  var q=akNorm(AKD.q),all=akMapelAll().filter(function(m){return (AKD.fl==='ALL'||m.kelompok===AKD.fl)&&(!q||akNorm(m.nama+' '+(m.kode||'')+' '+(m.kata||[]).join(' ')).indexOf(q)>-1)});
  if(!all.length)return '<p class="muted center">Belum ada mata pelajaran'+(AKD.q?' yang cocok':'')+'.</p>';
  var ids={};all.forEach(function(m){ids[m.id]=1});
- var tops=all.filter(function(m){return !m.induk||!ids[m.induk]}),out='';
- tops.forEach(function(m){
-  out+=akMapelCard(m,false);
-  all.filter(function(c){return c.induk===m.id}).forEach(function(c){out+=akMapelCard(c,true)});
+ var tops=all.filter(function(m){return !m.induk||!ids[m.induk]}),out='',gr={},cari=!!q;
+ AKD.gopen=AKD.gopen||{};
+ tops.forEach(function(m){var g=AK_GRUP.some(function(x){return x[0]===m.kelompok})?m.kelompok:'kejuruan';(gr[g]=gr[g]||[]).push(m)});
+ AK_GRUP.forEach(function(g){
+  var L=gr[g[0]];if(!L)return;
+  var n=L.length,nc=0,body='',buka=cari||AKD.gopen[g[0]]!==false;
+  L.forEach(function(m){
+   body+=akMapelCard(m,false);
+   all.filter(function(c){return c.induk===m.id}).forEach(function(c){nc++;body+=akMapelCard(c,true)});
+  });
+  out+='<button type="button" class="akd-grp" data-akd="grp" data-id="'+g[0]+'" aria-expanded="'+buka+'"><span><b>'+g[1]+'</b><small class="note"> · '+n+' mapel'+(nc?', '+nc+' elemen CP':'')+'</small></span><span class="akd-chev" aria-hidden="true">'+(buka?'▾':'▸')+'</span></button>'+(buka?body:'');
  });
  return out;
 }
@@ -453,6 +477,7 @@ document.addEventListener('click',async function(e){
  var a=b.dataset.akd,id=b.dataset.id,k=b.dataset.k,ed=akEdit();
  if(a==='tf'){AKD.tf=id;render()}
  else if(a==='fl'){AKD.fl=id;render()}
+ else if(a==='grp'){AKD.gopen=AKD.gopen||{};AKD.gopen[id]=AKD.gopen[id]===false;render()}
  else if(a==='sinkron')akSinkron();
  else if(a==='ekspor')akEkspor();
  else if(!ed&&['kelas-baru','mapel-baru','ta-baru','ta-aktif','arsip','simpan','tg-add','tg-del','ang-simpan','ang-semua','edit'].indexOf(a)>-1)toast('Hanya admin yang dapat mengubah data akademik');

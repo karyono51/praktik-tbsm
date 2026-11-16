@@ -43,11 +43,7 @@ viewLKPD=function(){
  return '<div class="row"><button type="button" class="btn small" data-act="lkc-list">‹ Daftar LKPD '+lkEsc(lkcKelasInfo(S.kelas).judul)+'</button></div>'+h;
 };
 /* Unit Ujian lama (sementara): pilih kelas lewat chip karena baris kelas di dasbor kini membuka LKPD */
-var viewKatalog0=viewKatalog;
-viewKatalog=function(){
- var kb=kelasBoleh(),chips=kb.length>1?'<div class="chips">'+kb.map(function(c){return '<button type="button" data-act="kat-kelas" data-v="'+c+'" aria-pressed="'+(S.kelas===c)+'">'+esc(KELAS[c].judul)+'</button>'}).join('')+'</div>':'';
- return chips+viewKatalog0();
-};
+/* v100: tombol Kelas X/XI/XII di atas Unit Ujian dihapus; kelas dipilih lewat menu dasbor (baris UKK Kelas X/XI/XII) */
 document.addEventListener('click',function(e){
  var b=e.target.closest('[data-act]');if(!b)return;var a=b.dataset.act,v=b.dataset.v,m;
  if(a.indexOf('lkc-')!==0&&a!=='kat-kelas')return;
