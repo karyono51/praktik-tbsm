@@ -6,8 +6,8 @@ window.APP_CONFIG={
   ADMIN_EMAIL:'2603039008@uhamka.ac.id',
   /* CBT aman (kunci jawaban dan penilaian di server). Aktifkan HANYA setelah fungsi terpasang; lihat docs-CBT.md */
   CBT_AMAN:true,
-  /* Kata penanda UserAgent Exambro; harus sama dengan variabel EXAMBRO_UA pada fungsi server (bawaan TBSM-EXAM) */
-  EXAMBRO_UA:'TBSM-EXAM',
+  /* Penanda UserAgent Exambro, dipisah koma; salah satu cocok = dianggap Exambro. Exambro Ex tidak menambah kata khusus, hanya UserAgent WebView Android ("Version/4.0"). Samakan dengan EXAMBRO_UA di fungsi server. */
+  EXAMBRO_UA:'TBSM-EXAM,Version/4.0',
   FN_CBT:'akun-admin'   /* ID fungsi yang melayani aksi CBT: 'akun-admin' (paket gratis) atau 'cbt' */
   /* CBT_DENYUT: selang simpan jawaban ke server dalam ms (bawaan 15000) */
 };

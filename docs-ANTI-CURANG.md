@@ -34,9 +34,8 @@ Penerapan fungsi server: deploy ulang `akun-admin` (atau `cbt`) agar `simpan` me
 tampil di perangkat siswa tetapi tidak sampai ke Pantau pada mode aman.
 
 ## Mode Exambro (v82)
-- `js/config.js` memuat `EXAMBRO_UA:'TBSM-EXAM'`. Pada konfigurasi Exambro (QR atau URL terenkripsi) isi **UserAgent** dengan kata yang memuat `TBSM-EXAM`, dan alamat aplikasi sebagai URL ujian.
-- Sesi: centang **Wajib Exambro** di form sesi (bagian Pengamanan CBT). Siswa yang membuka dari Chrome atau peramban lain tidak bisa memulai ujian pada sesi itu.
-- Di Exambro, **layar penuh wajib dilewati** (WebView sering tak mendukung layar penuh, sedangkan Exambro sudah mengunci aplikasi). Pelanggaran keluar halaman tetap dicatat.
-- Mode CBT aman (`CBT_AMAN:true`): klien mengirim UserAgent dalam aksi `mulai`, dan fungsi server menolak bila tidak memuat kata penanda. Kata di server dapat diubah lewat variabel lingkungan fungsi `EXAMBRO_UA` (bawaan `TBSM-EXAM`) dan harus sama dengan di `config.js`. **Deploy ulang fungsi `akun-admin`** (atau `cbt`).
-- Mode biasa (`CBT_AMAN:false`): pemeriksaan hanya di peramban siswa, jadi lebih mudah dilewati.
+- Hasil uji di Exambro Ex: aplikasi **tidak menambah kata khusus** pada UserAgent; yang terkirim UserAgent WebView Android biasa (berakhir `Version/4.0 Chrome/... Mobile Safari/537.36`). Karena itu `js/config.js` memakai `EXAMBRO_UA:'TBSM-EXAM,Version/4.0'` (dipisah koma; salah satu cocok sudah cukup). Chrome dan peramban biasa tidak memuat `Version/4.0`, jadi ditolak.
+- Konsekuensinya penghalang ini mengenali **WebView Android secara umum**, bukan Exambro secara khusus: aplikasi lain berbasis WebView juga lolos. Bila suatu versi Exambro mengizinkan UserAgent kustom, isi `TBSM-EXAM` di sana lalu hapus `Version/4.0` dari `EXAMBRO_UA` supaya pemeriksaannya lebih ketat.
+- Sesi: centang **Wajib Exambro** di form sesi. Di Exambro, layar penuh wajib dilewati; pelanggaran keluar halaman tetap dicatat.
+- Mode CBT aman (`CBT_AMAN:true`): klien mengirim UserAgent dalam aksi `mulai`, fungsi server menolak bila tidak cocok. Daftar di server dapat diubah lewat variabel lingkungan fungsi `EXAMBRO_UA` (bawaan `TBSM-EXAM,VERSION/4.0`) dan harus sama dengan `config.js`. Deploy ulang fungsi `akun-admin` (atau `cbt`) bila kodenya berubah.
 - UserAgent bisa dipalsukan oleh yang paham; anggap sebagai penghalang. Uji di 3-5 HP berbeda sebelum ujian sungguhan.

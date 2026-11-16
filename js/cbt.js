@@ -64,7 +64,7 @@
   CBT.mulai=true;
   try{
    if(window.bsRunLain){var lain=await bsRunLain(s);if(lain){toast('Kamu masih mengerjakan ujian "'+lain+'" (mungkin di perangkat lain). Selesaikan dahulu.');return}}
-   if(s.exambro&&!isExambro()){toast('Sesi ini wajib dikerjakan lewat aplikasi Exambro. Buka alamat ujian dari Exambro. [UA: …'+String(navigator.userAgent||'').slice(-70)+']');return}
+   if(s.exambro&&!isExambro()){toast('Sesi ini wajib dikerjakan lewat aplikasi Exambro. Buka alamat ujian dari Exambro.');return}
    var token='';
    if(s.tok){
     var t=await uiPrompt('Masukkan token ujian dari pengawas.',{title:'Token ujian',label:'Token',ok:'Mulai'});
