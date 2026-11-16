@@ -59,7 +59,9 @@ body.ex-lock{overflow:hidden}
 .ex-top{position:sticky;top:0;z-index:15;margin:0 calc(-1*max(16px,env(safe-area-inset-right))) 10px calc(-1*max(16px,env(safe-area-inset-left)));padding:calc(8px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left));background:var(--surface);box-shadow:0 8px 18px -16px rgba(0,0,0,.5)}
 .ex-bar{display:flex;align-items:center;gap:10px;padding-bottom:8px}
 .ex-ttl{flex:1;min-width:0;display:flex;flex-direction:column}
-.ex-kick{font-size:12.5px;font-weight:700;color:var(--accent);line-height:1.3;padding-bottom:4px;overflow-wrap:anywhere}
+.ex-kick,.ex-sn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+.ex-kick{font-size:17px;font-weight:800;color:var(--accent)}
+.ex-sn{font-size:16px;font-weight:700;padding-bottom:6px}
 .ex-ttl b{font-size:14.5px;line-height:1.3;overflow-wrap:anywhere}
 .ex-ttl span{font-size:12px;line-height:1.35;color:var(--muted);overflow-wrap:anywhere}
 .ex-aa{flex:none;min-width:40px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-weight:700;font-size:14px}
