@@ -213,7 +213,7 @@
   try{
    document.body.classList.toggle('cbt-exam',inExam());
    var on=runOn(),bc=document.body.classList;
-   bc.toggle('bs-run',on);bc.toggle('ex-lock',on&&!!CBT.nav);bc.toggle('ex-fs1',on&&CBT.fs===1);bc.toggle('ex-fs2',on&&CBT.fs===2);
+   bc.toggle('bs-run',on);bc.toggle('in-exambro',on&&isExambro());bc.toggle('ex-lock',on&&!!CBT.nav);bc.toggle('ex-fs1',on&&CBT.fs===1);bc.toggle('ex-fs2',on&&CBT.fs===2);
    if(!on)CBT.nav=false;
    wlSync(on);centerNav();
    overlay();
