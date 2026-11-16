@@ -39,7 +39,7 @@ function lksList(){
   '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small" data-act="lkm-showall">Tampilkan semua</button><button type="button" class="btn small" data-act="lkm-hideall">Sembunyikan semua</button></div>'+
   (typeof lkioHtml==='function'?lkioHtml():'')+'</details>';
  return '<div class="row sb"><div><h2>'+lkEsc(k.judul)+'</h2><p class="note">'+lkEsc(k.sub)+'</p></div><span class="pill plain">'+mods.length+' modul</span></div>'+
-  '<div class="lks-acts"><button type="button" class="btn primary small" data-act="lkc-new">+ Modul baru</button><button type="button" class="btn small" data-act="lkc-rekap">Rekap semua modul</button></div>'+
+  '<div class="lks-acts"><button type="button" class="btn primary small" data-act="lkc-new">+ Modul baru</button><button type="button" class="btn small" data-act="lkc-rekap">Rekap Pengumpulan LKPD</button></div>'+
   '<p class="lks-hint">Ketuk Kelola modul untuk melihat pengumpulan, analisis, pengaturan, dan mengedit isi modul dalam satu tempat.'+(kb.length>1?' Ganti kelas lewat menu di dasbor.':'')+'</p>'+
   '<div class="jobs">'+(cards||'<div class="card muted">Belum ada modul untuk kelas ini.</div>')+'</div>'+more;
 }
