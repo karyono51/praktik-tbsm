@@ -86,3 +86,10 @@ Hanya Guru dan Admin, di tab **Bank soal** (tombol Impor soal, Template, Ekspor 
 - Gambar soal dan gambar pilihan ikut tercetak. Gambar dimuat dulu ke perangkat; bila ada yang belum termuat, aplikasi bertanya apakah tetap dicetak dan tempat gambarnya diberi keterangan.
 - Lembar bukan hasil sesi ujian online (sesi memilih soal per siswa saat ujian dimulai). Untuk ujian kertas, pilih soal lewat filter lalu cetak.
 - Di dialog cetak ponsel pilih "Simpan sebagai PDF" bila ingin berkas. Kode: `js/cetak-soal.js`.
+
+## Pengelompokan mapel (v58x)
+Berkas: `js/bank-kelompok.js` (dimuat setelah `akademik.js`, sebelum `bank-filter.js`). Tidak ada perubahan data atau koleksi Appwrite.
+- Daftar mapel di Bank soal tidak lagi satu daftar abjad. Urutannya: Kelompok Umum, Kelompok Kejuruan, Dasar-Dasar Program Keahlian Teknik Otomotif, Kompetensi Keahlian Teknik Sepeda Motor, Mata Pelajaran Pilihan (mengikuti Administrasi Akademik), lalu **LKPD Kelas X, XI, XII** (urut nomor unit), dan **Mapel lainnya** (nama mapel yang diketik guru dan belum ada di master).
+- Berlaku di: filter Mapel pada tab Bank soal (guru/admin, dengan jumlah soal per mapel), Atur latihan siswa (hanya mapel yang punya soal untuk kelas siswa, dengan jumlah soal), filter Mapel di Riwayat latihan, daftar saran mapel di form soal, dan chip "Batasi mata pelajaran" di sesi ujian.
+- Judul LKPD dikenali dari awalan `LKPD X-`, `LKPD XI-`, `LKPD XII-`; bukan mata pelajaran, jadi ditaruh di kelompok LKPD sendiri.
+- Mapel bawaan: Bahasa Indonesia (Umum), Matematika dan Bahasa Inggris (Kejuruan), Dasar TBSM (Dasar-Dasar Program Keahlian).

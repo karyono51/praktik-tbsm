@@ -458,9 +458,9 @@ function bsViewRiwayat(){
 }
 function bsViewLatSetup(){
  var kelas=S.user.kelas||'',L=BS.lat,pool=bsPool('latihan',kelas).filter(function(q){return (!L.mapel||q.mapel===L.mapel)&&(!L.tipe||q.tipe===L.tipe)});
- var mp=bsMapelList(),n=L.n;
+ var mp=bsMapelList(),n=L.n,cnt=bsMapelHitung(bsPool('latihan',kelas));
  return '<div class="row"><button type="button" class="btn small" data-bs="home">Kembali</button><h2>Atur latihan</h2></div><div class="card">'+
-  '<label class="f">Mata pelajaran<select id="bl-mapel"><option value="">Semua</option>'+mp.map(function(m){return '<option'+(L.mapel===m?' selected':'')+'>'+esc(m)+'</option>'}).join('')+'</select></label>'+
+  '<label class="f">Mata pelajaran<select id="bl-mapel"><option value="">Semua</option>'+bsMapelOptHtml(mp.filter(function(m){return cnt[m]||L.mapel===m}),L.mapel,cnt)+'</select></label>'+
   '<label class="f">Jenis soal<select id="bl-tipe"><option value="">Semua</option>'+Object.keys(BS_TIPE).map(function(t){return '<option value="'+t+'"'+(L.tipe===t?' selected':'')+'>'+BS_TIPE[t]+'</option>'}).join('')+'</select></label>'+
   '<div><span class="label">Jumlah soal</span><div class="chips" role="group">'+[5,10,20,0].map(function(v){return '<button type="button" data-bs="latn" data-v="'+v+'" aria-pressed="'+(n===v)+'">'+(v||'Semua')+'</button>'}).join('')+'</div></div>'+
   '<p class="note">'+pool.length+' soal sesuai pilihan.</p><button type="button" class="btn primary" data-bs="latmulai"'+(pool.length?'':' disabled')+'>Mulai</button></div>';
@@ -537,10 +537,10 @@ function bsBankList(){
 function bsViewBank(){
  var all=bsSoalAll(),c={latihan:0,ujian:0,keduanya:0,off:0};
  all.forEach(function(s){if(!s.aktif)c.off++;else c[bsTujEf(s)]++});
- var f=BS.flt,mp=bsMapelList();
+ var f=BS.flt,mp=bsMapelList(),cnt=bsMapelHitung(all);
  return '<div class="stats"><div class="card"><span class="label">Total</span><b class="mono">'+all.length+'</b></div><div class="card"><span class="label">Latihan</span><b class="mono">'+(c.latihan+c.keduanya)+'</b></div><div class="card"><span class="label">Ujian</span><b class="mono">'+(c.ujian+c.keduanya)+'</b></div></div>'+
   '<button type="button" class="btn primary" data-bs="baru">Tambah soal sendiri</button>'+
-  '<div class="card"><label class="f">Cari<input id="bq-q" type="search" value="'+esc(f.q)+'" placeholder="Kata dalam soal atau topik"></label><div class="two"><label class="f">Mapel<select data-bs="flt" data-k="mapel"><option value="">Semua</option>'+mp.map(function(m){return '<option'+(f.mapel===m?' selected':'')+'>'+esc(m)+'</option>'}).join('')+'</select></label>'+
+  '<div class="card"><label class="f">Cari<input id="bq-q" type="search" value="'+esc(f.q)+'" placeholder="Kata dalam soal atau topik"></label><div class="two"><label class="f">Mapel<select data-bs="flt" data-k="mapel"><option value="">Semua</option>'+bsMapelOptHtml(mp,f.mapel,cnt)+'</select></label>'+
   '<label class="f">Jenis<select data-bs="flt" data-k="tipe"><option value="">Semua</option>'+Object.keys(BS_TIPE).map(function(t){return '<option value="'+t+'"'+(f.tipe===t?' selected':'')+'>'+BS_TIPE[t]+'</option>'}).join('')+'</select></label></div>'+
   '<label class="f">Peruntukan<select data-bs="flt" data-k="tuj"><option value="">Semua</option>'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(f.tuj===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label>'+(c.off?'<p class="note">'+c.off+' soal nonaktif.</p>':'')+'</div>'+
   '<div class="stack" id="bq-list">'+bsBankList()+'</div>'+'';
@@ -569,7 +569,7 @@ function bsViewRiwayatLatihan(){
  var pm=schPeta(),f=BS.rl,all=BS.D.hasil.filter(function(x){return x.mode==='latihan'&&schHasilOk(x,pm)}),kl={},mp={};
  all.forEach(function(x){if(x.kelas)kl[x.kelas]=1;var m=bsJudul(x);if(m&&m!=='Latihan soal'&&m.indexOf(' + ')<0)mp[m]=1});
  bsMapelList().forEach(function(m){mp[m]=1});
- var sel=function(k,lab,o){return '<label class="f">'+lab+'<select data-bs="rlf" data-k="'+k+'"><option value="">Semua</option>'+Object.keys(o).sort().map(function(v){return '<option'+(f[k]===v?' selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></label>'};
+ var sel=function(k,lab,o){return '<label class="f">'+lab+'<select data-bs="rlf" data-k="'+k+'"><option value="">Semua</option>'+(k==='mapel'?bsMapelOptHtml(Object.keys(o),f[k]):Object.keys(o).sort().map(function(v){return '<option'+(f[k]===v?' selected':'')+'>'+esc(v)+'</option>'}).join(''))+'</select></label>'};
  return '<div class="card"><label class="f">Cari nama siswa<input id="rl-q" type="search" value="'+esc(f.q)+'" placeholder="Nama siswa"></label><div class="two">'+sel('kelas','Kelas',kl)+sel('mapel','Mapel',mp)+'</div></div><div class="stack" id="rl-list">'+bsRlList()+'</div>';
 }
 
@@ -713,7 +713,7 @@ function bsViewSesiForm(){
  h+='<label class="f">Sekolah<select id="sf-sekolah">'+schOptModul(f.sekolah)+'</select></label>';
  h+='<label class="f">Cara memilih soal<select id="sf-pilih"><option value="otomatis"'+(oto?' selected':'')+'>Otomatis dari bank soal (tiap siswa berbeda)</option><option value="manual"'+(oto?'':' selected')+'>Pilih soal sendiri</option></select></label>';
  if(oto){
-  h+='<label class="f">Jumlah soal<input id="sf-jumlah" type="number" inputmode="numeric" min="1" max="200" value="'+f.jumlah+'"></label><div><span class="label">Batasi mata pelajaran (kosong = semua)</span><div class="chips">'+mp.map(function(m){return '<button type="button" data-bs="sfmapel" data-v="'+esc(m)+'" aria-pressed="'+(f.mapelF.indexOf(m)>-1)+'">'+esc(m)+'</button>'}).join('')+'</div></div><p class="note">'+bsSfPool(f).length+' soal ujian tersedia untuk pilihan ini.</p>';
+  h+='<label class="f">Jumlah soal<input id="sf-jumlah" type="number" inputmode="numeric" min="1" max="200" value="'+f.jumlah+'"></label><div><span class="label">Batasi mata pelajaran (kosong = semua)</span>'+bsMapelChipsHtml(mp,f.mapelF)+'</div><p class="note">'+bsSfPool(f).length+' soal ujian tersedia untuk pilihan ini.</p>';
  }else{
   h+='<label class="f">Cari soal<input id="sf-q" type="search" value="'+esc(f.q||'')+'"></label><p class="note" id="sf-n">'+f.ids.length+' soal dipilih. Hanya soal dengan peruntukan ujian atau keduanya yang tampil.</p>'+bsSfManual();
  }
