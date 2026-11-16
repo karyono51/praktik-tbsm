@@ -90,7 +90,7 @@ document.addEventListener('click',function(e){
   else if(a==='redo'){var j=V.job,keep={group:nameList().slice(),kel:!!V.kel};startExam(j.id,keep)}
   else if(a==='save'){saveResults(false)}
   else if(a==='csv'){
-    var rows=S.results.filter(function(r){return S.filter==='ALL'||r.kelas===S.filter}).sort(function(x,y){return x.ts-y.ts});
+    var rows=visibleResults().filter(function(r){return S.filter==='ALL'||r.kelas===S.filter}).sort(function(x,y){return x.ts-y.ts});
     var q=function(s){return '"'+String(s==null?'':s).replace(/"/g,'""')+'"'};
     var txt=['Tanggal,Kelas,Siswa,Unit,Jenis,Skor,Status'].concat(rows.map(function(r){var j=jobById(r.jobId);return [ymd(r.ts),r.kelas,q(r.siswa),q(j?j.judul:r.jobId),r.tipe,r.score,r.kompeten?'Kompeten':'Belum kompeten'].join(',')})).join('\n');
     var done=function(){toast('CSV disalin')};

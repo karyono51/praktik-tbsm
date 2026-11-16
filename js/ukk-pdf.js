@@ -103,7 +103,7 @@ function ukkPdfDoc(st){
 
  /* Identitas */
  doc.autoTable({startY:70,theme:'plain',styles:{fontSize:10,cellPadding:1,textColor:0},columnStyles:{0:{cellWidth:48}},body:[
-  ['Satuan Pendidikan',': '+(f.satuan||'')],['Kompetensi Keahlian',': '+(f.konsentrasi||'')],['Kode',': '+(f.kode||'')],
+  ['Satuan Pendidikan',': '+schSatuan(j,f)],['Kompetensi Keahlian',': '+(f.konsentrasi||'')],['Kode',': '+(f.kode||'')],
   ['Alokasi Waktu',': '+j.menit+' Menit'],['Bentuk Soal',': '+(f.bentuk||'')],['Tipe kendaraan',': '+(j.unit||'')],
   ['Judul tugas',': '+j.judul],['Nama Peserta',': '+(nama||'………………………………')],['Kelas',': '+j.kelas],['Tanggal',': '+tgl]]});
  var y=doc.lastAutoTable.finalY+4;

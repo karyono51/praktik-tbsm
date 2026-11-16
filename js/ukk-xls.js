@@ -2,12 +2,12 @@
    Dipakai di Kelola unit > Hasil penilaian. Filter Penilaian atau Penilaian + Latihan mengikuti UKS.f.
    Bergantung pada fungsi naAgg, naDist, naBar, naNum, dan naPct dari nilai-analisis.js (dipanggil saat render). */
 function ukxList(j){
- return S.results.filter(function(r){return r.jobId===j.id&&(UKS.f==='semua'||r.tipe==='Penilaian')}).sort(function(a,b){return a.ts-b.ts});
+ return schHasilList(S.results).filter(function(r){return r.jobId===j.id&&(UKS.f==='semua'||r.tipe==='Penilaian')}).sort(function(a,b){return a.ts-b.ts});
 }
 /* Siswa kelas unit yang belum punya penilaian (tipe Penilaian) untuk unit ini */
 function ukxBelum(j){
- var sudah={};S.results.forEach(function(r){if(r.jobId===j.id&&r.tipe==='Penilaian'&&r.sid)sudah[r.sid]=1});
- return (S.users||[]).filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false&&u.kelas===j.kelas&&!sudah[u.id]})
+ var sudah={};schHasilList(S.results).forEach(function(r){if(r.jobId===j.id&&r.tipe==='Penilaian'&&r.sid)sudah[r.sid]=1});
+ return (S.users||[]).filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false&&schAkunOk(u)&&u.kelas===j.kelas&&!sudah[u.id]})
   .sort(function(a,b){return String(a.nama).localeCompare(String(b.nama))});
 }
 function ukkAnalisis(j){
@@ -23,7 +23,7 @@ function ukkXls(j){
  if(!needX())return;
  var L=ukxList(j);if(!L.length){toast('Belum ada data untuk diunduh');return}
  var a=naAgg(L),c=j.cfg||{},f=j.form||{},wb=XLSX.utils.book_new();
- var info=[['Unit UKK',j.judul],['Kode unit',j.id],['Kelas',j.kelas],['Tipe kendaraan',j.unit],['Alokasi waktu (menit)',j.menit],['Sekolah',f.satuan||''],['Kode',f.kode||''],['Tahun pelajaran',f.tahun||''],
+ var info=[['Unit UKK',j.judul],['Kode unit',j.id],['Kelas',j.kelas],['Tipe kendaraan',j.unit],['Alokasi waktu (menit)',j.menit],['Sekolah',schSatuan(j,f)],['Kode',f.kode||''],['Tahun pelajaran',f.tahun||''],
   ['Mode',c.mode==='ujian'?'Ujian':'Latihan'],['Kesempatan ujian',c.mode==='ujian'&&c.maxTry?c.maxTry+' kali':'Tidak terbatas'],['Jadwal buka',c.buka?ukkFmt(c.buka):'-'],['Jadwal tutup',c.tutup?ukkFmt(c.tutup):'-'],
   [],['Data',UKS.f==='semua'?'Penilaian + Latihan':'Penilaian'],['Jumlah data',a.n],['Rata-rata',a.avg],['Nilai terendah',a.min],['Nilai tertinggi',a.max],['KKM',S.kkm],['Persen kompeten',Math.round(a.kom*100)],['Belum dinilai',ukxBelum(j).length]];
  XLSX.utils.book_append_sheet(wb,sheet(info,[30,44]),'Ringkasan');

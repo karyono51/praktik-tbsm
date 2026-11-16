@@ -113,3 +113,40 @@ function schOptModul(sel){
  return '<option value="">Semua sekolah (bersama)</option>'+SCH_URUT.map(function(k){return '<option value="'+k+'"'+(sel===k?' selected':'')+'>'+SCH_LIST[k].nama+'</option>'}).join('');
 }
 function schLabelModul(v){v=String(v||'').toUpperCase();return SCH_LIST[v]?SCH_LIST[v].pendek:'Semua sekolah'}
+
+/* ---- v100: penyaring tambahan untuk UKK, LKPD, observasi, dan daftar "Belum dinilai" ---- */
+/* nama sekolah pada lembar UKK: nama bawaan yang tersimpan di unit (DF atau Medina) selalu mengikuti sekolah unit/sekolah aktif;
+   teks yang diketik sendiri tetap dipakai apa adanya */
+function schSatuan(j,f){
+ var v=String((f&&f.satuan)||'').trim(),lv=v.toLowerCase(),auto=!v;
+ SCH_URUT.forEach(function(k){var c=SCH_LIST[k];if(lv===c.nama.toLowerCase()||lv===c.pendek.toLowerCase())auto=true});
+ if(!auto)return v;
+ var k=String((j&&j.sekolah)||'').toUpperCase();
+ return (SCH_LIST[k]||schEf()).nama;
+}
+/* peta nama|kelas -> sekolah, hanya bila nama itu tidak ambigu antar sekolah (untuk hasil lama tanpa sid) */
+function schPetaNama(){
+ var m={};
+ (window.S&&S.users||[]).forEach(function(u){
+  var s=String(u.sekolah||'').toUpperCase();if(!SCH_LIST[s])return;
+  var k=String(u.nama||'').trim().toLowerCase()+'|'+(u.kelas||'');
+  m[k]=(m[k]&&m[k]!==s)?'?':s;
+ });
+ return m;
+}
+/* daftar hasil/LKPD yang hanya milik sekolah aktif (hasil tanpa sekolah yang dapat dipastikan tetap tampil) */
+function schHasilList(L){
+ var k=schKode();if(!k)return L||[];
+ var m=schPeta(),n=schPetaNama();
+ return (L||[]).filter(function(r){
+  if(r&&r.sid)return schHasilOk(r,m);
+  var s=r&&n[String(r.siswa||'').trim().toLowerCase()+'|'+(r.kelas||'')];
+  return !s||s==='?'||s===k;
+ });
+}
+/* observasi: guruId menunjuk akun guru (observasi guru) atau akun siswa (observasi siswa/UKK) */
+function schObsList(L){
+ var k=schKode();if(!k)return L||[];
+ var m=schPeta();
+ return (L||[]).filter(function(r){var s=r&&r.guruId&&m[r.guruId];return !s||s===k});
+}

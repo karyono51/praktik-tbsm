@@ -35,7 +35,7 @@ function obsHitung(nl,t){
 function obsPay(r){try{var p=JSON.parse(r.payload||'{}');p.nilai=p.nilai||{};p.cat=p.cat||{};return p}catch(e){return {nilai:{},cat:{}}}}
 function obsBoleh(r){return can('observasi-semua')||(!!S.user&&r.pengamatId===S.user.id)}
 function obsVisible(t){
- var L=(S.observasi||[]).filter(function(r){return obsTipe(r)===t&&(can('observasi-semua')||r.pengamatId===S.user.id)});
+ var L=schObsList(S.observasi||[]).filter(function(r){return obsTipe(r)===t&&(can('observasi-semua')||r.pengamatId===S.user.id)});
  return L.sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))||b.ts-a.ts});
 }
 function obsTgl(s){var p=String(s||'').split('-');if(p.length!==3)return s||'-';return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}

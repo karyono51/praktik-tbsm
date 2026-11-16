@@ -36,7 +36,7 @@ function ukbMakeKey(){
   return 'n:'+(n||'tanpa nama')+'|'+(r.kelas||'');
  };
 }
-function ukbRoster(kelas){return (S.users||[]).filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false&&u.kelas===kelas})}
+function ukbRoster(kelas){return (S.users||[]).filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false&&schAkunOk(u)&&u.kelas===kelas})}
 function ukbTerbaru(L,key){
  var m={};L.forEach(function(r){var k=key(r)+'#'+r.jobId;if(!m[k]||r.ts>m[k].ts)m[k]=r});
  return Object.keys(m).map(function(k){return m[k]});
@@ -101,7 +101,7 @@ function ukbSheets(j,L){try{return ukbSheetsUnit(j,L)}catch(e){console.warn('Ana
 var UKB_FS={kompeten:'Kompeten',sebagian:'Belum lengkap',belum:'Belum kompeten',kosong:'Belum dinilai'};
 function ukbKelasData(kelas){
  var key=ukbMakeKey(),all=JOBS.filter(function(j){return j.kelas===kelas&&j.ukk}),ids=all.map(function(j){return j.id});
- var resmi=ukbTerbaru(S.results.filter(function(r){return ids.indexOf(r.jobId)>-1&&r.tipe==='Penilaian'}),key),has={};
+ var resmi=ukbTerbaru(schHasilList(S.results).filter(function(r){return ids.indexOf(r.jobId)>-1&&r.tipe==='Penilaian'}),key),has={};
  resmi.forEach(function(r){has[r.jobId]=1});
  var units=all.filter(function(j){return ukkTampil(j)||has[j.id]}),wajib=units.filter(function(j){return ukkTampil(j)}),rows={};
  ukbRoster(kelas).forEach(function(u){rows['s:'+u.id]={nama:u.nama,kelas:kelas,cells:{},nis:''}});
@@ -122,7 +122,7 @@ function ukbXlsKelas(kelas){
  if(!needX())return;
  var d=ukbKelasData(kelas);
  if(!d.units.length){toast('Tidak ada unit UKK untuk kelas ini');return}
- var ids=d.units.map(function(j){return j.id}),semua=S.results.filter(function(r){return ids.indexOf(r.jobId)>-1}).sort(function(a,b){return a.ts-b.ts});
+ var ids=d.units.map(function(j){return j.id}),semua=schHasilList(S.results).filter(function(r){return ids.indexOf(r.jobId)>-1}).sort(function(a,b){return a.ts-b.ts});
  if(!semua.length){toast('Belum ada nilai UKK untuk diekspor');return}
  var tglx=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
  var sum=[['Nilai UKK '+(KELAS[kelas]?KELAS[kelas].judul:kelas)],['Diekspor',tglx],['KKM',S.kkm],['Dasar hitung','Penilaian terbaru tiap siswa per unit (Latihan tidak dihitung)'],['Jumlah siswa kelas',d.roster],[],
@@ -143,7 +143,7 @@ function ukbXlsKelas(kelas){
  var pairs=[['Ringkasan',sum,[12,44,28,10,13,10,10,9,10,12]],['Matriks nilai',mx,[5,28,8,12].concat(d.units.reduce(function(a){return a.concat([11,16])},[])).concat([12,13,10,16])],['Detail percobaan',det,[5,20,8,28,12,10,40,14,7,16,6,22,13,50]]];
  var ab=null,rb=null;
  d.units.forEach(function(j){
-  var L=S.results.filter(function(r){return r.jobId===j.id&&r.tipe==='Penilaian'});if(!L.length)return;
+  var L=schHasilList(S.results).filter(function(r){return r.jobId===j.id&&r.tipe==='Penilaian'});if(!L.length)return;
   ukbSheets(j,L).forEach(function(p){
    if(p[0]==='Analisis butir'){if(!ab)ab=p;else Array.prototype.push.apply(ab[1],p[1].slice(1))}
    else{if(!rb)rb=p;else Array.prototype.push.apply(rb[1],p[1].slice(1))}

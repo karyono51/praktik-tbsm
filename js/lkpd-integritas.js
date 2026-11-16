@@ -22,7 +22,7 @@ function lkiMod(id){return (LKPD_MODULES||[]).filter(function(m){return m.id===i
 /* indeks isian per modul untuk deteksi kemiripan: hanya pengiriman TERBARU tiap siswa */
 function lkiIndeks(){
  var by={},ix={};
- (S.lkpd||[]).forEach(function(x){
+ schHasilList(S.lkpd||[]).forEach(function(x){
   if(typeof lkmModeOf==='function'&&lkmModeOf(x)==='latihan')return;
   var k=x.moduleId+'|'+x.sid;if(!by[k]||x.ts>by[k].ts)by[k]=x;
  });

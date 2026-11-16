@@ -38,7 +38,7 @@ function obuHitung(src,lk){
  return {n:n,done:done,sum:sum,kom:kom,belum:done-kom,nilai:nilai,ok:nilai>=75,hasil:hasil,v2:v2};
 }
 function obuVisible(){
- var L=(S.observasi||[]).filter(function(r){return r.tipe==='ukk'&&(can('observasi-semua')||(!!S.user&&r.pengamatId===S.user.id))});
+ var L=schObsList(S.observasi||[]).filter(function(r){return r.tipe==='ukk'&&(can('observasi-semua')||(!!S.user&&r.pengamatId===S.user.id))});
  return L.sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))||b.ts-a.ts});
 }
 function obuBaru(){return {id:'',lembar:OU.lembar,sel:'',nama:'',nis:'',kelas:Object.keys(KELAS)[0],tanggal:ymd(Date.now()),penguji:(S.user&&S.user.nama)||'',v:2,nilai:{},lvl:{},cat:{},catatan:''}}

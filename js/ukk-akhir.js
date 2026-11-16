@@ -15,7 +15,7 @@ function uaRata(a){var b=a.filter(function(x){return x!=null});return b.length?M
 function uaData(kel){
  var M={},wU=uaBobot(),wO=100-wU;
  function ambil(k,nama,kelas){return M[k]||(M[k]={key:k,nama:nama,kelas:kelas,unit:{},obs:{}})}
- (S.results||[]).filter(function(r){return /^UKK-\d+$/.test(r.jobId||'')&&r.tipe==='Penilaian'&&(!kel||r.kelas===kel)})
+ schHasilList(S.results||[]).filter(function(r){return /^UKK-\d+$/.test(r.jobId||'')&&r.tipe==='Penilaian'&&(!kel||r.kelas===kel)})
   .sort(function(a,b){return a.ts-b.ts}).forEach(function(r){var o=ambil(uaKey(r.sid,r.siswa),r.siswa,r.kelas);o.unit[r.jobId]=+r.score||0});
  obuRekapData(kel).forEach(function(x){
   var k=(S.users||[]).some(function(u){return u.id===x.key})?x.key:uaKey('',x.nama),o=ambil(k,x.nama,x.kelas);

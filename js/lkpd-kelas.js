@@ -7,7 +7,7 @@ function lkcModules(kelas,staff){
  return LKPD_MODULES.filter(function(m){return m.kelas===kelas&&schAkunOk(m)&&(staff||(m.status==='published'&&m.active!==false))})
   .sort(function(a,b){return lkcNum(a.id)-lkcNum(b.id)||String(a.id).localeCompare(String(b.id))});
 }
-function lkcRecs(m,staff){return (S.lkpd||[]).filter(function(x){return x.moduleId===m.id&&(staff||x.sid===S.user.id)})}
+function lkcRecs(m,staff){return schHasilList(S.lkpd||[]).filter(function(x){return x.moduleId===m.id&&(staff||x.sid===S.user.id)})}
 function lkcKelasInfo(k){return KELAS[k]||{judul:'Kelas '+k,sub:''}}
 function lkListView(){
  var staff=isStaff(),kb=kelasBoleh();if(kb.indexOf(S.kelas)<0)S.kelas=kb[0];

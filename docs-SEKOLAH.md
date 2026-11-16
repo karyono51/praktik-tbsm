@@ -27,3 +27,13 @@ Sesi ujian bank soal, modul LKPD, dan unit UKK punya pilihan **Sekolah** di form
 - Sesi, modul, atau unit baru otomatis memakai sekolah yang sedang aktif di header.
 - Hasil ujian di rekap ikut difilter menurut sekolah siswa.
 Bank soal tetap satu bersama; yang dipisah hanya sesinya.
+
+## Penyaringan menyeluruh dan nama sekolah di lembar UKK (v100)
+Perbaikan untuk gejala: siswa Darul Fatwa muncul di akun Medina, dan "SMKS Darul Fatwa" muncul di Identitas praktik akun Medina.
+- **Nama sekolah di lembar UKK** (Identitas praktik, PDF lembar kerja, pratinjau Kelola unit, Excel unit) kini mengikuti sekolah unit, atau sekolah aktif bila unitnya bersama.
+  Nama bawaan yang sudah tersimpan di unit lama (Darul Fatwa atau Medina) tidak lagi menimpa. Teks yang diketik sendiri di tab Identitas lembar tetap dipakai apa adanya.
+- **Disaring per sekolah** (sebelumnya semua sekolah tercampur): Belum dinilai dan Excel per unit UKK, nilai kelas UKK, analisis butir, rekap nilai akhir UKK, hasil per unit,
+  Belum mengirim dan analisis LKPD, rekap LKPD, deteksi kemiripan LKPD, Rekap kompetensi, Unduh CSV nilai, observasi guru/siswa/UKK.
+- **Akun yang kolom Sekolah-nya kosong tetap tampil di kedua sekolah** (aturan sejak v98). Bila masih ada siswa sekolah lain di daftar, isi Sekolah akun itu lewat **Akun > Ubah**
+  atau impor Excel (kolom `Sekolah`: DF atau MEDINA). Akun Kepala Sekolah juga harus berisi sekolahnya; bila kosong, filter ikut tautan terakhir yang dibuka di perangkat itu.
+- Hasil lama tanpa `sid` dicocokkan lewat nama dan kelas, dan hanya disaring bila nama itu tidak ambigu antar sekolah.

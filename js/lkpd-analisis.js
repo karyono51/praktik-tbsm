@@ -15,7 +15,7 @@ function lkaCut(s,n){s=String(s||'').replace(/\s+/g,' ').trim();return s.length>
 function lkaTone(p){return p<50?'bad':p<75?'warn':'ok'}
 function lkaRecs(m){
  var by={};
- (S.lkpd||[]).forEach(function(x){
+ schHasilList(S.lkpd||[]).forEach(function(x){
   if(x.moduleId!==m.id)return;
   if(LKA.mode!=='semua'&&lkmModeOf(x)!==LKA.mode)return;
   if(!by[x.sid]||x.ts>by[x.sid].ts)by[x.sid]=x;
@@ -48,7 +48,7 @@ function lkaStats(m){
  var ana=n?Math.round(recs.filter(function(r){return r.p.evidence&&r.p.cause&&r.p.conclusion}).length/n*100):0;
  var kk=S.kkm||75,low=recs.filter(function(x){return x.r.score<kk}).sort(function(a,b){return a.r.score-b.r.score});
  var sent={};recs.forEach(function(x){sent[x.r.sid]=1});
- var belum=(S.users||[]).filter(function(u){return roleList(u).indexOf('siswa')>-1&&u.aktif!==false&&u.kelas===m.kelas&&!sent[u.id]}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama))});
+ var belum=(S.users||[]).filter(function(u){return roleList(u).indexOf('siswa')>-1&&u.aktif!==false&&schAkunOk(u)&&u.kelas===m.kelas&&!sent[u.id]}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama))});
  return {recs:recs,n:n,qn:qrecs.length,skip:n-qrecs.length,qs:qs,steps:steps,safe:safe,checks:checks,ana:ana,kk:kk,low:low,belum:belum,
   avg:n?Math.round(sum(function(x){return x.r.score})/n):0,prak:n?Math.round(sum(function(x){return x.r.practice||0})/n):0,teori:n?Math.round(sum(function(x){return x.r.theory||0})/n):0,
   kom:n?Math.round(recs.filter(function(x){return x.r.score>=kk}).length/n*100):0};

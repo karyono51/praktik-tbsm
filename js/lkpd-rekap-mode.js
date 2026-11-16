@@ -2,7 +2,7 @@
    Tidak mengubah lkpd.js: membungkus viewLKPD dan menyaring S.lkpd sementara saat tampilan dibuat. */
 var LKR={m:'ALL'};
 function lkrMode(x){return typeof lkmModeOf==='function'?lkmModeOf(x):'ujian'}
-function lkrRows(){var staff=isStaff();return (S.lkpd||[]).filter(function(x){return staff||x.sid===S.user.id})}
+function lkrRows(){var staff=isStaff();return schHasilList(S.lkpd||[]).filter(function(x){return staff||x.sid===S.user.id})}
 var _lkrView=viewLKPD;
 viewLKPD=function(){
  if(!LK.open||LK.tab!=='riwayat'||LK.detail||LK.editor||!S.user)return _lkrView();

@@ -118,7 +118,7 @@ function ukkForm(j){
   var tgl=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
   var ro=function(l,v,w){return '<label class=\"f'+(w?' wide':'')+'\">'+l+'<input value=\"'+esc(v)+'\" readonly></label>'};
   var idc='<section class=\"card\"><h2>Identitas praktik</h2><p class=\"note\">Uji Kompetensi Keahlian · Tahun Pelajaran '+esc(f.tahun)+' · Kode '+esc(f.kode)+'</p><div class=\"formgrid\">'+
-    ro('Sekolah',f.satuan)+ro('Konsentrasi keahlian',f.konsentrasi)+ro('Nama siswa',nama,1)+
+    ro('Sekolah',schSatuan(j,f))+ro('Konsentrasi keahlian',f.konsentrasi)+ro('Nama siswa',nama,1)+
     '<label class=\"f\">NIS<input id=\"ukknis\" value=\"'+esc(V.nis||'')+'\" placeholder=\"NIS\"></label>'+
     ro('Kelas',j.kelas)+ro('Tanggal',tgl)+ro('Tipe kendaraan',j.unit)+ro('Guru/penguji',isStaff()?S.user.nama:'Latihan mandiri')+
     ro('Alokasi waktu',j.menit+' menit')+ro('Bentuk',f.bentuk)+'</div></section>';

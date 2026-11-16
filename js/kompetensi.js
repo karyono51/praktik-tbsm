@@ -26,12 +26,12 @@ function kpBangun(){
  }
  function unit(s,id,judul,kelas){return s.units[id]||(s.units[id]={id:id,judul:kpUnitJudul(id,judul),kelas:kelas||s.kelas,praktik:null,lkpd:null})}
  S.users.forEach(function(u){if(hasRole(u,'siswa')&&u.aktif!==false&&schAkunOk(u))siswa(u.id,u.nama,u.kelas)});
- (S.results||[]).forEach(function(r){
+ schHasilList(S.results||[]).forEach(function(r){
   if(r.tipe==='LKPD'||r.tipe==='Latihan')return;
   var s=siswa(r.sid,r.siswa,r.kelas),u=unit(s,r.jobId,'',r.kelas);
   if(!u.praktik||r.ts>u.praktik.ts)u.praktik={ts:r.ts,score:r.score,kompeten:!!r.kompeten};
  });
- (S.lkpd||[]).forEach(function(x){
+ schHasilList(S.lkpd||[]).forEach(function(x){
   if(typeof lkmModeOf==='function'&&lkmModeOf(x)==='latihan')return;
   var s=siswa(x.sid,x.siswa,x.kelas),u=unit(s,x.moduleId,x.moduleTitle,x.kelas),n=lkNilai(x);
   if(!u.lkpd||x.ts>u.lkpd.ts)u.lkpd={ts:x.ts,score:n,kompeten:n>=S.kkm,koreksi:lkHasK(x)};

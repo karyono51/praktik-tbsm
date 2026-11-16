@@ -57,7 +57,7 @@ function lksKumpul(m){
  var fl=lksFlags(),rv=lksRev(),nilai=rows.map(lkNilai),avg=rows.length?Math.round(nilai.reduce(function(t,v){return t+v},0)/rows.length):0;
  var belumK=rows.filter(function(x){return !lkHasK(x)}).length;
  var sent={};all.forEach(function(x){sent[x.sid]=1});
- var tdk=(S.users||[]).filter(function(u){return roleList(u).indexOf('siswa')>-1&&u.aktif!==false&&u.kelas===m.kelas&&!sent[u.id]}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama))});
+ var tdk=(S.users||[]).filter(function(u){return roleList(u).indexOf('siswa')>-1&&u.aktif!==false&&schAkunOk(u)&&u.kelas===m.kelas&&!sent[u.id]}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama))});
  var chips=lat.length?'<div class="chips" role="group" aria-label="Filter mode">'+[['ujian','Ujian · '+uj],['semua','Ujian + Latihan · '+all.length]].map(function(c){return '<button type="button" data-act="lks-f" data-v="'+c[0]+'" aria-pressed="'+(LKS.f===c[0])+'">'+c[1]+'</button>'}).join('')+'</div>':'';
  var list=rows.map(function(x){
   var v=lkNilai(x),f=fl[x.id],bad=f&&f.some(function(a){return a.lv==='bad'});

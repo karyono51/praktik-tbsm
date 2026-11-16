@@ -138,7 +138,7 @@ window.ukkTopBar=function(){
 window.ukkCardInfo=function(j){
  var c=j.cfg||{},tags='';
  if(isStaff()){
-  var rs=S.results.filter(function(r){return r.jobId===j.id&&r.tipe==='Penilaian'});
+  var rs=schHasilList(S.results).filter(function(r){return r.jobId===j.id&&r.tipe==='Penilaian'});
   var avg=rs.length?Math.round(rs.reduce(function(t,r){return t+ukkNilai(r)},0)/rs.length):0;
   tags='<span class="pill '+(ukkTampil(j)?'ok':'warn')+'">'+(ukkTampil(j)?'Tampil':'Tersembunyi')+'</span><span class="pill '+(c.mode==='ujian'?'warn':'ok')+'">'+(c.mode==='ujian'?'Ujian':'Latihan')+'</span>'+
    '<span class="pill plain">'+(rs.length?rs.length+' penilaian · rata-rata '+avg:'Belum ada penilaian')+'</span>'+
@@ -169,7 +169,7 @@ function ukkTabs(){
   return '<button type="button" role="tab" data-act="ukm-tab" data-v="'+t[0]+'" aria-pressed="'+(UKS.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div></div>';
 }
 function ukkHasil(j){
- var all=S.results.filter(function(r){return r.jobId===j.id}).sort(function(a,b){return b.ts-a.ts});
+ var all=schHasilList(S.results).filter(function(r){return r.jobId===j.id}).sort(function(a,b){return b.ts-a.ts});
  var pen=all.filter(function(r){return r.tipe==='Penilaian'}),lat=all.length-pen.length;
  if(!lat&&UKS.f!=='penilaian')UKS.f='penilaian';
  var rows=UKS.f==='semua'?all:pen,avg=rows.length?Math.round(rows.reduce(function(t,r){return t+ukkNilai(r)},0)/rows.length):0,kom=rows.filter(function(r){return r.kompeten}).length;
@@ -226,7 +226,7 @@ function ukkPreview(){
  return '<div class="row"><button type="button" class="btn small" data-act="ukm-prev-close">‹ Kembali ke Kelola unit</button></div>'+
   '<div class="card uks-pv"><b>Pratinjau tampilan siswa</b> · pengisian dinonaktifkan, tidak ada yang tersimpan. '+(msg?'Saat ini siswa melihat: <b>'+esc(msg)+'</b>':'Unit ini terbuka untuk siswa'+(c.maxTry?' (kesempatan '+c.maxTry+' kali)':'')+(c.tutup?', ditutup '+esc(ukkFmt(c.tutup)):'')+'.')+'</div>'+
   '<section class="card"><h2>Identitas praktik</h2><p class="note">Uji Kompetensi Keahlian · Tahun Pelajaran '+esc(f.tahun)+' · Kode '+esc(f.kode)+'</p><div class="formgrid">'+
-  ro('Sekolah',f.satuan)+ro('Konsentrasi keahlian',f.konsentrasi)+ro('Kelas',j.kelas)+ro('Tipe kendaraan',j.unit)+ro('Alokasi waktu',j.menit+' menit')+ro('Bentuk',f.bentuk)+'</div></section>'+
+  ro('Sekolah',schSatuan(j,f))+ro('Konsentrasi keahlian',f.konsentrasi)+ro('Kelas',j.kelas)+ro('Tipe kendaraan',j.unit)+ro('Alokasi waktu',j.menit+' menit')+ro('Bentuk',f.bentuk)+'</div></section>'+
   '<section class="card"><h2>Hasil pemeriksaan</h2><p class="note">'+esc(j.judul)+'</p><div class="tablewrap"><table class="ukk"><thead><tr><th>Komponen</th><th>Hasil aktual</th><th>Standar manual</th><th>Status</th><th>Catatan</th></tr></thead><tbody>'+rows+'</tbody></table></div></section>';
 }
 
