@@ -1,16 +1,20 @@
 #!/usr/bin/env node
-/* Membuat functions/cbt/src/bawaan.json dari js/soal-tka.js.
-   Berkas ini memuat kunci 60 soal bawaan untuk fungsi server cbt (penilaian latihan di server).
-   Jalankan ulang setiap kali js/soal-tka.js berubah:  node tools/bangun-bawaan.mjs */
+/* Membuat functions/cbt/src/bawaan.json dari js/soal-tka.js DAN semua js/soal-lkpd/*.js (soal per unit LKPD).
+   Berkas ini memuat kunci semua soal bawaan untuk fungsi server cbt (penilaian latihan di server).
+   Jalankan ulang setiap kali js/soal-tka.js atau js/soal-lkpd/*.js berubah:  node tools/bangun-bawaan.mjs */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const src = fs.readFileSync(path.join(root, 'js/soal-tka.js'), 'utf8');
 const sandbox = { window: {} };
-vm.runInNewContext(src, sandbox);
+vm.createContext(sandbox);
+/* soal-tka.js dahulu (ia mengisi window.SOAL_TKA), lalu soal-lkpd/*.js menambahkan ke daftar yang sama, urutan seperti di index.html */
+vm.runInContext(fs.readFileSync(path.join(root, 'js/soal-tka.js'), 'utf8'), sandbox);
+const dirLkpd = path.join(root, 'js/soal-lkpd');
+const urut = fs.existsSync(dirLkpd) ? fs.readdirSync(dirLkpd).filter((f) => f.endsWith('.js')).sort() : [];
+urut.forEach((f) => vm.runInContext(fs.readFileSync(path.join(dirLkpd, f), 'utf8'), sandbox));
 const L = sandbox.window.SOAL_TKA || [];
 if (!L.length) { console.error('SOAL_TKA kosong.'); process.exit(1); }
 const out = L.map((q) => {
