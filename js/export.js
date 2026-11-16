@@ -2,7 +2,7 @@
 var HM={};
 (function(){var H={nama:['nama','namalengkap','name'],username:['username','user','akun','nis','nip'],email:['email','surel'],pw:['password','sandi','katasandi'],peran:['peran','role','level'],kelas:['kelas','class','tingkat'],aktif:['status','aktif'],sekolah:['sekolah','school','asalsekolah','satuanpendidikan']};Object.keys(H).forEach(function(c){H[c].forEach(function(a){HM[a]=c})})})();
 function normKelas(v){v=String(v||'').toUpperCase().replace(/KELAS|[\s-]/g,'');var m=v.match(/^(XII|XI|X|12|11|10)/);return m?({'12':'XII','11':'XI','10':'X'}[m[1]]||m[1]):''}
-function normPeran(v){v=String(v||'').toLowerCase();var o=[];if(v.indexOf('admin')>-1)o.push('admin');if(/guru|asesor|teacher/.test(v))o.push('guru');if(/siswa|murid|student/.test(v)||!o.length)o.push('siswa');return o.join(',')}
+function normPeran(v){v=String(v||'').toLowerCase();var o=[];if(v.indexOf('admin')>-1)o.push('admin');if(/kepsek|kepala/.test(v))o.push('kepsek');if(/guru|asesor|teacher/.test(v))o.push('guru');if(/siswa|murid|student/.test(v)||!o.length)o.push('siswa');return o.join(',')}
 function normAktif(v){return !/^(tidak|nonaktif|non-aktif|0|false|no|n)$/i.test(String(v||'').trim())}
 function needX(){if(!window.XLSX){if(window.Pustaka)Pustaka.muat();toast('Pustaka Excel sedang disiapkan, coba lagi sebentar');return false}return true}
 function needP(){if(!(window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API&&window.jspdf.jsPDF.API.autoTable)){if(window.Pustaka)Pustaka.muat();toast('Pustaka PDF sedang disiapkan, coba lagi sebentar');return false}return true}
