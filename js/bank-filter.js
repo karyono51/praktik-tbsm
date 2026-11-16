@@ -6,7 +6,7 @@
  if(typeof bsBankList==='function'){
   var _fbBL=bsBankList;
   bsBankList=function(){
-   if(!nAktif())return '<p class="muted center" style="padding:20px 0">Pilih mapel, jenis, peruntukan, atau elemen CP, atau ketik kata kunci untuk menampilkan soal.</p>';
+   if(!nAktif())return '<p class="muted center" style="padding:20px 0">Pilih mapel atau elemen CP, jenis, atau peruntukan, atau ketik kata kunci untuk menampilkan soal.</p>';
    return _fbBL.apply(this,arguments);
   };
  }

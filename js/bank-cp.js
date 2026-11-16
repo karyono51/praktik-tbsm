@@ -1,6 +1,7 @@
-/* bank-cp.js: filter Elemen CP pada halaman Bank soal (guru/admin) dan keterangan CP pada kartu soal.
-   Data pemetaan ada di cp-peta.js (soal bawaan). Soal sendiri belum punya CP: ada di pilihan "Belum dipetakan".
-   Filter cocok bila elemen utama atau elemen tambahan soal sama dengan pilihan. Dimuat sebelum bank-filter.js. */
+/* bank-cp.js: satu filter "Mapel / Elemen CP" pada halaman Bank soal (guru/admin), menggantikan filter Mapel.
+   Pilihan berupa nama elemen CP (Kepka BSKAP 046/H/KR/2025) atau nama mapel. Nilai opsi: "c:<kode>" untuk CP, "m:<mapel>" untuk mapel.
+   Memilih salah satu mengosongkan yang lain (BS.flt.cp / BS.flt.mapel). Data ada di cp-peta.js (soal bawaan).
+   Filter CP cocok bila elemen utama atau elemen tambahan soal sama. Dimuat sebelum bank-filter.js. */
 (function(){
  var NM={
   E1:'Wawasan Dunia Otomotif',E2:'Kecakapan Kerja, K3, Budaya Kerja',E3:'Gambar Teknik',E4:'Peralatan dan Perlengkapan',
@@ -16,6 +17,7 @@
   if(f==='none')return !i;
   return !!i&&(i.e===f||tamList(i).indexOf(f)>-1);
  }
+ /* keterangan CP satu baris pada kartu soal */
  window.cpNote=function(id){
   var i=info(id);if(!i)return '';
   if(i.e==='NA')return '<p class="note">CP: '+esc(NM.NA)+'</p>';
@@ -30,28 +32,38 @@
    return f?l.filter(function(s){return cocok(s,f)}):l;
   };
  }
- function opsi(all){
+ function opsiCp(all,cur){
   var c={none:0};Object.keys(NM).forEach(function(k){c[k]=0});
   all.forEach(function(s){
    var i=info(s.id);if(!i){c.none++;return}
    c[i.e]++;tamList(i).forEach(function(k){c[k]++});
   });
-  var cur=(BS.flt&&BS.flt.cp)||'';
-  function o(k,t){return '<option value="'+k+'"'+(cur===k?' selected':'')+'>'+esc(t)+' ('+c[k]+')</option>'}
+  function o(k,t){return '<option value="c:'+k+'"'+(cur===k?' selected':'')+'>'+esc(t)+' ('+c[k]+')</option>'}
   function g(t,ks){return '<optgroup label="'+t+'">'+ks.map(function(k){return o(k,NM[k])}).join('')+'</optgroup>'}
-  return '<option value="">Semua</option>'+g('Kelas X (Fase E)',['E1','E2','E3','E4','E5','E6','E7'])+g('Kelas XI-XII (Fase F)',['F1','F2','F3','F4','F5','F6','F7'])+
-   '<optgroup label="Lainnya">'+o('NA',NM.NA)+o('none','Belum dipetakan')+'</optgroup>';
+  return g('Elemen CP · Kelas X',['E1','E2','E3','E4','E5','E6','E7'])+g('Elemen CP · Kelas XI-XII',['F1','F2','F3','F4','F5','F6','F7'])+
+   '<optgroup label="Elemen CP · Lainnya">'+o('NA',NM.NA)+o('none','Belum dipetakan')+'</optgroup>';
+ }
+ function opsiMapel(all,cur){
+  var h=bsMapelOptHtml(bsMapelList(),cur,bsMapelHitung(all));
+  return h.replace(/<optgroup label="/g,'<optgroup label="Mapel · ').replace(/<option value="/g,'<option value="m:');
+ }
+ function pilihan(){
+  var all=bsSoalAll(),f=BS.flt||{};
+  return '<label class="f">Mapel / Elemen CP<select id="bq-mc"><option value="">Semua</option>'+opsiCp(all,f.cp||'')+opsiMapel(all,f.mapel||'')+'</select></label>';
  }
  if(typeof bsViewBank==='function'){
   var _cpVB=bsViewBank;
   bsViewBank=function(){
-   var h=_cpVB.apply(this,arguments),k='</div><div class="stack" id="bq-list">',i=h.indexOf(k);
-   if(i<0)return h;
-   var cp='<label class="f">Elemen CP<select data-bs="flt" data-k="cp">'+opsi(bsSoalAll())+'</select></label>';
-   /* sejajarkan dengan filter Statistik ujian bila ada, supaya ringkas */
-   var m=/<label class="f">Statistik ujian[\s\S]*?<\/select><\/label>/.exec(h);
-   if(m)return h.slice(0,m.index)+'<div class="two">'+cp+m[0]+'</div>'+h.slice(m.index+m[0].length);
-   return h.slice(0,i)+cp+h.slice(i);
+   var h=_cpVB.apply(this,arguments),mc=pilihan();
+   var re=/<div class="two">(<label class="f">Mapel<select[\s\S]*?<\/select><\/label>)(<label class="f">Jenis<select[\s\S]*?<\/select><\/label>)<\/div>(<label class="f">Peruntukan<select[\s\S]*?<\/select><\/label>)/;
+   if(re.test(h))return h.replace(re,function(_,m,j,p){return mc+'<div class="two">'+j+p+'</div>'});
+   return h.replace(/<label class="f">Mapel<select[\s\S]*?<\/select><\/label>/,function(){return mc});
   };
  }
+ document.addEventListener('change',function(e){
+  var t=e.target;if(!t||t.id!=='bq-mc')return;
+  var v=t.value;BS.flt.mapel='';BS.flt.cp='';
+  if(v.indexOf('m:')===0)BS.flt.mapel=v.slice(2);else if(v.indexOf('c:')===0)BS.flt.cp=v.slice(2);
+  BS.flt.n=30;render();
+ });
 })();
