@@ -475,7 +475,20 @@ function bsViewBank(){
   '<div class="card"><label class="f">Cari<input id="bq-q" type="search" value="'+esc(f.q)+'" placeholder="Kata dalam soal atau topik"></label><div class="two"><label class="f">Mapel<select data-bs="flt" data-k="mapel"><option value="">Semua</option>'+mp.map(function(m){return '<option'+(f.mapel===m?' selected':'')+'>'+esc(m)+'</option>'}).join('')+'</select></label>'+
   '<label class="f">Jenis<select data-bs="flt" data-k="tipe"><option value="">Semua</option>'+Object.keys(BS_TIPE).map(function(t){return '<option value="'+t+'"'+(f.tipe===t?' selected':'')+'>'+BS_TIPE[t]+'</option>'}).join('')+'</select></label></div>'+
   '<label class="f">Peruntukan<select data-bs="flt" data-k="tuj"><option value="">Semua</option>'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(f.tuj===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label>'+(c.off?'<p class="note">'+c.off+' soal nonaktif.</p>':'')+'</div>'+
-  '<div class="stack" id="bq-list">'+bsBankList()+'</div>';
+  '<div class="stack" id="bq-list">'+bsBankList()+'</div>'+bsRiwayatSiswaStaf();
+}
+/* guru/admin: riwayat latihan semua siswa (hanya latihan; hasil ujian ada di CBT Online > Hasil) */
+function bsRiwayatSiswaStaf(){
+ var pm=schPeta(),rows=BS.D.hasil.filter(function(x){return x.mode==='latihan'&&schHasilOk(x,pm)}).sort(function(a,b){return b.ts-a.ts});
+ var mx=BS.lmax||10,avg=rows.length?Math.round(rows.reduce(function(t,x){return t+(+x.score||0)},0)/rows.length):0;
+ var h='<section class="recent"><div class="sechead"><h2>Riwayat latihan siswa</h2></div>';
+ if(!rows.length)return h+'<p class="muted">Belum ada siswa yang menyelesaikan latihan.</p></section>';
+ h+='<p class="note">'+rows.length+' latihan selesai · rata-rata nilai <b class="mono">'+avg+'</b></p>';
+ h+=rows.slice(0,mx).map(function(x){
+  return '<div class="card"><div class="row sb"><span class="row"><span class="pill ok">Latihan</span><b>'+esc(x.siswa||'Tanpa nama')+'</b></span><b class="mono">'+x.score+'</b></div><div class="row sb"><span class="note">Kelas '+esc(x.kelas||'-')+' · '+esc(bsJudul(x))+'<br>'+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round((x.detik||0)/60))+' menit</span><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail</button></div></div>';
+ }).join('');
+ if(rows.length>mx)h+='<button type="button" class="btn" data-bs="lmore">Tampilkan lebih banyak ('+(rows.length-mx)+' lagi)</button>';
+ return h+'</section>';
 }
 
 /* ---------- Guru: form soal ---------- */
@@ -803,6 +816,7 @@ document.addEventListener('change',function(e){
  else if(a==='flab'){bsFormRead();render()}
  else if(a==='flt'){BS.flt[t.dataset.k]=t.value;BS.flt.n=30;render()}
  else if(a==='hs'){BS.hs=t.value;render()}
+ else if(a==='lmore'){BS.lmax=(BS.lmax||10)+20;render()}
 });
 document.addEventListener('input',function(e){
  var t=e.target;
