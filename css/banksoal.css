@@ -76,10 +76,10 @@ body.ex-lock{overflow:hidden}
 .ex-prog{height:3px;background:var(--line);margin:0 calc(-1*max(16px,env(safe-area-inset-right))) 0 calc(-1*max(16px,env(safe-area-inset-left)))}
 .ex-prog i{display:block;height:100%;background:var(--accent);border-radius:0 3px 3px 0;transition:width .2s}
 .ex-q{padding:16px;gap:14px}
-.ex-qh{display:flex;align-items:center;gap:8px}
+.ex-qh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ex-no{flex:none;min-width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:var(--onc);font-weight:750;font-size:15px}
-.ex-chips{display:flex;gap:6px;flex-wrap:wrap;min-width:0;flex:1}.ex-chips .pill{font-size:12px}
-.ex-rg{flex:none;display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:650;font-size:13.5px}
+.ex-chips{display:flex;gap:6px;flex-wrap:wrap;min-width:0;flex:1 1 150px}.ex-chips .pill{font-size:12px;max-width:100%;white-space:normal;line-height:1.3}
+.ex-rg{flex:none;margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:650;font-size:13.5px}
 .ex-rg[aria-pressed=true]{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
 body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
 .ex-q .bs-q{font-size:calc(17px + var(--exfs));line-height:1.65}
