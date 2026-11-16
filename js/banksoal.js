@@ -663,7 +663,7 @@ function viewBankSoal(){
  /* pindah antara Bank soal dan CBT Online: kembali ke halaman utama menu, kecuali ujian/latihan yang sedang berjalan */
  if(BS.lastTab&&BS.lastTab!==S.tab){if(!(BS.sub==='run'&&BS.run))BS.sub='home';BS.res=null;BS.form=null;BS.sf=null}
  BS.lastTab=S.tab;
- var staff=bsEdit(),cbt=S.tab==='cbtonline',h='<div class="sechead"><span class="ico">'+svg(cbt?ICO.cbtonline:ICO.banksoal,18)+'</span><h2>'+(cbt?'CBT Online':'Bank soal')+'</h2></div>';
+ var staff=bsEdit(),cbt=S.tab==='cbtonline',h='<div class="sechead"><span class="ico">'+svg(cbt?ICO.cbtonline:ICO.banksoal,18)+'</span><h2>'+(cbt?'CBT Online '+esc(schNama()):'Bank soal')+'</h2></div>';
  if(!BS.loaded)return h+'<p class="muted center" style="padding:32px 0">Memuat soal…</p>';
  if(BS.err.length)h+='<div class="err">'+BS.err.map(esc).join('<br>')+(BS.err.some(function(e){return /collection|not found|could not be found/i.test(e)})?'<br>Koleksi belum dibuat di Appwrite. Jalankan: node tools/setup-appwrite.mjs --only=banksoal,soal_sesi,soal_hasil':'')+'</div>';
  if(BS.sub==='detail'||BS.sub==='result')return h+bsViewResult();
