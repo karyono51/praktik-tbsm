@@ -25,7 +25,7 @@
   return [
    {key:'home',label:'',ic:null,keys:['beranda','akd-guru']},
    {key:'ajar',label:staff?'Pembelajaran':'Pembelajaran kelas saya',ic:'kelas',pre:['lkpd:','kelas:'],post:['nilai-akhir-ukk']},
-   {key:'uji',label:staff?'Ujian dan nilai':'Ujian, nilai, dan acuan',ic:'menu',keys:staff?['banksoal','cbtonline','rekap','kompetensi']:['banksoal','cbtonline','rekap','kompetensi','acuan']},
+   {key:'uji',label:staff?'Ujian dan nilai':'Ujian, nilai, dan acuan',ic:'menu',keys:staff?['banksoal','cbtonline','riwayatlatihan','rekap','kompetensi']:['banksoal','cbtonline','rekap','kompetensi','acuan']},
    {key:'obs',label:'Supervisi',ic:'observasi',keys:['observasi','observasi-siswa','observasi-ukk']},
    {key:'sys',label:'Pengaturan',ic:'menu',keys:['acuan','akun','hapusnilai','sinkron']},
    {key:'app',label:'Akun dan aplikasi',ic:'keluar',keys:['gantisandi','segarkan','perbarui'],compact:true},

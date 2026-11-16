@@ -231,7 +231,7 @@ function bsText(s){return esc(s).replace(/\n/g,'<br>')}
 function bsLtr(i){return String.fromCharCode(65+i)}
 function bsWaktu(ts){return ts?new Date(ts).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'-'}
 function bsDtv(ts){if(!ts)return '';var d=new Date(ts-new Date(ts).getTimezoneOffset()*60000);return d.toISOString().slice(0,16)}
-function bsOn(){return S.tab==='banksoal'||S.tab==='cbtonline'}
+function bsOn(){return S.tab==='banksoal'||S.tab==='cbtonline'||S.tab==='riwayatlatihan'}
 function bsEdit(){return !!S.user&&isStaff()&&can('nilai')}
 
 /* ---------- Sesi dan percobaan ---------- */
@@ -428,6 +428,7 @@ function bsViewResult(){
 /* ---------- Guru: kerangka ---------- */
 function bsViewStaff(){
  /* Bank soal: khusus soal. CBT Online: Sesi, Pantau, Hasil, Analisis. */
+ if(S.tab==='riwayatlatihan')return bsViewRiwayatLatihan();
  if(S.tab!=='cbtonline'){BS.tab='bank';return BS.form?bsViewForm():bsViewBank()}
  if(BS.tab==='bank')BS.tab='sesi';
  var tabs=[['sesi','Sesi'],['pantau','Pantau'],['hasil','Hasil'],['analisis','Analisis']];
@@ -475,20 +476,34 @@ function bsViewBank(){
   '<div class="card"><label class="f">Cari<input id="bq-q" type="search" value="'+esc(f.q)+'" placeholder="Kata dalam soal atau topik"></label><div class="two"><label class="f">Mapel<select data-bs="flt" data-k="mapel"><option value="">Semua</option>'+mp.map(function(m){return '<option'+(f.mapel===m?' selected':'')+'>'+esc(m)+'</option>'}).join('')+'</select></label>'+
   '<label class="f">Jenis<select data-bs="flt" data-k="tipe"><option value="">Semua</option>'+Object.keys(BS_TIPE).map(function(t){return '<option value="'+t+'"'+(f.tipe===t?' selected':'')+'>'+BS_TIPE[t]+'</option>'}).join('')+'</select></label></div>'+
   '<label class="f">Peruntukan<select data-bs="flt" data-k="tuj"><option value="">Semua</option>'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(f.tuj===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label>'+(c.off?'<p class="note">'+c.off+' soal nonaktif.</p>':'')+'</div>'+
-  '<div class="stack" id="bq-list">'+bsBankList()+'</div>'+bsRiwayatSiswaStaf();
+  '<div class="stack" id="bq-list">'+bsBankList()+'</div>'+'';
 }
-/* guru/admin: riwayat latihan semua siswa (hanya latihan; hasil ujian ada di CBT Online > Hasil) */
-function bsRiwayatSiswaStaf(){
- var pm=schPeta(),rows=BS.D.hasil.filter(function(x){return x.mode==='latihan'&&schHasilOk(x,pm)}).sort(function(a,b){return b.ts-a.ts});
- var mx=BS.lmax||10,avg=rows.length?Math.round(rows.reduce(function(t,x){return t+(+x.score||0)},0)/rows.length):0;
- var h='<section class="recent"><div class="sechead"><h2>Riwayat latihan siswa</h2></div>';
- if(!rows.length)return h+'<p class="muted">Belum ada siswa yang menyelesaikan latihan.</p></section>';
- h+='<p class="note">'+rows.length+' latihan selesai · rata-rata nilai <b class="mono">'+avg+'</b></p>';
- h+=rows.slice(0,mx).map(function(x){
+/* Menu khusus guru/admin: riwayat latihan semua siswa (hasil ujian ada di CBT Online > Hasil) */
+BS.rl={q:'',kelas:'',mapel:'',n:20};
+ICO.riwayatlatihan='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
+function bsRlRows(){
+ var pm=schPeta(),f=BS.rl,q=String(f.q||'').trim().toLowerCase();
+ return BS.D.hasil.filter(function(x){
+  if(x.mode!=='latihan'||!schHasilOk(x,pm))return false;
+  if(f.kelas&&(x.kelas||'')!==f.kelas)return false;
+  if(f.mapel&&bsJudul(x).indexOf(f.mapel)!==0)return false;
+  if(q&&String(x.siswa||'').toLowerCase().indexOf(q)<0)return false;
+  return true;
+ }).sort(function(a,b){return b.ts-a.ts});
+}
+function bsRlList(){
+ var rows=bsRlRows(),mx=BS.rl.n||20,avg=rows.length?Math.round(rows.reduce(function(t,x){return t+(+x.score||0)},0)/rows.length):0;
+ if(!rows.length)return '<p class="muted center" style="padding:20px 0">Belum ada latihan yang cocok.</p>';
+ return '<p class="note">'+rows.length+' latihan · rata-rata nilai <b class="mono">'+avg+'</b></p>'+rows.slice(0,mx).map(function(x){
   return '<div class="card"><div class="row sb"><span class="row"><span class="pill ok">Latihan</span><b>'+esc(x.siswa||'Tanpa nama')+'</b></span><b class="mono">'+x.score+'</b></div><div class="row sb"><span class="note">Kelas '+esc(x.kelas||'-')+' · '+esc(bsJudul(x))+'<br>'+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round((x.detik||0)/60))+' menit</span><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail</button></div></div>';
- }).join('');
- if(rows.length>mx)h+='<button type="button" class="btn" data-bs="lmore">Tampilkan lebih banyak ('+(rows.length-mx)+' lagi)</button>';
- return h+'</section>';
+ }).join('')+(rows.length>mx?'<button type="button" class="btn" data-bs="rlmore">Tampilkan lebih banyak ('+(rows.length-mx)+' lagi)</button>':'');
+}
+function bsViewRiwayatLatihan(){
+ var pm=schPeta(),f=BS.rl,all=BS.D.hasil.filter(function(x){return x.mode==='latihan'&&schHasilOk(x,pm)}),kl={},mp={};
+ all.forEach(function(x){if(x.kelas)kl[x.kelas]=1;var m=bsJudul(x);if(m&&m!=='Latihan soal'&&m.indexOf(' + ')<0)mp[m]=1});
+ bsMapelList().forEach(function(m){mp[m]=1});
+ var sel=function(k,lab,o){return '<label class="f">'+lab+'<select data-bs="rlf" data-k="'+k+'"><option value="">Semua</option>'+Object.keys(o).sort().map(function(v){return '<option'+(f[k]===v?' selected':'')+'>'+esc(v)+'</option>'}).join('')+'</select></label>'};
+ return '<div class="card"><label class="f">Cari nama siswa<input id="rl-q" type="search" value="'+esc(f.q)+'" placeholder="Nama siswa"></label><div class="two">'+sel('kelas','Kelas',kl)+sel('mapel','Mapel',mp)+'</div></div><div class="stack" id="rl-list">'+bsRlList()+'</div>';
 }
 
 /* ---------- Guru: form soal ---------- */
@@ -687,7 +702,7 @@ function viewBankSoal(){
  /* pindah antara Bank soal dan CBT Online: kembali ke halaman utama menu, kecuali ujian/latihan yang sedang berjalan */
  if(BS.lastTab&&BS.lastTab!==S.tab){if(!(BS.sub==='run'&&BS.run))BS.sub='home';BS.res=null;BS.form=null;BS.sf=null}
  BS.lastTab=S.tab;
- var staff=bsEdit(),cbt=S.tab==='cbtonline',sw=!(staff&&actRole()!=='siswa'),h='<div class="sechead"><span class="ico">'+svg(cbt?ICO.cbtonline:(sw?ICO.latihan:ICO.banksoal),18)+'</span><h2>'+(cbt?'CBT Online '+esc(schNama()):(sw?'Latihan Soal Berbasis CBT Online':'Bank soal'))+'</h2></div>';
+ var staff=bsEdit(),cbt=S.tab==='cbtonline',rl=S.tab==='riwayatlatihan',sw=!(staff&&actRole()!=='siswa'),h='<div class="sechead"><span class="ico">'+svg(rl?ICO.riwayatlatihan:cbt?ICO.cbtonline:(sw?ICO.latihan:ICO.banksoal),18)+'</span><h2>'+(rl?'Riwayat latihan siswa':cbt?'CBT Online '+esc(schNama()):(sw?'Latihan Soal Berbasis CBT Online':'Bank soal'))+'</h2></div>';
  if(!BS.loaded)return h+'<p class="muted center" style="padding:32px 0">Memuat soal…</p>';
  if(BS.err.length)h+='<div class="err">'+BS.err.map(esc).join('<br>')+(BS.err.some(function(e){return /collection|not found|could not be found/i.test(e)})?'<br>Koleksi belum dibuat di Appwrite. Jalankan: node tools/setup-appwrite.mjs --only=banksoal,soal_sesi,soal_hasil':'')+'</div>';
  if(BS.sub==='detail'||BS.sub==='result')return h+bsViewResult();
@@ -716,9 +731,13 @@ render=function(){
    html+='<button type="button" class="srow" data-act="menu" data-v="cbtonline"'+(cur==='cbtonline'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.cbtonline,22)+'</span><span class="st"><b>CBT Online</b><small>'+(isStaff()&&actRole()!=='siswa'?'Sesi, pantau, hasil, analisis':'Ujian online dan riwayat')+'</small></span>'+svg(ICO.chev,18)+'</button>';
    if(rk)rk.insertAdjacentHTML('afterend',html);else sb.insertAdjacentHTML('beforeend',html);
   }
+  if(sb&&!sb.querySelector('[data-v="riwayatlatihan"]')&&isStaff()&&actRole()!=='siswa'){
+   var cb=sb.querySelector('.srow[data-v="cbtonline"]'),cr=V.mode==='list'?S.tab:'',hr='<button type="button" class="srow" data-act="menu" data-v="riwayatlatihan"'+(cr==='riwayatlatihan'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.riwayatlatihan,22)+'</span><span class="st"><b>Riwayat latihan siswa</b><small>Hasil latihan soal semua siswa</small></span>'+svg(ICO.chev,18)+'</button>';
+   if(cb)cb.insertAdjacentHTML('afterend',hr);else sb.insertAdjacentHTML('beforeend',hr);
+  }
  }catch(e){}
 };
-if(typeof NAVTABS!=='undefined'&&NAVTABS.indexOf('banksoal')<0)NAVTABS.push('banksoal','cbtonline');
+if(typeof NAVTABS!=='undefined'&&NAVTABS.indexOf('banksoal')<0)NAVTABS.push('banksoal','cbtonline','riwayatlatihan');
 if(typeof doLogout==='function'){var _bsLogout=doLogout;doLogout=async function(){bsClear();return _bsLogout.apply(this,arguments)}}
 if(typeof refreshData==='function'){var _bsRefresh=refreshData;refreshData=async function(){await _bsRefresh.apply(this,arguments);BS.loaded=false;if(bsOn())render()}}
 window.addEventListener('online',function(){if(S.user&&Cloud.on)bsFlushQ()});
@@ -733,6 +752,7 @@ document.addEventListener('click',function(e){
  else if(a==='riwayat'){BS.sub='riwayat';render();window.scrollTo(0,0)}
  else if(a==='detail'){BS.res=v;BS.sub='detail';render();window.scrollTo(0,0)}
  else if(a==='latsetup'){BS.sub='latsetup';render()}
+ else if(a==='rlmore'){BS.rl.n=(BS.rl.n||20)+20;render()}
  else if(a==='latn'){BS.lat.n=+v;render()}
  else if(a==='latmulai'){
   var m=document.getElementById('bl-mapel'),t=document.getElementById('bl-tipe');if(m)BS.lat.mapel=m.value;if(t)BS.lat.tipe=t.value;
@@ -816,11 +836,12 @@ document.addEventListener('change',function(e){
  else if(a==='flab'){bsFormRead();render()}
  else if(a==='flt'){BS.flt[t.dataset.k]=t.value;BS.flt.n=30;render()}
  else if(a==='hs'){BS.hs=t.value;render()}
- else if(a==='lmore'){BS.lmax=(BS.lmax||10)+20;render()}
+ else if(a==='rlf'){BS.rl[t.dataset.k]=t.value;BS.rl.n=20;render()}
 });
 document.addEventListener('input',function(e){
  var t=e.target;
  if(t.id==='bq-q'){BS.flt.q=t.value;BS.flt.n=30;bsRerenderList()}
+ else if(t.id==='rl-q'){BS.rl.q=t.value;BS.rl.n=20;var rl=document.getElementById('rl-list');if(rl)rl.innerHTML=bsRlList()}
  else if(t.id==='sf-q'&&BS.sf){BS.sf.q=t.value;var l=document.getElementById('sf-list');if(l)l.outerHTML=bsSfManual()}
 });
 
