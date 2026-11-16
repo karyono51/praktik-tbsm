@@ -79,6 +79,6 @@
  var prevEnter=Cloud.enter;
  Cloud.enter=async function(){
   var r=await prevEnter.apply(this,arguments);
-  try{claim();beriIzin(true)}catch(e){}
+  try{claim();setTimeout(function(){try{beriIzin(true)}catch(e){}},10000)}catch(e){}
   return r};
 })();

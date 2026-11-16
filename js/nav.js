@@ -48,11 +48,11 @@ function navApply(u){
 if(Cloud.on){
  Cloud.refresh=async function(){
   var p=S.user,Q=Appwrite.Query,staff=roleList(p).some(function(r){return r!=='siswa'});
-  var res,lk,us=null;
-  if(staff){us=(await this.list('akun')).map(fromDoc);res=(await this.list('hasil')).map(fromDoc);lk=(await this.list('lkpd')).map(fromDoc)}
-  else{res=(await this.list('hasil',[Q.equal('sid',[p.id])])).map(fromDoc);lk=(await this.list('lkpd',[Q.equal('sid',[p.id])])).map(fromDoc)}
-  var mods=await loadLKPDModuleDocs(this);
-  if(staff)S.observasi=await loadObsDocs(this);
+  var res,lk,mods,obs=null,us=null,qs=[Q.equal('sid',[p.id])];
+  /* semua koleksi dimuat bersamaan (dulu satu per satu) */
+  if(staff){var r=await Promise.all([this.list('akun'),this.list('hasil'),this.list('lkpd'),loadLKPDModuleDocs(this),loadObsDocs(this)]);us=r[0].map(fromDoc);res=r[1].map(fromDoc);lk=r[2].map(fromDoc);mods=r[3];obs=r[4]}
+  else{var r2=await Promise.all([this.list('hasil',qs),this.list('lkpd',qs),loadLKPDModuleDocs(this)]);res=r2[0].map(fromDoc);lk=r2[1].map(fromDoc);mods=r2[2]}
+  if(staff)S.observasi=obs;
   if(us){S.users=us;S.user=us.find(function(u){return u.id===p.id})||p}
   S.results=res;S.lkpd=lk;S.lkpdModules=mods;
   LK.remote={};

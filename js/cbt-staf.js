@@ -304,7 +304,7 @@
  };
 
  function ekspor(){
-  if(typeof XLSX==='undefined'){toast('Pustaka Excel belum termuat. Periksa koneksi.');return}
+  if(typeof XLSX==='undefined'){if(window.Pustaka)Pustaka.muat();toast('Pustaka Excel sedang disiapkan. Coba lagi sebentar.');return}
   var id=AN.sesi,s=sesiById(id),a=analisis(id);if(!s||!a)return;
   var kkm=a.kkm,ros=roster(s),hs=hasilSesi(id);
   var wb=XLSX.utils.book_new();
@@ -343,7 +343,7 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
  }
  /* rekap nilai per kelas: sheet Ringkasan dan satu sheet per kelas */
  async function rekapKelas(id){
-  if(typeof XLSX==='undefined'){toast('Pustaka Excel belum termuat. Periksa koneksi.');return}
+  if(typeof XLSX==='undefined'){if(window.Pustaka)Pustaka.muat();toast('Pustaka Excel sedang disiapkan. Coba lagi sebentar.');return}
   var s=sesiById(id);if(!s)return;
   if(Cloud.on&&PN.sesiLoaded!==id){PN.sesi=id;await pnLoad()}
   var hs=hasilSesi(id),kkm=+s.kkm||S.kkm,kls={};

@@ -651,7 +651,7 @@ async function bsHapusRun(h){
  for(var i=0;i<ids.length;i++){try{await Cloud.db.deleteDocument(CFG.DB,'soal_run',ids[i])}catch(e){}}
 }
 function bsExport(){
- if(typeof XLSX==='undefined'){toast('Pustaka Excel belum termuat. Periksa koneksi.');return}
+ if(typeof XLSX==='undefined'){if(window.Pustaka)Pustaka.muat();toast('Pustaka Excel sedang disiapkan. Coba lagi sebentar.');return}
  var rows=bsHasilRows().map(function(x){return {Nama:x.siswa,Kelas:x.kelas||'',Jenis:x.mode==='latihan'?'Latihan':x.mode==='arsip'?'Arsip':'Ujian',Sesi:x.sesiJudul||'Latihan soal',Nilai:x.score,'Soal benar':x.benar,'Jumlah soal':x.total,'Durasi (menit)':Math.round(x.detik/6)/10,'Keluar halaman':x.pindah||0,Waktu:new Date(x.ts).toLocaleString('id-ID')}});
  var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Hasil');
  XLSX.writeFile(wb,'hasil-bank-soal-'+ymd(Date.now())+'.xlsx');

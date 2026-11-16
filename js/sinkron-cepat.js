@@ -56,7 +56,8 @@
  async function tick(force){
   if(SC.run||!S.user||navigator.onLine===false)return;
   if(!force&&Date.now()<SC.next)return;
-  heal();
+  /* heal menelusuri seluruh bank soal; cukup tiap 30 detik atau saat dipaksa (online, fokus), bukan tiap 3 detik */
+  if(force||Date.now()-(SC.h||0)>30000){SC.h=Date.now();heal()}
   if(!tersisa()){SC.fail=0;SC.next=0;return}
   SC.run=true;Cloud.failN=SC.fail+1;Cloud.retrying=SC.fail>0;
   var sebelum=SC.fail;

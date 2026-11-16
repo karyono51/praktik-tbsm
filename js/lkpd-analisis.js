@@ -82,6 +82,7 @@ function lkaBelum(s){
  return '<section class="card"><h3>Belum mengumpulkan ('+s.belum.length+')</h3>'+(s.belum.length?'<p class="note">'+s.belum.map(function(u){return lkEsc(u.nama)}).join(', ')+'</p>':'<p class="muted">Semua siswa kelas ini sudah mengumpulkan, atau data siswa belum tersedia.</p>')+'</section>';
 }
 function lkaXls(){
+ if(typeof needX==='function'&&!needX())return;
  var m=LKPD_MODULES.find(function(x){return x.id===LKA.id});if(!m)return;
  var s=lkaStats(m);if(!s.n){toast('Belum ada data untuk diunduh');return}
  var wb=XLSX.utils.book_new(),A=XLSX.utils.aoa_to_sheet,add=function(n,r){XLSX.utils.book_append_sheet(wb,A(r),n)};

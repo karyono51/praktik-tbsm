@@ -4,8 +4,8 @@ var HM={};
 function normKelas(v){v=String(v||'').toUpperCase().replace(/KELAS|[\s-]/g,'');var m=v.match(/^(XII|XI|X|12|11|10)/);return m?({'12':'XII','11':'XI','10':'X'}[m[1]]||m[1]):''}
 function normPeran(v){v=String(v||'').toLowerCase();var o=[];if(v.indexOf('admin')>-1)o.push('admin');if(/guru|asesor|teacher/.test(v))o.push('guru');if(/siswa|murid|student/.test(v)||!o.length)o.push('siswa');return o.join(',')}
 function normAktif(v){return !/^(tidak|nonaktif|non-aktif|0|false|no|n)$/i.test(String(v||'').trim())}
-function needX(){if(!window.XLSX){toast('Pustaka Excel belum termuat, periksa koneksi');return false}return true}
-function needP(){if(!(window.jspdf&&window.jspdf.jsPDF)){toast('Pustaka PDF belum termuat, periksa koneksi');return false}return true}
+function needX(){if(!window.XLSX){if(window.Pustaka)Pustaka.muat();toast('Pustaka Excel sedang disiapkan, coba lagi sebentar');return false}return true}
+function needP(){if(!(window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API&&window.jspdf.jsPDF.API.autoTable)){if(window.Pustaka)Pustaka.muat();toast('Pustaka PDF sedang disiapkan, coba lagi sebentar');return false}return true}
 function sheet(aoa,w){var s=XLSX.utils.aoa_to_sheet(aoa);s['!cols']=w.map(function(x){return {wch:x}});return s}
 function dl(wb,name){XLSX.writeFile(wb,name+'_'+new Date().toISOString().slice(0,10)+'.xlsx')}
 function book(pairs,name){var wb=XLSX.utils.book_new();pairs.forEach(function(p){XLSX.utils.book_append_sheet(wb,sheet(p[1],p[2]),p[0])});dl(wb,name)}

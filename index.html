@@ -14,8 +14,8 @@
 (function(){var k="";try{k=(new URLSearchParams(location.search).get("s")||"").toLowerCase()}catch(e){}if(k!=="df"&&k!=="medina"){try{k=(localStorage.getItem("tbsm-sch")||"").toLowerCase()}catch(e){}}if(k==="df"||k==="medina")document.write('<link rel="icon" href="assets/logo-'+k+'.png"><link rel="manifest" href="manifest-'+k+'.json"><link rel="apple-touch-icon" href="assets/icon-'+k+'-192.png">');else document.write('<link rel="icon" href="assets/logo.jpg"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="assets/icon-192.png">')})();</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
 <link rel="stylesheet" href="css/app.css?v=3a60d6e7">
 <link rel="stylesheet" href="css/banksoal.css?v=a3d2ea9b">
 </head>
@@ -23,17 +23,15 @@
 <div class="wrap" id="app"><p class="center muted" style="padding:48px 0">Memuat aplikasi…</p></div>
 <noscript><p class="center">Aplikasi ini membutuhkan JavaScript.</p></noscript>
 <script src="https://cdn.jsdelivr.net/npm/appwrite@16.0.2/dist/iife/sdk.js" integrity="sha384-AGHJG9uk3tDAZ3ukw48wjRW5OttguDjnKtjVaFR4v16+e6RBbH4+7T4BH9hDK5zi" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha384-fCAW/rDWORTbQXSiB7mOg0QtQ5c+r0f544y6XoKjuVva0nMBlCpNUjiFeG5iMdS3" crossorigin="anonymous"></script>
 <script src="js/config.js?v=3179dd36"></script>
+<script src="js/pustaka.js?v=34c32766"></script>
 <script src="js/logo.js?v=4fc37542"></script>
 <script src="js/sekolah.js?v=5560ecd2"></script>
 <script src="js/data.js?v=7da21601"></script>
 <script src="js/util.js?v=2429e371"></script>
 <script src="js/dialog.js?v=580e3480"></script>
-<script src="js/core.js?v=4538e708"></script>
-<script src="js/export.js?v=633ab720"></script>
+<script src="js/core.js?v=8d8ccfe6"></script>
+<script src="js/export.js?v=01fd77b1"></script>
 <script src="js/views.js?v=17cf4783"></script>
 <script src="js/ukk-aturan.js?v=8ccaa495"></script>
 <script src="js/lkpd-modul.js?v=9cb1f516"></script>
@@ -43,7 +41,7 @@
 <script src="js/pwa.js?v=524e388c"></script>
 <script src="js/lkpd-kelas.js?v=9b12732c"></script>
 <script src="js/lkpd-timer.js?v=5c1fffc4"></script>
-<script src="js/nav.js?v=f9cfae18"></script>
+<script src="js/nav.js?v=23bc7a39"></script>
 <script src="js/observasi.js?v=d9da96cb"></script>
 <script src="js/akun-sandi.js?v=1d653041"></script>
 <script src="js/lkpd-cetak.js?v=388f1707"></script>
@@ -77,16 +75,16 @@
 <script src="js/soal-lkpd/xii7.js?v=b437fcb5"></script>
 <script src="js/lkpd-soal.js?v=521a75b1"></script>
 <script src="js/jam.js?v=f16589d1"></script>
-<script src="js/banksoal.js?v=1481aef1"></script>
+<script src="js/banksoal.js?v=b8b426c9"></script>
 <script src="js/banksoal-io.js?v=6dfddcd7"></script>
 <script src="js/soal-gambar.js?v=1311384c"></script>
 <script src="js/ujian-server.js?v=3a0c3e89"></script>
-<script src="js/sinkron-cepat.js?v=df09fa94"></script>
+<script src="js/sinkron-cepat.js?v=3d2b3949"></script>
 <script src="js/siswa-ui.js?v=e628a027"></script>
 <script src="js/cbt.js?v=6019318c"></script>
-<script src="js/cbt-staf.js?v=999967fa"></script>
+<script src="js/cbt-staf.js?v=ae43a51d"></script>
 <script src="js/back.js?v=dfb4b53d"></script>
-<script src="js/lkpd-analisis.js?v=f3b42739"></script>
+<script src="js/lkpd-analisis.js?v=774f44c6"></script>
 <script src="js/lkpd-integritas.js?v=f5ff9b60"></script>
 <script src="js/lkpd-editor.js?v=add7d38a"></script>
 <script src="js/lkpd-io.js?v=830e9f48"></script>
@@ -98,7 +96,7 @@
 <script src="js/observasi-ukk.js?v=985fc76f"></script>
 <script src="js/ukk-akhir.js?v=b5567a5d"></script>
 <script src="js/akademik-data.js?v=37d45ee5"></script>
-<script src="js/akademik.js?v=4ed81bb7"></script>
+<script src="js/akademik.js?v=8e7406b3"></script>
 <script src="js/menu-dasbor.js?v=308063c8"></script>
 <script src="js/ukk-kelola.js?v=94950bb3"></script>
 <script src="js/ukk-xls.js?v=fc35e7bb"></script>
@@ -111,7 +109,7 @@
 <script src="js/ukk-io.js?v=710b2018"></script>
 <script src="js/cetak-uji.js?v=cdcd9aa3"></script>
 <script src="js/cetak-soal.js?v=935026d3"></script>
-<script src="js/hasil-izin.js?v=474af542"></script>
+<script src="js/hasil-izin.js?v=6ac6e18f"></script>
 <script src="js/lkpd-hapus.js?v=7ee93aa0"></script>
 <script src="js/lkpd-rekap-kelas.js?v=3b97d0c4"></script>
 </body>

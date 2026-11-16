@@ -493,7 +493,7 @@ document.addEventListener('click',async function(e){
 
 /* ---------- Ekspor ---------- */
 function akEkspor(){
- if(typeof XLSX==='undefined'){toast('Pustaka Excel belum termuat. Periksa koneksi.');return}
+ if(typeof XLSX==='undefined'){if(window.Pustaka)Pustaka.muat();toast('Pustaka Excel sedang disiapkan. Coba lagi sebentar.');return}
  var wb=XLSX.utils.book_new(),sh=function(n,rows){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows.length?rows:[{Keterangan:'Belum ada data'}]),n)};
  sh('Guru',akGuruListAll().map(function(u){var p=akProfil(u.id)||{};return {Nama:u.nama,Email:u.email||'',Sekolah:akSekLabel(u.sekolah),NIP:p.nip||'',NUPTK:p.nuptk||'',Status:p.status||'',Pendidikan:p.pendidikan||'','Tugas tambahan':p.tugasTambahan||'','JP per minggu':akJp(u.id)}}));
  sh('Rombel',akKelasAll().map(function(k){return {Rombel:k.nama,Tingkat:k.tingkat,Sekolah:akSekLabel(k.sekolah),'Tahun ajaran':(akById('tahun',k.tahunId)||{}).nama||'','Wali kelas':k.waliId?akNamaUser(k.waliId):'','Jumlah siswa':(k.anggota||[]).length,Status:k.aktif===false?'Arsip':'Aktif'}}));

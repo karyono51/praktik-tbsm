@@ -65,8 +65,8 @@ var Cloud={on:CLOUD_ON,busy:false,
   await this.db.createDocument(CFG.DB,'akun',p.id,pick(p,FA));p.r=1;return p},
  enter:async function(me){var p=await this.resolve(me);this.authId=me.$id;try{localStorage.setItem('tbsm-auth',JSON.stringify({sid:p.id,auth:me.$id}))}catch(e){}if(p.aktif===false){await this.logout();throw new Error('Akun dinonaktifkan. Hubungi admin.')}
   S.user=p;S.users=[p];
-  if(roleList(p).some(function(r){return r!=='siswa'})){S.users=(await this.list('akun')).map(fromDoc);S.results=(await this.list('hasil')).map(fromDoc);S.lkpd=(await this.list('lkpd')).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}
-  else {S.results=(await this.list('hasil',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpd=(await this.list('lkpd',[Appwrite.Query.equal('sid',[p.id])])).map(fromDoc);S.lkpdModules=await loadLKPDModuleDocs(this)}
+  if(roleList(p).some(function(r){return r!=='siswa'})){var pr=await Promise.all([this.list('akun'),this.list('hasil'),this.list('lkpd'),loadLKPDModuleDocs(this)]);S.users=pr[0].map(fromDoc);S.results=pr[1].map(fromDoc);S.lkpd=pr[2].map(fromDoc);S.lkpdModules=pr[3]}
+  else {var qs=[Appwrite.Query.equal('sid',[p.id])],ps=await Promise.all([this.list('hasil',qs),this.list('lkpd',qs),loadLKPDModuleDocs(this)]);S.results=ps[0].map(fromDoc);S.lkpd=ps[1].map(fromDoc);S.lkpdModules=ps[2]}
   enter(S.users.find(function(u){return u.id===p.id})||p)},
  flush:async function(){
   if(!this.on||!S.user||this.busy)return;this.busy=true;
