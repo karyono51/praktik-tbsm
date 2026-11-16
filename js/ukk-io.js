@@ -92,7 +92,7 @@ async function ukiParse(f){
   var lk=id.toLowerCase();
   if(units[lk])return bad('Kode unit ganda: '+id);
   var kelas=normKelas(r.kelas);if(!kelas||!KELAS[kelas])return bad('Kelas tidak valid untuk '+id+' (pakai X, XI, atau XII)');
-  if((LKPD_MODULES||[]).some(function(m){return String(m.id).toLowerCase()===lk}))return bad('Kode '+id+' sudah dipakai modul LKPD');
+  if((LKPD_MODULES||[]).some(function(m){return String(m.id).toLowerCase()===lk}))return bad('Kode '+id+' sudah dipakai LKPD');
   var ex=all.filter(function(j){return String(j.id).toLowerCase()===lk})[0],aktif=ex&&ukkJobBy(ex.id);
   if(ex&&!ex.ukk)return bad('Kode '+id+' sudah dipakai unit uji praktik biasa');
   if(ex&&!aktif)return bad('Kode '+id+' pernah dipakai unit UKK yang dihapus. Pakai kode lain');

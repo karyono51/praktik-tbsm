@@ -1,4 +1,4 @@
-/* lkpd-analisis.js: Analisis hasil per modul LKPD (Admin dan Guru).
+/* lkpd-analisis.js: Analisis hasil per LKPD (Admin dan Guru).
    Menampilkan soal yang paling banyak salah, langkah/K3/komponen yang sering terlewat, siswa yang perlu remedial,
    dan siswa yang belum mengumpulkan. Memakai pengiriman TERBARU tiap siswa. Bisa diunduh sebagai Excel.
    Soal dari pengiriman lama (susunan soal berubah) tidak dihitung agar nilai per soal tidak keliru. */
@@ -86,7 +86,7 @@ function lkaXls(){
  var m=LKPD_MODULES.find(function(x){return x.id===LKA.id});if(!m)return;
  var s=lkaStats(m);if(!s.n){toast('Belum ada data untuk diunduh');return}
  var wb=XLSX.utils.book_new(),A=XLSX.utils.aoa_to_sheet,add=function(n,r){XLSX.utils.book_append_sheet(wb,A(r),n)};
- add('Ringkasan',[['Modul',m.title],['Kelas',m.kelas],['Mode data',LKA.mode],['Jumlah siswa',s.n],['Rata-rata',s.avg],['Rata-rata praktik',s.prak],['Rata-rata teori',s.teori],['KKM',s.kk],['Kompeten (%)',s.kom]]);
+ add('Ringkasan',[['LKPD',m.title],['Kelas',m.kelas],['Mode data',LKA.mode],['Jumlah siswa',s.n],['Rata-rata',s.avg],['Rata-rata praktik',s.prak],['Rata-rata teori',s.teori],['KKM',s.kk],['Kompeten (%)',s.kom]]);
  add('Soal',[['No','Tipe','Soal','% benar','Tidak dijawab','Daya beda','Ket. daya beda']].concat(s.qs.map(function(x){return [x.i+1,x.t,String(x.q.q||''),x.pct,x.na,x.db===undefined||x.db===null?'':+x.db.toFixed(3),x.dbk||'']})));
  add('Langkah',[['Jenis','No','Butir','% terpenuhi']].concat(
   s.steps.map(function(x){return ['Langkah',x.i+1,x.name,x.pct]}),s.safe.map(function(x){return ['K3',x.i+1,x.name,x.pct]}),s.checks.map(function(x){return ['Komponen',x.i+1,x.name,x.pct]}),[['Analisis','','Bukti, penyebab, kesimpulan',s.ana]]));

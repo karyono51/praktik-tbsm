@@ -1,5 +1,5 @@
 /* siswa-ui.js: penyederhanaan tampilan untuk peran Siswa.
-   - Modul LKPD: tombol Riwayat disembunyikan saat mengerjakan.
+   - LKPD: tombol Riwayat disembunyikan saat mengerjakan.
    - Rekap pengumpulan LKPD: deretan tombol Materi, Lembar Kerja, Evaluasi, Riwayat disembunyikan.
    - Rekap nilai: tombol filter Semua dan Kelas X/XI/XII disembunyikan (siswa hanya melihat nilainya sendiri). */
 (function(){

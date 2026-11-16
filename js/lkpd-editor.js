@@ -1,6 +1,6 @@
 /* lkpd-editor.js: Editor Guru LKPD versi terstruktur (pengganti formulir teks panjang di lkpd.js).
    - Tab: Info, Tujuan & teori, Alat & K3, Langkah, Pemeriksaan, Soal, Penilaian. Setiap tab punya lencana jumlah masalah.
-   - Isi modul diedit sebagai baris terpisah (tanpa pemisah "|" dan tanpa JSON mentah). Tombol naik, turun, hapus, tambah, dan Tempel banyak.
+   - Isi LKPD diedit sebagai baris terpisah (tanpa pemisah "|" dan tanpa JSON mentah). Tombol naik, turun, hapus, tambah, dan Tempel banyak.
    - Soal: editor visual untuk PG, PG kompleks, dan PG kategori (ketuk huruf untuk menandai kunci). Mode JSON lanjutan tetap tersedia.
    - Penghitung langsung: total menit langkah terhadap alokasi waktu, jumlah bobot, kesiapan simpan.
    - Simpan otomatis ke perangkat (draf), dengan tombol Pulihkan bila editor dibuka lagi.
@@ -115,9 +115,9 @@ function lkeQIssue(q){
 function lkeIssues(d){
  var s=d.S,I=[],id=lkeT(s.id);
  function add(tab,msg){I.push({tab:tab,msg:msg})}
- if(!/^[A-Za-z0-9_-]{2,32}$/.test(id))add('info','ID modul wajib 2–32 karakter: huruf, angka, _ atau -');
- else if(d.isNew&&(LKPD_MODULES||[]).some(function(x){return x.id===id}))add('info','ID "'+id+'" sudah dipakai modul lain');
- if(!lkeT(s.title))add('info','Judul modul belum diisi');else if(lkeT(s.title).length>180)add('info','Judul maksimal 180 karakter');
+ if(!/^[A-Za-z0-9_-]{2,32}$/.test(id))add('info','ID LKPD wajib 2–32 karakter: huruf, angka, _ atau -');
+ else if(d.isNew&&(LKPD_MODULES||[]).some(function(x){return x.id===id}))add('info','ID "'+id+'" sudah dipakai LKPD lain');
+ if(!lkeT(s.title))add('info','Judul LKPD belum diisi');else if(lkeT(s.title).length>180)add('info','Judul maksimal 180 karakter');
  if(!lkeT(s.unit))add('info','Unit/objek praktik belum diisi');
  if(!lkeT(s.fase)||lkeT(s.fase).length>8)add('info','Fase wajib diisi (maksimal 8 karakter)');
  var du=lkeNum(s.duration);
@@ -144,7 +144,7 @@ function lkeIssues(d){
  return I;
 }
 
-/* ---------- Susun modul untuk disimpan ---------- */
+/* ---------- Susun LKPD untuk disimpan ---------- */
 function lkeBuild(d){
  var s=d.S,w=s.w,pr=Number(lkeNum(w.practice)),
  m={id:lkeT(s.id),version:1,elemen:lkeT(s.elemen||''),title:lkeT(s.title),kelas:lkeT(s.kelas).toUpperCase(),sekolah:(schNorm(s.sekolah)==='ALL'?'':schNorm(s.sekolah)),fase:lkeT(s.fase),unit:lkeT(s.unit),duration:Number(lkeNum(s.duration)),skkni:lkeT(s.skkni),
@@ -178,7 +178,7 @@ function lkeSave(prev){
  lkModuleStore(m);lkeDraftClear();
  LK.editor=null;LK.module=m.id;
  if(prev){LK.tab='materi';LK.preview=true;LK.open=true}else LK.tab='editor';
- render();window.scrollTo(0,0);toast(prev?'Modul tersimpan, membuka pratinjau':'Modul tersimpan');
+ render();window.scrollTo(0,0);toast(prev?'LKPD tersimpan, membuka pratinjau':'LKPD tersimpan');
 }
 
 /* ---------- Render ---------- */
@@ -205,21 +205,21 @@ function lkePairs(d,p,title,hint,l1,l2,addLabel,longB){
 }
 function lkeTabInfo(d){
  var s=d.S,ro=!d.isNew;
- return '<section class="card"><div class="two"><label class="f">ID modul'+(ro?' (tidak bisa diubah)':' (unik)')+'<input data-lke="id" value="'+esc(s.id)+'" placeholder="contoh: X-7"'+(ro?' readonly':'')+' autocapitalize="characters"></label>'+
+ return '<section class="card"><div class="two"><label class="f">ID LKPD'+(ro?' (tidak bisa diubah)':' (unik)')+'<input data-lke="id" value="'+esc(s.id)+'" placeholder="contoh: X-7"'+(ro?' readonly':'')+' autocapitalize="characters"></label>'+
   '<label class="f">Kelas<select data-lke="kelas" data-lke-r="1">'+lkKelasOpts(s.kelas)+'</select></label></div>'+
   '<label class="f">Elemen CP (LKPD bagian dari elemen ini)<select data-lke="elemen">'+lkElOpts(s.elemen?s.kelas:s.kelas,s.elemen)+'</select></label>'+
   '<label class="f">Sekolah<select data-lke="sekolah">'+schOptModul(s.sekolah)+'</select></label>'+
-  '<label class="f">Judul modul<input data-lke="title" value="'+esc(s.title)+'" placeholder="contoh: Pemeriksaan Busi dan Sistem Pengapian"></label>'+
+  '<label class="f">Judul LKPD<input data-lke="title" value="'+esc(s.title)+'" placeholder="contoh: Pemeriksaan Busi dan Sistem Pengapian"></label>'+
   '<label class="f">Unit/objek praktik<input data-lke="unit" value="'+esc(s.unit)+'" placeholder="contoh: Sepeda motor 4 langkah injeksi"></label>'+
   '<div class="two"><label class="f">Alokasi waktu (menit)<input type="number" inputmode="numeric" min="1" max="600" data-lke="duration" value="'+esc(s.duration)+'"></label>'+
   '<label class="f">Fase<input data-lke="fase" value="'+esc(s.fase)+'" maxlength="8"></label></div>'+
   '<label class="f">Kode standar kompetensi (opsional)<input data-lke="skkni" value="'+esc(s.skkni)+'" placeholder="contoh: OTO.SM02.026.01"></label>'+
-  '<div><span class="label">Status</span><div class="seg" role="group" aria-label="Status modul"><button type="button" data-lke-a="set" data-p="status" data-v="draft" aria-pressed="'+(s.status!=='published')+'">Draft</button><button type="button" data-lke-a="set" data-p="status" data-v="published" aria-pressed="'+(s.status==='published')+'">Terbit</button></div></div>'+
-  '<label class="lk-check"><input type="checkbox" data-lke="active"'+(s.active?' checked':'')+'><span><b>Modul aktif</b><small>Siswa hanya melihat modul yang Terbit dan Aktif.</small></span></label>'+
+  '<div><span class="label">Status</span><div class="seg" role="group" aria-label="Status LKPD"><button type="button" data-lke-a="set" data-p="status" data-v="draft" aria-pressed="'+(s.status!=='published')+'">Draft</button><button type="button" data-lke-a="set" data-p="status" data-v="published" aria-pressed="'+(s.status==='published')+'">Terbit</button></div></div>'+
+  '<label class="lk-check"><input type="checkbox" data-lke="active"'+(s.active?' checked':'')+'><span><b>LKPD aktif</b><small>Siswa hanya melihat LKPD yang Terbit dan Aktif.</small></span></label>'+
   '<div class="lke-calc" id="lke-calc">'+lkeCalc(d)+'</div></section>';
 }
 function lkeTabSteps(d){
- var s=d.S,a=s.steps,h='<section class="card"><div><h3>Langkah kerja</h3><p class="note">Urutan prosedur praktik. Total menit semua langkah harus sama dengan alokasi waktu modul.</p></div><div class="lke-calc" id="lke-calc">'+lkeCalc(d)+'</div><div class="lke-list">';
+ var s=d.S,a=s.steps,h='<section class="card"><div><h3>Langkah kerja</h3><p class="note">Urutan prosedur praktik. Total menit semua langkah harus sama dengan alokasi waktu LKPD.</p></div><div class="lke-calc" id="lke-calc">'+lkeCalc(d)+'</div><div class="lke-list">';
  h+=a.map(function(x,i){return '<div class="lke-item"><span class="lke-n">'+(i+1)+'</span><div class="lke-f"><div class="two" style="grid-template-columns:1fr 92px"><input data-lke="steps.'+i+'.t" placeholder="Judul langkah" value="'+esc(x.t)+'"><input type="number" inputmode="numeric" min="1" data-lke="steps.'+i+'.m" placeholder="Menit" value="'+esc(x.m)+'" aria-label="Menit"></div>'+
   '<textarea class="lke-1" rows="2" data-lke="steps.'+i+'.i" placeholder="Instruksi untuk siswa">'+esc(x.i)+'</textarea></div>'+lkeCtl('steps',i,a.length)+'</div>'}).join('');
  return h+'</div>'+lkeAddRow(d,'steps','Tambah langkah')+'</section>';
@@ -242,7 +242,7 @@ function lkeCalc(d){
  if(t==='langkah'){
   var tot=lkeSteps(s),du=lkeNum(s.duration),ok=tot===du,pct=du>0?Math.min(100,Math.round(tot/du*100)):0;
   return '<div class="row sb"><b>Total '+tot+' dari '+(du>0?du:'?')+' menit</b><span class="pill '+(ok?'ok':'warn')+'">'+(ok?'Sesuai':(du>0&&tot<du?'Kurang '+(du-tot):'Lebih '+(tot-du)))+'</span></div><div class="lke-bar2 '+(ok?'':(tot>du?'bad':'warn'))+'"><i style="width:'+pct+'%"></i></div>'+
-   (!ok&&tot>0?'<div><button type="button" class="btn small" data-lke-a="fit">Jadikan '+tot+' menit sebagai alokasi modul</button></div>':'');
+   (!ok&&tot>0?'<div><button type="button" class="btn small" data-lke-a="fit">Jadikan '+tot+' menit sebagai alokasi LKPD</button></div>':'');
  }
  if(t==='nilai'){
   var w=s.w,v=['steps','safety','checks','analysis'].map(function(k){return lkeNum(w[k])}),sum=v.reduce(function(a,x){return a+(x>=0?x:0)},0),ok2=sum===100;
@@ -262,7 +262,7 @@ function lkeCalc2(d){var pr=lkeNum(d.S.w.practice);pr=pr>=0&&pr<=100?pr:0;return
 function lkeBar(d){
  var I=lkeIssues(d),cnt={};I.forEach(function(x){cnt[x.tab]=(cnt[x.tab]||0)+1});
  var tabs='<div class="lke-tabs" role="tablist">'+LKE.TABS.map(function(t){return '<button type="button" role="tab" data-lke-a="tab" data-v="'+t[0]+'" aria-pressed="'+(d.tab===t[0])+'">'+t[1]+'<span class="lke-badge'+(cnt[t[0]]?'':' ok')+'">'+(cnt[t[0]]||'✓')+'</span></button>'}).join('')+'</div>';
- var hl=I.length?'<div class="lke-health warn"><b>'+I.length+' hal perlu dilengkapi sebelum disimpan</b><ul>'+I.slice(0,3).map(function(x){return '<li><button type="button" data-lke-a="tab" data-v="'+x.tab+'">'+esc(x.msg)+'</button></li>'}).join('')+(I.length>3?'<li>dan '+(I.length-3)+' lainnya</li>':'')+'</ul></div>':'<div class="lke-health"><b>Semua bagian lengkap.</b> Modul siap disimpan.</div>';
+ var hl=I.length?'<div class="lke-health warn"><b>'+I.length+' hal perlu dilengkapi sebelum disimpan</b><ul>'+I.slice(0,3).map(function(x){return '<li><button type="button" data-lke-a="tab" data-v="'+x.tab+'">'+esc(x.msg)+'</button></li>'}).join('')+(I.length>3?'<li>dan '+(I.length-3)+' lainnya</li>':'')+'</ul></div>':'<div class="lke-health"><b>Semua bagian lengkap.</b> LKPD siap disimpan.</div>';
  return tabs+hl;
 }
 
@@ -310,7 +310,7 @@ function lkeTabSoal(d){
 lkEditorForm=function(d){
  var s=lkeInit(d),idx=LKE.TABS.map(function(t){return t[0]}).indexOf(d.tab),h='';
  if(d.rec)h+='<section class="card lke-rec"><b>Ada draf yang belum tersimpan</b><p class="note">Dari '+new Date(d.rec.ts).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'. Pulihkan untuk melanjutkan pekerjaan sebelumnya.</p><div class="row"><button type="button" class="btn small" data-lke-a="rec-drop">Buang draf</button><button type="button" class="btn small primary" data-lke-a="rec-use">Pulihkan</button></div></section>';
- h+='<div class="lke-top"><div><h2>'+(d.isNew?'Modul baru':'Edit modul')+'</h2><p class="note">'+(lkeT(s.id)?esc(lkeT(s.id))+' · ':'')+'Disimpan otomatis di perangkat ini sebagai draf.</p></div><div class="row"><button type="button" class="btn small" data-lke-a="cancel">Kembali</button><button type="button" class="btn small primary" data-lke-a="save">Simpan modul</button></div></div>';
+ h+='<div class="lke-top"><div><h2>'+(d.isNew?'LKPD baru':'Edit LKPD')+'</h2><p class="note">'+(lkeT(s.id)?esc(lkeT(s.id))+' · ':'')+'Disimpan otomatis di perangkat ini sebagai draf.</p></div><div class="row"><button type="button" class="btn small" data-lke-a="cancel">Kembali</button><button type="button" class="btn small primary" data-lke-a="save">Simpan LKPD</button></div></div>';
  h+='<div id="lke-bar">'+lkeBar(d)+'</div>';
  if(d.tab==='info')h+=lkeTabInfo(d);
  else if(d.tab==='tujuan')h+=lkeSimple(d,'objectives','Tujuan pembelajaran','Apa yang harus dicapai siswa setelah praktik. Satu butir per baris.','Contoh: Mengukur tegangan baterai dengan multimeter','Tambah tujuan')+lkePairs(d,'theory','Teori ringkas','Materi singkat yang dibaca siswa sebelum praktik (disembunyikan pada mode Ujian bila diatur).','Topik','Penjelasan','Tambah topik',true);
@@ -320,7 +320,7 @@ lkEditorForm=function(d){
  else if(d.tab==='soal')h+=lkeTabSoal(d);
  else h+=lkeTabNilai(d);
  h+='<div class="lke-nav"><button type="button" class="btn"'+(idx<=0?' disabled':'')+' data-lke-a="prev">← Sebelumnya</button>'+
-  (idx>=LKE.TABS.length-1?'<div class="row"><button type="button" class="btn" data-lke-a="save-prev">Simpan dan pratinjau</button><button type="button" class="btn primary" data-lke-a="save">Simpan modul</button></div>':'<button type="button" class="btn primary" data-lke-a="next">Berikutnya →</button>')+'</div>';
+  (idx>=LKE.TABS.length-1?'<div class="row"><button type="button" class="btn" data-lke-a="save-prev">Simpan dan pratinjau</button><button type="button" class="btn primary" data-lke-a="save">Simpan LKPD</button></div>':'<button type="button" class="btn primary" data-lke-a="next">Berikutnya →</button>')+'</div>';
  return '<div class="stack">'+h+'</div>';
 };
 
@@ -374,7 +374,7 @@ document.addEventListener('click',function(e){
  else if(a==='cancel'){
   var out=function(){lkeDraftClear();LK.editor=null;render();window.scrollTo(0,0)};
   if(!lkeDirty(d)){out();return}
-  uiConfirm('Tutup editor?\nPerubahan yang belum disimpan tidak masuk ke modul. Draf tetap tersimpan di perangkat ini dan bisa dipulihkan saat editor dibuka lagi.',{ok:'Tutup',danger:true}).then(function(ok){if(ok){LK.editor=null;render();window.scrollTo(0,0)}});
+  uiConfirm('Tutup editor?\nPerubahan yang belum disimpan tidak masuk ke LKPD. Draf tetap tersimpan di perangkat ini dan bisa dipulihkan saat editor dibuka lagi.',{ok:'Tutup',danger:true}).then(function(ok){if(ok){LK.editor=null;render();window.scrollTo(0,0)}});
  }
  else if(a==='set'){lkeSet(p,v);lkeRe()}
  else if(a==='add'){var arr=lkeList(p);arr.push(lkeBlankRow(p));d.focus=p+'.'+(arr.length-1)+(p==='steps'?'.t':(p==='theory'||p==='checks')?'.0':'');lkeRe()}

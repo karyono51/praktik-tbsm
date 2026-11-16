@@ -101,7 +101,7 @@ document.addEventListener('click',function(e){
  var i=Number(b.dataset.v);lkSaveFotos(lkFotos().filter(function(x){return x.item!==i}));render();
 });
 
-/* Foto wajib: modul dapat mewajibkan foto pada item tertentu (module.fotoWajib = daftar indeks komponen). Diatur guru/admin lewat Pengaturan modul. */
+/* Foto wajib: LKPD dapat mewajibkan foto pada item tertentu (module.fotoWajib = daftar indeks komponen). Diatur guru/admin lewat Pengaturan modul. */
 var _ldSubmit=lkSubmit;
 lkSubmit=function(){
  if(!isStaff()){
@@ -181,7 +181,7 @@ function ldDetailFoto(z,i){
  if(!b.length)return LK.loadingB===z.id?'<small class="ld-note">Memuat foto…</small>':'';
  return '<div class="ld-itemfoto">'+b.map(function(x){return ldImgHtml(x,z.id,'ld-th')}).join('')+'</div>';
 }
-/* Foto yang tidak terkait item (foto tambahan, atau item yang sudah tidak ada di modul). */
+/* Foto yang tidak terkait item (foto tambahan, atau item yang sudah tidak ada di LKPD). */
 function lkBuktiHtml(z){
  var m=(window.LKPD_MODULES||[]).filter(function(x){return x.id===z.moduleId})[0],n=m&&m.checks?m.checks.length:0,all=lkBuktiAll(z.id);
  var extra=all.filter(function(x){var it=ldParse(x).item;return it<0||it>=n}).sort(function(a,c){return ldParse(a).item-ldParse(c).item});

@@ -1,13 +1,13 @@
-/* lkpd-gambar.js: gambar pada soal evaluasi (kuis) modul LKPD.
+/* lkpd-gambar.js: gambar pada soal evaluasi (kuis) LKPD.
    Memakai mesin yang sama dengan Bank soal (soal-gambar.js): gambar dikecilkan otomatis, disimpan di Google Drive lewat
    fungsi foto-drive (upload kind:'soal' hanya guru/admin, getsoal boleh dibaca semua pengguna login), dan disalin ke
    IndexedDB perangkat supaya tetap tampil saat offline.
-   Format soal modul bertambah dua kolom opsional (modul lama tetap terbaca):
+   Format soal LKPD bertambah dua kolom opsional (LKPD lama tetap terbaca):
      q.qi  gambar pada soal            '' atau 'drive:<fileId>' (sebelum terunggah: 'tmp:<id>')
      q.oi  gambar tiap pilihan         daftar sejajar dengan q.o (PG dan PG kompleks). PG kategori: hanya q.qi.
    Pilihan boleh berisi teks, gambar, atau keduanya.
-   Alur guru: pilih gambar -> disimpan di IndexedDB (tmp:) -> modul disimpan lokal -> saat sinkron ke server, gambar diunggah
-   dulu lalu penanda diganti 'drive:'. Bila unggah gagal (offline), modul tetap di antrean dan dikirim ulang saat sinyal kembali.
+   Alur guru: pilih gambar -> disimpan di IndexedDB (tmp:) -> LKPD disimpan lokal -> saat sinkron ke server, gambar diunggah
+   dulu lalu penanda diganti 'drive:'. Bila unggah gagal (offline), LKPD tetap di antrean dan dikirim ulang saat sinyal kembali.
    Bergantung pada: soal-gambar.js (sg*), lkpd-drive.js (ldCall, ldCompress), lkpd-soal.js (lkq*), lkpd-editor.js (lke*). */
 var LKG={timer:null};
 
@@ -58,8 +58,8 @@ function lkgHapus(d,i,w){
  lkeRe();
 }
 
-/* ---------- Unggah ke Drive saat modul dikirim ---------- */
-/* Ganti tmp:/data: menjadi drive:<id> pada kuis modul m. Mengembalikan true bila ada yang berubah. Melempar galat bila unggah gagal. */
+/* ---------- Unggah ke Drive saat LKPD dikirim ---------- */
+/* Ganti tmp:/data: menjadi drive:<id> pada kuis LKPD m. Mengembalikan true bila ada yang berubah. Melempar galat bila unggah gagal. */
 async function lkgUploadModul(m){
  if(!m||!Array.isArray(m.quiz)||typeof sgUploadRef!=='function')return false;
  var ubah=false,base='LKPD_'+sgSlug(m.id,24);
@@ -77,7 +77,7 @@ async function lkgUploadModul(m){
 function lkgBelumTerunggah(m){return lkgModRefs(m).some(function(r){return r.indexOf('drive:')!==0})}
 
 /* ---------- Siapkan untuk offline (siswa) ---------- */
-/* Setelah daftar modul dimuat, unduh gambar kuis modul yang terbit agar tetap tampil saat sinyal hilang. Diam-diam, tidak mengganggu layar. */
+/* Setelah daftar LKPD dimuat, unduh gambar kuis LKPD yang terbit agar tetap tampil saat sinyal hilang. Diam-diam, tidak mengganggu layar. */
 function lkgPrefetch(){
  clearTimeout(LKG.timer);
  LKG.timer=setTimeout(function(){
@@ -105,7 +105,7 @@ if(typeof lkioExport==='function'){
    var mods=scope==='one'?(LKPD_MODULES||[]).filter(function(x){return x.id===id}):(LKPD_MODULES||[]);
    n=mods.filter(lkgModAda).length;
   }catch(e){}
-  if(n)setTimeout(function(){toast(n+' modul punya soal bergambar. Gambar tidak ikut diekspor ke Excel.')},1800);
+  if(n)setTimeout(function(){toast(n+' LKPD punya soal bergambar. Gambar tidak ikut diekspor ke Excel.')},1800);
   return r;
  };
 }

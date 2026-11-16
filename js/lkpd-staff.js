@@ -1,11 +1,11 @@
 /* lkpd-staff.js: alur LKPD Praktik yang disederhanakan untuk Admin dan Guru.
    Dua tingkat saja, tanpa berputar:
-     1. Daftar modul per kelas (kartu ringkas: Kelola, Tampil/Sembunyi).
-     2. Kelola modul: satu halaman berisi tab Pengumpulan, Analisis, Pengaturan,
+     1. Daftar LKPD per kelas (kartu ringkas: Kelola, Tampil/Sembunyi).
+     2. Kelola LKPD: satu halaman berisi tab Pengumpulan, Analisis, Pengaturan,
         dengan tombol Pratinjau, Edit isi, dan Ekspor di bagian atas.
    Detail pengumpulan (koreksi nilai), editor, dan pratinjau memakai layar lama; tombol kembali selalu
    mengarah ke halaman Kelola modul. Siswa tidak terpengaruh. Memuat ulang fungsi lama tanpa mengubahnya. */
-var LKS={id:null,tab:'kumpul',f:'ujian'};
+var LKS={id:null,tab:'kumpul',f:'ujian',tata:false};
 (function(){var st=document.createElement('style');st.textContent=
 '.lks-card{display:grid;gap:8px}.lks-acts{display:flex;gap:6px;flex-wrap:wrap}.lks-acts .grow{flex:1 1 auto}'+
 '.lks-tabs{position:sticky;top:0;z-index:2;background:var(--bg,var(--surface));padding:4px 0}'+
@@ -20,11 +20,11 @@ function lksIsLat(x){try{return lkmModeOf(x)==='latihan'}catch(e){return false}}
 function lksFlags(){try{return typeof lkiAll==='function'?lkiAll():{}}catch(e){return {}}}
 function lksRev(){try{return typeof lkiRev==='function'?lkiRev():{}}catch(e){return {}}}
 
-/* ---------- Tingkat 1: daftar modul ---------- */
+/* ---------- Tingkat 1: daftar LKPD ---------- */
 function lksList(){
  var kb=kelasBoleh();if(kb.indexOf(S.kelas)<0)S.kelas=kb[0];
  var k=lkcKelasInfo(S.kelas),mods=lkcModules(S.kelas,true);
- var cards=mods.map(function(m){
+ var cardsArr=mods.map(function(m){
   var c=lkmCfg(m),recs=lkcRecs(m,true),uj=recs.filter(function(x){return !lksIsLat(x)}),pub=lkmPub(m);
   var belum=uj.filter(function(x){return !lkHasK(x)}).length;
   var avg=uj.length?Math.round(uj.reduce(function(t,x){return t+lkNilai(x)},0)/uj.length):0;
@@ -32,21 +32,24 @@ function lksList(){
   return '<article class="card job lks-card"><div class="row sb"><h3 class="grow">'+lkEsc(m.title)+'</h3><span class="pill '+(pub?'ok':'warn')+'">'+(pub?'Tampil':'Tersembunyi')+'</span></div>'+
    '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(m.duration)+' menit</span><span>'+m.steps.length+' langkah, '+m.quiz.length+' soal</span></div>'+
    '<div class="lkm-tags"><span class="pill '+(c.mode==='latihan'?'ok':'warn')+'">'+(c.mode==='latihan'?'Latihan':'Ujian')+'</span><span class="pill plain">'+lkEsc(sum)+'</span>'+(belum?'<span class="pill bad">'+belum+' perlu dikoreksi</span>':'')+'</div>'+
-   '<div class="lks-acts"><button type="button" class="btn primary small grow" data-act="lks-open" data-v="'+lkEsc(m.id)+'">Kelola modul</button>'+
+   '<div class="lks-acts"><button type="button" class="btn primary small grow" data-act="lks-open" data-v="'+lkEsc(m.id)+'">Kelola LKPD</button>'+
    '<button type="button" class="btn small" data-act="lk-toggle" data-v="'+lkEsc(m.id)+'">'+(pub?'Sembunyikan':'Tampilkan')+'</button></div></article>';
- }).join('');
- var more='<details class="lks-more"'+(typeof LKIO!=='undefined'&&LKIO.imp?' open':'')+'><summary>Lainnya: tampil massal, impor dan ekspor Excel</summary>'+
+ });
+ var cards=typeof lkElGroup==='function'?lkElGroup(mods,cardsArr):cardsArr.join('');
+ var tataOpen=LKS.tata||(typeof LKIO!=='undefined'&&LKIO.imp);
+ var more=tataOpen?'<section class="card lks-more"><div class="row sb"><h3>Tata Kelola LKPD</h3><button type="button" class="btn small" data-act="lks-tata">Tutup</button></div><p class="note">Tampilkan atau sembunyikan semua LKPD kelas ini, serta impor dan ekspor Excel.</p>'+
   '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small" data-act="lkm-showall">Tampilkan semua</button><button type="button" class="btn small" data-act="lkm-hideall">Sembunyikan semua</button></div>'+
-  (typeof lkioHtml==='function'?lkioHtml():'')+'</details>';
- return '<div class="row sb"><div><h2>'+lkEsc(k.judul)+'</h2><p class="note">'+lkEsc(k.sub)+'</p></div><span class="pill plain">'+mods.length+' modul</span></div>'+
-  '<div class="lks-acts"><button type="button" class="btn primary small" data-act="lkc-new">+ Modul baru</button><button type="button" class="btn small" data-act="lkc-rekap">Rekap Pengumpulan LKPD</button></div>'+
-  '<p class="lks-hint">Ketuk Kelola modul untuk melihat pengumpulan, analisis, pengaturan, dan mengedit isi modul dalam satu tempat.'+(kb.length>1?' Ganti kelas lewat menu di dasbor.':'')+'</p>'+
-  '<div class="jobs">'+(cards||'<div class="card muted">Belum ada modul untuk kelas ini.</div>')+'</div>'+more;
+  (typeof lkioHtml==='function'?lkioHtml():'')+'</section>':'';
+ return '<div class="row sb"><div><h2>'+lkEsc(k.judul)+'</h2><p class="note">'+lkEsc(k.sub)+'</p></div><span class="pill plain">'+mods.length+' LKPD</span></div>'+
+  '<div class="lks-acts"><button type="button" class="btn primary small" data-act="lkc-new">+ LKPD baru</button><button type="button" class="btn small" data-act="lkc-rekap">Rekap Pengumpulan LKPD</button></div>'+
+  '<div class="lks-acts"><button type="button" class="btn small" data-act="lks-tata" aria-expanded="'+(!!tataOpen)+'">Tata Kelola LKPD</button></div>'+more+
+  '<p class="lks-hint">Ketuk Kelola LKPD untuk melihat pengumpulan, analisis, pengaturan, dan mengedit isi LKPD dalam satu tempat.'+(kb.length>1?' Ganti kelas lewat menu di dasbor.':'')+'</p>'+
+  '<div class="jobs">'+(cards||'<div class="card muted">Belum ada LKPD untuk kelas ini.</div>')+'</div>';
 }
 
-/* ---------- Tingkat 2: kelola satu modul ---------- */
+/* ---------- Tingkat 2: kelola satu LKPD ---------- */
 function lksTabs(){
- return '<div class="lks-tabs"><div class="seg" role="tablist" aria-label="Kelola modul">'+[['kumpul','Pengumpulan'],['analisis','Analisis'],['atur','Pengaturan']].map(function(t){
+ return '<div class="lks-tabs"><div class="seg" role="tablist" aria-label="Kelola LKPD">'+[['kumpul','Pengumpulan'],['analisis','Analisis'],['atur','Pengaturan']].map(function(t){
   return '<button type="button" role="tab" data-act="lks-tab" data-v="'+t[0]+'" aria-pressed="'+(LKS.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div></div>';
 }
 function lksKumpul(m){
@@ -66,7 +69,7 @@ function lksKumpul(m){
    '<div class="lks-acts">'+(f?'<span class="pill '+(bad?'bad':'warn')+'">'+(bad?'Cek nilai':'Perlu dicek')+'</span>':rv[x.id]?'<span class="pill ok" title="'+lkEsc('Ditinjau oleh '+rv[x.id].oleh)+'">Ditinjau</span>':'')+'<button type="button" class="btn small primary" data-act="lk-detail" data-v="'+lkEsc(x.id)+'">'+(lkHasK(x)?'Lihat detail':'Detail dan koreksi')+'</button></div></article>';
  }).join('');
  return '<div class="stats"><div class="card"><span class="label">Terkumpul</span><b class="mono">'+rows.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div><div class="card"><span class="label">Perlu koreksi</span><b class="mono">'+belumK+'</b></div></div>'+chips+
-  (list||'<div class="card muted">Belum ada pengumpulan untuk modul ini.</div>')+
+  (list||'<div class="card muted">Belum ada pengumpulan untuk LKPD ini.</div>')+
   '<section class="card"><h3>Belum mengumpulkan ('+tdk.length+')</h3>'+(tdk.length?'<p class="note">'+tdk.map(function(u){return lkEsc(u.nama)}).join(', ')+'</p>':'<p class="muted">Semua siswa kelas ini sudah mengumpulkan, atau data siswa belum tersedia.</p>')+'</section>';
 }
 function lksAnalisis(m){
@@ -87,7 +90,7 @@ function lksHub(){
   if(LKS.tab==='atur'){lksOpenAtur(m);body=lkmPanel()}
   else body=lksKumpul(m)}
  var xp=(typeof lkioOk==='function'&&lkioOk())?'<button type="button" class="btn small" data-lkio="exp-one" data-v="'+lkEsc(m.id)+'">Ekspor</button>':'';
- return '<div class="row"><button type="button" class="btn small" data-act="lks-list">‹ Daftar modul '+lkEsc(lkcKelasInfo(S.kelas).judul)+'</button></div>'+
+ return '<div class="row"><button type="button" class="btn small" data-act="lks-list">‹ Daftar LKPD '+lkEsc(lkcKelasInfo(S.kelas).judul)+'</button></div>'+
   '<section class="card lks-card"><div class="row sb"><h2 class="grow">'+lkEsc(m.title)+'</h2><span class="pill '+(pub?'ok':'warn')+'">'+(pub?'Tampil':'Tersembunyi')+'</span></div>'+
   '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(m.duration)+' menit</span><span>'+(c.mode==='latihan'?'Latihan':'Ujian')+'</span></div>'+
   '<div class="lks-acts"><button type="button" class="btn small" data-act="lks-preview" data-v="'+lkEsc(m.id)+'">Pratinjau</button><button type="button" class="btn small" data-act="lks-edit" data-v="'+lkEsc(m.id)+'">Edit isi</button>'+xp+
@@ -96,8 +99,8 @@ function lksHub(){
 }
 
 
-/* Perbaikan sekali jalan: modul bawaan yang sudah terlanjur disembunyikan belum bisa dibaca siswa, sehingga di sisi siswa
-   modul itu kembali memakai versi bawaan (tampil). Tandai agar izin baca ikut diperbarui saat sinkron berikutnya. */
+/* Perbaikan sekali jalan: LKPD bawaan yang sudah terlanjur disembunyikan belum bisa dibaca siswa, sehingga di sisi siswa
+   LKPD itu kembali memakai versi bawaan (tampil). Tandai agar izin baca ikut diperbarui saat sinkron berikutnya. */
 function lksHeal(){
  try{
   if(LKS.healed||!Cloud.on||!S.user||!isStaff())return;
@@ -115,13 +118,13 @@ viewLKPD=function(){
  lksHeal();
  if(LK.detail||LK.editor){LKA.id=null;return _lksView()}
  if(LK.open&&LK.tab==='editor'){LK.open=false;LK.tab='materi'}   /* daftar Editor Guru lama tidak dipakai lagi */
- if(LK.open){LKA.id=null;return _lksView()}                      /* pratinjau dan rekap semua modul */
+ if(LK.open){LKA.id=null;return _lksView()}                      /* pratinjau dan rekap semua LKPD */
  if(LKS.id){return lksHub()}
  LKA.id=null;LKM.edit=null;LKM.d=null;
  return lksList();
 };
 
-/* Tombol kembali HP: dari Kelola modul ke daftar modul */
+/* Tombol kembali HP: dari Kelola LKPD ke daftar LKPD */
 var _lksBack=bkBack;
 bkBack=function(){
  if(lksOn()&&LKS.id&&!LK.open&&!LK.detail&&!LK.editor&&V.mode==='list'&&!document.querySelector('.ui-ov')){
@@ -134,10 +137,11 @@ bkBack=function(){
 document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-act]');if(!b)return;
  var a=b.dataset.act,v=b.dataset.v;
- /* pilih kelas dari menu/beranda: selalu mulai dari daftar modul */
+ /* pilih kelas dari menu/beranda: selalu mulai dari daftar LKPD */
  if(a==='menu'&&String(v).indexOf('lkpd:')===0){LKS.id=null;LKA.id=null;LKM.edit=null;LKM.d=null;return}
  if(!isStaff())return;
  if(a==='lks-open'){LKS.id=v;LKS.tab='kumpul';LKS.f='ujian';LKM.edit=null;LKM.d=null;LK.open=false;LK.detail=null;LK.editor=null;LK.preview=false;render();window.scrollTo(0,0)}
+ else if(a==='lks-tata'){LKS.tata=!LKS.tata;if(!LKS.tata&&typeof LKIO!=='undefined')LKIO.imp=null;render()}
  else if(a==='lks-list'){LKS.id=null;LKA.id=null;LKM.edit=null;LKM.d=null;render();window.scrollTo(0,0)}
  else if(a==='lks-tab'){LKS.tab=v;LKM.edit=null;LKM.d=null;if(v==='analisis'){var m=lksMod();if(m)LKA.mode=lkmCfg(m).mode==='latihan'?'latihan':'ujian'}render()}
  else if(a==='lks-f'){LKS.f=v;render()}
@@ -153,7 +157,7 @@ document.addEventListener('click',function(e){
 
 /* Tombol Tampilkan/Sembunyikan dan ceklis "Tampilkan ke siswa" di Pengaturan selalu sama.
    - Tombol ditekan: ceklis ikut berubah (sebelumnya salinan lama, dan Simpan bisa menimpa balik).
-   - Ceklis diubah: status modul langsung berubah, tombol dan label ikut. */
+   - Ceklis diubah: status LKPD langsung berubah, tombol dan label ikut. */
 document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-act="lk-toggle"]');
  if(!b||!lksOn())return;

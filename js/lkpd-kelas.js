@@ -1,5 +1,5 @@
 /* lkpd-kelas.js: LKPD Praktik disusun per kelas dengan pola yang sama seperti Unit Ujian (pengganti Unit Ujian).
-   Daftar kartu per kelas -> buka modul. Guru: kelola modul (baru, edit, terbit/draft, pratinjau, rekap). */
+   Daftar kartu per kelas -> buka modul. Guru: kelola LKPD (baru, edit, terbit/draft, pratinjau, rekap). */
 LK.open=false;
 function lkcNum(id){var n=parseInt(String(id).split('-').pop(),10);return isNaN(n)?999:n}
 function lkcModules(kelas,staff){
@@ -17,7 +17,7 @@ function lkListView(){
   if(staff){
    var avg=recs.length?Math.round(recs.reduce(function(t,x){return t+lkNilai(x)},0)/recs.length):0,belum=recs.filter(function(x){return !lkHasK(x)}).length;
    st='<span class="pill plain">'+(recs.length?recs.length+' pengumpulan · rata-rata '+avg+(belum?' · '+belum+' belum dikoreksi':''):'Belum ada pengumpulan')+'</span>';
-   acts='<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn primary small" data-act="lkc-open" data-v="'+lkEsc(m.id)+'">Buka modul</button><button type="button" class="btn small" data-act="lkc-preview" data-v="'+lkEsc(m.id)+'">Pratinjau</button><button type="button" class="btn small" data-act="lkc-edit" data-v="'+lkEsc(m.id)+'">Edit</button><button type="button" class="btn small" data-act="lk-toggle" data-v="'+lkEsc(m.id)+'">'+(m.status==='published'&&m.active!==false?'Jadikan draft':'Terbitkan')+'</button></div>';
+   acts='<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn primary small" data-act="lkc-open" data-v="'+lkEsc(m.id)+'">Buka LKPD</button><button type="button" class="btn small" data-act="lkc-preview" data-v="'+lkEsc(m.id)+'">Pratinjau</button><button type="button" class="btn small" data-act="lkc-edit" data-v="'+lkEsc(m.id)+'">Edit</button><button type="button" class="btn small" data-act="lk-toggle" data-v="'+lkEsc(m.id)+'">'+(m.status==='published'&&m.active!==false?'Jadikan draft':'Terbitkan')+'</button></div>';
   }else{
    var l=recs.slice().sort(function(a,b){return b.ts-a.ts})[0];
    if(l){var v=lkNilai(l),ok=v>=S.kkm;cls=ok?'st-ok':'st-bad';st='<span class="pill '+(ok?'ok':'bad')+'">'+(ok?'Kompeten':'Belum kompeten')+' · '+v+'</span>'+(lkHasK(l)?'':' <span class="pill plain">Menunggu guru</span>')}
@@ -31,10 +31,10 @@ function lkListView(){
    '<div class="row sb" style="flex-wrap:wrap;gap:8px">'+st+'</div>'+acts+'</article>';
  });
  var cards=typeof lkElGroup==='function'?lkElGroup(mods,cardsArr):cardsArr.join('');
- var top=staff?'<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn primary small" data-act="lkc-new">+ Modul baru</button><button type="button" class="btn small" data-act="lkc-rekap">Rekap kelas</button></div>':'<div class="row"><button type="button" class="btn small" data-act="lkc-rekap">Riwayat saya</button></div>';
- return '<div class="row sb"><div><h2>'+lkEsc(k.judul)+'</h2><p class="note">'+lkEsc(k.sub)+'</p></div><span class="pill plain">'+mods.length+' modul</span></div>'+
-  '<p class="note">'+(staff?'Mode guru: kelola modul LKPD, lihat pengumpulan, dan beri nilai koreksi. Nilai dari guru menggantikan nilai otomatis.':'Mode siswa: kerjakan LKPD praktik, lampirkan foto bukti, lalu kirim. Nilai akhir ditentukan guru.')+' '+(kb.length>1?'Ganti kelas lewat menu di dasbor.':'Modul di sini khusus kelas kamu.')+'</p>'+top+
-  '<div class="jobs">'+(cards||'<div class="card muted">'+(staff?'Belum ada modul untuk kelas ini.':'Belum ada modul LKPD terbit untuk kelas ini. Hubungi guru.')+'</div>')+'</div>';
+ var top=staff?'<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn primary small" data-act="lkc-new">+ LKPD baru</button><button type="button" class="btn small" data-act="lkc-rekap">Rekap kelas</button></div>':'<div class="row"><button type="button" class="btn small" data-act="lkc-rekap">Riwayat saya</button></div>';
+ return '<div class="row sb"><div><h2>'+lkEsc(k.judul)+'</h2><p class="note">'+lkEsc(k.sub)+'</p></div><span class="pill plain">'+mods.length+' LKPD</span></div>'+
+  '<p class="note">'+(staff?'Mode guru: kelola LKPD, lihat pengumpulan, dan beri nilai koreksi. Nilai dari guru menggantikan nilai otomatis.':'Mode siswa: kerjakan LKPD praktik, lampirkan foto bukti, lalu kirim. Nilai akhir ditentukan guru.')+' '+(kb.length>1?'Ganti kelas lewat menu di dasbor.':'LKPD di sini khusus kelas kamu.')+'</p>'+top+
+  '<div class="jobs">'+(cards||'<div class="card muted">'+(staff?'Belum ada LKPD untuk kelas ini.':'Belum ada LKPD terbit untuk kelas ini. Hubungi guru.')+'</div>')+'</div>';
 }
 var viewLKPD0=viewLKPD;
 viewLKPD=function(){

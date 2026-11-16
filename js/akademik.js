@@ -113,7 +113,7 @@ function akGrupKey(m){
  if(id==='m_tsm'||id.indexOf('m_tsm_')===0||/^Konsentrasi Keahlian/i.test(k))return 'konsentrasi';
  return AK_GRUP.some(function(x){return x[0]===m.kelompok})?m.kelompok:'kejuruan';
 }
-/* judul LKPD (mis. soal modul LKPD di bank soal) bukan mata pelajaran */
+/* judul LKPD (mis. soal LKPD di bank soal) bukan mata pelajaran */
 function akBukanMapel(m){return /^\s*LKPD\b/i.test(String(m&&m.nama||''))}
 function akMapelAll(){
  var by={};AKD.D.mapel.forEach(function(m){by[m.id]=m});
@@ -345,7 +345,7 @@ function akMapelCard(m,child){
  var pg={};tg.forEach(function(t){pg[akNamaUser(t.guruId)]=1});var pn=Object.keys(pg);
  return '<div class="card"'+(m.aktif===false?' style="opacity:.6"':'')+(child?' style="margin-left:14px;'+(m.aktif===false?'opacity:.6':'')+'"':'')+'><div class="row sb"><b>'+esc(m.nama)+'</b><span class="mono note">'+esc(m.kode||'')+'</span></div>'+
   '<div class="row">'+akPill(m.kelompok==='umum'?'Umum':m.kelompok==='pilihan'?'Pilihan':'Kejuruan')+(m.komponen&&!child?akPill(m.komponen):'')+(m.fase?akPill('Fase '+m.fase):'')+((m.tingkat||[]).length?akPill('Kelas '+m.tingkat.join(', ')):akPill('Semua kelas'))+(m.jp?akPill(m.jp+' JP/minggu'):'')+(m.induk?akPill('Elemen CP','ok'):'')+(m.sekolah?akPill(akSekLabel(m.sekolah)):'')+(m.aktif===false?akPill('Arsip','warn'):'')+'</div>'+
-  '<div class="note">Pengampu: '+(pn.length?esc(pn.slice(0,3).join(', '))+(pn.length>3?' dan '+(pn.length-3)+' lainnya':''):'belum ada')+(mod?' · '+mod+' modul LKPD terkait':'')+'</div>'+
+  '<div class="note">Pengampu: '+(pn.length?esc(pn.slice(0,3).join(', '))+(pn.length>3?' dan '+(pn.length-3)+' lainnya':''):'belum ada')+(mod?' · '+mod+' LKPD terkait':'')+'</div>'+
   (m.induk&&typeof lkElDetail==='function'?lkElDetail(m.id):'')+
   (m.catatan?'<div class="note">'+esc(m.catatan)+'</div>':'')+
   (sk.length?'<details><summary class="note">'+sk.length+' unit SKKNI (Kepmenaker 147/2019)</summary>'+sk.map(function(c){return '<div class="note"><span class="mono">'+akSkkniKode(c)+'</span> '+esc(AKD_SKKNI[c])+'</div>'}).join('')+'</details>':'')+
@@ -426,7 +426,7 @@ function akFormHtml(){
    '<div><span class="label">Tingkat (kosong = semua)</span><div class="chips">'+AKTK.map(function(t){return '<label class="row" style="gap:6px"><input type="checkbox" data-akf="tingkat" data-akmulti="1" value="'+t+'"'+((o.tingkat||[]).indexOf(t)>-1?' checked':'')+'> '+t+'</label>'}).join('')+'</div></div>'+
    akFld('Sekolah (kosong = semua)',akSel('sekolah',[['','Semua sekolah']].concat(SCH_URUT.map(function(c){return [c,SCH_LIST[c].nama]})),o.sekolah))+
    akFld('Kode unit SKKNI (3 angka, pisahkan koma)',akInp('skkniTeks',(o.skkniTeks!=null?o.skkniTeks:(o.skkni||[]).join(', ')),'018, 019, 020'))+
-   akFld('Kata kunci modul LKPD (pisahkan koma)',akInp('kataTeks',(o.kataTeks!=null?o.kataTeks:(o.kata||[]).join(', ')),'engine, karburator'))+
+   akFld('Kata kunci LKPD (pisahkan koma)',akInp('kataTeks',(o.kataTeks!=null?o.kataTeks:(o.kata||[]).join(', ')),'engine, karburator'))+
    akFld('Sumber acuan',akInp('sumber',o.sumber))+akFld('Catatan',akInp('catatan',o.catatan));
  }else if(k==='tahun'){
   h+='<div class="two">'+akFld('Tahun ajaran',akInp('nama',o.nama,'2026/2027'))+akFld('Semester',akSel('semester',['Ganjil','Genap'],o.semester))+'</div>'+

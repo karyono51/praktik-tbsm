@@ -1,7 +1,7 @@
 /* lkpd-soal.js: soal evaluasi LKPD bentuk TKA (v51).
-   - Setiap modul LKPD bawaan memakai 10 soal yang diambil dari bank soal unitnya (js/soal-lkpd/*.js, 60 soal per unit):
+   - Setiap LKPD bawaan memakai 10 soal yang diambil dari bank soal unitnya (js/soal-lkpd/*.js, 60 soal per unit):
      6 PG, 2 PG kompleks, dan 2 PG kategori (Benar/Salah). Komposisi diubah lewat LKQ.MIX.
-   - Format soal modul (m.quiz), terbaca mundur oleh modul lama:
+   - Format soal LKPD (m.quiz), terbaca mundur oleh LKPD lama:
        PG        {q, o:[..], a:indeks, e}
        Kompleks  {t:'kompleks', q, o:[..], a:[indeks..], e}
        Kategori  {t:'kategori', q, rows:[[pernyataan, true|false]..], lab:['Benar','Salah'], e}
@@ -120,7 +120,7 @@ function lkqKeyHtml(q,i,a){
 }
 
 /* ---------- Pemasangan ke mesin LKPD ---------- */
-/* Modul bawaan memakai soal bank. Salinan tersimpan (hasil edit/pengaturan) dari modul bawaan yang belum bertanda quizV
+/* LKPD bawaan memakai soal bank. Salinan tersimpan (hasil edit/pengaturan) dari LKPD bawaan yang belum bertanda quizV
    ikut diperbarui; salinan yang sudah diedit guru lewat Editor LKPD bertanda quizV dan tidak ditimpa. */
 (function(){
  function apply(m){

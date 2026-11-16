@@ -11,7 +11,7 @@
   var h=prev();
   try{
    if(!S.user||!LK.open||LK.tab!=='riwayat'||LK.detail||LK.editor)return h;
-   /* 1. deretan tab modul (Editor Guru; Materi, Lembar Kerja, Evaluasi, Rekap) */
+   /* 1. deretan tab LKPD (Editor Guru; Materi, Lembar Kerja, Evaluasi, Rekap) */
    h=h.replace(/<div class="chips">(?:<button[^>]*data-act="lk-tab"[^>]*>[^<]*<\/button>)+<\/div>/g,'');
    /* 2. chip kelas: tidak perlu bila hanya satu kelas */
    h=h.replace(/<div class="chips lk-kf">([\s\S]*?)<\/div>/,function(m,inner){

@@ -1,4 +1,4 @@
-/* lkpd-cetak.js: cetak LKPD dengan kop sekolah, identitas modul, seluruh isi LKPD, dan spasi rapat.
+/* lkpd-cetak.js: cetak LKPD dengan kop sekolah, identitas LKPD, seluruh isi LKPD, dan spasi rapat.
    Berdiri sendiri: tidak mengubah lkpd.js. Menangkap tombol Cetak lebih dulu, lalu menyusun lembar cetak. */
 (function(){
 /* SEK (nama, program, alamat sekolah aktif) didefinisikan di sekolah.js */

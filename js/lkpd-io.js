@@ -158,9 +158,9 @@ function lkioExport(scope,id){
  if(scope==='one'){var m=LKPD_MODULES.find(function(x){return x.id===id});if(!m){toast('Modul tidak ditemukan');return}mods=[m];tag=m.id}
  else if(scope==='all'){mods=LKPD_MODULES.slice();tag='semua'}
  else{mods=lkcModules(S.kelas,true);tag='kelas-'+S.kelas}
- if(!mods.length){toast('Tidak ada modul untuk diekspor');return}
+ if(!mods.length){toast('Tidak ada LKPD untuk diekspor');return}
  var lossy=lkioWrite(mods,'lkpd-modul-'+tag+'-'+ymd(Date.now())+'.xlsx');
- toast(mods.length+' modul diekspor'+(lossy?' ('+lossy+' soal melebihi batas kolom, sebagian terpotong)':''));
+ toast(mods.length+' LKPD diekspor'+(lossy?' ('+lossy+' soal melebihi batas kolom, sebagian terpotong)':''));
 }
 function lkioHelp(){
  return [['Sheet / kolom','Aturan'],
@@ -551,7 +551,7 @@ async function lkioApply(){
  var tot=m.add.length+m.upd.length;if(!tot)return;
  var nb=m.upd.filter(function(x){return x.builtin}).length;
  if(nb){
-  var ok=await uiConfirm(nb+' modul bawaan akan diganti dengan salinan dari berkas ini. Berkas bawaan tidak berubah dan data pengumpulan siswa tetap aman. Lanjutkan?',{ok:'Terapkan'});
+  var ok=await uiConfirm(nb+' LKPD bawaan akan diganti dengan salinan dari berkas ini. Berkas bawaan tidak berubah dan data pengumpulan siswa tetap aman. Lanjutkan?',{ok:'Terapkan'});
   if(!ok)return;
  }
  LKIO.busy=true;render();
@@ -559,7 +559,7 @@ async function lkioApply(){
   m.add.concat(m.upd).forEach(function(x){lkModuleStore(x.m)});
  }catch(e){toast('Gagal menyimpan: '+((e&&e.message)||e))}
  finally{LKIO.busy=false;LKIO.imp=null}
- toast(tot+' modul diproses');
+ toast(tot+' LKPD diproses');
  render();
  setTimeout(function(){try{if(Cloud.on)Cloud.flush()}catch(e){}},1500);
 }
@@ -571,7 +571,7 @@ function lkioOk(){return !!S.user&&isStaff()}
 function lkioHtml(){
  if(!lkioOk())return '';
  var n=lkcModules(S.kelas,true).length,N=(LKPD_MODULES||[]).length;
- var h='<div class="row" style="flex-wrap:wrap;gap:6px"><label class="btn small filebtn">Impor modul<input id="lkioimp" type="file" accept=".xlsx,.xls,.csv" hidden></label>'+
+ var h='<div class="row" style="flex-wrap:wrap;gap:6px"><label class="btn small filebtn">Impor LKPD<input id="lkioimp" type="file" accept=".xlsx,.xls,.csv" hidden></label>'+
   '<button type="button" class="btn small" data-lkio="tpl">Template</button>'+
   '<button type="button" class="btn small" data-lkio="exp-kelas"'+(n?'':' disabled')+'>Ekspor '+lkEsc(lkcKelasInfo(S.kelas).judul)+' ('+n+')</button>'+
   '<button type="button" class="btn small" data-lkio="exp-all"'+(N?'':' disabled')+'>Ekspor semua ('+N+')</button></div>';
@@ -580,14 +580,14 @@ function lkioHtml(){
   var tot=m.add.length+m.upd.length,nb=m.upd.filter(function(x){return x.builtin}).length,bad={};
   m.err.forEach(function(x){bad[x.id]=(bad[x.id]||0)+1});
   var errIds=Object.keys(bad);
-  h+='<div class="card"><h3>Pratinjau impor modul</h3><div class="row" style="flex-wrap:wrap;gap:6px"><span class="pill ok">'+m.add.length+' baru</span><span class="pill">'+m.upd.length+' diperbarui</span>'+
-   '<span class="pill plain">'+m.same+' tanpa perubahan</span><span class="pill '+(errIds.length?'bad':'plain')+'">'+errIds.length+' modul ditolak</span></div>'+
+  h+='<div class="card"><h3>Pratinjau impor LKPD</h3><div class="row" style="flex-wrap:wrap;gap:6px"><span class="pill ok">'+m.add.length+' baru</span><span class="pill">'+m.upd.length+' diperbarui</span>'+
+   '<span class="pill plain">'+m.same+' tanpa perubahan</span><span class="pill '+(errIds.length?'bad':'plain')+'">'+errIds.length+' LKPD ditolak</span></div>'+
    (m.add.length||m.upd.length?'<ul class="plain note">'+m.add.slice(0,6).map(function(x){return '<li>Baru: '+esc(x.m.id)+' · '+esc(x.title)+'</li>'}).join('')+
     m.upd.slice(0,6).map(function(x){return '<li>Perbarui: '+esc(x.m.id)+' · '+esc(x.title)+(x.builtin?' (bawaan)':'')+'</li>'}).join('')+
     (tot>12?'<li>dan '+(tot-Math.min(m.add.length,6)-Math.min(m.upd.length,6))+' lainnya</li>':'')+'</ul>':'')+
-   (nb?'<p class="note">'+nb+' modul bawaan akan diganti dengan salinan. Berkas bawaan tidak berubah.</p>':'')+
-   (m.add.some(function(x){return x.m.status!=='published'})||m.upd.some(function(x){return x.m.status!=='published'})?'<p class="note">Modul berstatus Draft tidak terlihat siswa sampai diterbitkan.</p>':'')+
-   (m.err.length?'<p class="note"><b>Ditolak (modul diproses utuh, tidak ada yang disimpan sebagian):</b></p><ul class="plain note">'+m.err.slice(0,10).map(function(x){return '<li>'+esc(x.id)+' · sheet '+esc(x.sheet)+(x.line?' baris '+x.line:'')+': '+esc(x.msg)+'</li>'}).join('')+(m.err.length>10?'<li>dan '+(m.err.length-10)+' lainnya</li>':'')+'</ul>':'')+
+   (nb?'<p class="note">'+nb+' LKPD bawaan akan diganti dengan salinan. Berkas bawaan tidak berubah.</p>':'')+
+   (m.add.some(function(x){return x.m.status!=='published'})||m.upd.some(function(x){return x.m.status!=='published'})?'<p class="note">LKPD berstatus Draft tidak terlihat siswa sampai diterbitkan.</p>':'')+
+   (m.err.length?'<p class="note"><b>Ditolak (LKPD diproses utuh, tidak ada yang disimpan sebagian):</b></p><ul class="plain note">'+m.err.slice(0,10).map(function(x){return '<li>'+esc(x.id)+' · sheet '+esc(x.sheet)+(x.line?' baris '+x.line:'')+': '+esc(x.msg)+'</li>'}).join('')+(m.err.length>10?'<li>dan '+(m.err.length-10)+' lainnya</li>':'')+'</ul>':'')+
    '<div class="row"><button type="button" class="btn" data-lkio="cancel"'+(LKIO.busy?' disabled':'')+'>Batal</button><button type="button" class="btn primary grow" data-lkio="apply"'+(tot&&!LKIO.busy?'':' disabled')+'>'+(LKIO.busy?'Menyimpan…':'Terapkan '+tot+' modul')+'</button></div></div>';
  }
  return h;
@@ -596,7 +596,7 @@ var _lkioList=lkListView;
 lkListView=function(){
  var h=_lkioList.apply(this,arguments);
  if(!lkioOk())return h;
- /* tombol Ekspor di tiap kartu modul */
+ /* tombol Ekspor di tiap kartu LKPD */
  try{
   lkcModules(S.kelas,true).forEach(function(m){
    var k='data-act="lkc-edit" data-v="'+lkEsc(m.id)+'">Edit</button>',i=h.indexOf(k);
@@ -604,7 +604,7 @@ lkListView=function(){
   });
  }catch(e){}
  /* blok impor/ekspor setelah baris tombol Modul baru */
- var key='data-act="lkc-new">+ Modul baru</button>',j=h.indexOf(key);
+ var key='data-act="lkc-new">+ LKPD baru</button>',j=h.indexOf(key);
  if(j<0)return lkioHtml()+h;
  var end=h.indexOf('</div>',j);
  return end<0?h+lkioHtml():h.slice(0,end+6)+lkioHtml()+h.slice(end+6);

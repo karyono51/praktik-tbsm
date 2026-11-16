@@ -1,15 +1,15 @@
-/* ukk-kelola.js: tata kelola UKK untuk guru dan admin, disamakan dengan pola modul LKPD.
+/* ukk-kelola.js: tata kelola UKK untuk guru dan admin, disamakan dengan pola LKPD.
    ALUR (dua tingkat, seperti LKPD Praktik):
      1. Daftar unit UKK per kelas (kartu ringkas: Kelola unit, Tampilkan/Sembunyikan, + UKK baru).
      2. Kelola unit: satu halaman dengan tab Hasil penilaian dan Pengaturan, tombol Pratinjau, Edit isi, Duplikat.
    TEKNIS: dokumen UKK ikut koleksi lkpd_modules (penanda jenis:'ukk'), sehingga sinkronisasi Appwrite, antrean offline, izin
-   label lkpdeditor, dan penyimpanan lokal sama persis dengan modul LKPD. Penyimpanan lewat satu pintu (ukkStore) yang memeriksa
+   label lkpdeditor, dan penyimpanan lokal sama persis dengan LKPD. Penyimpanan lewat satu pintu (ukkStore) yang memeriksa
    ID, status, waktu, butir, jadwal, dan ukuran dokumen (maks. sekitar 450 KB). Unit bawaan (UKK-1..4) tidak dapat dihapus,
    hanya disembunyikan (draft), dan hasil edit disimpan sebagai salinan penimpa; unit buatan sendiri dapat dihapus (diarsipkan,
    nilai lama tetap terbaca di rekap).
    PENGEDITAN: editor terstruktur bertab (Info, Identitas lembar, Butir pemeriksaan), baris terpisah dengan tombol naik, turun,
    hapus, Tempel banyak, lencana masalah per tab, draf otomatis di perangkat, Simpan dan Pratinjau. */
-var UKS={id:null,tab:'hasil',f:'penilaian',set:null,ed:null,prev:null};
+var UKS={id:null,tab:'hasil',f:'penilaian',set:null,ed:null,prev:null,tata:false};
 var UKK_BASE=JOBS.filter(function(j){return j.ukk}).map(function(j){return j});
 var UKK_ARSIP0=JOBS_ARSIP.slice();
 var UKK_MAXBYTES=450*1024,UKK_MAXITEM=60;
@@ -131,10 +131,17 @@ function ukkNilai(r){return Number(r.score)||0}
 /* ---------- Tingkat 1: daftar unit ---------- */
 window.ukkTopBar=function(){
  if(!isStaff())return '';
- return '<div class="lks-acts"><button type="button" class="btn primary small" data-act="ukm-baru">+ UKK baru</button><button type="button" class="btn small" data-act="ukm-showall">Tampilkan semua</button><button type="button" class="btn small" data-act="ukm-hideall">Sembunyikan semua</button></div>'+
-  '<div class="lks-acts"><button type="button" class="btn small primary" data-act="ukb-xls-kelas">Ekspor nilai kelas (Excel)</button></div>'+
-  (typeof ukiBar==='function'?ukiBar():'');
+ var buka=UKS.tata||!!UKS.imp;
+ var panel=buka?'<section class="card lks-more"><div class="row sb"><h3>Tata Kelola UKK</h3><button type="button" class="btn small" data-act="ukk-tata">Tutup</button></div><p class="note">Tampilkan atau sembunyikan semua UKK kelas ini, serta impor dan ekspor Excel.</p>'+
+  '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small" data-act="ukm-showall">Tampilkan semua</button><button type="button" class="btn small" data-act="ukm-hideall">Sembunyikan semua</button></div>'+
+  (typeof ukiBar==='function'?ukiBar():'')+'</section>':'';
+ return '<div class="lks-acts"><button type="button" class="btn primary small" data-act="ukm-baru">+ UKK baru</button><button type="button" class="btn small" data-act="ukb-xls-kelas">Ekspor nilai kelas (Excel)</button></div>'+
+  '<div class="lks-acts"><button type="button" class="btn small" data-act="ukk-tata" aria-expanded="'+buka+'">Tata Kelola UKK</button></div>'+panel;
 };
+document.addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-act="ukk-tata"]');if(!b||!isStaff())return;
+ UKS.tata=!UKS.tata;if(!UKS.tata)UKS.imp=null;render();
+},true);
 window.ukkCardInfo=function(j){
  var c=j.cfg||{},tags='';
  if(isStaff()){
@@ -154,7 +161,7 @@ window.ukkCardInfo=function(j){
 window.ukkCardAction=function(j){
  var id=esc(j.id);
  if(isStaff()){
-  return '<div class="lks-acts"><button type="button" class="btn primary small grow" data-act="ukm-open" data-v="'+id+'">Kelola unit</button>'+
+  return '<div class="lks-acts"><button type="button" class="btn primary small grow" data-act="ukm-open" data-v="'+id+'">Kelola UKK</button>'+
    '<button type="button" class="btn small" data-act="ukm-toggle" data-v="'+id+'">'+(ukkTampil(j)?'Sembunyikan':'Tampilkan')+'</button></div>';
  }
  var msg=ukkKunci(j),sisa=ujiSisaDraft?ujiSisaDraft(j.id,j.menit):null;
@@ -262,7 +269,7 @@ function ukeIssues(d){
  var s=d.S,I=[],id=ukeT(s.id);
  function add(tab,msg){I.push({tab:tab,msg:msg})}
  if(!/^[A-Za-z0-9_-]{2,32}$/.test(id))add('info','ID unit wajib 2–32 karakter: huruf, angka, _ atau -');
- else if(d.isNew&&ukkIdTaken(id))add('info','ID "'+id+'" sudah dipakai unit atau modul lain');
+ else if(d.isNew&&ukkIdTaken(id))add('info','ID "'+id+'" sudah dipakai unit atau LKPD lain');
  if(!ukeT(s.title))add('info','Judul unit belum diisi');else if(ukeT(s.title).length>180)add('info','Judul maksimal 180 karakter');
  if(!ukeT(s.unit))add('info','Tipe kendaraan / unit belum diisi');else if(ukeT(s.unit).length>120)add('info','Tipe kendaraan maksimal 120 karakter');
  if(!KELAS[s.kelas])add('info','Kelas tidak valid');

@@ -1,6 +1,6 @@
 /* hapus-nilai.js: Admin menghapus seluruh nilai yang sudah masuk (di server dan di perangkat ini).
    Menu: Administrasi > Hapus nilai. Hanya peran aktif Admin (can('hapus')); izin hapus juga dijaga server (label admin).
-   Tidak ikut terhapus: akun, modul LKPD, bank soal, sesi ujian, observasi guru, dan berkas foto di Google Drive. */
+   Tidak ikut terhapus: akun, LKPD, bank soal, sesi ujian, observasi guru, dan berkas foto di Google Drive. */
 var HN={sel:{hasil:true,lkpd:true,bukti:true,ujian:true},cnt:null,hit:false,ket:'',busy:false,log:[],prog:''};
 var HN_URUT=['hasil','lkpd','bukti','ujian'];
 var HN_KOL={
@@ -98,7 +98,7 @@ function viewHapusNilai(){
  var ok=HN.ket.trim().toUpperCase()===HN_FRASA&&hnTotal()>=0&&HN_URUT.some(function(k){return HN.sel[k]})&&!HN.busy;
  var log=HN.log.length?'<section class="card"><h3>Hasil</h3><ul class="plain">'+HN.log.map(function(l){return '<li>'+esc(l)+'</li>'}).join('')+'</ul></section>':'';
  return '<div class="row sb"><h2>Hapus nilai</h2><span class="pill bad">Admin</span></div>'+
-  '<section class="card"><p class="note">Menghapus nilai siswa yang sudah masuk, di server dan di perangkat ini. <b>Tidak bisa dibatalkan.</b> Akun, modul LKPD, bank soal, sesi ujian, dan observasi guru tidak ikut terhapus. Perangkat lain perlu menekan Segarkan.</p>'+
+  '<section class="card"><p class="note">Menghapus nilai siswa yang sudah masuk, di server dan di perangkat ini. <b>Tidak bisa dibatalkan.</b> Akun, LKPD, bank soal, sesi ujian, dan observasi guru tidak ikut terhapus. Perangkat lain perlu menekan Segarkan.</p>'+
   '<div class="row"><button type="button" class="btn small" data-act="xlsrekap">Unduh Excel rekap dulu</button></div></section>'+
   rows+
   '<section class="card"><label for="hn-ket"><b>Ketik '+HN_FRASA+' untuk melanjutkan</b></label><input id="hn-ket" type="text" autocomplete="off" autocapitalize="characters" value="'+esc(HN.ket)+'"'+(HN.busy?' disabled':'')+' style="margin:8px 0">'+

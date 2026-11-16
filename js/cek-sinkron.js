@@ -32,13 +32,13 @@ function ckNama(col,o){
  if(col==='hasil')return (o.siswa||'?')+' · '+(o.jobId||'')+' · '+tgl(o.ts);
  if(col==='lkpd')return (o.siswa||'?')+' · '+(o.moduleTitle||o.moduleId||'')+' · '+tgl(o.ts);
  if(col==='lkpd_bukti')return 'Foto bukti · '+(o.label||'')+' · '+tgl(o.ts);
- if(col==='lkpd_modules')return 'Modul · '+(o.title||o.id);
+ if(col==='lkpd_modules')return 'LKPD · '+(o.title||o.id);
  if(col==='soal_hasil')return (o.siswa||'?')+' · '+(o.mode==='latihan'?'Latihan':(o.sesiJudul||'Ujian'))+' · '+tgl(o.ts)+' · nilai '+o.score;
  if(col==='soal_sesi')return 'Sesi · '+(o.judul||o.id);
  if(col==='banksoal')return 'Soal · '+(o.topik||o.mapel||o.id)+(o.q?' · '+String(o.q).slice(0,40):'');
  return o.nama||o.username||o.id;
 }
-var CK_NAMA={akun:'Akun',hasil:'Hasil nilai',lkpd:'LKPD',lkpd_modules:'Modul LKPD',lkpd_bukti:'Foto bukti',observasi:'Observasi',soal_hasil:'Hasil ujian dan latihan soal',soal_sesi:'Sesi ujian soal',banksoal:'Bank soal'};
+var CK_NAMA={akun:'Akun',hasil:'Hasil nilai',lkpd:'LKPD',lkpd_modules:'LKPD',lkpd_bukti:'Foto bukti',observasi:'Observasi',soal_hasil:'Hasil ujian dan latihan soal',soal_sesi:'Sesi ujian soal',banksoal:'Bank soal'};
 function ckBsOn(){return typeof BS!=='undefined'&&typeof BSC!=='undefined'&&Cloud.on}
 function ckBsMuat(){if(ckBsOn()&&!BS.loaded&&!BS.loading&&typeof bsLoadLocal==='function')bsLoadLocal()}
 /* data bank soal yang belum terkirim ke server (bank soal memakai jalur sinkron sendiri) */

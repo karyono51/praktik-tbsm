@@ -13,7 +13,7 @@ function viewKatalog(){
       '<div class="row sb" style="flex-wrap:wrap;gap:8px">'+st+'</div>'+ukkCardAction(j)+'</article>';
   }).join('');
   return '<div class="row sb"><div><h2>'+k.judul+'</h2><p class="note">'+k.sub+'</p></div><span class="pill plain">'+list.length+' unit</span></div>'+
-    '<p class="note">'+(staff?'Mode guru: ketuk Kelola unit untuk melihat hasil penilaian, mengatur tampil, kesempatan, dan jadwal, serta pratinjau dan edit isi unit UKK. Hasil penilaian tercatat sebagai Penilaian.':'Mode siswa: latihan mandiri dengan pengukur waktu. Hasil tercatat sebagai Latihan.')+' '+(kb.length>1?'Ganti kelas lewat menu di dasbor.':'Unit di sini khusus kelas kamu.')+'</p>'+ukkTopBar()+'<div class="jobs">'+(jobs||'<div class="card"><p class="muted">Belum ada unit uji untuk kelas ini.</p></div>')+'</div>';
+    '<p class="note">'+(staff?'Mode guru: ketuk Kelola UKK untuk melihat hasil penilaian, mengatur tampil, kesempatan, dan jadwal, serta pratinjau dan edit isi unit UKK. Hasil penilaian tercatat sebagai Penilaian.':'Mode siswa: latihan mandiri dengan pengukur waktu. Hasil tercatat sebagai Latihan.')+' '+(kb.length>1?'Ganti kelas lewat menu di dasbor.':'Unit di sini khusus kelas kamu.')+'</p>'+ukkTopBar()+'<div class="jobs">'+(jobs||'<div class="card"><p class="muted">Belum ada unit uji untuk kelas ini.</p></div>')+'</div>';
 }
 
 function viewExam(){
@@ -89,7 +89,7 @@ function viewBeranda(){
  lkRefreshModules();var mine={};(S.lkpd||[]).forEach(function(x){if(isStaff()||x.sid===S.user.id)mine[x.moduleId]=1});
  var kc=kelasBoleh().map(function(c){
   var ms=LKPD_MODULES.filter(function(m){return m.kelas===c&&(isStaff()||(m.status==='published'&&m.active!==false))}),dn=ms.filter(function(m){return mine[m.id]}).length,pct=ms.length?Math.round(100*dn/ms.length):0;
-  return '<button type="button" class="kcard" data-act="menu" data-v="lkpd:'+c+'"><span class="num" aria-hidden="true">'+c+'</span><span class="kt"><b>'+KELAS[c].judul+'</b><span>'+KELAS[c].sub+'</span><span class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></span><span class="mono kn">'+dn+' dari '+ms.length+' modul LKPD '+(isStaff()?'sudah ada pengumpulan':'sudah dikerjakan')+'</span></span></button>'}).join('');
+  return '<button type="button" class="kcard" data-act="menu" data-v="lkpd:'+c+'"><span class="num" aria-hidden="true">'+c+'</span><span class="kt"><b>'+KELAS[c].judul+'</b><span>'+KELAS[c].sub+'</span><span class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></span><span class="mono kn">'+dn+' dari '+ms.length+' LKPD '+(isStaff()?'sudah ada pengumpulan':'sudah dikerjakan')+'</span></span></button>'}).join('');
  var tl=[['rekap','Rekap nilai','g1','menu']];if(can('observasi'))tl.push(['observasi','Observasi guru','g1','menu'],['observasi-siswa','Observasi LKPD Praktik','g3','menu'],['observasi-ukk','Observasi UKK','g2','menu']);if(can('akun'))tl.push(['akun','Akun','g3','menu']);if(!isStaff())tl.push(['banksoal','Latihan soal','g1','menu']);else if(typeof actRole==='function'&&actRole()!=='siswa')tl.push(['riwayatlatihan','Riwayat latihan','g3','menu']);tl.push(['cbtonline','CBT Online','g2','menu'],['drawer','Menu','g4','drawer']);
  var tiles=tl.map(function(t){return '<button type="button" class="tile" data-act="'+t[3]+'"'+(t[3]==='menu'?' data-v="'+t[0]+'"':'')+(t[0]==='banksoal'?' data-cepat="latihan"':'')+'><span class="ico '+t[2]+'">'+svg(ICO[t[0]==='drawer'?'menu':t[0]==='banksoal'?'latihan':t[0]],26)+'</span><span>'+t[1]+'</span></button>'}).join('');
  var rec=list.slice(0,3).map(function(r){var j=jobById(r.jobId);
@@ -105,7 +105,7 @@ function viewBeranda(){
  return '<section class="strip" aria-label="Ringkasan"><div><b class="mono">'+a[0]+'</b><span>'+(isStaff()?'data nilai':'latihan')+'</span></div><div><b class="mono">'+a[1]+'</b><span>rata-rata</span></div><div><b class="mono">'+Math.round(a[2]*100)+'<small>%</small></b><span>kompeten</span></div></section>'+
   secHead('menu','Pintasan')+'<div class="tiles n'+tl.length+'">'+tiles+'</div>'+
   secHead('kelas',kelasBoleh().length>1?'Pilih kelas':'Kelas saya')+'<div class="kcards">'+kc+'</div>'+
-  '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari modul LKPD pertama.</p>')+'</section>'+ob;
+  '<section class="recent">'+secHead('rekap','Terbaru',list.length?'<button type="button" class="link" data-act="menu" data-v="rekap">Lihat rekap</button>':'')+(rec||'<p class="muted">Belum ada nilai. Pilih kelas lalu mulai dari LKPD pertama.</p>')+'</section>'+ob;
 }
 
 /* ---- Form UKK: tampilan mengikuti tab Lembar Kerja LKPD (Identitas praktik + Hasil pemeriksaan: Komponen, Hasil aktual, Standar, Status, Catatan) ---- */

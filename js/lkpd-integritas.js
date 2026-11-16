@@ -3,7 +3,7 @@
    - Nilai tidak cocok: nilai tersimpan dibandingkan dengan hitung ulang dari isian siswa (nilai dihitung di perangkat siswa, jadi bisa diubah lewat API).
    - Terlalu cepat atau waktu tidak tercatat, semua langkah/K3 dicentang tanpa waktu yang wajar.
    - Isian analisis sangat singkat (25 poin analisis diberikan untuk isian apa pun).
-   - Isian analisis atau hasil aktual identik dengan siswa lain pada modul yang sama (kemungkinan salin).
+   - Isian analisis atau hasil aktual identik dengan siswa lain pada LKPD yang sama (kemungkinan salin).
    Hanya Ujian yang diperiksa. Tanda ini petunjuk, bukan vonis: keputusan tetap pada guru lewat Nilai koreksi. */
 var LKI={f:'ALL'};
 function lkiPay(x){try{return typeof x.payload==='string'?JSON.parse(x.payload||'{}'):(x.payload||{})}catch(e){return {}}}
@@ -19,7 +19,7 @@ function lkiScoreFor(m,d){
  return {practice:practice,theory:theory,final:Math.round(practice*(r.practiceWeight/100)+theory*(r.theoryWeight/100)),work:work,safe:safe};
 }
 function lkiMod(id){return (LKPD_MODULES||[]).filter(function(m){return m.id===id})[0]||null}
-/* indeks isian per modul untuk deteksi kemiripan: hanya pengiriman TERBARU tiap siswa */
+/* indeks isian per LKPD untuk deteksi kemiripan: hanya pengiriman TERBARU tiap siswa */
 function lkiIndeks(){
  var by={},ix={};
  schHasilList(S.lkpd||[]).forEach(function(x){
@@ -43,7 +43,7 @@ function lkiFlags(x,ix){
   try{
    var sc=lkiScoreFor(m,p);
    if(!isNaN(sc.practice+sc.theory+sc.final)&&(sc.practice!==x.practice||sc.theory!==x.theory||sc.final!==x.score))
-    out.push({k:'nilai',lv:'bad',t:'Nilai tersimpan ('+x.score+') berbeda dari hitung ulang isian ('+sc.final+'). Data mungkin diubah, atau modul diedit setelah dikirim.'});
+    out.push({k:'nilai',lv:'bad',t:'Nilai tersimpan ('+x.score+') berbeda dari hitung ulang isian ('+sc.final+'). Data mungkin diubah, atau LKPD diedit setelah dikirim.'});
    var det=Number(p.detik)||0,tgt=(Number(m.duration)||0)*60,semua=sc.work===m.steps.length&&sc.safe===m.safety.length;
    if(semua&&(!det||(tgt&&det<tgt*0.25)))out.push({k:'cepat',lv:'warn',t:'Semua langkah dan K3 dicentang'+(det?' dalam '+Math.max(1,Math.round(det/60))+' menit dari target '+m.duration+' menit.':' tanpa waktu pengerjaan tercatat.')});
    else if(det&&tgt&&det<tgt*0.25)out.push({k:'cepat',lv:'warn',t:'Dikerjakan '+Math.max(1,Math.round(det/60))+' menit dari target '+m.duration+' menit.'});
