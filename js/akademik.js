@@ -346,6 +346,7 @@ function akMapelCard(m,child){
  return '<div class="card"'+(m.aktif===false?' style="opacity:.6"':'')+(child?' style="margin-left:14px;'+(m.aktif===false?'opacity:.6':'')+'"':'')+'><div class="row sb"><b>'+esc(m.nama)+'</b><span class="mono note">'+esc(m.kode||'')+'</span></div>'+
   '<div class="row">'+akPill(m.kelompok==='umum'?'Umum':m.kelompok==='pilihan'?'Pilihan':'Kejuruan')+(m.komponen&&!child?akPill(m.komponen):'')+(m.fase?akPill('Fase '+m.fase):'')+((m.tingkat||[]).length?akPill('Kelas '+m.tingkat.join(', ')):akPill('Semua kelas'))+(m.jp?akPill(m.jp+' JP/minggu'):'')+(m.induk?akPill('Elemen CP','ok'):'')+(m.sekolah?akPill(akSekLabel(m.sekolah)):'')+(m.aktif===false?akPill('Arsip','warn'):'')+'</div>'+
   '<div class="note">Pengampu: '+(pn.length?esc(pn.slice(0,3).join(', '))+(pn.length>3?' dan '+(pn.length-3)+' lainnya':''):'belum ada')+(mod?' · '+mod+' modul LKPD terkait':'')+'</div>'+
+  (m.induk&&typeof lkElDetail==='function'?lkElDetail(m.id):'')+
   (m.catatan?'<div class="note">'+esc(m.catatan)+'</div>':'')+
   (sk.length?'<details><summary class="note">'+sk.length+' unit SKKNI (Kepmenaker 147/2019)</summary>'+sk.map(function(c){return '<div class="note"><span class="mono">'+akSkkniKode(c)+'</span> '+esc(AKD_SKKNI[c])+'</div>'}).join('')+'</details>':'')+
   (m.sumber?'<details><summary class="note">Sumber acuan</summary><div class="note">'+esc(m.sumber)+'</div></details>':'')+
@@ -353,6 +354,7 @@ function akMapelCard(m,child){
 }
 function akModulTerkait(m){
  try{
+  if(m.induk&&typeof lkElModulOf==='function'){var n0=lkElModulOf(m.id).length;if(n0)return n0}
   var ks=(m.kata||[]).map(akNorm).filter(Boolean);if(!ks.length||typeof LKPD_MODULES==='undefined')return 0;
   var tk=m.tingkat||[];
   return LKPD_MODULES.filter(function(x){if(tk.length&&tk.indexOf(x.kelas)<0)return false;var t=akNorm((x.title||'')+' '+(x.unit||''));return ks.some(function(k){return t.indexOf(k)>-1})}).length;

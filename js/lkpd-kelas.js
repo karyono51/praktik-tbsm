@@ -12,7 +12,7 @@ function lkcKelasInfo(k){return KELAS[k]||{judul:'Kelas '+k,sub:''}}
 function lkListView(){
  var staff=isStaff(),kb=kelasBoleh();if(kb.indexOf(S.kelas)<0)S.kelas=kb[0];
  var k=lkcKelasInfo(S.kelas),mods=lkcModules(S.kelas,staff);
- var cards=mods.map(function(m){
+ var cardsArr=mods.map(function(m){
   var recs=lkcRecs(m,staff),st,cls='',acts;
   if(staff){
    var avg=recs.length?Math.round(recs.reduce(function(t,x){return t+lkNilai(x)},0)/recs.length):0,belum=recs.filter(function(x){return !lkHasK(x)}).length;
@@ -29,7 +29,8 @@ function lkListView(){
    '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(m.duration)+' menit</span><span>'+m.steps.length+' langkah, '+m.quiz.length+' soal</span></div>'+
    (m.skkni?'<div><span class="pill plain mono" title="Kode unit SKKNI">SKKNI '+lkEsc(m.skkni)+'</span></div>':'')+
    '<div class="row sb" style="flex-wrap:wrap;gap:8px">'+st+'</div>'+acts+'</article>';
- }).join('');
+ });
+ var cards=typeof lkElGroup==='function'?lkElGroup(mods,cardsArr):cardsArr.join('');
  var top=staff?'<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn primary small" data-act="lkc-new">+ Modul baru</button><button type="button" class="btn small" data-act="lkc-rekap">Rekap kelas</button></div>':'<div class="row"><button type="button" class="btn small" data-act="lkc-rekap">Riwayat saya</button></div>';
  return '<div class="row sb"><div><h2>'+lkEsc(k.judul)+'</h2><p class="note">'+lkEsc(k.sub)+'</p></div><span class="pill plain">'+mods.length+' modul</span></div>'+
   '<p class="note">'+(staff?'Mode guru: kelola modul LKPD, lihat pengumpulan, dan beri nilai koreksi. Nilai dari guru menggantikan nilai otomatis.':'Mode siswa: kerjakan LKPD praktik, lampirkan foto bukti, lalu kirim. Nilai akhir ditentukan guru.')+' '+(kb.length>1?'Ganti kelas lewat menu di dasbor.':'Modul di sini khusus kelas kamu.')+'</p>'+top+
