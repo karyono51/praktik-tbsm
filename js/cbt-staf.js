@@ -160,11 +160,10 @@
  async function nilaiRun(run,s){
   var p=pay(run),ids=p.ids||[],ans=p.ans||{},u=S.users.filter(function(x){return x.id===run.sid})[0];
   if(!ids.length)throw new Error('Catatan ujian tidak memuat daftar soal');
-  var sum=0,ben=0;
-  ids.forEach(function(id){var q=bsSoalById(id);if(!q)return;var f=bsFrac(q,ans[id]);sum+=f;if(f>=0.9999)ben++});
+  var hg=bsHitung(ids,function(x){return ans[x]},null),sum=hg.sum,ben=hg.ben;
   var dur=(s.durasi||0)*60,start=Date.parse(run.$createdAt)||0,end=Date.parse(run.$updatedAt)||start;
   var h={id:'h'+run.$id.slice(1),ts:end||Jam.now(),sid:run.sid,siswa:u?u.nama:'(siswa)',kelas:u?(u.kelas||''):'',mode:'ujian',sesiId:s.id,sesiJudul:s.judul,
-   score:ids.length?Math.round(sum/ids.length*100):0,benar:ben,total:ids.length,detik:Math.max(0,Math.min(Math.round((end-start)/1000),dur||1e9)),
+   score:hg.score,pend:hg.pend||undefined,benar:ben,total:ids.length,detik:Math.max(0,Math.min(Math.round((end-start)/1000),dur||1e9)),
    ans:ans,order:ids,oo:p.oo,pindah:p.pindah||0,pts:+sum.toFixed(2),tampil:s.tampil,kkm:s.kkm};
   var ok=await bsPut('hasil',h);
   if(!ok)throw new Error(h.err||'Server menolak penyimpanan');
@@ -201,8 +200,8 @@
    var h=hm[k];tot++;
    var o=BS.D.hasil.filter(function(x){return x.id===h.id})[0]||h,ids=o.order||[];
    if(!ids.length||ids.some(function(id){var q=bsSoalById(id);return !q||!bsHasKey(q)})){lewat++;return}
-   var sum=0,ben=0;ids.forEach(function(id){var f=bsFrac(bsSoalById(id),o.ans?o.ans[id]:null);sum+=f;if(f>=0.9999)ben++});
-   var sc=Math.round(sum/ids.length*100);
+   var hg2=bsHitung(ids,function(x){return o.ans?o.ans[x]:null},o.nu),sum=hg2.sum,ben=hg2.ben;
+   var sc=hg2.score;
    if(sc!==o.score||ben!==o.benar)kerja.push({o:o,sc:sc,ben:ben,pts:+sum.toFixed(2)});
   });
   for(var i=0;i<kerja.length;i+=6){
@@ -232,7 +231,7 @@
   H.forEach(function(h){
    (h.order||[]).forEach(function(id){
     var q=bsSoalById(id);if(!q)return;
-    var o=per[id]=per[id]||{id:id,q:q,n:0,sum:0,au:0,an:0,bu:0,bn:0,pil:{},nokey:!bsHasKey(q)};
+    var o=per[id]=per[id]||{id:id,q:q,n:0,sum:0,au:0,an:0,bu:0,bn:0,pil:{},nokey:!bsHasKey(q)||q.tipe==='uraian'};
     var a=h.ans?h.ans[id]:undefined;
     if(o.nokey)return;
     var f=bsFrac(q,a==null?null:a);o.n++;o.sum+=f;
@@ -265,7 +264,7 @@
   if(H.length<5)return null;
   var common=null;
   H.forEach(function(h){var ids=h.order||[];common=common===null?ids.slice():common.filter(function(x){return ids.indexOf(x)>-1})});
-  common=(common||[]).filter(function(id){var q=bsSoalById(id);return q&&bsHasKey(q)});
+  common=(common||[]).filter(function(id){var q=bsSoalById(id);return q&&bsHasKey(q)&&q.tipe!=='uraian'});
   if(common.length<5)return null;
   var k=common.length,M=H.map(function(h){return common.map(function(id){var q=bsSoalById(id),a=h.ans?h.ans[id]:null;return bsFrac(q,a==null?null:a)})});
   function vr(a){var m=a.reduce(function(x,y){return x+y},0)/a.length;return a.reduce(function(x,y){return x+(y-m)*(y-m)},0)/(a.length-1)}

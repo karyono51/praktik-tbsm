@@ -288,7 +288,7 @@
  function hasilLokal(p,rs,mode){
   var h=rs.hasil;
   return {id:h.id,ts:h.ts,sid:S.user.id,siswa:S.user.nama,kelas:S.user.kelas||'',mode:mode,sesiId:p.sesiId||'',sesiJudul:p.judul||'',score:h.score,benar:h.benar,total:h.total,detik:h.detik,
-   ans:p.ans,order:p.ids,oo:p.oo,pindah:rs.pindah||p.pindah||0,tampil:mode==='latihan'?true:!!rs.tampil,kkm:p.kkm,r:1,d:0};
+   ans:p.ans,order:p.ids,oo:p.oo,pindah:rs.pindah||p.pindah||0,pend:h.pend||undefined,tampil:mode==='latihan'?true:!!rs.tampil,kkm:p.kkm,r:1,d:0};
  }
  function simpanHasil(h){
   BS.D.hasil=BS.D.hasil.filter(function(x){return x.id!==h.id});BS.D.hasil.push(h);BS.all=null;bsSaveLocal();
@@ -371,7 +371,7 @@
   if(CBT.kcErr[h0.id])return viewResult0.apply(this,arguments).replace(/<div class="card"><div class="bs-rv">[\s\S]*$/,'')+'<p class="note center">Pembahasan belum bisa dimuat: '+esc(CBT.kcErr[h0.id])+'</p>';
   if(!CBT.kcBusy[h0.id]){
    CBT.kcBusy[h0.id]=1;
-   cbtFn({action:'ulasan',hasilId:h0.id}).then(function(rs){cbtKc(rs.kc)},function(e){CBT.kcErr[h0.id]=pesan(e)}).then(function(){CBT.kcBusy[h0.id]=0;if(bsOn())render()});
+   cbtFn({action:'ulasan',hasilId:h0.id}).then(function(rs){cbtKc(rs.kc);if(rs.nu)h0.nu=rs.nu},function(e){CBT.kcErr[h0.id]=pesan(e)}).then(function(){CBT.kcBusy[h0.id]=0;if(bsOn())render()});
   }
   return '<div class="row"><button type="button" class="btn small" data-bs="home">Kembali</button><h2>Hasil</h2></div><div class="card center"><div class="bs-score mono">'+h0.score+'</div><p class="note">'+h0.benar+' benar dari '+h0.total+' soal</p></div><p class="muted center">Memuat pembahasan…</p>';
  };

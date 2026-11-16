@@ -1,6 +1,11 @@
 /* banksoal.css: tampilan Bank soal TKA (siswa dan guru) */
 .seg.bs3{grid-template-columns:repeat(3,1fr)}.seg.bs4{grid-template-columns:repeat(4,1fr)}
 .seg.bs4 button{font-size:13px;padding:9px 2px}
+.seg.bs5{grid-template-columns:repeat(5,1fr)}.seg.bs5 button{font-size:12px;padding:9px 1px}
+.bs-ur{width:100%;min-height:200px;font-size:16px;line-height:1.55;padding:12px;border:1px solid var(--line,#cfd8d2);border-radius:14px;background:var(--card,#fff);color:inherit;resize:vertical;font-family:inherit}
+.bs-urj{margin:10px 0}.bs-urj p{white-space:pre-wrap;overflow-wrap:anywhere;margin:4px 0}
+.bs-urk{margin-top:8px}.bs-urk p{white-space:pre-wrap;margin:6px 0}
+.bs-rubrow{align-items:center;margin:8px 0}.bs-rubrow input{width:72px;text-align:center;font-size:16px}
 .seg.bs5{grid-template-columns:repeat(5,1fr)}.seg.bs5 button{font-size:12.5px;padding:9px 2px}
 .bs-q{font-size:16px;line-height:1.6;font-weight:550}
 .bs-qs{font-weight:550}

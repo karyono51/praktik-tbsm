@@ -163,5 +163,22 @@ for (let i = 0; i < kom.length; i++) {
   cek('kompleks: ' + kom[i][0] + ' = ' + kom[i][2], k.status === 200 && k.body.hasil.score === kom[i][2], k.body.hasil ? k.body.hasil.score : JSON.stringify(k.body));
 }
 
+console.log('\nSoal uraian: nilai sementara dan nilai akhir');
+{
+  const U = mod._uji, pg = { tipe: 'pg', n: 5, key: { kunci: 1 } }, ur = { tipe: 'uraian', n: 0, maks: 10, bobot: 2, key: { rub: [['a', 10]] } };
+  const Qs = { p1: pg, p2: pg, u1: ur }, ids = ['p1', 'p2', 'u1'];
+  let g = U.nilai(ids, Qs, { p1: 1, p2: 1, u1: 'jawaban panjang' });
+  cek('uraian dijawab tapi belum dinilai: tidak dihitung, ditandai menunggu', g.score === 100 && g.pend === 1, JSON.stringify(g));
+  g = U.nilai(ids, Qs, { p1: 1, p2: 0, u1: 'jawaban' }, { u1: { skor: 5 } });
+  cek('2 PG (1 benar) + uraian 5/10 bobot 2 = (1 + 1) / 4 = 50', g.score === 50 && g.pend === 0, JSON.stringify(g));
+  g = U.nilai(ids, Qs, { p1: 1, p2: 1, u1: 'x' }, { u1: { skor: 10 } });
+  cek('uraian skor penuh = 100 dan semua benar', g.score === 100 && g.benar === 3, JSON.stringify(g));
+  g = U.nilai(ids, Qs, { p1: 1, p2: 1 });
+  cek('uraian tidak dijawab dihitung 0 (bukan menunggu)', g.score === 50 && g.pend === 0, JSON.stringify(g));
+  const c = U.cleanAns({ p1: 1, u1: 'teks', u2: '   ' }, ['p1', 'u1', 'u2']);
+  cek('cleanAns: teks uraian diterima, teks kosong dibuang', c.u1 === 'teks' && c.u2 === undefined && c.p1 === 1, JSON.stringify(c));
+  cek('frac: soal uraian tidak ikut hitungan objektif', U.frac(ur, 'teks') === 0);
+}
+
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);

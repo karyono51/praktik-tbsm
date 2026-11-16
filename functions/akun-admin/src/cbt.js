@@ -135,7 +135,7 @@ function parse(doc) {
 }
 function keyOf(soal, kdoc) {
   /* kunci dari soal_kunci; cadangan: kunci lama yang masih ada di payload soal */
-  if (kdoc) { try { const k = JSON.parse(kdoc.payload || '{}'); if (k.kunci !== undefined || k.rk) return k; } catch (e) { /* lanjut */ } }
+  if (kdoc) { try { const k = JSON.parse(kdoc.payload || '{}'); if (k.kunci !== undefined || k.rk || k.rub) return k; } catch (e) { /* lanjut */ } }
   if (soal.tipe === 'kategori' && Array.isArray(soal.rows) && soal.rows.every((r) => typeof r[1] === 'boolean')) return { rk: soal.rows.map((r) => !!r[1]), bahas: soal.bahas || '' };
   if (soal.kunci !== undefined) return { kunci: soal.kunci, bahas: soal.bahas || '' };
   return null;
@@ -158,7 +158,8 @@ async function buildQ(ids) {
     }
     const d = docs[id]; if (!d) return;
     const s = parse(d), key = keyOf(s, kd[id]);
-    out[id] = { id, bawaan: false, tipe: s.tipe, n: s.tipe === 'kategori' ? (s.rows || []).length : (s.opts || []).length, key, lab: s.lab,
+    out[id] = { id, bawaan: false, tipe: s.tipe, n: s.tipe === 'uraian' ? 0 : s.tipe === 'kategori' ? (s.rows || []).length : (s.opts || []).length, key, lab: s.lab,
+      maks: Number(s.maks) || 0, bobot: Number(s.bobot) > 0 ? Number(s.bobot) : 2, pj: Number(s.pj) > 0 ? Number(s.pj) : 1500,
       aktif: s.aktif !== false, tujuan: s.tujuan || 'keduanya', kelas: s.kelas || '' };
   });
   return out;
@@ -181,6 +182,7 @@ function labOk(lab) {
 /* dari dokumen soal (tanpa kunci) */
 function aturanDoc(s) {
   if (!s || s.bawaan || BAWAAN[s.id]) return true;
+  if (s.tipe === 'uraian') return Number(s.maks) >= 1;
   if (s.tipe === 'kategori') { const n = (s.rows || []).length; return n >= 3 && n <= 6 && labOk(s.lab); }
   return (s.opts || []).length === 5;
 }
@@ -188,6 +190,7 @@ function aturanDoc(s) {
 function aturanOk(q) {
   if (!q) return false;
   if (q.bawaan) return true;
+  if (q.tipe === 'uraian') return q.maks >= 1 && !!(q.key && Array.isArray(q.key.rub) && q.key.rub.length);
   if (q.tipe === 'kategori') return q.n >= 3 && q.n <= 6 && labOk(q.lab);
   if (q.n !== 5) return false;
   if (q.tipe === 'kompleks') return !q.key || !Array.isArray(q.key.kunci) || q.key.kunci.length >= 2;
@@ -205,7 +208,7 @@ async function poolUjian() {
   });
 }
 function frac(q, a) {
-  if (!q || !q.key || a == null) return 0;
+  if (!q || !q.key || a == null || q.tipe === 'uraian') return 0;
   const k = q.key;
   if (q.tipe === 'pg') return a === k.kunci ? 1 : 0;
   if (q.tipe === 'kompleks') {
@@ -225,16 +228,27 @@ function cleanAns(ans, ids) {
   const ok = (v) => v === null || (Number.isInteger(v) && v >= 0 && v < 10);
   ids.forEach((id) => {
     const v = ans[id]; if (v === undefined) return;
-    if (Array.isArray(v)) { if (v.length <= 10 && v.every(ok)) out[id] = v; }
+    if (typeof v === 'string') { const t = v.slice(0, 3000); if (t.trim()) out[id] = t; }
+    else if (Array.isArray(v)) { if (v.length <= 10 && v.every(ok)) out[id] = v; }
     else if (Number.isInteger(v) && v >= 0 && v < 10) out[id] = v;
   });
   return out;
 }
-function nilai(ids, Qs, ans) {
-  let sum = 0, ben = 0;
-  ids.forEach((id) => { const q = Qs[id]; if (!q) return; const f = frac(q, ans[id]); sum += f; if (f >= 0.9999) ben++; });
-  const tot = ids.length;
-  return { score: tot ? Math.round(sum / tot * 100) : 0, benar: ben, total: tot, pts: +sum.toFixed(2) };
+/* nu = nilai uraian dari guru { idSoal: { skor, ... } }. Uraian yang belum dinilai tidak dihitung (pend) sampai guru menilainya. */
+function nilai(ids, Qs, ans, nu) {
+  let sum = 0, w = 0, ben = 0, pend = 0;
+  ids.forEach((id) => {
+    const q = Qs[id]; if (!q) return;
+    if (q.tipe === 'uraian') {
+      const g = nu && nu[id];
+      if (g && typeof g.skor === 'number') { const mk = q.maks || 1, b = q.bobot || 2, f = Math.max(0, Math.min(1, g.skor / mk)); sum += f * b; w += b; if (f >= 0.9999) ben++; }
+      else if (ans && typeof ans[id] === 'string' && ans[id].trim()) pend++;
+      else { w += q.bobot || 2; }   // tidak dijawab: nilai 0, tetap dihitung
+      return;
+    }
+    const f = frac(q, ans[id]); sum += f; w += 1; if (f >= 0.9999) ben++;
+  });
+  return { score: w ? Math.round(sum / w * 100) : 0, benar: ben, total: ids.length, pts: +sum.toFixed(2), pend };
 }
 function kcOf(ids, Qs) {
   const kc = {};
@@ -321,7 +335,7 @@ async function mulai(me, body) {
   const Qs = await loadQ(ids), oo = {};
   ids = ids.filter((id) => aturanOk(Qs[id]));
   if (!ids.length) throw new Fail('Sesi ini belum memiliki soal.', 400);
-  ids.forEach((id) => { const q = Qs[id]; if (q && q.tipe !== 'kategori') { const ix = Array.from({ length: q.n }, (_, i) => i); oo[id] = s.acak !== false ? shuffle(ix) : ix; } });
+  ids.forEach((id) => { const q = Qs[id]; if (q && q.tipe !== 'kategori' && q.tipe !== 'uraian') { const ix = Array.from({ length: q.n }, (_, i) => i); oo[id] = s.acak !== false ? shuffle(ix) : ix; } });
   const dur = (s.durasi || 0) * 60;
   const p = { mode: 'ujian', sesiId, sesiJudul: s.judul || '', dur, ids, oo, ans: {}, cur: 0, chk: {}, pindah: 0, rg: {}, tampil: !!s.tampil, kkm: s.kkm };
   let doc;
@@ -368,12 +382,13 @@ async function selesaikan(run, me, opt) {
   const hid = 'h' + run.$id.slice(1);
   const Qs = await loadQ(ids);
   const ans = opt.ans ? Object.assign({}, p.ans || {}, cleanAns(opt.ans, ids)) : (p.ans || {});
+  ids.forEach((id) => { const q = Qs[id]; if (q && q.tipe === 'uraian' && typeof ans[id] === 'string') ans[id] = ans[id].slice(0, q.pj || 1500); });
   const g = nilai(ids, Qs, ans);
   const end = endOf(st), t = Math.min(now, end);
   const akun = opt.akun || me.akun;
   const data = { ts: now, sid: run.sid, siswa: String(akun.nama || '').slice(0, 128), kelas: akun.kelas || '', mode: 'ujian', sesiId: run.sesiId, sesiJudul: String(p.sesiJudul || '').slice(0, 160),
     score: g.score, benar: g.benar, total: g.total, detik: Math.max(0, Math.min(Math.round((t - st.start) / 1000), st.dur + st.ext)),
-    payload: JSON.stringify({ ans, order: ids, oo: p.oo || {}, pindah: Math.max(p.pindah || 0, opt.pindah || 0), pts: g.pts, tampil: !!p.tampil, kkm: p.kkm }) };
+    payload: JSON.stringify({ ans, order: ids, oo: p.oo || {}, pindah: Math.max(p.pindah || 0, opt.pindah || 0), pts: g.pts, pend: g.pend || undefined, tampil: !!p.tampil, kkm: p.kkm }) };
   let doc;
   try { doc = await createDoc('soal_hasil', hid, data, opt.perms || userRead(me.id)); }
   catch (e) {
@@ -387,7 +402,7 @@ async function selesaikan(run, me, opt) {
   await updateDoc('soal_run', run.$id, { done: true, payload: JSON.stringify(Object.assign({}, p, { ans, pindah: pindahAkhir })) });
   return { hasil: doc, p: parse(doc), ids, Qs };
 }
-function hasilOut(h) { return { id: h.$id, ts: h.ts, score: h.score, benar: h.benar, total: h.total, detik: h.detik }; }
+function hasilOut(h) { const p = parse(h); return { id: h.$id, ts: h.ts, score: h.score, benar: h.benar, total: h.total, detik: h.detik, pend: p.pend || 0 }; }
 
 async function kirimUjian(me, body) {
   const run = await ownRun(me, body.rid), st = runState(run), now = Date.now();
@@ -402,7 +417,7 @@ async function kirimLatihan(me, body) {
   ids = Array.from(new Set(ids)).slice(0, 100);
   if (!ids.length) throw new Fail('Tidak ada soal.');
   const Qs = await loadQ(ids);
-  ids = ids.filter((id) => Qs[id] && Qs[id].aktif && (Qs[id].tujuan === 'keduanya' || Qs[id].tujuan === 'latihan'));
+  ids = ids.filter((id) => Qs[id] && Qs[id].tipe !== 'uraian' && Qs[id].aktif && (Qs[id].tujuan === 'keduanya' || Qs[id].tujuan === 'latihan'));
   if (!ids.length) throw new Fail('Soal tidak tersedia untuk latihan.');
   const ans = cleanAns(body.ans, ids), g = nilai(ids, Qs, ans), now = Date.now();
   const oo = {}; if (body.oo && typeof body.oo === 'object') ids.forEach((id) => { const v = body.oo[id]; if (Array.isArray(v) && v.length <= 10 && v.every((x) => Number.isInteger(x) && x >= 0 && x < 10)) oo[id] = v; });
@@ -416,7 +431,7 @@ async function kirimLatihan(me, body) {
 async function periksa(me, body) {
   const qid = String(body.qid || ''); if (!ID_RE.test(qid)) throw new Fail('Soal tidak valid.');
   const Qs = await loadQ([qid]), q = Qs[qid];
-  if (!q || !q.aktif || !(q.tujuan === 'keduanya' || q.tujuan === 'latihan')) throw new Fail('Soal tidak tersedia untuk latihan.', 403);
+  if (!q || q.tipe === 'uraian' || !q.aktif || !(q.tujuan === 'keduanya' || q.tujuan === 'latihan')) throw new Fail('Soal tidak tersedia untuk latihan.', 403);
   const a = body.ans === undefined ? null : body.ans;
   return { ok: true, frac: frac(q, a), kc: q.key };
 }
@@ -428,7 +443,7 @@ async function ulasan(me, body) {
   const p = parse(h);
   if (h.mode === 'ujian' && !me.staff && !p.tampil) throw new Fail('Pembahasan belum ditampilkan guru.', 403);
   const ids = p.order || [], Qs = await loadQ(ids);
-  return { ok: true, kc: kcOf(ids, Qs) };
+  return { ok: true, kc: kcOf(ids, Qs), nu: p.nu || {} };
 }
 
 function needStaff(me) { if (!me.staff) throw new Fail('Hanya guru atau admin.', 403); }
@@ -478,6 +493,30 @@ async function akhiriSemua(me, body) {
   return { ok: true, n: r.ok, gagal: r.gagal, sisa: due.length - r.ok, pesan: r.pesan };
 }
 
+/* guru/admin menilai satu jawaban uraian. Nilai ditulis lewat server supaya siswa tidak bisa mengubah skornya sendiri. */
+async function nilaiUraian(me, body) {
+  needStaff(me);
+  const hid = String(body.hasilId || ''), qid = String(body.qid || '');
+  if (!ID_RE.test(hid) || !ID_RE.test(qid)) throw new Fail('Data tidak valid.');
+  const h = await tryGet('soal_hasil', hid); if (!h) throw new Fail('Hasil tidak ditemukan.', 404);
+  if (h.mode !== 'ujian') throw new Fail('Hanya hasil ujian yang dinilai.', 400);
+  const p = parse(h), ids = p.order || [];
+  if (!ids.includes(qid)) throw new Fail('Soal tidak ada di hasil ini.', 400);
+  const Qs = await loadQ(ids, true), q = Qs[qid];
+  if (!q || q.tipe !== 'uraian') throw new Fail('Soal ini bukan uraian.', 400);
+  const maks = q.maks || 1;
+  let skor = Number(body.skor);
+  if (!Number.isFinite(skor)) throw new Fail('Skor tidak valid.', 400);
+  skor = Math.max(0, Math.min(maks, Math.round(skor * 100) / 100));
+  const rub = Array.isArray(body.rub) ? body.rub.slice(0, 20).map((x) => Math.max(0, Math.min(maks, Number(x) || 0))) : undefined;
+  const nu = Object.assign({}, p.nu || {});
+  nu[qid] = { skor, rub, cat: String(body.cat || '').slice(0, 300), oleh: String(me.akun.nama || '').slice(0, 64), ts: Date.now() };
+  const g = nilai(ids, Qs, p.ans || {}, nu);
+  const next = Object.assign({}, p, { nu, pts: g.pts, pend: g.pend || undefined });
+  await updateDoc('soal_hasil', hid, { score: g.score, benar: g.benar, payload: JSON.stringify(next) });
+  return { ok: true, score: g.score, benar: g.benar, pend: g.pend || 0, nu: nu[qid] };
+}
+
 /* hitung ulang nilai hasil ujian satu sesi dengan kunci terbaru. Hasil yang soalnya sudah dihapus atau kuncinya hilang
    dilewati (tidak diubah) supaya nilai siswa tidak turun karena soal yang hilang. */
 async function nilaiUlang(me, body) {
@@ -492,15 +531,15 @@ async function nilaiUlang(me, body) {
   hs.forEach((h) => {
     const p = pj(h), ids = (p && p.order) || [];
     if (!p || !ids.length || ids.some((id) => !Qs[id] || !Qs[id].key)) { lewat++; return; }
-    const g = nilai(ids, Qs, p.ans || {});
-    if (g.score !== h.score || g.benar !== h.benar) kerja.push({ h, p, g });
+    const g = nilai(ids, Qs, p.ans || {}, p.nu);
+    if (g.score !== h.score || g.benar !== h.benar || (g.pend || 0) !== (p.pend || 0)) kerja.push({ h, p, g });
   });
-  const r = await jalankan(kerja, ({ h, p, g }) => updateDoc('soal_hasil', h.$id, { score: g.score, benar: g.benar, payload: JSON.stringify(Object.assign({}, p, { pts: g.pts })) }), deadline);
+  const r = await jalankan(kerja, ({ h, p, g }) => updateDoc('soal_hasil', h.$id, { score: g.score, benar: g.benar, payload: JSON.stringify(Object.assign({}, p, { pts: g.pts, pend: g.pend || undefined })) }), deadline);
   return { ok: true, total: hs.length, n: r.ok, gagal: r.gagal, sisa: kerja.length - r.ok, lewat, pesan: r.pesan };
 }
 
 export const _uji = { frac, nilai, cleanAns, runId, parse, memReset, semuaReset: () => { memReset(); memo.salah.clear(); inflight.clear(); } };
-export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua', 'nilaiUlang']);
+export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua', 'nilaiUlang', 'nilaiUraian']);
 
 /* Dipakai sebagai fungsi sendiri (default export) atau dipanggil dari fungsi lain, mis. akun-admin (lihat tools/gabung-cbt.mjs). */
 export async function cbtHandle({ req, res, error, body }) {
@@ -518,6 +557,7 @@ export async function cbtHandle({ req, res, error, body }) {
       case 'akhiri': return res.json(await akhiri(me, body));
       case 'akhiriSemua': return res.json(await akhiriSemua(me, body));
       case 'nilaiUlang': return res.json(await nilaiUlang(me, body));
+      case 'nilaiUraian': return res.json(await nilaiUraian(me, body));
       default: return res.json({ ok: false, error: 'Aksi tidak dikenal.' }, 400);
     }
   } catch (e) {

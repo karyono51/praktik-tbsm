@@ -34,7 +34,7 @@ function btrBank(){
   if(h.mode!=='ujian'||!Array.isArray(h.order))return;
   var t=+h.score||0;
   h.order.forEach(function(id){
-   var q=bsSoalById(id);if(!q||!bsHasKey(q))return;
+   var q=bsSoalById(id);if(!q||!bsHasKey(q)||q.tipe==='uraian')return;
    (by[id]=by[id]||[]).push({t:t,f:bsFrac(q,h.ans?h.ans[id]:null)});
   });
  });
