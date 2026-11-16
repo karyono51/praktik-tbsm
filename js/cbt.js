@@ -13,7 +13,7 @@
 
  /* ---------- Layar penuh ---------- */
  /* Exambro: UserAgent memuat kata EXAMBRO_UA (config.js). Di sana layar penuh wajib dilewati karena WebView sering tak mendukungnya. */
- function isExambro(){var k=(window.APP_CONFIG&&APP_CONFIG.EXAMBRO_UA)||'TBSM-EXAM';return String(navigator.userAgent||'').toUpperCase().indexOf(String(k).toUpperCase())>=0}
+ function isExambro(){var k=(window.APP_CONFIG&&APP_CONFIG.EXAMBRO_UA)||'TBSM-EXAM',u=String(navigator.userAgent||'').toUpperCase();return String(k).split(',').some(function(t){t=t.trim().toUpperCase();return t&&u.indexOf(t)>=0})}
  window.cbtIsExambro=isExambro;
  function fsSupported(){var d=document.documentElement;return !!(d.requestFullscreen||d.webkitRequestFullscreen)}
  function isFs(){return !!(document.fullscreenElement||document.webkitFullscreenElement)}
@@ -64,7 +64,7 @@
   CBT.mulai=true;
   try{
    if(window.bsRunLain){var lain=await bsRunLain(s);if(lain){toast('Kamu masih mengerjakan ujian "'+lain+'" (mungkin di perangkat lain). Selesaikan dahulu.');return}}
-   if(s.exambro&&!isExambro()){toast('Sesi ini wajib dikerjakan lewat aplikasi Exambro. Buka alamat ujian dari Exambro.');return}
+   if(s.exambro&&!isExambro()){toast('Sesi ini wajib dikerjakan lewat aplikasi Exambro. Buka alamat ujian dari Exambro. [UA: …'+String(navigator.userAgent||'').slice(-70)+']');return}
    var token='';
    if(s.tok){
     var t=await uiPrompt('Masukkan token ujian dari pengawas.',{title:'Token ujian',label:'Token',ok:'Mulai'});
