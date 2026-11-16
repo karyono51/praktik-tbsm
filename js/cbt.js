@@ -141,13 +141,13 @@
   if(!q)return '<div class="card"><p>Soal ini sudah tidak tersedia.</p><button type="button" class="btn" data-bs="next">Lewati</button></div>';
   var p=pol(r),v=viol(r),rgc=nRg(r),na=nAns(r),n=r.ids.length,rem=r.dur?bsRemain(r):0,
    clock=r.dur?mmss(Math.ceil(rem/1000)):mmss(Math.floor((Jam.now()-r.start)/1000)),
-   ex=[];
+   ex=[],svh='';
   if(exam){
    if(p.batas>0)ex.push('<span class="pill '+(v?'warn':'plain')+'">Keluar halaman '+v+' dari '+p.batas+'</span>');
    if(p.layar&&fsSupported()&&!isFs())ex.push('<button type="button" class="btn small" data-bs="layar">Layar penuh</button>');
-   var sv=svInfo(r);if(sv)ex.push('<span class="pill '+sv.c+'" id="cbt-sv" role="status">'+esc(sv.t)+'</span>');
+   var sv=svInfo(r);if(sv)svh='<div class="ex-sv"><span class="pill '+sv.c+'" id="cbt-sv" role="status">'+esc(sv.t)+'</span></div>';
   }
-  h+='<div class="ex-top">'+(exam?'<div class="ex-kick">CBT Online '+esc(schNama())+'</div><div class="ex-sn">'+esc(r.sesiJudul||'Ujian')+'</div>':'')+'<div class="ex-bar"><div class="ex-ttl">'+(exam?'':'<b>'+esc(r.sesiJudul||'Latihan soal')+'</b>')+'<span>Soal '+(r.cur+1)+' dari '+n+' · terjawab '+na+(exam&&rgc?' · ragu '+rgc:'')+'</span></div>'+
+  h+='<div class="ex-top">'+(exam?'<div class="ex-kick">CBT Online '+esc(schNama())+'</div><div class="ex-sn">'+esc(r.sesiJudul||'Ujian')+'</div>':'')+'<div class="ex-bar"><div class="ex-ttl">'+(exam?'':'<b>'+esc(r.sesiJudul||'Latihan soal')+'</b>')+'<span>Soal '+(r.cur+1)+' dari '+n+' · terjawab '+na+(exam&&rgc?' · ragu '+rgc:'')+'</span>'+svh+'</div>'+
    '<button type="button" class="ex-aa" data-bs="huruf" aria-label="Ukuran huruf soal">Aa</button>'+
    '<span class="bsclock ex-clock'+(r.dur&&rem<300000?' low':'')+(r.dur&&rem<60000?' crit':'')+'" id="bs-clock" role="timer">'+clock+'</span></div>'+
    '<div class="ex-nav" id="ex-nav" role="group" aria-label="Navigasi soal">'+r.ids.map(function(x,i){var st=qState(r,x,i);return '<button type="button" class="'+st.cls+'" data-bs="goto" data-v="'+i+'" aria-label="'+st.lab+'"'+(i===r.cur?' aria-current="true"':'')+'>'+(i+1)+'</button>'}).join('')+'</div>'+
