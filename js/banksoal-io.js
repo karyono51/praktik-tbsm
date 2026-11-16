@@ -94,6 +94,11 @@ function bsioTemplateFallback(){
   e(['','PG kompleks','Dasar TBSM','Sistem pelumasan','XI','Latihan','Aktif','Pilih semua fungsi oli mesin.','Melumasi','Mendinginkan','Membersihkan','Menambah volume bahan bakar','Mengurangi gesekan','A,B,C,E']),
   (function(){var r=e(['','PG kategori','Dasar TBSM','K3','Semua','Ujian','Aktif','Tentukan benar atau salah pernyataan berikut.','','','','','','','Benar','Salah','Helm wajib dipakai saat praktik uji jalan','Benar','Oli bekas boleh dibuang ke selokan','Salah','Celah busi mengikuti manual servis','Benar']);r[28]='Pembahasan boleh dikosongkan.';return r})()
  ];
+ /* contoh soal grup: dua soal berbagi satu stimulus (kode Grup sama, stimulus diisi di baris pertama) */
+ var g1=e(['','PG','Dasar TBSM','Alat ukur','X','Latihan dan ujian','Aktif','Berdasarkan data pada stimulus, diameter luar poros adalah ...','24,10 mm','24,50 mm','25,10 mm','25,50 mm','26,10 mm','A']),
+  g2=e(['','PG','Dasar TBSM','Alat ukur','X','Latihan dan ujian','Aktif','Berdasarkan data pada stimulus, alat ukur yang paling tepat untuk mengukur diameter luar poros adalah ...','Mistar','Jangka sorong','Meteran gulung','Busur derajat','Penggaris siku','B']);
+ g1[29]='G1';g1[30]='Hasil pengukuran diameter luar poros memakai jangka sorong: skala utama 24 mm, skala nonius 10 (garis ke-10 berimpit), ketelitian 0,01 mm.';g2[29]='G1';
+ ex.push(g1,g2);
  book([['Soal',[BSIO_HEAD].concat(ex),[16,13,18,22,8,18,9,60,26,26,26,26,26,8,10,10,34,10,34,10,34,10,34,10,34,10,34,10,50]],
   ['Petunjuk',bsioHelp(),[16,110]]],'Template_Impor_Bank_Soal');
 }
