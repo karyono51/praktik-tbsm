@@ -172,6 +172,15 @@ function bsSoalAll(){
  return (BS.all=out);
 }
 function bsSoalById(id){return bsSoalAll().filter(function(q){return q.id===id})[0]}
+/* judul riwayat/latihan: nama sesi bila ada, kalau latihan memakai nama mata pelajaran dari soal-soalnya */
+function bsJudul(o){
+ if(!o)return 'Latihan soal';
+ if(o.sesiJudul)return o.sesiJudul;
+ var all=bsSoalAll();if(BS._mmFor!==all){BS._mm={};all.forEach(function(q){BS._mm[q.id]=q.mapel||''});BS._mmFor=all}
+ var seen={},ls=[];(o.order||o.ids||[]).forEach(function(id){var m=BS._mm[id];if(m&&!seen[m]){seen[m]=1;ls.push(m)}});
+ if(!ls.length)return 'Latihan soal';
+ return ls.length===1?ls[0]:ls[0]+' + '+(ls.length-1)+' mapel lain';
+}
 function bsMapelList(){var m={};bsSoalAll().forEach(function(q){if(q.mapel)m[q.mapel]=1});return Object.keys(m).sort()}
 function bsPool(mode,kelas){
  return bsSoalAll().filter(function(q){return q.aktif&&(q.tujuan==='keduanya'||q.tujuan===mode)&&!(mode==='ujian'&&bsAturanSalah(q))&&(!q.kelas||!kelas||q.kelas===kelas)});
@@ -350,7 +359,7 @@ function bsViewSiswa(){
  if(BS.sub==='latsetup')return bsViewLatSetup();
  if(BS.sub==='riwayat')return bsViewRiwayat();
  var kelas=S.user.kelas||'',h='',run=BS.run;
- if(run)h+='<div class="card bs-resume"><b>'+(run.mode==='ujian'?'Ujian sedang berjalan':'Latihan belum selesai')+'</b><p class="note">'+esc(run.sesiJudul||'Latihan soal')+' · '+Object.keys(run.ans).length+' dari '+run.ids.length+' soal terjawab</p><button type="button" class="btn primary" data-bs="lanjut">Lanjutkan</button></div>';
+ if(run)h+='<div class="card bs-resume"><b>'+(run.mode==='ujian'?'Ujian sedang berjalan':'Latihan belum selesai')+'</b><p class="note">'+esc(bsJudul(run))+' · '+Object.keys(run.ans).length+' dari '+run.ids.length+' soal terjawab</p><button type="button" class="btn primary" data-bs="lanjut">Lanjutkan</button></div>';
  var sesi=bsSesiUntuk(kelas).filter(function(s){return bsSesiStatus(s).k!=='off'}).sort(function(a,b){return (b.ts||0)-(a.ts||0)});
  if(cbt)h+='<section class="recent"><div class="sechead"><h2>Ujian</h2></div>';
  if(cbt&&!sesi.length)h+='<p class="muted">Belum ada sesi ujian untuk kelasmu.</p>';
@@ -376,7 +385,7 @@ function bsRiwayatBlok(mode){
 }
 function bsRiwayatRow(x){
  var lat=x.mode==='latihan';
- return '<div class="card"><div class="row sb"><span class="row"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':'Ujian')+'</span><b>'+esc(x.sesiJudul||'Latihan soal')+'</b></span><b class="mono">'+x.score+'</b></div><div class="row sb"><span class="note">'+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round(x.detik/60))+' menit</span><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail</button></div></div>';
+ return '<div class="card"><div class="row sb"><span class="row"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':'Ujian')+'</span><b>'+esc(bsJudul(x))+'</b></span><b class="mono">'+x.score+'</b></div><div class="row sb"><span class="note">'+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round(x.detik/60))+' menit</span><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail</button></div></div>';
 }
 function bsViewRiwayat(){
  var rw=bsRwList(S.tab==='cbtonline'?'ujian':'latihan');
@@ -395,7 +404,7 @@ function bsViewRun(){
  var r=BS.run,id=r.ids[r.cur],q=bsSoalById(id),mode=r.mode==='latihan'?'check':'answer',h='';
  if(!q){return '<div class="card"><p>Soal ini sudah tidak tersedia.</p><button type="button" class="btn" data-bs="next">Lewati</button></div>'}
  var ans=Object.keys(r.ans).filter(function(k){var s=bsSoalById(k);return s&&bsAnswered(s,r.ans[k])}).length;
- h+='<div class="card"><div class="row sb"><b>'+esc(r.sesiJudul||'Latihan soal')+'</b><span class="note">Soal '+(r.cur+1)+' dari '+r.ids.length+' · terjawab '+ans+'</span></div><div class="bs-nav">'+
+ h+='<div class="card"><div class="row sb"><b>'+esc(bsJudul(r))+'</b><span class="note">Soal '+(r.cur+1)+' dari '+r.ids.length+' · terjawab '+ans+'</span></div><div class="bs-nav">'+
   r.ids.map(function(x,i){var s=bsSoalById(x),dn=s&&bsAnswered(s,r.ans[x]);return '<button type="button" class="'+(dn?'dn ':'')+(i===r.cur?'cur':'')+'" data-bs="goto" data-v="'+i+'" aria-label="Soal '+(i+1)+'">'+(i+1)+'</button>'}).join('')+'</div></div>';
  h+='<div class="card"><div class="row"><span class="pill plain">'+esc(q.mapel||'')+'</span><span class="pill plain">'+BS_TIPE[q.tipe]+'</span></div>'+bsQBody(q,r,mode);
  if(mode==='check'&&!r.chk[id])h+='<button type="button" class="btn" data-bs="cek"'+(bsAnswered(q,r.ans[id])?'':' disabled')+'>Periksa jawaban</button>';
@@ -642,7 +651,7 @@ function bsViewHasil(){
  var hmax=BS.hmax||100;
  h+=rows.slice(0,hmax).map(function(x){
   var lat=x.mode==='latihan',kkm=((BS.D.sesi.filter(function(s){return s.id===x.sesiId})[0]||{}).kkm)||S.kkm;
-  return '<div class="card"><div class="row sb"><b>'+esc(x.siswa)+'</b><b class="mono">'+x.score+'</b></div><div class="row"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':x.mode==='arsip'?'Arsip':'Ujian')+'</span>'+(lat||x.mode==='arsip'?'':'<span class="pill '+(x.score>=kkm?'ok':'bad')+'">'+(x.score>=kkm?'Kompeten':'Belum')+'</span>')+'<span class="pill plain">Kelas '+esc(x.kelas||'-')+'</span>'+(x.pindah?'<span class="pill bad">Keluar halaman '+x.pindah+'×</span>':'')+'</div><p class="note">'+esc(x.sesiJudul||'Latihan soal')+' · '+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round(x.detik/60))+' menit</p><div class="row"><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail jawaban</button>'+(can('hapus')||can('nilai')?'<button type="button" class="btn small danger" data-bs="hapushasil" data-v="'+x.id+'">Hapus</button>':'')+'</div></div>';
+  return '<div class="card"><div class="row sb"><b>'+esc(x.siswa)+'</b><b class="mono">'+x.score+'</b></div><div class="row"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':x.mode==='arsip'?'Arsip':'Ujian')+'</span>'+(lat||x.mode==='arsip'?'':'<span class="pill '+(x.score>=kkm?'ok':'bad')+'">'+(x.score>=kkm?'Kompeten':'Belum')+'</span>')+'<span class="pill plain">Kelas '+esc(x.kelas||'-')+'</span>'+(x.pindah?'<span class="pill bad">Keluar halaman '+x.pindah+'×</span>':'')+'</div><p class="note">'+esc(bsJudul(x))+' · '+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round(x.detik/60))+' menit</p><div class="row"><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail jawaban</button>'+(can('hapus')||can('nilai')?'<button type="button" class="btn small danger" data-bs="hapushasil" data-v="'+x.id+'">Hapus</button>':'')+'</div></div>';
  }).join('')+(rows.length>hmax?'<button type="button" class="btn" data-bs="hmore">Tampilkan lebih banyak ('+(rows.length-hmax)+' lagi)</button>':'');
  return h;
 }
@@ -654,7 +663,7 @@ async function bsHapusRun(h){
 }
 function bsExport(){
  if(typeof XLSX==='undefined'){if(window.Pustaka)Pustaka.muat();toast('Pustaka Excel sedang disiapkan. Coba lagi sebentar.');return}
- var rows=bsHasilRows().map(function(x){return {Nama:x.siswa,Kelas:x.kelas||'',Jenis:x.mode==='latihan'?'Latihan':x.mode==='arsip'?'Arsip':'Ujian',Sesi:x.sesiJudul||'Latihan soal',Nilai:x.score,'Soal benar':x.benar,'Jumlah soal':x.total,'Durasi (menit)':Math.round(x.detik/6)/10,'Keluar halaman':x.pindah||0,Waktu:new Date(x.ts).toLocaleString('id-ID')}});
+ var rows=bsHasilRows().map(function(x){return {Nama:x.siswa,Kelas:x.kelas||'',Jenis:x.mode==='latihan'?'Latihan':x.mode==='arsip'?'Arsip':'Ujian',Sesi:bsJudul(x),Nilai:x.score,'Soal benar':x.benar,'Jumlah soal':x.total,'Durasi (menit)':Math.round(x.detik/6)/10,'Keluar halaman':x.pindah||0,Waktu:new Date(x.ts).toLocaleString('id-ID')}});
  var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Hasil');
  XLSX.writeFile(wb,'hasil-bank-soal-'+ymd(Date.now())+'.xlsx');
 }
