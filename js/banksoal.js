@@ -668,8 +668,11 @@ function viewBankSoal(){
  if(BS.err.length)h+='<div class="err">'+BS.err.map(esc).join('<br>')+(BS.err.some(function(e){return /collection|not found|could not be found/i.test(e)})?'<br>Koleksi belum dibuat di Appwrite. Jalankan: node tools/setup-appwrite.mjs --only=banksoal,soal_sesi,soal_hasil':'')+'</div>';
  if(BS.sub==='detail'||BS.sub==='result')return h+bsViewResult();
  if(staff&&actRole()!=='siswa')return h+bsViewStaff();
+ /* pintasan "Latihan soal" di Beranda: langsung ke Atur latihan (bila tidak ada latihan/ujian yang sedang berjalan) */
+ if(BS.cepat){BS.cepat=0;if(!BS.run&&!cbt&&BS.sub==='home')BS.sub='latsetup'}
  return h+bsViewSiswa();
 }
+document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('[data-cepat="latihan"]');if(t)BS.cepat=1},true);
 var _bsViewKat=viewKatalog;
 viewKatalog=function(){
  if(bsOn()&&S.user)return viewBankSoal();
