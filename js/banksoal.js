@@ -527,6 +527,7 @@ function bsBankList(){
   return '<div class="card"><div class="row"><span class="pill plain">'+esc(s.mapel||'')+'</span><span class="pill plain">'+BS_TIPE[s.tipe]+'</span>'+(s.bawaan?'<span class="pill plain">Bawaan</span>':'<span class="pill">Soal sendiri</span>')+(s.gs?'<span class="pill plain">Grup stimulus</span>':'')+(window.btrPill?btrPill(s.id):'')+(s.aktif?'':'<span class="pill bad">Nonaktif</span>')+(ar?'<span class="pill warn">Belum sesuai aturan</span>':'')+'</div>'+
    '<p class="bs-qs">'+esc(String(s.q).slice(0,150))+(String(s.q).length>150?'…':'')+'</p>'+
    (s.topik?'<p class="note">Topik: '+esc(s.topik)+(s.kelas?' · Kelas '+esc(s.kelas):'')+'</p>':'')+
+   (window.cpNote?cpNote(s.id):'')+
    (ar?'<p class="note">Belum sesuai aturan ('+ar+'), hanya dipakai untuk latihan. Ubah soal agar bisa masuk ujian.</p>':'')+'<label class="f">Peruntukan<select data-bs="tuj" data-q="'+s.id+'">'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(s.tujuan===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label>'+
    '<div class="row"><button type="button" class="btn small" data-bs="lihat" data-q="'+s.id+'">'+(op?'Tutup':'Lihat')+'</button><button type="button" class="btn small" data-bs="aktif" data-q="'+s.id+'">'+(s.aktif?'Nonaktifkan':'Aktifkan')+'</button>'+
    '<button type="button" class="btn small" data-bs="'+(s.bawaan?'salin':'ubah')+'" data-q="'+s.id+'">'+(s.bawaan?'Salin dan ubah':'Ubah')+'</button>'+
