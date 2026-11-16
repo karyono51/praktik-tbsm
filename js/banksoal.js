@@ -239,7 +239,7 @@ function bsHitung(ids,ansOf,nu){
   var q=bsSoalById(id);if(!q)return;
   if(q.tipe==='uraian'){
    var g=nu&&nu[id],bb=q.bobot>0?q.bobot:2;
-   if(g&&typeof g.skor==='number'){var f0=Math.max(0,Math.min(1,g.skor/(q.maks||1)));sum+=f0*bb;w+=bb;if(f0>=0.9999)ben++}
+   if(g&&typeof g.skor==='number'){var f0=Math.max(0,Math.min(1,g.skor/(g.mk||q.maks||1)));sum+=f0*bb;w+=bb;if(f0>=0.9999)ben++}
    else if(bsAnswered(q,ansOf(id)))pend++;
    else w+=bb;
    return;
@@ -366,15 +366,24 @@ document.addEventListener('input',function(e){
  var c=document.querySelector('.bs-urc[data-q="'+t.dataset.q+'"]');if(c)c.textContent=t.value.length+' / '+(t.maxLength>0?t.maxLength:1500)+' karakter';
  bsRunSave();
 });
+/* skor 0..1 satu soal pada satu hasil; uraian yang belum dinilai = null (belum dihitung) */
+function bsFracH(q,a,h){
+ if(!q)return 0;
+ if(q.tipe!=='uraian')return bsFrac(q,a);
+ if(!bsAnswered(q,a))return 0;
+ var g=h&&h.nu&&h.nu[q.id];
+ if(!g||typeof g.skor!=='number')return null;
+ return Math.max(0,Math.min(1,g.skor/(g.mk||q.maks||1)));
+}
 function bsRevNu(q){return q.tipe==='uraian'&&BS.revNu?BS.revNu[q.id]:null}
 function bsRevCls(q,a,f){
  if(!bsAnswered(q,a))return 'plain';
- if(q.tipe==='uraian'){var g=bsRevNu(q);if(!g)return 'warn';var r0=g.skor/(q.maks||1);return r0>=0.9999?'ok':r0>0?'warn':'bad'}
+ if(q.tipe==='uraian'){var g=bsRevNu(q);if(!g)return 'warn';var r0=g.skor/(g.mk||q.maks||1);return r0>=0.9999?'ok':r0>0?'warn':'bad'}
  return f>=0.9999?'ok':f>0?'warn':'bad';
 }
 function bsRevTxt(q,a,f){
  if(!bsAnswered(q,a))return 'Tidak dijawab';
- if(q.tipe==='uraian'){var g=bsRevNu(q);return g?('Skor '+g.skor+' dari '+(q.maks||'?')):'Menunggu penilaian guru'}
+ if(q.tipe==='uraian'){var g=bsRevNu(q);return g?('Skor '+g.skor+' dari '+(g.mk||q.maks||'?')):'Menunggu penilaian guru'}
  return f>=0.9999?'Benar':f>0?'Sebagian':'Salah';
 }
 function bsRevUraian(q,a,showAns){

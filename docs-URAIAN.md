@@ -1,6 +1,6 @@
 # Rancangan: soal uraian (essay) di Bank soal dan CBT Online
 
-Status: fase 1 dan fase 2 selesai (soal, jawab siswa, penilaian guru, nilai akhir, impor/ekspor Excel, cetak soal, status di rekap). Fase 3 belum (analisis butir uraian, penilaian ulang massal). Soal uraian hanya untuk ujian, bukan latihan.
+Status: fase 1, 2, dan 3 selesai (soal, jawab siswa, penilaian guru, nilai akhir, impor/ekspor Excel, cetak soal, status di rekap, analisis butir uraian, nilai massal). Soal uraian hanya untuk ujian, bukan latihan.
 
 ## 1. Tujuan dan batas
 - Tambah jenis soal **Uraian** untuk ujian sekolah dan latihan. Bukan bagian TKA: bentuk TKA resmi hanya PG, PG kompleks, PG kategori (Perkaban BSKAP 045/2025; kerangka asesmen TKA SMK/MAK 2026).
@@ -83,3 +83,9 @@ Catatan penting: perubahan fungsi server `cbt` harus **dideploy ulang di Appwrit
 - **Cetak soal:** bagian "D. Uraian" dengan garis jawab dan skor maksimum; lembar kunci memuat rubrik dan kunci jawaban.
 - **Rekap:** daftar Hasil menampilkan lencana "N uraian menunggu"; Excel hasil punya kolom Status nilai (Final / Sementara); rekap kelas menulis "Nilai sementara" pada Keterangan bila ada uraian belum dinilai.
 - **Uji:** `node tools/uji-uraian.mjs` (impor) dan bagian "Soal uraian" di `node tools/uji-cbt.mjs` (nilai).
+
+## Catatan pelaksanaan fase 3
+- **Analisis butir:** soal uraian ikut dihitung dari jawaban yang sudah dinilai: p = rata-rata (skor ÷ skor maksimum), daya beda memakai kelompok atas-bawah 27% seperti soal lain. Jawaban yang belum dinilai tidak dihitung dan ditandai "N belum dinilai". Soal uraian tidak ikut hitungan reliabilitas (Cronbach alpha).
+- **Skor stabil:** tiap penilaian menyimpan skor maksimum saat dinilai (`mk`), jadi mengubah rubrik atau skor maksimum soal sesudah ujian tidak menggeser nilai yang sudah ada.
+- **Nilai massal:** di layar penilaian ada panel "Nilai yang sama untuk banyak siswa": isi rubrik, centang siswa yang jawabannya setara, lalu terapkan. Penilaian ulang per sesi memakai tombol Nilai ulang yang sudah ada (membaca nilai uraian).
+- **Anonim:** pilihan guru, diingat di perangkat.

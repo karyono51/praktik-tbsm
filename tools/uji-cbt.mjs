@@ -178,6 +178,8 @@ console.log('\nSoal uraian: nilai sementara dan nilai akhir');
   const c = U.cleanAns({ p1: 1, u1: 'teks', u2: '   ' }, ['p1', 'u1', 'u2']);
   cek('cleanAns: teks uraian diterima, teks kosong dibuang', c.u1 === 'teks' && c.u2 === undefined && c.p1 === 1, JSON.stringify(c));
   cek('frac: soal uraian tidak ikut hitungan objektif', U.frac(ur, 'teks') === 0);
+  g = U.nilai(['u1'], { u1: ur }, { u1: 'x' }, { u1: { skor: 5, mk: 20 } });
+  cek('skor memakai skor maksimum saat dinilai (mk), bukan maks soal sekarang: 5/20 = 25', g.score === 25, JSON.stringify(g));
 }
 
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');

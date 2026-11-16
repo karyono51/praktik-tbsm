@@ -241,7 +241,7 @@ function nilai(ids, Qs, ans, nu) {
     const q = Qs[id]; if (!q) return;
     if (q.tipe === 'uraian') {
       const g = nu && nu[id];
-      if (g && typeof g.skor === 'number') { const mk = q.maks || 1, b = q.bobot || 2, f = Math.max(0, Math.min(1, g.skor / mk)); sum += f * b; w += b; if (f >= 0.9999) ben++; }
+      if (g && typeof g.skor === 'number') { const mk = g.mk || q.maks || 1, b = q.bobot || 2, f = Math.max(0, Math.min(1, g.skor / mk)); sum += f * b; w += b; if (f >= 0.9999) ben++; }
       else if (ans && typeof ans[id] === 'string' && ans[id].trim()) pend++;
       else { w += q.bobot || 2; }   // tidak dijawab: nilai 0, tetap dihitung
       return;
@@ -510,7 +510,7 @@ async function nilaiUraian(me, body) {
   skor = Math.max(0, Math.min(maks, Math.round(skor * 100) / 100));
   const rub = Array.isArray(body.rub) ? body.rub.slice(0, 20).map((x) => Math.max(0, Math.min(maks, Number(x) || 0))) : undefined;
   const nu = Object.assign({}, p.nu || {});
-  nu[qid] = { skor, rub, cat: String(body.cat || '').slice(0, 300), oleh: String(me.akun.nama || '').slice(0, 64), ts: Date.now() };
+  nu[qid] = { skor, mk: maks, rub, cat: String(body.cat || '').slice(0, 300), oleh: String(me.akun.nama || '').slice(0, 64), ts: Date.now() };
   const g = nilai(ids, Qs, p.ans || {}, nu);
   const next = Object.assign({}, p, { nu, pts: g.pts, pend: g.pend || undefined });
   await updateDoc('soal_hasil', hid, { score: g.score, benar: g.benar, payload: JSON.stringify(next) });

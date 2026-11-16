@@ -3,7 +3,8 @@
    Skor ditulis lewat fungsi server (aksi nilaiUraian), jadi siswa tidak bisa mengubah skornya sendiri.
    Nilai akhir dihitung ulang oleh server dan dikirim balik (score, benar, pend). */
 (function(){
- var UR={sesi:'',qid:'',idx:0,anon:false,busy:false};
+ var UR={sesi:'',qid:'',idx:0,anon:false,busy:false,bulk:false};
+ try{UR.anon=localStorage.getItem('tbsm-ur-anon')==='1'}catch(e){}
  window.UR=UR;
 
  function qmap(){var m={};bsSoalAll().forEach(function(q){m[q.id]=q});return m}
@@ -92,19 +93,62 @@
    out+='<div class="card"><p class="note">Rubrik soal ini belum termuat. Buka Bank soal lalu kembali ke sini.</p></div>';
   }else{
    out+='<div class="card"><b>Rubrik</b>'+rub.map(function(k,i){
-    var v=g&&Array.isArray(g.rub)&&g.rub[i]!=null?g.rub[i]:'';
+    var dr=UR.draft,v=dr&&dr.rub&&dr.rub[i]!=null?dr.rub[i]:(g&&Array.isArray(g.rub)&&g.rub[i]!=null?g.rub[i]:'');
     return '<div class="two bs-rubrow"><div><span>'+esc(k[0])+'</span><span class="note"> maks '+k[1]+'</span></div>'+
      '<div class="row"><button type="button" class="btn small" data-ur="nol" data-v="'+i+'" aria-label="Skor 0">0</button>'+
      '<input class="ur-r" id="ur-r'+i+'" data-i="'+i+'" data-m="'+k[1]+'" type="number" inputmode="decimal" min="0" max="'+k[1]+'" step="0.5" value="'+esc(v)+'" aria-label="Skor '+esc(k[0])+'">'+
      '<button type="button" class="btn small" data-ur="penuh" data-v="'+i+'" aria-label="Skor penuh">Penuh</button></div></div>';
    }).join('')+
-   '<p class="note">Jumlah skor: <b id="ur-tot" class="mono">'+(g?g.skor:0)+'</b> dari '+maks+'</p>'+
-   '<label class="f">Komentar untuk siswa (opsional)<textarea id="ur-cat" rows="3" maxlength="300">'+esc(g?g.cat||'':'')+'</textarea></label>'+
+   '<p class="note">Jumlah skor: <b id="ur-tot" class="mono">'+(UR.draft?UR.draft.skor:(g?g.skor:0))+'</b> dari '+maks+'</p>'+
+   '<label class="f">Komentar untuk siswa (opsional)<textarea id="ur-cat" rows="3" maxlength="300">'+esc(UR.draft?UR.draft.cat:(g?g.cat||'':''))+'</textarea></label>'+
    '<div class="row"><button type="button" class="btn small" data-ur="prev"'+(UR.idx?'':' disabled')+'>Sebelumnya</button>'+
    '<button type="button" class="btn primary" data-ur="simpan"'+(UR.busy?' disabled':'')+'>'+(UR.busy?'Menyimpan…':(UR.idx<L.length-1?'Simpan dan lanjut':'Simpan'))+'</button>'+
    '<button type="button" class="btn small" data-ur="next"'+(UR.idx<L.length-1?'':' disabled')+'>Berikutnya</button></div></div>';
+   out+=viewBulk(L,h);
   }
   return out;
+ }
+
+ /* beri nilai yang sama ke beberapa siswa sekaligus (mis. banyak jawaban singkat yang identik) */
+ function viewBulk(L,cur){
+  var sisa=L.filter(function(x){return x.id!==cur.id&&!dinilai(x,UR.qid)});
+  if(!sisa.length)return '';
+  var out='<div class="card"><div class="row sb"><b>Nilai yang sama untuk banyak siswa</b><button type="button" class="btn small" data-ur="bulk">'+(UR.bulk?'Tutup':'Buka')+'</button></div>';
+  if(UR.bulk){
+   out+='<p class="note">Isi rubrik di atas, lalu centang siswa yang berhak mendapat skor dan komentar yang sama. Baca jawaban mereka dulu bila perlu. Hanya yang belum dinilai ('+sisa.length+') yang ditampilkan.</p>'+
+    '<div class="row"><button type="button" class="btn small" data-ur="bsemua">Pilih semua</button><button type="button" class="btn small" data-ur="bkosong">Kosongkan</button></div>'+
+    sisa.slice(0,60).map(function(x){
+     var i=L.indexOf(x),nm=UR.anon?('Siswa '+(i+1)):esc(x.siswa||'(siswa)');
+     var t=String(jawab(x,UR.qid)||'').replace(/\s+/g,' ').slice(0,90);
+     return '<label class="row"><input type="checkbox" class="ur-b" data-h="'+esc(x.id)+'"> <span><b>'+nm+'</b> <span class="note">'+esc(t)+(String(jawab(x,UR.qid)||'').length>90?'…':'')+'</span></span></label>';
+    }).join('')+(sisa.length>60?'<p class="note">Menampilkan 60 pertama dari '+sisa.length+'.</p>':'')+
+    '<button type="button" class="btn primary" data-ur="bterap"'+(UR.busy?' disabled':'')+'>Terapkan nilai ke siswa terpilih</button>';
+  }
+  return out+'</div>';
+ }
+ function bacaForm(){
+  var rub=[];$$('.ur-r').forEach(function(e){var v=parseFloat(String(e.value).replace(',','.'));rub[+e.dataset.i]=isFinite(v)?Math.max(0,Math.min(+e.dataset.m,v)):0});
+  return {rub:rub,skor:totalNow(),cat:(document.getElementById('ur-cat')||{}).value||''};
+ }
+ async function kirim(h,v){
+  var rs=await cbtFn({action:'nilaiUraian',hasilId:h.id,qid:UR.qid,skor:v.skor,rub:v.rub,cat:v.cat});
+  var o=BS.D.hasil.filter(function(x){return x.id===h.id})[0]||h;
+  o.nu=o.nu||{};o.nu[UR.qid]=rs.nu;o.score=rs.score;o.benar=rs.benar;o.pend=rs.pend||undefined;
+  return rs;
+ }
+ async function terapkan(){
+  if(UR.busy)return;
+  var pil=$$('.ur-b').filter(function(e){return e.checked}).map(function(e){return e.dataset.h});
+  if(!pil.length){toast('Centang siswa dahulu');return}
+  var v=bacaForm();
+  if(!(await uiConfirm('Beri skor '+v.skor+' ke '+pil.length+' siswa terpilih?\nJawaban mereka tidak dibaca ulang oleh aplikasi. Pastikan jawabannya memang setara.',{ok:'Terapkan'})))return;
+  var L=daftarJawab(UR.sesi,UR.qid),ok=0,gagal=0;
+  UR.busy=true;render();
+  for(var i=0;i<pil.length;i+=4){
+   var grp=pil.slice(i,i+4).map(function(id){return L.filter(function(x){return x.id===id})[0]}).filter(Boolean);
+   var rs=await Promise.all(grp.map(function(h){return kirim(h,v).then(function(){ok++},function(){gagal++})}));
+  }
+  UR.draft=null;UR.busy=false;UR.bulk=false;toast(ok+' nilai tersimpan'+(gagal?', '+gagal+' gagal':''));render();window.scrollTo(0,0);
  }
 
  function totalNow(){
@@ -115,13 +159,10 @@
 
  async function simpan(){
   var q=bsSoalById(UR.qid),L=daftarJawab(UR.sesi,UR.qid),h=L[UR.idx];if(!q||!h||UR.busy)return;
-  var rub=[];$$('.ur-r').forEach(function(e){var v=parseFloat(String(e.value).replace(',','.'));rub[+e.dataset.i]=isFinite(v)?Math.max(0,Math.min(+e.dataset.m,v)):0});
-  var skor=totalNow(),cat=(document.getElementById('ur-cat')||{}).value||'';
+  var v=bacaForm();
   UR.busy=true;render();
   try{
-   var rs=await cbtFn({action:'nilaiUraian',hasilId:h.id,qid:UR.qid,skor:skor,rub:rub,cat:cat});
-   var o=BS.D.hasil.filter(function(x){return x.id===h.id})[0]||h;
-   o.nu=o.nu||{};o.nu[UR.qid]=rs.nu;o.score=rs.score;o.benar=rs.benar;o.pend=rs.pend||undefined;
+   await kirim(h,v);
    toast('Nilai tersimpan');
    if(UR.idx<L.length-1)UR.idx++;
   }catch(e){toast((e&&e.message)||'Gagal menyimpan nilai')}
@@ -131,13 +172,18 @@
  document.addEventListener('click',function(e){
   var b=e.target.closest('[data-ur]');if(!b)return;
   var a=b.dataset.ur,v=b.dataset.v;
+  if(a==='bulk'||a==='anon'){if($$('.ur-r').length)UR.draft=bacaForm()}
+  else if(['sesi','home','soal','back','prev','next','simpan'].indexOf(a)>-1)UR.draft=null;
   if(a==='sesi'){UR.sesi=v;UR.qid='';UR.idx=0;render();window.scrollTo(0,0)}
   else if(a==='home'){UR.sesi='';UR.qid='';render()}
   else if(a==='soal'){UR.qid=v;var L=daftarJawab(UR.sesi,v),i=L.findIndex(function(x){return !dinilai(x,v)});UR.idx=i>-1?i:0;render();window.scrollTo(0,0)}
   else if(a==='back'){UR.qid='';render()}
   else if(a==='prev'){if(UR.idx>0){UR.idx--;render();window.scrollTo(0,0)}}
   else if(a==='next'){UR.idx++;render();window.scrollTo(0,0)}
-  else if(a==='anon'){UR.anon=!!b.checked;render()}
+  else if(a==='anon'){UR.anon=!!b.checked;try{localStorage.setItem('tbsm-ur-anon',UR.anon?'1':'0')}catch(e){}render()}
+  else if(a==='bulk'){UR.bulk=!UR.bulk;render()}
+  else if(a==='bsemua'||a==='bkosong'){$$('.ur-b').forEach(function(x){x.checked=a==='bsemua'})}
+  else if(a==='bterap')terapkan();
   else if(a==='nol'||a==='penuh'){var el=document.getElementById('ur-r'+v);if(el){el.value=a==='nol'?0:el.dataset.m;totalNow()}}
   else if(a==='simpan')simpan();
  });

@@ -231,10 +231,12 @@
   H.forEach(function(h){
    (h.order||[]).forEach(function(id){
     var q=bsSoalById(id);if(!q)return;
-    var o=per[id]=per[id]||{id:id,q:q,n:0,sum:0,au:0,an:0,bu:0,bn:0,pil:{},nokey:!bsHasKey(q)||q.tipe==='uraian'};
+    var o=per[id]=per[id]||{id:id,q:q,n:0,sum:0,au:0,an:0,bu:0,bn:0,pil:{},nokey:!bsHasKey(q)};
     var a=h.ans?h.ans[id]:undefined;
     if(o.nokey)return;
-    var f=bsFrac(q,a==null?null:a);o.n++;o.sum+=f;
+    var f=bsFracH(q,a==null?null:a,h);
+    if(f===null){o.blm=(o.blm||0)+1;return}
+    o.n++;o.sum+=f;
     if(atas[h.id]&&g){o.au+=f;o.an++}
     if(bawah[h.id]&&g&&!atas[h.id]){o.bu+=f;o.bn++}
     if(q.tipe==='pg'&&typeof a==='number')o.pil[a]=(o.pil[a]||0)+1;
@@ -277,7 +279,8 @@
  window.cbtReliabilitas=reliabilitas;
  var HURUF='ABCDEFGHIJ';
  function sebaran(o){
-  var q=o.q;if(q.tipe==='kategori'||!q.opts)return '';
+  var q=o.q;if(q.tipe==='uraian')return o.blm?'<span class="pill warn">'+o.blm+' belum dinilai</span>':'';
+  if(q.tipe==='kategori'||!q.opts)return '';
   var tot=o.n||1;
   return q.opts.map(function(_,i){
    var n=o.pil[i]||0,key=q.tipe==='pg'?q.kunci===i:(q.kunci||[]).indexOf(i)>-1;

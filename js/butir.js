@@ -34,8 +34,9 @@ function btrBank(){
   if(h.mode!=='ujian'||!Array.isArray(h.order))return;
   var t=+h.score||0;
   h.order.forEach(function(id){
-   var q=bsSoalById(id);if(!q||!bsHasKey(q)||q.tipe==='uraian')return;
-   (by[id]=by[id]||[]).push({t:t,f:bsFrac(q,h.ans?h.ans[id]:null)});
+   var q=bsSoalById(id);if(!q||!bsHasKey(q))return;
+   var fx=bsFracH(q,h.ans?h.ans[id]:null,h);if(fx===null)return;
+   (by[id]=by[id]||[]).push({t:t,f:fx});
   });
  });
  var out={};Object.keys(by).forEach(function(id){out[id]=btrItem(by[id])});
