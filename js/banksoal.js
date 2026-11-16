@@ -25,6 +25,8 @@ var BS_TUJ={latihan:'Latihan',ujian:'Ujian',keduanya:'Latihan dan ujian'};
 var BS_IDX={};(window.SOAL_TKA||[]).forEach(function(b){BS_IDX[b.id]=b});
 ICO.cbtonline='<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="m9 10 2 2 4-4"/>';
 ICO.banksoal='<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="m9 14 2 2 4-4"/>';
+/* ikon Latihan soal berbasis CBT: laptop berisi daftar soal dan tanda centang (untuk siswa) */
+ICO.latihan='<rect x="4" y="4" width="16" height="11" rx="2"/><path d="M2 19h20"/><path d="M8 8h3M8 11h2"/><path d="m12.5 11 1.5 1.5L17 9.5"/>';
 
 /* ---------- Penyimpanan ---------- */
 function bsLoadLocal(){['soal','sesi','hasil'].forEach(function(k){try{BS.D[k]=JSON.parse(localStorage.getItem(BSK[k])||'[]')}catch(e){BS.D[k]=[]}})}
@@ -663,7 +665,7 @@ function viewBankSoal(){
  /* pindah antara Bank soal dan CBT Online: kembali ke halaman utama menu, kecuali ujian/latihan yang sedang berjalan */
  if(BS.lastTab&&BS.lastTab!==S.tab){if(!(BS.sub==='run'&&BS.run))BS.sub='home';BS.res=null;BS.form=null;BS.sf=null}
  BS.lastTab=S.tab;
- var staff=bsEdit(),cbt=S.tab==='cbtonline',h='<div class="sechead"><span class="ico">'+svg(cbt?ICO.cbtonline:ICO.banksoal,18)+'</span><h2>'+(cbt?'CBT Online '+esc(schNama()):'Bank soal')+'</h2></div>';
+ var staff=bsEdit(),cbt=S.tab==='cbtonline',sw=!(staff&&actRole()!=='siswa'),h='<div class="sechead"><span class="ico">'+svg(cbt?ICO.cbtonline:(sw?ICO.latihan:ICO.banksoal),18)+'</span><h2>'+(cbt?'CBT Online '+esc(schNama()):(sw?'Latihan Soal Berbasis CBT Online':'Bank soal'))+'</h2></div>';
  if(!BS.loaded)return h+'<p class="muted center" style="padding:32px 0">Memuat soal…</p>';
  if(BS.err.length)h+='<div class="err">'+BS.err.map(esc).join('<br>')+(BS.err.some(function(e){return /collection|not found|could not be found/i.test(e)})?'<br>Koleksi belum dibuat di Appwrite. Jalankan: node tools/setup-appwrite.mjs --only=banksoal,soal_sesi,soal_hasil':'')+'</div>';
  if(BS.sub==='detail'||BS.sub==='result')return h+bsViewResult();
@@ -687,8 +689,8 @@ render=function(){
   if(BS.run&&bsOn()&&BS.sub==='run')document.body.classList.add('has-bar');
   var sb=document.querySelector('.sbody');
   if(sb&&!sb.querySelector('[data-v="banksoal"]')){
-   var cur=V.mode==='list'?S.tab:'',rk=sb.querySelector('.srow[data-v="rekap"]');
-   var html='<button type="button" class="srow" data-act="menu" data-v="banksoal"'+(cur==='banksoal'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.banksoal,22)+'</span><span class="st"><b>Bank soal</b><small>Kumpulan soal latihan dan ujian</small></span>'+svg(ICO.chev,18)+'</button>';
+   var sw2=!(isStaff()&&actRole()!=='siswa'),cur=V.mode==='list'?S.tab:'',rk=sb.querySelector('.srow[data-v="rekap"]');
+   var html='<button type="button" class="srow" data-act="menu" data-v="banksoal"'+(cur==='banksoal'?' aria-current="page"':'')+'><span class="ico">'+svg(sw2?ICO.latihan:ICO.banksoal,22)+'</span><span class="st"><b>'+(sw2?'Latihan Soal Berbasis CBT Online':'Bank soal')+'</b><small>'+(sw2?'Latihan soal dan riwayat':'Kumpulan soal latihan dan ujian')+'</small></span>'+svg(ICO.chev,18)+'</button>';
    html+='<button type="button" class="srow" data-act="menu" data-v="cbtonline"'+(cur==='cbtonline'?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.cbtonline,22)+'</span><span class="st"><b>CBT Online</b><small>'+(isStaff()&&actRole()!=='siswa'?'Sesi, pantau, hasil, analisis':'Ujian online dan riwayat')+'</small></span>'+svg(ICO.chev,18)+'</button>';
    if(rk)rk.insertAdjacentHTML('afterend',html);else sb.insertAdjacentHTML('beforeend',html);
   }
