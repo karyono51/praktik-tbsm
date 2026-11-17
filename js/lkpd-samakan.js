@@ -5,7 +5,7 @@
    2. Editor: tombol Kembali HP menutup editor tanpa tanya bila belum ada perubahan, dan bertanya hanya bila ada perubahan.
    3. Editor: pindah menu, tab, atau kelas menutup editor yang belum berubah (tidak tertinggal terbuka).
    4. Editor: ID baru juga diperiksa terhadap unit UKK (dokumen UKK memakai koleksi yang sama), dan ukuran dokumen dibatasi.
-   5. Editor tab Pemeriksaan: centang Wajib foto langsung per baris (sebelumnya hanya di Pengaturan). Ikut naik, turun,
+   5. Editor tab Pemeriksaan: kolom Standar manual dan centang Wajib foto langsung per baris (sebelumnya hanya di Pengaturan). Ikut naik, turun,
       hapus, dan salin bersama barisnya. Pengaturan lama tetap bisa dipakai. */
 var LKZ={MAXBYTES:450*1024};
 
@@ -88,8 +88,10 @@ document.addEventListener('click',function(e){
  };
 })();
 
-/* ---------- 5. Wajib foto per baris pemeriksaan ---------- */
-/* Baris pemeriksaan: [komponen, kriteria, fotoWajib(boolean)]. Elemen boolean tidak dihitung saat menilai baris kosong. */
+/* ---------- 5. Wajib foto dan Standar manual per baris pemeriksaan ---------- */
+/* Baris pemeriksaan di editor: [komponen, kriteria, fotoWajib(boolean), standarManual]. Elemen boolean tidak dihitung saat
+   menilai baris kosong. Di modul tersimpan: [komponen, kriteria] atau [komponen, kriteria, standar] bila standar diisi;
+   foto wajib tetap di modul.fotoWajib (daftar indeks). Standar manual tampil pada siswa sebagai "Acuan". */
 lkeBlank=function(row){return !lkeAny(row.filter(function(x){return typeof x!=='boolean'}))};
 (function(){
  var init0=lkeInit;
@@ -97,10 +99,10 @@ lkeBlank=function(row){return !lkeAny(row.filter(function(x){return typeof x!=='
   var had=!!d.S,s=init0.apply(this,arguments);
   if(!had&&!d._fz){
    d._fz=true;
-   var fw=Array.isArray((d.src||{}).fotoWajib)?d.src.fotoWajib:[];
-   s.checks.forEach(function(r,i){r[2]=fw.indexOf(i)>-1});
+   var src=d.src||{},fw=Array.isArray(src.fotoWajib)?src.fotoWajib:[],sc=src.checks||[];
+   s.checks.forEach(function(r,i){r[2]=fw.indexOf(i)>-1;r[3]=String((sc[i]&&sc[i][2])||'')});
    d.snap=JSON.stringify(s);
-   /* draf lama (tanpa penanda foto) dibandingkan ulang terhadap kondisi awal yang baru */
+   /* draf lama (tanpa penanda foto dan standar) dibandingkan ulang terhadap kondisi awal yang baru */
    try{
     var raw=JSON.parse(localStorage.getItem(LKE.DKEY)||'null'),k=d.id||'(baru)';
     d.rec=(raw&&raw.k===k&&raw.S&&JSON.stringify(raw.S)!==d.snap&&Date.now()-raw.ts<14*864e5)?raw:null;
@@ -114,17 +116,47 @@ lkeBlank=function(row){return !lkeAny(row.filter(function(x){return typeof x!=='
   if(p!=='checks')return html;
   return html.replace(/(<input data-lke="checks\.(\d+)\.1"[^>]*>)(<\/div>)/g,function(_,inp,i,end){
    var r=d.S.checks[+i]||[];
-   return inp+'<label class="lkz-foto"><input type="checkbox" data-lke="checks.'+i+'.2"'+(r[2]===true?' checked':'')+'><span>Wajib foto bukti</span></label>'+end;
+   return inp+'<textarea class="lke-1" rows="1" data-lke="checks.'+i+'.3" placeholder="Standar manual (opsional, contoh: 12,6–13,2 V)">'+esc(r[3]||'')+'</textarea>'+
+    '<label class="lkz-foto"><input type="checkbox" data-lke="checks.'+i+'.2"'+(r[2]===true?' checked':'')+'><span>Wajib foto bukti</span></label>'+end;
   });
+ };
+ var pb0=lkePasteBox;
+ lkePasteBox=function(d,p){
+  var h=pb0.apply(this,arguments);
+  return p==='checks'?h.replace('Komponen | Kriteria','Komponen | Kriteria | Standar manual (bagian ketiga opsional)'):h;
+ };
+ var pp0=lkeParsePaste;
+ lkeParsePaste=function(p,txt){
+  var out=pp0.apply(this,arguments);
+  if(p!=='checks')return out;
+  var lines=String(txt).replace(/\r\n?/g,'\n').split('\n').map(function(x){return x.trim()}).filter(Boolean);
+  if(lines.length!==out.length)return out;
+  lines.forEach(function(l,i){
+   var a=l.replace(/^(?:[-•*·]+|\d+[.)])\s*/,'').split('|').map(function(x){return x.trim()});
+   if(a.length>=3){out[i]=[a[0],a[1],false,a.slice(2).join(' | ')]}
+  });
+  return out;
  };
  var b0=lkeBuild;
  lkeBuild=function(d){
   var m=b0.apply(this,arguments),s=d.S,idx=[],n=0;
-  s.checks.forEach(function(r){if(lkeBlank(r))return;if(r[2]===true)idx.push(n);n++});
+  s.checks.forEach(function(r){
+   if(lkeBlank(r))return;
+   if(r[2]===true)idx.push(n);
+   var std=lkeT(r[3]);if(std&&m.checks[n])m.checks[n].push(std);
+   n++;
+  });
   if(idx.length||Array.isArray(m.fotoWajib))m.fotoWajib=idx;
   return m;
  };
+ var i1=lkeIssues;
+ lkeIssues=function(d){
+  var I=i1.apply(this,arguments);
+  d.S.checks.forEach(function(r,i){if(!lkeBlank(r)&&lkeT(r[3]).length>300)I.push({tab:'cek',msg:'Komponen no. '+(i+1)+': standar manual maksimal 300 karakter'})});
+  return I;
+ };
 })();
 (function(){var st=document.createElement('style');st.textContent=
-'.lkz-foto{display:flex;align-items:center;gap:8px;font-size:13.5px}.lkz-foto input{width:22px;height:22px;accent-color:var(--accent)}';
+'.lkz-foto{display:flex;align-items:center;gap:8px;font-size:13.5px}.lkz-foto input{width:22px;height:22px;accent-color:var(--accent)}'+
+'.lk-acuan{display:block;margin-top:4px;color:var(--muted);font-size:12.5px}';
 document.head.appendChild(st)})();

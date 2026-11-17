@@ -20,3 +20,9 @@ Berkas baru: `js/lkpd-samakan.js` (dimuat setelah `ukk-kelola.js`). Tidak ada be
 3. Tab Pemeriksaan: centang Wajib foto pada satu baris, simpan, buka Pengaturan: komponen itu sudah tercentang.
 4. Buat LKPD baru dengan ID yang sama dengan unit UKK (mis. UKK-1): muncul peringatan di tab Info.
 5. Buka editor, tidak mengubah apa pun, tekan tombol Kembali HP: langsung keluar tanpa pertanyaan.
+
+## Standar manual pada tabel pemeriksaan
+- Tiap baris di tab Pemeriksaan punya kolom **Standar manual** (opsional, maks. 300 karakter), mis. `12,6–13,2 V`. Tempel banyak menerima format `Komponen | Kriteria | Standar manual`.
+- Tersimpan sebagai elemen ketiga baris: `checks: [komponen, kriteria, standar]`. Baris tanpa standar tetap `[komponen, kriteria]`, jadi modul lama tidak berubah.
+- Siswa melihat teks **Acuan: ...** di bawah kolom Standar manual (kolom isian siswa tetap ada); guru melihatnya juga di Detail pengumpulan. Perubahan kecil ada di `js/lkpd.js`.
+- Catatan: impor Excel LKPD masih memakai dua kolom, jadi impor yang menimpa Pemeriksaan akan menghapus standar manual. Ekspor/impor belum disesuaikan.
