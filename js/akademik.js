@@ -352,7 +352,7 @@ function viewAkdSiswa(){
   var d=akSiswaRombel(k);
   return '<div class="card"><div class="row sb"><b>'+esc(k.nama)+'</b>'+akPill(d.length+' siswa','ok')+'</div>'+
    '<div class="note">'+esc(akSekLabel(k.sekolah))+' · Wali kelas: '+(k.waliId?esc(akNamaUser(k.waliId)):'belum ditetapkan')+'</div>'+
-   (d.length?'<div class="ak-nh"><span>No</span><span>NIS</span><span>Nama</span></div><ol class="ak-nm">'+d.map(function(u){return '<li>'+akNisHtml(u)+'<span class="ak-n">'+esc(u.nama)+'</span></li>'}).join('')+'</ol>':'<p class="muted">Belum ada siswa di rombel ini.</p>')+
+   (d.length?'<div class="ak-nh"><span>No</span><span>NIS</span><span>Nama</span></div><ol class="ak-nm">'+d.map(function(u){return '<li>'+akNisHtml(u)+'<span class="ak-n" title="'+esc(u.nama)+'">'+esc(u.nama)+'</span></li>'}).join('')+'</ol>':'<p class="muted">Belum ada siswa di rombel ini.</p>')+
    '<div class="row">'+akBtn('anggota',k.id,akEdit()?'Atur anggota':'Lihat anggota')+'</div></div>';
  }).join('');
  if(!one&&tanpa.length)h+='<div class="card"><div class="row sb"><b>Belum punya rombel</b>'+akPill(tanpa.length+' siswa','warn')+'</div><ol class="ak-nm">'+tanpa.map(function(u){return '<li>'+akNisHtml(u)+'<span class="ak-n">'+esc(u.nama)+(u.kelas?' <small class="note">(Kelas '+esc(u.kelas)+')</small>':'')+'</span></li>'}).join('')+'</ol></div>';
