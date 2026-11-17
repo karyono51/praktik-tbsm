@@ -327,14 +327,21 @@ function akNis(u){
  return /^[\d.]+$/.test(n)?n:'';
 }
 function akNisHtml(u){var n=akNis(u);return '<span class="ak-nis'+(n?'':' kosong')+'">'+(n?esc(n):'NIS belum ada')+'</span>'}
+/* urut menurut NIS (naik); yang belum punya NIS di bawah, diurut nama */
+function akUrutNis(a,b){
+ var x=akNis(a).replace(/\D/g,''),y=akNis(b).replace(/\D/g,'');
+ if(x&&!y)return -1;if(!x&&y)return 1;
+ if(x!==y)return x.length-y.length||(x<y?-1:1);
+ return String(a.nama).localeCompare(String(b.nama),'id');
+}
 function akSiswaRombel(k){
  var peta={};S.users.forEach(function(u){peta[u.id]=u});
  return (k.anggota||[]).map(function(id){return peta[id]}).filter(function(u){return u&&hasRole(u,'siswa')&&u.aktif!==false})
-  .sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
+  .sort(akUrutNis);
 }
 function viewAkdSiswa(){
  var h='',kl=akAktif(akKelasAll()),pet=akAnggotaPeta();
- var sw=akSiswaAktif(),tanpa=sw.filter(function(u){return !pet[u.id]}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
+ var sw=akSiswaAktif(),tanpa=sw.filter(function(u){return !pet[u.id]}).sort(akUrutNis);
  var one=AKD.sk?akById('kelas',AKD.sk):null;if(AKD.sk&&!one)AKD.sk='';
  h+='<div class="chips">'+['ALL'].concat(AKTK).map(function(c){return '<button type="button" data-akd="sf" data-id="'+c+'" aria-pressed="'+(!one&&AKD.tf===c)+'">'+(c==='ALL'?'Semua kelas':'Kelas '+c)+'</button>'}).join('')+'</div>';
  var L=one?[one]:kl.filter(function(k){return AKD.tf==='ALL'||k.tingkat===AKD.tf});
@@ -345,10 +352,10 @@ function viewAkdSiswa(){
   var d=akSiswaRombel(k);
   return '<div class="card"><div class="row sb"><b>'+esc(k.nama)+'</b>'+akPill(d.length+' siswa','ok')+'</div>'+
    '<div class="note">'+esc(akSekLabel(k.sekolah))+' · Wali kelas: '+(k.waliId?esc(akNamaUser(k.waliId)):'belum ditetapkan')+'</div>'+
-   (d.length?'<div class="ak-nh"><span>Nama siswa</span><span>NIS</span></div><ol class="ak-nm">'+d.map(function(u){return '<li><span class="ak-n">'+esc(u.nama)+'</span>'+akNisHtml(u)+'</li>'}).join('')+'</ol>':'<p class="muted">Belum ada siswa di rombel ini.</p>')+
+   (d.length?'<div class="ak-nh"><span>No</span><span>NIS</span><span>Nama</span></div><ol class="ak-nm">'+d.map(function(u){return '<li>'+akNisHtml(u)+'<span class="ak-n">'+esc(u.nama)+'</span></li>'}).join('')+'</ol>':'<p class="muted">Belum ada siswa di rombel ini.</p>')+
    '<div class="row">'+akBtn('anggota',k.id,akEdit()?'Atur anggota':'Lihat anggota')+'</div></div>';
  }).join('');
- if(!one&&tanpa.length)h+='<div class="card"><div class="row sb"><b>Belum punya rombel</b>'+akPill(tanpa.length+' siswa','warn')+'</div><ol class="ak-nm">'+tanpa.map(function(u){return '<li><span class="ak-n">'+esc(u.nama)+(u.kelas?' <small class="note">(Kelas '+esc(u.kelas)+')</small>':'')+'</span>'+akNisHtml(u)+'</li>'}).join('')+'</ol></div>';
+ if(!one&&tanpa.length)h+='<div class="card"><div class="row sb"><b>Belum punya rombel</b>'+akPill(tanpa.length+' siswa','warn')+'</div><ol class="ak-nm">'+tanpa.map(function(u){return '<li>'+akNisHtml(u)+'<span class="ak-n">'+esc(u.nama)+(u.kelas?' <small class="note">(Kelas '+esc(u.kelas)+')</small>':'')+'</span></li>'}).join('')+'</ol></div>';
  return h;
 }
 function akAnggotaHtml(id){
