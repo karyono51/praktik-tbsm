@@ -258,7 +258,7 @@ function bsioProcess(rows){
   if(ex){
    var o=Object.assign({},ex);
    delete o.opts;delete o.kunci;delete o.rows;delete o.lab;delete o.rub;delete o.kj;delete o.maks;delete o.bobot;delete o.pj;
-   Object.assign(o,f);o.ts=Date.now();o.aktif=st===undefined?ex.aktif!==false:st;o.oleh=ex.oleh||me;
+   Object.assign(o,f);o.ts=Date.now();o.dib=o.ts;o.aktif=st===undefined?ex.aktif!==false:st;o.oleh=ex.oleh||me;
    res.upd.push(o);return;
   }
   var key=[tipe,bsioNorm(f.mapel),bsioNorm(f.q)].join('|');
