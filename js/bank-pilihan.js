@@ -1,11 +1,11 @@
 /* bank-pilihan.js: daftar pilihan filter Bank soal (guru/admin) dengan huruf yang sama dengan kartu filter.
    Daftar pilihan bawaan HP (dialog <select> Android) memakai huruf besar dan tidak bisa diatur lewat CSS, jadi untuk dropdown filter
-   Bank soal (Mapel, Kelas, Modul/LKPD, Elemen CP, Jenis, Peruntukan, Statistik ujian) ketukan dialihkan ke lembar pilihan buatan
+   Bank soal (Mapel, Kelas, Modul/LKPD, Elemen CP, Jenis, Peruntukan, Statistik ujian) dan Atur latihan siswa (Mata pelajaran, Jenis soal) ketukan dialihkan ke lembar pilihan buatan
    aplikasi yang memakai huruf badan (15px). Nilai tetap ditulis ke <select> aslinya lalu peristiwa change dikirim, jadi semua logika
    filter (bank-bertingkat.js, banksoal.js, butir.js) tidak berubah. Lembar memakai kelas ui-ov, sehingga tombol back HP
    menutupnya lebih dulu (back.js). Dropdown lain di aplikasi tidak disentuh. Dimuat setelah bank-bertingkat.js. */
 (function(){
- var SEL='#bq-mp,#bq-kls,#bq-mod,#bq-cp,select[data-bs="flt"]';
+ var SEL='#bq-mp,#bq-kls,#bq-mod,#bq-cp,#bl-mapel,#bl-tipe,select[data-bs="flt"]';
  function cari(e){var t=e.target;return t&&t.matches&&t.matches(SEL)&&!t.disabled?t:null}
  function tutup(){var o=document.getElementById('bp-ov');if(o)o.remove()}
  function judul(s){
