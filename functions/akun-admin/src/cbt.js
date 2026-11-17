@@ -19,6 +19,12 @@
                                                (batas waktu ~18 dtk). -> {n, sisa, gagal}; ulangi selama sisa > 0 dan n > 0.
      nilaiUlang  {sesiId}                      guru/admin: hitung ulang nilai hasil ujian sesi dengan kunci terbaru (setelah kunci dikoreksi).
                                                -> {total, n, sisa, lewat, gagal}; ulangi selama sisa > 0 dan n > 0.
+     rilisToken  {sesiId, menit}               guru/admin/proktor: rilis token sesi, berlaku `menit` menit (bawaan 15, maks 180); menit 0 = tutup token.
+                                               Sesi dengan tokR wajib token yang sedang dirilis. -> {token, rilis, berlaku, now}
+     pantau      {sesiId}                      guru/admin/proktor: status peserta tanpa jawaban, kunci, atau nilai. -> {peserta[], tok, now}
+     aksiRun     {rid, op, detik}              guru/admin/proktor: op = tambah (detik 300 atau 900) | bukaKunci | akhiri (hanya menghentikan, tanpa menilai).
+     catat       {aksi, sesiId, ket}           guru/admin/proktor: catat aksi di perangkat ke log audit (diberi awalan klien.).
+   Label Appwrite `proktor` (tanpa `guru`): hanya boleh memakai aksi rilisToken, pantau, aksiRun, dan catat. Semua aksi staf dicatat di koleksi `audit`.
 */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -42,10 +48,10 @@ const TTL_USER = 60000, TTL_SOAL = 60000, TTL_SESI = 10000;   // sesi dan token 
 const BUDGET_MS = Number(process.env.CBT_BUDGET_MS) || 18000, PAR = 4;     // satu panggilan massal berhenti sebelum batas waktu fungsi (disarankan 30 dtk)
 const EXAMBRO_UA = String(process.env.EXAMBRO_UA || 'TBSM-EXAM,VERSION/4.0').toUpperCase().split(',').map((t) => t.trim()).filter(Boolean);   // dipisah koma; samakan dengan EXAMBRO_UA di js/config.js
 const MAX_SALAH = 10, JENDELA_SALAH = 5 * 60000;
-const memo = { user: new Map(), soal: new Map(), sesi: new Map(), tok: new Map(), pool: null, salah: new Map() };
+const memo = { user: new Map(), soal: new Map(), sesi: new Map(), tok: new Map(), ros: new Map(), pool: null, salah: new Map() };
 function memGet(m, k, ttl) { const e = m.get(k); return e && Date.now() - e.t < ttl ? e.v : undefined; }
 function memSet(m, k, v, cap) { if (m.size >= cap) m.delete(m.keys().next().value); m.set(k, { t: Date.now(), v }); return v; }
-function memReset() { memo.user.clear(); memo.soal.clear(); memo.sesi.clear(); memo.tok.clear(); memo.pool = null; }
+function memReset() { memo.user.clear(); memo.soal.clear(); memo.sesi.clear(); memo.tok.clear(); memo.ros.clear(); memo.pool = null; }
 /* satu pekerjaan yang sama dari banyak siswa sekaligus hanya dikerjakan sekali (mencegah serbuan saat cache masih kosong) */
 const inflight = new Map();
 function sekali(key, fn) { if (inflight.has(key)) return inflight.get(key); const p = Promise.resolve().then(fn).finally(() => inflight.delete(key)); inflight.set(key, p); return p; }
@@ -97,14 +103,16 @@ async function sesiDoc(id) {
   const c = memGet(memo.sesi, id, TTL_SESI); if (c) return c;
   return sekali('sesi:' + id, async () => { const d = await tryGet('soal_sesi', id); if (d) memSet(memo.sesi, id, d, 500); return d; });
 }
+/* token sesi: {token, rilis, berlaku}. rilis = waktu (ms) token dirilis pengawas, berlaku = menit; 0 bila belum dirilis atau sudah ditutup. */
 async function tokenSesi(id) {
   const c = memGet(memo.tok, id, TTL_SESI); if (c !== undefined) return c;
   return sekali('tok:' + id, async () => {
-    const kd = await tryGet('soal_kunci', 'tk_' + id); let tk = '';
-    try { tk = String(JSON.parse((kd && kd.payload) || '{}').token || ''); } catch (e) { tk = ''; }
-    return memSet(memo.tok, id, tk, 500);
+    const kd = await tryGet('soal_kunci', 'tk_' + id); let o = { token: '', rilis: 0, berlaku: 0 };
+    try { const j = JSON.parse((kd && kd.payload) || '{}'); o = { token: String(j.token || ''), rilis: Number(j.rilis) || 0, berlaku: Number(j.berlaku) || 0 }; } catch (e) { o = { token: '', rilis: 0, berlaku: 0 }; }
+    return memSet(memo.tok, id, o, 500);
   });
 }
+const tokAktif = (ti, now) => !!(ti.rilis && ti.berlaku > 0 && now >= ti.rilis - 5000 && now <= ti.rilis + ti.berlaku * 60000);
 async function listDocs(col, queries) {
   const out = []; let cur = null;
   for (;;) {
@@ -260,14 +268,14 @@ function kcOf(ids, Qs) {
 async function whoami(callerId) {
   const c = memGet(memo.user, callerId, TTL_USER); if (c) return c;
   const u = await aw('GET', '/users/' + encodeURIComponent(callerId));
-  const labels = u.labels || [], staff = labels.includes('guru') || labels.includes('admin');
+  const labels = u.labels || [], staff = labels.includes('guru') || labels.includes('admin'), proktor = labels.includes('proktor'), admin = labels.includes('admin');
   const email = String(u.email || '').trim().toLowerCase();
   if (!email) throw new Fail('Akun login tidak punya email.', 400);
   const f = await listDocs('akun', [Q.equal('email', [email]), Q.limit(1)]);
   const akun = f[0];
   if (!akun) throw new Fail('Email belum terdaftar di daftar akun.', 404);
   if (akun.aktif === false) throw new Fail('Akun nonaktif.', 403);
-  return memSet(memo.user, callerId, { id: callerId, staff, akun }, 3000);
+  return memSet(memo.user, callerId, { id: callerId, staff, proktor, admin, akun }, 3000);
 }
 function sesiBoleh(s, akun, now) {
   if (s.aktif === false) throw new Fail('Sesi ujian tidak aktif.', 403);
@@ -311,9 +319,10 @@ async function mulai(me, body) {
   sesiBoleh(s, me.akun, now);
   if (s.tok) {
     salahCek(me.akun.$id);
-    const tk = await tokenSesi(sesiId);
+    const ti = await tokenSesi(sesiId), tk = ti.token;
     const got = String(body.token || '').trim().toUpperCase();
     if (!tk) throw new Fail('Token sesi belum diatur guru.', 403);
+    if (s.tokR && !tokAktif(ti, now)) throw new Fail('Token belum dirilis pengawas atau sudah kedaluwarsa. Minta pengawas merilis token.', 403);
     if (!got || !same(got, tk.toUpperCase())) { salahCatat(me.akun.$id); throw new Fail('Token salah.', 403); }
     memo.salah.delete(me.akun.$id);
   }
@@ -455,6 +464,7 @@ async function akhiri(me, body) {
   if (run.done) return { ok: true, done: true };
   const a = await akun(run.sid);
   const r = await selesaikan(run, me, { akun: a || { nama: '', kelas: '' }, perms: await permsFor(run.sid, me) });
+  await catatAudit(me, 'nilai.akhiri', run.sesiId, (a && a.nama) || run.sid, 'dinilai dari jawaban tersimpan');
   return { ok: true, hasil: hasilOut(r.hasil) };
 }
 /* izin baca siswa pemilik: cari ID login lewat uid_map (sid -> id dokumen). Bila belum ada, hanya guru/admin yang membaca. */
@@ -490,6 +500,7 @@ async function akhiriSemua(me, body) {
     const d = aMap[run.sid], a = d ? Object.assign({ id: d.$id }, d) : { nama: '', kelas: '' };
     await selesaikan(run, me, { akun: a, perms: permsOf(uMap, run.sid) });
   }, deadline);
+  if (r.ok) await catatAudit(me, 'nilai.akhiriSemua', sesiId, '', r.ok + ' peserta dinilai');
   return { ok: true, n: r.ok, gagal: r.gagal, sisa: due.length - r.ok, pesan: r.pesan };
 }
 
@@ -514,6 +525,7 @@ async function nilaiUraian(me, body) {
   const g = nilai(ids, Qs, p.ans || {}, nu);
   const next = Object.assign({}, p, { nu, pts: g.pts, pend: g.pend || undefined });
   await updateDoc('soal_hasil', hid, { score: g.score, benar: g.benar, payload: JSON.stringify(next) });
+  await catatAudit(me, 'nilai.uraian', h.sesiId || '', h.siswa || '', 'soal ' + qid + ' skor ' + skor);
   return { ok: true, score: g.score, benar: g.benar, pend: g.pend || 0, nu: nu[qid] };
 }
 
@@ -535,11 +547,110 @@ async function nilaiUlang(me, body) {
     if (g.score !== h.score || g.benar !== h.benar || (g.pend || 0) !== (p.pend || 0)) kerja.push({ h, p, g });
   });
   const r = await jalankan(kerja, ({ h, p, g }) => updateDoc('soal_hasil', h.$id, { score: g.score, benar: g.benar, payload: JSON.stringify(Object.assign({}, p, { pts: g.pts, pend: g.pend || undefined })) }), deadline);
+  if (r.ok) await catatAudit(me, 'nilai.ulang', sesiId, '', r.ok + ' nilai diperbarui');
   return { ok: true, total: hs.length, n: r.ok, gagal: r.gagal, sisa: kerja.length - r.ok, lewat, pesan: r.pesan };
 }
 
+
+/* ---------- Pengawas (guru, admin, proktor) ---------- */
+function needPawas(me) { if (!me.staff && !me.proktor) throw new Fail('Hanya guru, admin, atau proktor.', 403); }
+function sekolahOk(s, me) {
+  if (me.admin) return;
+  const sk = String(s.sekolah || '').toUpperCase(), ak = String((me.akun && me.akun.sekolah) || '').toUpperCase();
+  if (sk && ak && ak !== 'ALL' && sk !== ak) throw new Fail('Sesi ini bukan untuk sekolahmu.', 403);
+}
+/* catatan audit: gagal menulis tidak boleh menggagalkan aksi (mis. koleksi audit belum dibuat) */
+async function catatAudit(me, aksi, sesiId, target, ket) {
+  try {
+    const peran = me.admin ? 'admin' : me.staff ? 'guru' : me.proktor ? 'proktor' : '';
+    await createDoc('audit', 'a' + Date.now().toString(36) + crypto.randomBytes(5).toString('hex'), {
+      ts: Date.now(), aktor: String((me.akun && me.akun.$id) || '').slice(0, 36), nama: String((me.akun && me.akun.nama) || '').slice(0, 64), peran,
+      aksi: String(aksi).slice(0, 40), sesiId: String(sesiId || '').slice(0, 36), target: String(target || '').slice(0, 64), ket: String(ket || '').slice(0, 300)
+    });
+  } catch (e) { /* abaikan */ }
+}
+async function sesiPawas(me, body) {
+  const sesiId = String(body.sesiId || ''); if (!ID_RE.test(sesiId)) throw new Fail('Sesi tidak valid.');
+  const sd = await sesiDoc(sesiId); if (!sd) throw new Fail('Sesi tidak ditemukan.', 404);
+  const s = parse(sd); sekolahOk(s, me);
+  return { sesiId, s };
+}
+async function rilisToken(me, body) {
+  needPawas(me);
+  const { sesiId, s } = await sesiPawas(me, body);
+  if (!s.tok) throw new Fail('Sesi ini tidak memakai token.', 400);
+  const kd = await tryGet('soal_kunci', 'tk_' + sesiId); let j = {};
+  try { j = JSON.parse((kd && kd.payload) || '{}'); } catch (e) { j = {}; }
+  const token = String(j.token || ''); if (!kd || !token) throw new Fail('Token sesi belum diatur guru.', 403);
+  const raw = Number(body.menit), m = body.menit === undefined || Number.isNaN(raw) ? 15 : Math.max(0, Math.min(180, Math.round(raw))), now = Date.now();
+  await updateDoc('soal_kunci', 'tk_' + sesiId, { payload: JSON.stringify({ token, rilis: m ? now : 0, berlaku: m }) });
+  memo.tok.delete(sesiId);
+  await catatAudit(me, m ? 'token.rilis' : 'token.tutup', sesiId, s.judul || '', m ? m + ' menit' : '');
+  return { ok: true, token: m ? token : '', rilis: m ? now : 0, berlaku: m, now };
+}
+async function rosterSesi(s) {
+  const key = String(s.kelas || 'ALL') + '|' + String(s.sekolah || ''), c = memGet(memo.ros, key, 30000); if (c) return c;
+  const sk = String(s.sekolah || '').toUpperCase();
+  const all = await listDocs('akun', s.kelas && s.kelas !== 'ALL' ? [Q.equal('kelas', [s.kelas])] : []);
+  const ros = all.filter((a) => a.aktif !== false && /(^|[,\s])siswa([,\s]|$)/.test(String(a.peran || '')) && (!sk || !a.sekolah || String(a.sekolah).toUpperCase() === 'ALL' || String(a.sekolah).toUpperCase() === sk))
+    .map((a) => ({ id: a.$id, nama: String(a.nama || ''), kelas: a.kelas || '' })).sort((x, y) => x.nama.localeCompare(y.nama, 'id'));
+  return memSet(memo.ros, key, ros, 200);
+}
+async function pantau(me, body) {
+  needPawas(me);
+  const { sesiId, s } = await sesiPawas(me, body), now = Date.now();
+  const [runs, ros] = await Promise.all([listDocs('soal_run', [Q.equal('sesiId', [sesiId])]), rosterSesi(s)]);
+  const by = {}; runs.forEach((r) => { by[r.sid] = r; });
+  const batas = Number(s.batas) || 0;
+  const peserta = ros.map((a) => {
+    const run = by[a.id], o = { sid: a.id, nama: a.nama, kelas: a.kelas, k: 'belum' };
+    if (!run) return o;
+    o.rid = run.$id;
+    if (run.done) { o.k = 'done'; return o; }
+    const st = runState(run), ids = st.p.ids || [], ans = st.p.ans || {};
+    o.sisa = Math.round((endOf(st) - now) / 1000); o.ext = st.ext; o.v = Math.max(0, (st.p.pindah || 0) - st.pb); o.tot = ids.length;
+    o.ans = ids.filter((id) => ans[id] !== undefined && ans[id] !== null).length; o.seen = Math.max(0, Math.round((now - (Date.parse(run.$updatedAt) || st.start)) / 1000));
+    const lock = s.aksi === 'kunci' && batas > 0 && o.v >= batas;
+    o.k = lock ? 'lock' : (o.sisa <= 0 || st.stop) ? 'habis' : 'on';
+    if (st.stop) o.stop = true;
+    return o;
+  });
+  const tok = { pakai: !!s.tok, wajib: !!s.tokR, token: '', rilis: 0, berlaku: 0, sisa: 0 };
+  if (s.tok) {
+    const ti = await tokenSesi(sesiId), aktif = tokAktif(ti, now);
+    tok.rilis = ti.rilis; tok.berlaku = ti.berlaku; tok.sisa = aktif ? Math.round((ti.rilis + ti.berlaku * 60000 - now) / 1000) : 0;
+    if (!s.tokR || aktif) tok.token = ti.token;
+  }
+  return { ok: true, now, judul: s.judul || '', durasi: s.durasi || 0, batas, peserta, tok };
+}
+async function aksiRun(me, body) {
+  needPawas(me);
+  const rid = String(body.rid || ''); if (!ID_RE.test(rid)) throw new Fail('Catatan ujian tidak valid.');
+  const run = await tryGet('soal_run', rid); if (!run) throw new Fail('Catatan ujian tidak ditemukan.', 404);
+  const sd = await sesiDoc(run.sesiId); sekolahOk(sd ? parse(sd) : {}, me);
+  if (run.done) throw new Fail('Ujian ini sudah selesai.', 409);
+  const st = runState(run), op = String(body.op || ''); let data, ket;
+  if (op === 'tambah') {
+    const d = Number(body.detik); if (d !== 300 && d !== 900) throw new Fail('Tambahan waktu hanya 5 atau 15 menit.', 400);
+    data = { ext: st.ext + d }; ket = '+' + (d / 60) + ' menit';
+  } else if (op === 'bukaKunci') { data = { pb: st.p.pindah || 0 }; ket = 'buka kunci'; }
+  else if (op === 'akhiri') { data = { stop: true }; ket = 'diakhiri pengawas'; }
+  else throw new Fail('Aksi tidak dikenal.', 400);
+  await updateDoc('soal_run', rid, data);
+  const a = await tryGet('akun', run.sid).catch(() => null);
+  await catatAudit(me, 'run.' + op, run.sesiId, (a && a.nama) || run.sid, ket);
+  return { ok: true };
+}
+async function catat(me, body) {
+  needPawas(me);
+  const aksi = String(body.aksi || '');
+  if (!/^[a-z][a-z0-9._-]{2,32}$/.test(aksi)) throw new Fail('Aksi tidak valid.', 400);
+  await catatAudit(me, 'klien.' + aksi, ID_RE.test(String(body.sesiId || '')) ? body.sesiId : '', '', body.ket);
+  return { ok: true };
+}
+
 export const _uji = { frac, nilai, cleanAns, runId, parse, memReset, semuaReset: () => { memReset(); memo.salah.clear(); inflight.clear(); } };
-export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua', 'nilaiUlang', 'nilaiUraian']);
+export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua', 'nilaiUlang', 'nilaiUraian', 'rilisToken', 'pantau', 'aksiRun', 'catat']);
 
 /* Dipakai sebagai fungsi sendiri (default export) atau dipanggil dari fungsi lain, mis. akun-admin (lihat tools/gabung-cbt.mjs). */
 export async function cbtHandle({ req, res, error, body }) {
@@ -558,6 +669,10 @@ export async function cbtHandle({ req, res, error, body }) {
       case 'akhiriSemua': return res.json(await akhiriSemua(me, body));
       case 'nilaiUlang': return res.json(await nilaiUlang(me, body));
       case 'nilaiUraian': return res.json(await nilaiUraian(me, body));
+      case 'rilisToken': return res.json(await rilisToken(me, body));
+      case 'pantau': return res.json(await pantau(me, body));
+      case 'aksiRun': return res.json(await aksiRun(me, body));
+      case 'catat': return res.json(await catat(me, body));
       default: return res.json({ ok: false, error: 'Aksi tidak dikenal.' }, 400);
     }
   } catch (e) {

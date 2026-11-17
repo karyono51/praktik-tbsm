@@ -6,6 +6,7 @@
 (function(){
  if(typeof BS==='undefined')return;
  var PN={sesi:'',runs:[],hasil:[],at:0,busy:false,err:'',timer:0,sesiLoaded:'',coba:{}};
+ window.PNref=PN;   /* dipakai pengawas.js untuk tombol rilis token */
  var AN={sesi:'',urut:'p'};
 
  function sesiList(){return BS.D.sesi.filter(schAkunOk).sort(function(a,b){return (b.ts||0)-(a.ts||0)})}
@@ -92,6 +93,12 @@
   var h='';
   if(s.tok){
    var tk=BS.tk[s.id]||s.tokP||'';
+   var tr=(BS.tkR&&BS.tkR[s.id])||{rilis:0,berlaku:0},sisaT=tr.rilis&&tr.berlaku?Math.round((tr.rilis+tr.berlaku*60000-Jam.now())/1000):0;
+   if(s.tokR&&bsAman()){
+    h+='<div class="card center"><span class="label">Token sesi (dirilis pengawas)</span>'+
+     (sisaT>0?'<div class="bs-token mono">'+(tk?esc(tk):'—')+'</div><p class="note">Berlaku sekitar '+Math.ceil(sisaT/60)+' menit lagi</p><div class="row"><button type="button" class="btn small" data-bs="pn-rilis" data-n="15">Rilis ulang 15 mnt</button><button type="button" class="btn small" data-bs="pn-tutup">Tutup token</button><button type="button" class="btn small" data-bs="pn-token">Ganti token</button></div>'
+      :'<div class="bs-token mono">—</div><p class="note">Token belum dirilis atau sudah ditutup. Siswa yang belum mulai belum bisa masuk.</p><div class="row"><button type="button" class="btn small primary" data-bs="pn-rilis" data-n="15">Rilis token 15 mnt</button><button type="button" class="btn small" data-bs="pn-token">Ganti token</button></div>')+'</div>';
+   }else
    h+='<div class="card center"><span class="label">Token sesi</span><div class="bs-token mono">'+(tk?esc(tk):'—')+'</div><button type="button" class="btn small" data-bs="pn-token">Ganti token</button></div>';
   }
   h+='<div class="stats">'+[['Belum','belum'],['Mengerjakan','on'],['Selesai','done'],['Terkunci','lock'],['Habis','habis']].map(function(x){return '<div class="card"><span class="label">'+x[0]+'</span><b class="mono">'+count[x[1]]+'</b></div>'}).join('')+'</div>';
@@ -339,7 +346,7 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   var tk=BS.tk[s.id]||s.tokP||'';
   if(!s.tok||!tk){toast('Sesi ini tidak memakai token');return}
   var jd=(s.mulai?bsWaktu(s.mulai):'Sesuai jadwal guru')+(s.selesai?' sampai '+bsWaktu(s.selesai):'');
-  var cards=roster(s).map(function(u){return '<div style="border:1px solid #000;padding:8px 10px;break-inside:avoid;font-size:10pt"><b>KARTU PESERTA UJIAN ONLINE</b><br>'+teks(SEK.nama)+'<hr style="margin:4px 0">Nama: <b>'+teks(u.nama)+'</b><br>Kelas: '+teks(u.kelas||'-')+'<br>Sesi: '+teks(s.judul)+'<br>Jadwal: '+teks(jd)+'<br>Durasi: '+(s.durasi||0)+' menit<br>Token: <b style="font-size:18pt;letter-spacing:3px">'+teks(tk)+'</b></div>'}).join('');
+  var cards=roster(s).map(function(u){return '<div style="border:1px solid #000;padding:8px 10px;break-inside:avoid;font-size:10pt"><b>KARTU PESERTA UJIAN ONLINE</b><br>'+teks(SEK.nama)+'<hr style="margin:4px 0">Nama: <b>'+teks(u.nama)+'</b><br>Kelas: '+teks(u.kelas||'-')+'<br>Sesi: '+teks(s.judul)+'<br>Jadwal: '+teks(jd)+'<br>Durasi: '+(s.durasi||0)+' menit<br>'+(s.tokR&&bsAman()?'Token: <b>dibacakan pengawas saat ujian dimulai</b>':'Token: <b style="font-size:18pt;letter-spacing:3px">'+teks(tk)+'</b>')+'</div>'}).join('');
   if(!cards){toast('Tidak ada siswa terdaftar untuk sesi ini');return}
   cetakHtml('<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+cards+'</div>');
  }

@@ -46,7 +46,7 @@ function netbar(){
 (function(){
  if(Cloud.on){
   var e0=Cloud.enter;
-  Cloud.enter=async function(me){await e0.call(this,me);if(S.user&&roleList(S.user).some(function(r){return r!=='siswa'}))S.observasi=await loadObsDocs(this);restorePending();if(pendingCount())Cloud.flush();else saveSnap();netbar()};
+  Cloud.enter=async function(me){await e0.call(this,me);if(S.user&&roleList(S.user).some(function(r){return r!=='siswa'&&r!=='proktor'}))S.observasi=await loadObsDocs(this);restorePending();if(pendingCount())Cloud.flush();else saveSnap();netbar()};
   /* Sinkron per item: kegagalan satu item tidak menghentikan yang lain. Item yang sudah ada di server (ID sama) diperbarui, bukan membuat error berulang. */
   Cloud.flush=async function(){
    if(!this.on||!S.user||this.busy)return;

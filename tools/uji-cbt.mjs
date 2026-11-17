@@ -182,5 +182,78 @@ console.log('\nSoal uraian: nilai sementara dan nilai akhir');
   cek('skor memakai skor maksimum saat dinilai (mk), bukan maks soal sekarang: 5/20 = 25', g.score === 25, JSON.stringify(g));
 }
 
+console.log('\nRilis token, proktor, dan log audit');
+{
+  siapkan();
+  users.p1 = { $id: 'p1', email: 'pk@x.id', labels: ['proktor'] };
+  col('akun').set('AP', { $id: 'AP', email: 'pk@x.id', nama: 'Proktor', aktif: true, sekolah: 'MEDINA', peran: 'proktor' });
+  users.p2 = { $id: 'p2', email: 'pk2@x.id', labels: ['proktor'] };
+  col('akun').set('AP2', { $id: 'AP2', email: 'pk2@x.id', nama: 'Proktor Lain', aktif: true, sekolah: 'LAIN', peran: 'proktor' });
+  for (const [id, d] of col('akun')) if (/^A\d+$/.test(id)) d.peran = 'siswa';
+  const sesi = col('soal_sesi').get('S1'), pj = JSON.parse(sesi.payload); pj.tokR = true; pj.batas = 2; pj.aksi = 'kunci'; sesi.payload = JSON.stringify(pj);
+  const auditAksi = () => [...col('audit').values()].map((d) => d.aksi);
+
+  r = await call('u0', { action: 'mulai', sesiId: 'S1', token: 'ABC123' });
+  cek('token benar tetapi belum dirilis: ditolak', r.status === 403 && /belum dirilis/.test(r.body.error), r.body.error);
+  r = await call('u0', { action: 'rilisToken', sesiId: 'S1', menit: 10 }); cek('siswa tidak boleh merilis token', r.status === 403);
+  r = await call('u0', { action: 'pantau', sesiId: 'S1' }); cek('siswa tidak boleh memantau', r.status === 403);
+  r = await call('p2', { action: 'rilisToken', sesiId: 'S1', menit: 10 }); cek('proktor sekolah lain ditolak', r.status === 403 && /sekolah/.test(r.body.error), r.body.error);
+  r = await call('p1', { action: 'rilisToken', sesiId: 'S1', menit: 10 });
+  cek('proktor merilis token 10 menit', r.status === 200 && r.body.token === 'ABC123' && r.body.berlaku === 10, JSON.stringify(r.body));
+  r = await call('u0', { action: 'mulai', sesiId: 'S1', token: 'SALAH1' }); cek('token dirilis tetapi salah tetap ditolak', r.status === 403 && /Token salah/.test(r.body.error), r.body.error);
+  r = await call('u0', { action: 'mulai', sesiId: 'S1', token: 'ABC123' }); cek('token dirilis dan benar: ujian mulai', r.status === 200 && r.body.ids.length === 20, r.body.error);
+  const ridA = r.body.rid;
+
+  col('soal_kunci').set('tk_S1', { $id: 'tk_S1', payload: JSON.stringify({ token: 'ABC123', rilis: Date.now() - 11 * 60000, berlaku: 10 }) }); mod._uji.semuaReset();
+  r = await call('u1', { action: 'mulai', sesiId: 'S1', token: 'ABC123' }); cek('token kedaluwarsa setelah masa berlaku', r.status === 403 && /kedaluwarsa/.test(r.body.error), r.body.error);
+  r = await call('u0', { action: 'mulai', sesiId: 'S1' }); cek('siswa yang sudah mulai tetap bisa lanjut tanpa token', r.status === 200 && r.body.resume === true, r.body.error);
+  r = await call('g1', { action: 'rilisToken', sesiId: 'S1', menit: 15 }); cek('guru juga bisa merilis ulang', r.status === 200 && r.body.berlaku === 15);
+  r = await call('p1', { action: 'rilisToken', sesiId: 'S1', menit: 0 }); cek('tutup token: tidak ada token dikembalikan', r.status === 200 && r.body.token === '' && r.body.berlaku === 0, JSON.stringify(r.body));
+  r = await call('u2', { action: 'mulai', sesiId: 'S1', token: 'ABC123' }); cek('setelah ditutup siswa baru tidak bisa mulai', r.status === 403 && /belum dirilis/.test(r.body.error), r.body.error);
+  r = await call('p1', { action: 'rilisToken', sesiId: 'S2', menit: 5 }); cek('sesi tanpa token tidak bisa dirilis', r.status === 400);
+  await call('p1', { action: 'rilisToken', sesiId: 'S1', menit: 15 });
+  r = await call('u3', { action: 'mulai', sesiId: 'S1', token: 'ABC123' }); cek('rilis ulang membuka lagi', r.status === 200);
+  col('soal_sesi').set('S3', { $id: 'S3', aktif: true, payload: JSON.stringify({ judul: 'Token lama', durasi: 30, kelas: 'ALL', tok: true, pilih: 'manual', ids: ['q1', 'q2'], acak: false }) });
+  col('soal_kunci').set('tk_S3', { $id: 'tk_S3', payload: JSON.stringify({ token: 'LAMA11' }) });
+  r = await call('u4', { action: 'mulai', sesiId: 'S3', token: 'LAMA11' }); cek('sesi lama tanpa tokR tetap jalan seperti dulu', r.status === 200, r.body.error);
+
+  r = await call('p1', { action: 'pantau', sesiId: 'S1' });
+  const pt = r.body.peserta || [], kunci = JSON.stringify(r.body);
+  cek('pantau: daftar peserta kelas XI-A (59 siswa)', r.status === 200 && pt.length === 59, pt.length);
+  cek('pantau: status mengerjakan dan jumlah terjawab tampil', pt.find((x) => x.sid === 'A0').k === 'on' && pt.find((x) => x.sid === 'A0').tot === 20 && pt.find((x) => x.sid === 'A9').k === 'belum');
+  cek('pantau: tanpa jawaban, kunci, atau nilai', !/"ans":\{|kunci|score|payload/.test(kunci));
+  cek('pantau: proktor melihat token yang sedang dirilis', r.body.tok.token === 'ABC123' && r.body.tok.sisa > 800 && r.body.tok.wajib === true, JSON.stringify(r.body.tok));
+  await call('p1', { action: 'rilisToken', sesiId: 'S1', menit: 0 });
+  r = await call('p1', { action: 'pantau', sesiId: 'S1' }); cek('pantau: token tidak tampil bila belum dirilis', r.body.tok.token === '' && r.body.tok.sisa === 0);
+
+  const ridP = 'rS1_A0';
+  r = await call('p1', { action: 'aksiRun', rid: ridP, op: 'tambah', detik: 300 }); cek('proktor menambah 5 menit', r.status === 200 && Number(col('soal_run').get(ridP).ext) === 300);
+  r = await call('p1', { action: 'aksiRun', rid: ridP, op: 'tambah', detik: 600 }); cek('tambahan selain 5 atau 15 menit ditolak', r.status === 400);
+  r = await call('p1', { action: 'aksiRun', rid: ridP, op: 'tambah', detik: 900 }); cek('tambahan 15 menit menumpuk (300 + 900)', Number(col('soal_run').get(ridP).ext) === 1200);
+  await call('u0', { action: 'simpan', rid: ridP, ans: {}, cur: 0, pindah: 3 });
+  r = await call('p1', { action: 'pantau', sesiId: 'S1' }); cek('pindah halaman melewati batas: status terkunci', r.body.peserta.find((x) => x.sid === 'A0').k === 'lock', JSON.stringify(r.body.peserta.find((x) => x.sid === 'A0')));
+  r = await call('p1', { action: 'aksiRun', rid: ridP, op: 'bukaKunci' }); cek('proktor membuka kunci', r.status === 200 && Number(col('soal_run').get(ridP).pb) === 3);
+  r = await call('p1', { action: 'pantau', sesiId: 'S1' }); cek('setelah dibuka status kembali mengerjakan', r.body.peserta.find((x) => x.sid === 'A0').k === 'on');
+  r = await call('p1', { action: 'aksiRun', rid: ridP, op: 'akhiri' }); cek('proktor mengakhiri: hanya menghentikan, belum dinilai', r.status === 200 && col('soal_run').get(ridP).stop === true && !col('soal_hasil').get('hS1_A0'));
+  r = await call('p1', { action: 'aksiRun', rid: ridP, op: 'hapus' }); cek('op tidak dikenal ditolak', r.status === 400);
+  r = await call('u1', { action: 'aksiRun', rid: ridP, op: 'tambah', detik: 300 }); cek('siswa tidak boleh memakai aksiRun', r.status === 403);
+  r = await call('p1', { action: 'akhiri', rid: ridP }); cek('proktor tidak boleh menilai (akhiri)', r.status === 403);
+  r = await call('p1', { action: 'akhiriSemua', sesiId: 'S1' }); cek('proktor tidak boleh akhiriSemua', r.status === 403);
+  r = await call('p1', { action: 'nilaiUlang', sesiId: 'S1' }); cek('proktor tidak boleh nilai ulang', r.status === 403);
+  r = await call('g1', { action: 'akhiri', rid: ridP }); cek('guru tetap bisa menilai', r.status === 200 && r.body.hasil);
+
+  r = await call('p1', { action: 'catat', aksi: 'uji.catat', sesiId: 'S1', ket: 'percobaan' }); cek('catat dari proktor diterima', r.status === 200);
+  r = await call('p1', { action: 'catat', aksi: 'Ada Spasi' }); cek('nama aksi tidak valid ditolak', r.status === 400);
+  r = await call('u1', { action: 'catat', aksi: 'uji.catat' }); cek('siswa tidak boleh mencatat', r.status === 403);
+  const A = auditAksi(), ds = [...col('audit').values()];
+  cek('audit: rilis, tutup, tambah, buka kunci, akhiri, nilai, klien tercatat', ['token.rilis', 'token.tutup', 'run.tambah', 'run.bukaKunci', 'run.akhiri', 'nilai.akhiri', 'klien.uji.catat'].every((x) => A.includes(x)), A.join());
+  cek('audit: aktor, peran, dan nama target terisi', ds.some((d) => d.aksi === 'run.tambah' && d.aktor === 'AP' && d.peran === 'proktor' && d.target === 'Siswa 0') && ds.some((d) => d.aksi === 'token.rilis' && d.peran === 'guru'));
+  cek('audit: token tidak pernah ikut tertulis', !JSON.stringify(ds).includes('ABC123'));
+  const rusak = col('audit'); cols.audit = undefined; delete cols.audit;
+  const orig = globalThis.fetch; globalThis.fetch = async (u, o) => (/collections\/audit\//.test(u) && o.method === 'POST' ? { ok: false, status: 404, json: async () => ({ message: 'koleksi tidak ada' }) } : orig(u, o));
+  r = await call('p1', { action: 'rilisToken', sesiId: 'S1', menit: 5 }); cek('koleksi audit belum ada: aksi tetap berhasil', r.status === 200 && r.body.token === 'ABC123', JSON.stringify(r.body));
+  globalThis.fetch = orig; void rusak;
+}
+
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);
