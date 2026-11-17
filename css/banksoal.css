@@ -126,3 +126,14 @@ body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
  .ex-st{display:none}.ex-nav button{height:36px;width:38px}.ex-foot .btn{height:44px}body.bs-run{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
 }
 @media(min-width:720px){.ex-q,.ex-top .ex-bar,.ex-nav{max-width:760px;margin-left:auto;margin-right:auto}}
+
+/* lembar pilihan filter Bank soal (js/bank-pilihan.js): huruf sama dengan kartu filter */
+.bp-ov{align-items:flex-end;padding:0}
+.bp-sheet{width:min(100%,560px);max-height:70vh;display:flex;flex-direction:column;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -14px 40px -12px rgba(0,0,0,.4);padding-bottom:env(safe-area-inset-bottom)}
+.bp-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px;font-weight:500;color:var(--muted)}
+.bp-x{border:0;background:none;color:var(--accent);font:inherit;font-weight:600;padding:4px 8px}
+.bp-l{overflow-y:auto;overscroll-behavior:contain;padding:6px 8px 10px}
+.bp-g{padding:10px 8px 4px;font-size:12px;font-weight:600;color:var(--muted)}
+.bp-i{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;padding:10px 12px;border-radius:10px}
+.bp-i[aria-selected=true]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.bp-i:disabled{opacity:.5}
