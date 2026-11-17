@@ -109,6 +109,7 @@
    '<button type="button" class="btn small" data-bs="pn-nilai"'+(count.habis&&bsAman()?'':' disabled')+'>Nilai yang berakhir</button>'+
    (!bsAman()&&tunggu?'<button type="button" class="btn small primary" data-bs="pn-nilaisemua">Nilai dari jawaban ('+tunggu+')</button>':'')+'</div>';
   h+='<p class="note">'+(PN.err?'Gagal memuat: '+esc(PN.err):'Diperbarui '+jam(PN.at)+' · otomatis tiap 8 detik')+'</p>';
+  h+='<div class="row">'+CETAK+'</div>';   /* tombol cetak di atas daftar, bukan di bawah ratusan kartu */
   if(!rows.length)return h+'<p class="muted">Tidak ada siswa terdaftar untuk sesi ini.</p>';
   h+=rows.map(function(r){
    var u=r.u,st=r.s,line='';
@@ -138,7 +139,7 @@
   if(!Cloud.on)return '<div class="card"><p>Pantau langsung butuh mode server (Appwrite). Aplikasi ini sedang berjalan tanpa server, jadi hanya data di perangkat ini yang ada.</p></div>';
   PN.sesi=pilihPantau(PN.sesi);
   if(PN.sesi&&PN.sesiLoaded!==PN.sesi&&!PN.busy)pnLoad().then(pnPaint);
-  return '<div class="card">'+selSesi('pn-sesi',PN.sesi,true)+'</div><div id="pn-body">'+pnBody()+'</div>'+(PN.sesi&&PN.sesi!=='ALL'?'<div class="row">'+CETAK+'</div>':'');
+  return '<div class="card">'+selSesi('pn-sesi',PN.sesi,true)+'</div><div id="pn-body">'+pnBody()+'</div>';
  };
  function pnPaint(){var e=document.getElementById('pn-body');if(e)e.innerHTML=pnBody()}
  function inPantau(){return !!S.user&&bsOn()&&BS.tab==='pantau'&&isStaff()&&Cloud.on}
