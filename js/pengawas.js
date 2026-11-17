@@ -18,6 +18,12 @@ function isAdm(){try{return !!S.user&&Cloud.on&&actRole()==='admin'&&can('hapus'
 function mmss(sec){sec=Math.max(0,Math.round(sec));return Math.floor(sec/60)+':'+('0'+(sec%60)).slice(-2)}
 function jam(t){return new Date(t).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
 
+/* form sesi: opsi token hanya tampil bila "Wajib token" dicentang */
+document.addEventListener('change',function(e){
+ if(!e.target||e.target.id!=='sf-tok')return;
+ var b=document.getElementById('sf-tokbox');if(b)b.hidden=!e.target.checked;
+});
+
 /* ---------------- Ruang ujian (proktor) ---------------- */
 var RU={sesi:'',d:null,t0:0,err:'',busy:false,menit:15,max:120,muat:false};
 function sesiList(){

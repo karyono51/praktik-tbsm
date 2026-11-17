@@ -800,7 +800,11 @@ function bsSfChips(f){
  var mp=bsMapelList(),st=bsSfStat(f),sel=f.mapelF||[];
  var extra=sel.filter(function(m){return mp.indexOf(m)<0});
  return '<div class="row" style="margin:2px 0 4px"><button type="button" class="btn small" data-bs="sfmall">Semua mapel</button><button type="button" class="btn small" data-bs="sfmada">Hanya yang ada soal</button></div>'+
-  bsMapelChipsHtml(mp,sel,st.pm)+
+  (function(){
+   var ada=mp.filter(function(m){return (st.pm[m]||0)>0||sel.indexOf(m)>-1}),kosong=mp.length-ada.length;
+   return (ada.length?bsMapelChipsHtml(f.mapelAll?mp:ada,sel,st.pm):'<p class="note">Belum ada mapel yang punya soal ujian untuk kelas ini.</p>')+
+    (kosong>0?'<div class="row" style="margin:8px 0 0"><button type="button" class="btn small" data-bs="sfmkosong">'+(f.mapelAll?'Sembunyikan':'Tampilkan')+' '+kosong+' mapel tanpa soal</button></div>':'');
+  })()+
   (extra.length?'<span class="label" style="display:block;margin:10px 0 4px">Tidak ada di daftar mapel (ketuk untuk melepas)</span><div class="chips">'+extra.map(function(m){return '<button type="button" data-bs="sfmapel" data-v="'+esc(m)+'" aria-pressed="true">'+esc(m)+'</button>'}).join('')+'</div>':'')+
   (sel.length?'<p class="note" style="margin-top:8px">'+sel.length+' mapel dipilih.</p>':'');
 }
@@ -875,12 +879,14 @@ function bsViewSesiForm(){
  h+='<div class="two"><label class="f">KKM<input id="sf-kkm" type="number" inputmode="numeric" min="0" max="100" value="'+f.kkm+'"></label><span></span></div>';
  h+='<div class="two"><label class="f">Dibuka mulai (opsional)<input id="sf-mulai" type="datetime-local" value="'+bsDtv(f.mulai)+'"></label><label class="f">Ditutup (opsional)<input id="sf-selesai" type="datetime-local" value="'+bsDtv(f.selesai)+'"></label></div>';
  h+='<div class="card" style="background:var(--bg)"><b>Pengamanan CBT</b>';
- h+='<label class="bs-ck"><input id="sf-tok" type="checkbox"'+(f.tok?' checked':'')+'> Wajib token (dibacakan pengawas saat ujian dimulai)</label>';
- h+=(bsAman()?'<label class="bs-ck"><input id="sf-tokr" type="checkbox"'+(f.tokR?' checked':'')+'> Token dirilis pengawas saat ujian dimulai (berlaku sementara, kartu peserta tanpa token)</label>':'');
+ h+='<label class="bs-ck"><input id="sf-tok" type="checkbox"'+(f.tok?' checked':'')+'> Wajib token</label>';
+ h+='<div id="sf-tokbox" class="bs-sub"'+(f.tok?'':' hidden')+'>';
+ h+=(bsAman()?'<label class="bs-ck"><input id="sf-tokr" type="checkbox"'+(f.tokR?' checked':'')+'> Token dirilis pengawas saat ujian dimulai</label><p class="note" style="margin:-4px 0 0">Berlaku sementara. Kartu peserta tidak memuat token.</p>':'<p class="note" style="margin:0">Token dibacakan pengawas saat ujian dimulai.</p>');
  h+='<div class="row"><label class="f grow">Token<input id="sf-tokp" value="'+esc(f.tokP)+'" maxlength="12" autocapitalize="characters" placeholder="Kosong = dibuat otomatis"></label><button type="button" class="btn small" data-bs="sftoken">Acak</button></div>';
+ h+='</div>';
  h+='<div class="two"><label class="f">Batas keluar halaman<input id="sf-batas" type="number" inputmode="numeric" min="0" max="50" value="'+(f.batas||0)+'"></label><label class="f">Bila melewati batas<select id="sf-aksi">'+[['peringatan','Beri peringatan saja'],['kunci','Kunci layar, guru yang membuka'],['kirim','Kirim jawaban otomatis']].map(function(a){return '<option value="'+a[0]+'"'+(f.aksi===a[0]?' selected':'')+'>'+a[1]+'</option>'}).join('')+'</select></label></div>';
  h+='<label class="bs-ck"><input id="sf-layar" type="checkbox"'+(f.layar?' checked':'')+'> Wajib layar penuh (keluar dari layar penuh dihitung pelanggaran)</label>';
- h+='<label class="bs-ck"><input id="sf-exambro" type="checkbox"'+(f.exambro?' checked':'')+'> Wajib Exambro (hanya bisa dimulai dari aplikasi Exambro; layar penuh wajib diabaikan di sana)</label>';
+ h+='<label class="bs-ck"><input id="sf-exambro" type="checkbox"'+(f.exambro?' checked':'')+'> Wajib Exambro (hanya bisa dimulai dari aplikasi Exambro)</label>';
  h+='</div>';
  h+='<label class="bs-ck"><input id="sf-aktif" type="checkbox"'+(f.aktif?' checked':'')+'> Sesi aktif (terlihat oleh siswa)</label>';
  h+='<button type="button" class="btn primary" data-bs="sesisimpan">Simpan sesi</button></div>';
@@ -1068,7 +1074,8 @@ document.addEventListener('click',function(e){
  else if(a==='sesisimpan')bsSfSave();
  else if(a==='sftoken'){var te=document.getElementById('sf-tokp');if(te){te.value=bsTokenBaru();var tc=document.getElementById('sf-tok');if(tc)tc.checked=true}}
  else if(a==='sfmapel'){bsSfRead();var mf=BS.sf.mapelF,ix=mf.indexOf(v);if(ix>-1)mf.splice(ix,1);else mf.push(v);bsSfRefresh()}
- else if(a==='sfmall'){bsSfRead();BS.sf.mapelF=[];bsSfRefresh()}
+ else if(a==='sfmkosong'){bsSfRead();BS.sf.mapelAll=!BS.sf.mapelAll;bsSfRefresh()}
+  else if(a==='sfmall'){bsSfRead();BS.sf.mapelF=[];bsSfRefresh()}
  else if(a==='sfmada'){bsSfRead();var cm=bsSfStat(BS.sf).pm;BS.sf.mapelF=Object.keys(cm).filter(function(m){return cm[m]>0});bsSfRefresh()}
  else if(a==='sfpsemua'&&BS.sf){bsSfRead();bsSfManualAll(BS.sf).forEach(function(q){if(BS.sf.ids.indexOf(q.id)<0)BS.sf.ids.push(q.id)});bsSfManualRefresh()}
  else if(a==='sfkosong'&&BS.sf){bsSfRead();BS.sf.ids=[];bsSfManualRefresh()}
