@@ -1,11 +1,9 @@
-# Filter Mapel / Elemen CP pada Bank soal
+# Filter Elemen CP pada Bank soal
 
-Satu dropdown **Mapel / Elemen CP** menggantikan filter Mapel di halaman Bank soal. LKPD adalah bagian dari elemen CP.
+Dropdown gabungan **Mapel / Elemen CP** sudah digantikan oleh filter bertingkat Mapel > Kelas > Modul/LKPD (lihat `docs-FILTER-BERTINGKAT.md`). Elemen CP tetap bisa disaring lewat dropdown **Elemen CP (tambahan)** di bawahnya.
 
-- Tiap **elemen CP** (nama langsung, tanpa kode) adalah satu kelompok. Isinya: "Semua <elemen>" (semua soal elemen itu, termasuk soal LKPD dan Dasar TBSM) lalu unit LKPD yang menjadi bagian elemen itu. Elemen yang belum punya soal disembunyikan.
-- Di bawahnya **Mapel** non-LKPD: Bahasa Indonesia, Matematika, Bahasa Inggris, Dasar TBSM.
-- Unit XII-1 (Servis Berkala) lintas elemen: unitnya ditaruh di Pengelolaan Bengkel, sedangkan soalnya tetap dipetakan per soal (muncul juga di Engine, Sasis, dan seterusnya lewat "Semua <elemen>").
-- Urutan soal bank disusun ulang menurut elemen CP (Kelas X lalu XI-XII); soal umum di akhir.
+- Elemen CP (nama langsung, tanpa kode) yang punya soal pada pilihan di atasnya ditampilkan beserta jumlahnya; soal lintas elemen (mis. unit XII-1 Servis Berkala) ikut terhitung di elemen tambahannya.
 - Kartu soal menampilkan satu baris: CP: nama elemen · TP · juga (elemen tambahan) · perlu dicek (bila kurang pasti).
-- Memilih satu pilihan mengosongkan yang lain. Jenis dan Peruntukan tetap sebaris di bawahnya. Ekspor Excel dan cetak soal ikut daftar yang difilter.
-- Data: `js/cp-peta.js` (1.320 soal + peta unit LKPD ke elemen). Sumber: Pemetaan_Bank_Soal_ke_Elemen_CP.xlsx.
+- Urutan soal bank disusun menurut elemen CP (Kelas X lalu XI-XII); soal umum di akhir.
+- Ekspor Excel dan cetak soal ikut daftar yang difilter.
+- Data: `js/cp-peta.js` (1.320 soal + peta unit LKPD ke elemen). Sumber: Pemetaan_Bank_Soal_ke_Elemen_CP.xlsx. Logika: `js/bank-cp.js`.

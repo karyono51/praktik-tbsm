@@ -1,9 +1,8 @@
-/* bank-cp.js: satu filter "Mapel / Elemen CP" pada halaman Bank soal (guru/admin), menggantikan filter Mapel.
-   Struktur: tiap elemen CP (Kepka BSKAP 046/H/KR/2025) adalah satu kelompok. Isinya "Semua <elemen>" lalu unit LKPD yang menjadi bagian
-   elemen itu (CP_UNIT). Di bawahnya mapel non-LKPD (Bahasa Indonesia, Matematika, Bahasa Inggris, Dasar TBSM).
-   Urutan soal bank disusun ulang menurut elemen CP (Kelas X lalu XI-XII), urutan asli dipertahankan di dalam elemen.
-   Nilai opsi: "c:<kode>" untuk elemen CP, "m:<mapel>" untuk mapel/unit. Memilih salah satu mengosongkan yang lain (BS.flt.cp / BS.flt.mapel).
-   Dimuat sebelum bank-filter.js. */
+/* bank-cp.js: dasar filter Elemen CP pada Bank soal (guru/admin).
+   Tiap elemen CP (Kepka BSKAP 046/H/KR/2025) dipetakan ke soal lewat CP_PETA (cp-peta.js). Berkas ini menyediakan:
+   urutan soal bank menurut elemen CP (Kelas X lalu XI-XII; urutan asli dipertahankan di dalam elemen), keterangan CP satu baris
+   pada kartu soal (cpNote), dan penyaring BS.flt.cp. Dropdown Mapel, Kelas, Modul/LKPD dan Elemen CP dirakit oleh bank-bertingkat.js,
+   yang memakai BSCP di bawah. Dimuat sebelum bank-bertingkat.js dan bank-filter.js. */
 (function(){
  var URUT=['E1','E2','E3','E4','E5','E6','E7','F1','F2','F3','F4','F5','F6','F7'];
  var NM={
@@ -19,7 +18,6 @@
  function kode(t){var m=/^(E[1-7]|F[1-7])/.exec(String(t||'').trim());return m?m[1]:''}
  function tamList(i){return i.tam?i.tam.split('; ').map(kode).filter(function(k,j,a){return k&&k!==i.e&&a.indexOf(k)===j}):[]}
  function cocok(s,f){var i=info(s.id);return !!i&&(i.e===f||tamList(i).indexOf(f)>-1)}
- function unitKey(m){var x=/^\s*LKPD\s+(XII|XI|X)\s*-\s*(\d+)/i.exec(String(m||''));return x?x[1].toUpperCase()+'-'+x[2]:''}
  /* keterangan CP satu baris pada kartu soal */
  window.cpNote=function(id){
   var i=info(id);if(!i)return '';
@@ -46,35 +44,6 @@
    return f?l.filter(function(s){return cocok(s,f)}):l;
   };
  }
- function pilihan(){
-  var all=bsSoalAll(),f=BS.flt||{},cur=f.cp||'',cm=f.mapel||'',cnt=bsMapelHitung(all),mp=bsMapelList(),c={};
-  URUT.forEach(function(k){c[k]=0});
-  all.forEach(function(s){var i=info(s.id);if(!i)return;c[i.e]++;tamList(i).forEach(function(k){c[k]++})});
-  function op(v,sel,t,n){return '<option value="'+esc(v)+'"'+(sel?' selected':'')+'>'+esc(t)+' ('+n+')</option>'}
-  var h='<option value="">Semua</option>';
-  URUT.forEach(function(k){
-   if(!c[k])return;
-   var u=mp.filter(function(m){return (window.CP_UNIT||{})[unitKey(m)]===k});
-   h+='<optgroup label="'+esc(NM[k])+'">'+op('c:'+k,cur===k,'Semua '+NM[k],c[k])+
-      u.map(function(m){return op('m:'+m,cm===m,m,cnt[m]||0)}).join('')+'</optgroup>';
-  });
-  var lain=mp.filter(function(m){return !(window.CP_UNIT||{})[unitKey(m)]});
-  if(lain.length)h+=bsMapelOptHtml(lain,cm,cnt).replace(/<optgroup label="/g,'<optgroup label="Mapel · ').replace(/<option value="/g,'<option value="m:');
-  return '<label class="f">Mapel / Elemen CP<select id="bq-mc">'+h+'</select></label>';
- }
- if(typeof bsViewBank==='function'){
-  var _cpVB=bsViewBank;
-  bsViewBank=function(){
-   var h=_cpVB.apply(this,arguments),mc=pilihan();
-   var re=/<div class="two">(<label class="f">Mapel<select[\s\S]*?<\/select><\/label>)(<label class="f">Jenis<select[\s\S]*?<\/select><\/label>)<\/div>(<label class="f">Peruntukan<select[\s\S]*?<\/select><\/label>)/;
-   if(re.test(h))return h.replace(re,function(_,m,j,p){return mc+'<div class="two">'+j+p+'</div>'});
-   return h.replace(/<label class="f">Mapel<select[\s\S]*?<\/select><\/label>/,function(){return mc});
-  };
- }
- document.addEventListener('change',function(e){
-  var t=e.target;if(!t||t.id!=='bq-mc')return;
-  var v=t.value;BS.flt.mapel='';BS.flt.cp='';
-  if(v.indexOf('m:')===0)BS.flt.mapel=v.slice(2);else if(v.indexOf('c:')===0)BS.flt.cp=v.slice(2);
-  BS.flt.n=30;render();
- });
+ /* dipakai bank-bertingkat.js */
+ window.BSCP={URUT:URUT,NM:NM,cocok:cocok,info:info,tamList:tamList};
 })();

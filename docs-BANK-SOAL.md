@@ -55,6 +55,9 @@ Catatan keamanan: kunci jawaban ikut terunduh ke peramban karena penilaian dilak
 ## Mode offline
 Latihan dan ujian yang sedang berjalan tersimpan di perangkat. Hasil yang belum terkirim diantre dan dikirim saat online. Menu Segarkan data juga memuat ulang bank soal.
 
+## Filter bertingkat
+Pencarian Bank soal (guru/admin) memakai filter bertingkat Mapel > Kelas > Modul/LKPD, ditambah Elemen CP, Jenis, dan Peruntukan. Lihat docs-FILTER-BERTINGKAT.md.
+
 ## Impor dan ekspor soal (v47)
 Hanya Guru dan Admin, di tab **Bank soal** (tombol Impor soal, Template, Ekspor Excel). Berkas: `js/banksoal-io.js`. Tidak ada perubahan koleksi Appwrite.
 - **Ekspor Excel**: mengekspor soal yang sedang tampil sesuai filter (filter kosong = semua soal, termasuk bawaan). Berisi sheet Soal dan Petunjuk. File ini bisa diedit lalu diimpor ulang.

@@ -2,11 +2,11 @@
    atau kata kunci, daftar kartu soal tidak ditampilkan (hanya petunjuk). Kartu Cari/filter selalu tampil.
    Dimuat paling akhir agar pembungkus lain (butir, cetak-soal, impor) sudah menyisipkan isinya ke kartu. */
 (function(){
- function nAktif(){var f=(typeof BS!=='undefined'&&BS.flt)||{},n=0;['q','mapel','tipe','tuj','stat','cp'].forEach(function(x){if(f[x])n++});return n}
+ function nAktif(){var f=(typeof BS!=='undefined'&&BS.flt)||{},n=0;['q','mapel','mp','tipe','tuj','stat','cp'].forEach(function(x){if(f[x])n++});return n}
  if(typeof bsBankList==='function'){
   var _fbBL=bsBankList;
   bsBankList=function(){
-   if(!nAktif())return '<p class="muted center" style="padding:20px 0">Pilih mapel atau elemen CP, jenis, atau peruntukan, atau ketik kata kunci untuk menampilkan soal.</p>';
+   if(!nAktif())return '<p class="muted center" style="padding:20px 0">Pilih mapel (lalu kelas dan modul/LKPD), elemen CP, jenis, atau peruntukan, atau ketik kata kunci untuk menampilkan soal.</p>';
    return _fbBL.apply(this,arguments);
   };
  }
