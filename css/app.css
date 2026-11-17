@@ -396,3 +396,7 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 .ak-nh span:nth-child(1){flex:0 0 22px;text-align:right}
 .ak-nh span:nth-child(2){flex:0 0 62px}
 @media print{.ak-nm li,.ak-nh{break-inside:avoid}}
+.ak-elw{margin:8px 0}
+.ak-elw>summary{cursor:pointer}
+.ak-el{margin-top:10px;padding:10px 0 2px;border-top:1px solid var(--line);display:grid;gap:6px}
+.ak-el>.row.sb b{font-size:14px;font-weight:600;line-height:1.35}

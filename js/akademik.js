@@ -382,7 +382,21 @@ function viewAkdMapel(){
  h+='<div id="akd-list">'+akMapelCards()+'</div>';
  return h;
 }
-function akMapelCard(m,child){
+/* Elemen CP dilampirkan di bawah kartu mapel induk, dilipat seperti Sumber acuan */
+function akElemenLampir(kids,buka){
+ if(!kids||!kids.length)return '';
+ var ed=akEdit();
+ return '<details class=\"ak-elw\"'+(buka?' open':'')+'><summary class=\"note\">'+kids.length+' elemen CP</summary>'+kids.map(function(c){
+  var mod=akModulTerkait(c),tg=akTugasMapel(c.id).length;
+  return '<div class=\"ak-el\"'+(c.aktif===false?' style=\"opacity:.6\"':'')+'><div class=\"row sb\"><b>'+esc(c.nama)+'</b>'+(c.kode?'<span class=\"mono note\">'+esc(c.kode)+'</span>':'')+'</div>'+
+   ((mod||tg||c.aktif===false)?'<div class=\"row\">'+(mod?akPill(mod+' LKPD'):'')+(tg?akPill(tg+' pengampu'):'')+(c.aktif===false?akPill('Arsip','warn'):'')+'</div>':'')+
+   (c.catatan?'<div class=\"note\">'+esc(c.catatan)+'</div>':'')+
+   (typeof lkElDetail==='function'?lkElDetail(c.id):'')+
+   (c.sumber?'<details><summary class=\"note\">Sumber acuan</summary><div class=\"note\">'+esc(c.sumber)+'</div></details>':'')+
+   (ed?'<div class=\"row\">'+akBtn('edit',c.id,'Ubah',null,'mapel')+akBtn('arsip',c.id,c.aktif===false?'Aktifkan':'Arsipkan',null,'mapel')+'</div>':'')+'</div>';
+ }).join('')+'</details>';
+}
+function akMapelCard(m,child,kids,buka){
  var ed=akEdit(),tg=akTugasMapel(m.id),sk=(m.skkni||[]).filter(function(c){return AKD_SKKNI[c]}),mod=akModulTerkait(m);
  var pg={};tg.forEach(function(t){pg[akNamaUser(t.guruId)]=1});var pn=Object.keys(pg);
  return '<div class="card"'+(m.aktif===false?' style="opacity:.6"':'')+(child?' style="margin-left:14px;'+(m.aktif===false?'opacity:.6':'')+'"':'')+'><div class="row sb"><b>'+esc(m.nama)+'</b><span class="mono note">'+esc(m.kode||'')+'</span></div>'+
@@ -392,6 +406,7 @@ function akMapelCard(m,child){
   (m.catatan?'<div class="note">'+esc(m.catatan)+'</div>':'')+
   (sk.length?'<details><summary class="note">'+sk.length+' unit SKKNI (Kepmenaker 147/2019)</summary>'+sk.map(function(c){return '<div class="note"><span class="mono">'+akSkkniKode(c)+'</span> '+esc(AKD_SKKNI[c])+'</div>'}).join('')+'</details>':'')+
   (m.sumber?'<details><summary class="note">Sumber acuan</summary><div class="note">'+esc(m.sumber)+'</div></details>':'')+
+  akElemenLampir(kids,buka)+
   (ed?'<div class="row">'+akBtn('edit',m.id,'Ubah',null,'mapel')+akBtn('arsip',m.id,m.aktif===false?'Aktifkan':'Arsipkan',null,'mapel')+'</div>':'')+'</div>';
 }
 function akModulTerkait(m){
@@ -413,8 +428,8 @@ function akMapelCards(){
   var L=gr[g[0]];if(!L)return;
   var n=L.length,nc=0,body='',buka=cari||AKD.gopen[g[0]]!==false;
   L.forEach(function(m){
-   body+=akMapelCard(m,false);
-   all.filter(function(c){return c.induk===m.id}).forEach(function(c){nc++;body+=akMapelCard(c,true)});
+   var kids=all.filter(function(c){return c.induk===m.id});nc+=kids.length;
+   body+=akMapelCard(m,false,kids,cari);
   });
   out+='<button type="button" class="akd-grp" data-akd="grp" data-id="'+g[0]+'" aria-expanded="'+buka+'"><span><b>'+g[1]+'</b><small class="note"> · '+n+' mapel'+(nc?', '+nc+' elemen CP':'')+'</small></span><span class="akd-chev" aria-hidden="true">'+(buka?'▾':'▸')+'</span></button>'+(buka?body:'');
  });
