@@ -5,7 +5,7 @@
    filter (bank-bertingkat.js, banksoal.js, butir.js) tidak berubah. Lembar memakai kelas ui-ov, sehingga tombol back HP
    menutupnya lebih dulu (back.js). Dropdown lain di aplikasi tidak disentuh. Dimuat setelah bank-bertingkat.js. */
 (function(){
- var SEL='#bq-mp,#bq-kls,#bq-mod,#bq-cp,#bl-mapel,#bl-tipe,select[data-bs="flt"]';
+ var SEL='#bq-mp,#bq-kls,#bq-mod,#bq-cp,#bl-mapel,#bl-tipe,#sf-kelas,#sf-sekolah,#sf-pilih,#sf-aksi,#sf-mf,#sf-tf,select[data-bs="flt"]';
  function cari(e){var t=e.target;return t&&t.matches&&t.matches(SEL)&&!t.disabled?t:null}
  function tutup(){var o=document.getElementById('bp-ov');if(o)o.remove()}
  function judul(s){

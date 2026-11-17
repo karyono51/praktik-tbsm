@@ -66,11 +66,12 @@
   }).join('');
  };
  /* chip berkelompok (sesi ujian). pilih: daftar mapel terpilih */
- window.bsMapelChipsHtml=function(list,pilih){
+ window.bsMapelChipsHtml=function(list,pilih,cnt){
   pilih=pilih||[];
   return bsMapelGrup(list).map(function(g){
    return '<span class="label" style="display:block;margin:10px 0 4px">'+esc(g.judul)+'</span><div class="chips">'+g.items.map(function(m){
-    return '<button type="button" data-bs="sfmapel" data-v="'+esc(m)+'" aria-pressed="'+(pilih.indexOf(m)>-1)+'">'+esc(m)+'</button>';
+    var on=pilih.indexOf(m)>-1,n=cnt?(cnt[m]||0):null,mati=n===0&&!on;
+    return '<button type="button" data-bs="sfmapel" data-v="'+esc(m)+'" aria-pressed="'+on+'"'+(mati?' disabled style="opacity:.45"':'')+'>'+esc(m)+(n===null?'':' ('+n+')')+'</button>';
    }).join('')+'</div>';
   }).join('');
  };

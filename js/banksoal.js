@@ -699,6 +699,42 @@ function bsSfRead(){
  f.mulai=v('sf-mulai')?new Date(v('sf-mulai')).getTime():0;f.selesai=v('sf-selesai')?new Date(v('sf-selesai')).getTime():0;
 }
 function bsTokenBaru(){var A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',t='',b=new Uint32Array(6);try{crypto.getRandomValues(b)}catch(e){for(var i=0;i<6;i++)b[i]=Math.floor(Math.random()*4294967296)}for(var j=0;j<6;j++)t+=A[b[j]%A.length];return t}
+/* dasar pool ujian: peruntukan ujian/keduanya, lolos aturan TKA, soal bawaan dikecualikan di mode aman. kls kosong = semua kelas */
+function bsSfBase(kls){return bsPool('ujian',kls||'').filter(function(q){return !bsAman()||!q.bawaan})}
+function bsSfPoolFor(f,kls){var mf=f.mapelF||[];return bsSfBase(kls).filter(function(q){return !mf.length||mf.indexOf(q.mapel)>-1})}
+/* ringkasan: jumlah per mapel (tanpa batas mapel), per jenis, dan per kelas siswa (soal tanpa kelas dihitung untuk semua kelas) */
+function bsSfStat(f){
+ var kls=f.kelas==='ALL'?'':f.kelas,base=bsSfBase(kls),pm={},sel=bsSfPoolFor(f,kls),pt={},pk={};
+ base.forEach(function(q){pm[q.mapel]=(pm[q.mapel]||0)+1});
+ sel.forEach(function(q){pt[q.tipe]=(pt[q.tipe]||0)+1});
+ (kls?[kls]:['X','XI','XII']).forEach(function(k){pk[k]=bsSfPoolFor(f,k).length});
+ return {base:base.length,pm:pm,sel:sel.length,pt:pt,pk:pk};
+}
+function bsSfNote(f){
+ var st=bsSfStat(f);
+ if(!st.sel)return '<p class="note" style="color:var(--bad)"><b>0 soal ujian tersedia.</b> '+esc(bsSfAlasan(f))+'</p>';
+ var h='<p class="note"><b>'+st.sel+' soal ujian tersedia</b> untuk pilihan ini.</p>';
+ var tp=Object.keys(BS_TIPE).filter(function(t){return st.pt[t]}).map(function(t){return BS_TIPE[t]+' '+st.pt[t]});
+ if(tp.length)h+='<p class="note">Jenis: '+tp.join(' · ')+(st.pt.uraian?'. Soal uraian dinilai manual oleh guru.':'')+'</p>';
+ var ks=Object.keys(st.pk);
+ if(f.kelas==='ALL')h+='<p class="note">Per kelas siswa: '+ks.map(function(k){return 'Kelas '+k+' '+st.pk[k]}).join(' · ')+'</p>';
+ var j=f.jumlah>0?f.jumlah:st.sel,kurang=ks.filter(function(k){return st.pk[k]<j});
+ if(f.jumlah>0&&kurang.length)h+='<p class="note" style="color:var(--warn)"><b>Jumlah soal '+f.jumlah+' melebihi soal tersedia.</b> '+kurang.map(function(k){return 'Kelas '+k+' hanya mendapat '+st.pk[k]+' soal'}).join('; ')+'.</p>';
+ return h;
+}
+function bsSfRefresh(){
+ var f=BS.sf;if(!f)return;
+ var n=document.getElementById('sf-note');if(n)n.innerHTML=bsSfNote(f);
+ var c=document.getElementById('sf-chips');if(c)c.innerHTML=bsSfChips(f);
+}
+function bsSfChips(f){
+ var mp=bsMapelList(),st=bsSfStat(f),sel=f.mapelF||[];
+ var extra=sel.filter(function(m){return mp.indexOf(m)<0});
+ return '<div class="row" style="margin:2px 0 4px"><button type="button" class="btn small" data-bs="sfmall">Semua mapel</button><button type="button" class="btn small" data-bs="sfmada">Hanya yang ada soal</button></div>'+
+  bsMapelChipsHtml(mp,sel,st.pm)+
+  (extra.length?'<span class="label" style="display:block;margin:10px 0 4px">Tidak ada di daftar mapel (ketuk untuk melepas)</span><div class="chips">'+extra.map(function(m){return '<button type="button" data-bs="sfmapel" data-v="'+esc(m)+'" aria-pressed="true">'+esc(m)+'</button>'}).join('')+'</div>':'')+
+  (sel.length?'<p class="note" style="margin-top:8px">'+sel.length+' mapel dipilih.</p>':'');
+}
 function bsSfPool(f){
  return bsPool('ujian',f.kelas==='ALL'?'':f.kelas).filter(function(q){return (!bsAman()||!q.bawaan)&&(!(f.mapelF&&f.mapelF.length)||f.mapelF.indexOf(q.mapel)>-1)});
 }
@@ -723,9 +759,35 @@ function bsSfAlasan(f){
  if(!r.length)r.push('Belum ada soal sendiri berperuntukan Ujian atau Keduanya.');
  return r.join(' ');
 }
+/* mode pilih sendiri: daftar bisa disaring (cari, mapel, jenis); tampil paling banyak 120 butir agar HP tetap ringan */
+function bsSfManualAll(f){
+ var q=String(f.q||'').toLowerCase().trim();
+ return bsSfBase(f.kelas==='ALL'?'':f.kelas).filter(function(x){return (!f.mf||x.mapel===f.mf)&&(!f.tf||x.tipe===f.tf)&&(!q||(x.q+' '+x.mapel+' '+(x.topik||'')).toLowerCase().indexOf(q)>-1)});
+}
 function bsSfManual(){
- var f=BS.sf,q=String(f.q||'').toLowerCase(),list=bsPool('ujian',f.kelas==='ALL'?'':f.kelas).filter(function(s){return (!bsAman()||!s.bawaan)&&(!q||(s.q+' '+s.mapel).toLowerCase().indexOf(q)>-1)});
- return '<div class="bs-pick" id="sf-list">'+list.map(function(s){return '<label class="bs-pk"><input type="checkbox" class="sf-id" value="'+s.id+'"'+(f.ids.indexOf(s.id)>-1?' checked':'')+'><span><small>'+esc(s.mapel)+' · '+BS_TIPE[s.tipe]+'</small><br>'+esc(String(s.q).slice(0,110))+'</span></label>'}).join('')+(list.length?'':'<p class="muted">Tidak ada soal ujian yang cocok. '+esc(bsSfAlasan(f))+'</p>')+'</div>';
+ var f=BS.sf,all=bsSfManualAll(f),list=all.slice(0,120);
+ return '<div class="bs-pick" id="sf-list">'+list.map(function(s){return '<label class="bs-pk"><input type="checkbox" class="sf-id" value="'+s.id+'"'+(f.ids.indexOf(s.id)>-1?' checked':'')+'><span><small>'+esc(s.mapel)+' · '+BS_TIPE[s.tipe]+(s.kelas?' · Kelas '+esc(s.kelas):'')+'</small><br>'+esc(String(s.q).slice(0,110))+'</span></label>'}).join('')+
+  (all.length>list.length?'<p class="muted" style="padding:10px 12px">Menampilkan '+list.length+' dari '+all.length+' soal. Persempit dengan pencarian, mapel, atau jenis.</p>':'')+
+  (list.length?'':'<p class="muted" style="padding:10px 12px">Tidak ada soal ujian yang cocok. '+esc(bsSfAlasan(f))+'</p>')+'</div>';
+}
+function bsSfManualInfo(f){
+ var ok={};bsSfBase(f.kelas==='ALL'?'':f.kelas).forEach(function(q){ok[q.id]=1});
+ var buang=f.ids.filter(function(id){return !ok[id]}).length,n=bsSfManualAll(f).length;
+ return f.ids.length+' soal dipilih · '+n+' cocok dengan filter. Hanya soal berperuntukan ujian atau keduanya yang memenuhi aturan TKA yang tampil.'+(buang?' <span style="color:var(--warn)">'+buang+' soal terpilih sudah tidak memenuhi syarat (kelas, peruntukan, atau aturan TKA) dan akan dilepas saat disimpan.</span>':'');
+}
+function bsSfManualBar(f){
+ var st=bsSfStat({kelas:f.kelas,mapelF:[]});
+ var mo='<option value="">Semua mapel</option>'+bsMapelOptHtml(Object.keys(st.pm),f.mf||'',st.pm);
+ var to='<option value="">Semua jenis</option>'+Object.keys(BS_TIPE).map(function(t){return '<option value="'+t+'"'+(f.tf===t?' selected':'')+'>'+BS_TIPE[t]+'</option>'}).join('');
+ return '<label class="f">Cari soal<input id="sf-q" type="search" value="'+esc(f.q||'')+'" placeholder="Kata dalam soal, mapel, atau topik"></label>'+
+  '<div class="two"><label class="f">Mapel<select id="sf-mf">'+mo+'</select></label><label class="f">Jenis<select id="sf-tf">'+to+'</select></label></div>'+
+  '<div class="row"><button type="button" class="btn small" data-bs="sfpsemua">Pilih semua yang cocok</button><button type="button" class="btn small" data-bs="sfkosong">Kosongkan pilihan</button></div>'+
+  '<p class="note" id="sf-n">'+bsSfManualInfo(f)+'</p>';
+}
+function bsSfManualRefresh(){
+ var f=BS.sf;if(!f)return;
+ var l=document.getElementById('sf-list');if(l)l.outerHTML=bsSfManual();
+ var n=document.getElementById('sf-n');if(n)n.innerHTML=bsSfManualInfo(f);
 }
 function bsViewSesiForm(){
  var f=BS.sf,mp=bsMapelList(),oto=f.pilih!=='manual';
@@ -733,11 +795,11 @@ function bsViewSesiForm(){
  h+='<label class="f">Judul sesi<input id="sf-judul" value="'+esc(f.judul)+'" placeholder="Contoh: Simulasi TKA 1"></label>';
  h+='<div class="two"><label class="f">Kelas<select id="sf-kelas">'+[['ALL','Semua kelas'],['X','Kelas X'],['XI','Kelas XI'],['XII','Kelas XII']].map(function(k){return '<option value="'+k[0]+'"'+(f.kelas===k[0]?' selected':'')+'>'+k[1]+'</option>'}).join('')+'</select></label><label class="f">Durasi (menit)<input id="sf-durasi" type="number" inputmode="numeric" min="1" max="300" value="'+f.durasi+'"></label></div>';
  h+='<label class="f">Sekolah<select id="sf-sekolah">'+schOptModul(f.sekolah)+'</select></label>';
- h+='<label class="f">Cara memilih soal<select id="sf-pilih"><option value="otomatis"'+(oto?' selected':'')+'>Otomatis dari bank soal (tiap siswa berbeda)</option><option value="manual"'+(oto?'':' selected')+'>Pilih soal sendiri</option></select></label>';
+ h+='<label class="f">Cara memilih soal<select id="sf-pilih"><option value="otomatis"'+(oto?' selected':'')+'>Otomatis (acak per siswa)</option><option value="manual"'+(oto?'':' selected')+'>Pilih soal sendiri</option></select></label>';
  if(oto){
-  h+='<label class="f">Jumlah soal<input id="sf-jumlah" type="number" inputmode="numeric" min="1" max="200" value="'+f.jumlah+'"></label><div><span class="label">Batasi mata pelajaran (kosong = semua)</span>'+bsMapelChipsHtml(mp,f.mapelF)+'</div>'+(bsSfPool(f).length?'<p class="note">'+bsSfPool(f).length+' soal ujian tersedia untuk pilihan ini.</p>':'<p class="note" style="color:var(--bad)"><b>0 soal ujian tersedia.</b> '+esc(bsSfAlasan(f))+'</p>');
+  h+='<label class="f">Jumlah soal<input id="sf-jumlah" type="number" inputmode="numeric" min="1" max="200" value="'+f.jumlah+'"></label><div><span class="label">Batasi mata pelajaran (kosong = semua)</span><div id="sf-chips">'+bsSfChips(f)+'</div></div><div id="sf-note">'+bsSfNote(f)+'</div>';
  }else{
-  h+='<label class="f">Cari soal<input id="sf-q" type="search" value="'+esc(f.q||'')+'"></label><p class="note" id="sf-n">'+f.ids.length+' soal dipilih. Hanya soal dengan peruntukan ujian atau keduanya yang tampil.</p>'+bsSfManual();
+  h+=bsSfManualBar(f)+bsSfManual();
  }
  h+='<label class="bs-ck"><input id="sf-acak" type="checkbox"'+(f.acak?' checked':'')+'> Acak urutan soal dan pilihan jawaban</label>';
  h+='<label class="bs-ck"><input id="sf-tampil" type="checkbox"'+(f.tampil?' checked':'')+'> Tampilkan pembahasan ke siswa setelah selesai</label>';
@@ -759,7 +821,17 @@ async function bsSfSave(){
  if(!String(f.judul).trim()){toast('Isi judul sesi');return}
  if(!(f.durasi>0)){toast('Isi durasi dalam menit');return}
  if(f.pilih==='manual'&&!f.ids.length){toast('Pilih minimal satu soal');return}
- if(f.pilih!=='manual'&&!bsSfPool(f).length){toast('Belum ada soal ujian untuk pilihan ini. Lihat keterangan merah di formulir.');return}
+ if(f.pilih==='manual'){
+  var okb={};bsSfBase(f.kelas==='ALL'?'':f.kelas).forEach(function(q){okb[q.id]=1});
+  var n0=f.ids.length;f.ids=f.ids.filter(function(id){return okb[id]});
+  if(!f.ids.length){toast('Tidak ada soal terpilih yang memenuhi syarat ujian');render();return}
+  if(f.ids.length<n0)toast((n0-f.ids.length)+' soal tidak memenuhi syarat dan dilepas');
+ }
+ if(f.pilih!=='manual'){
+  if(!bsSfPool(f).length){toast('Belum ada soal ujian untuk pilihan ini. Lihat keterangan merah di formulir.');return}
+  var st=bsSfStat(f),kr=Object.keys(st.pk).filter(function(k){return f.jumlah>st.pk[k]});
+  if(f.jumlah>0&&kr.length&&!(await uiConfirm('Jumlah soal ('+f.jumlah+') melebihi soal tersedia.\n'+kr.map(function(k){return 'Kelas '+k+': '+st.pk[k]+' soal'}).join('\n')+'\nSiswa hanya mendapat soal yang tersedia. Tetap simpan?',{ok:'Tetap simpan'})))return;
+ }
  if(f.mulai&&f.selesai&&f.selesai<=f.mulai){toast('Waktu tutup harus setelah waktu mulai');return}
  var ex=BS.D.sesi.filter(function(x){return x.id===f.id})[0];
  var o=Object.assign(ex||{},{id:f.id||uid(),ts:ex?ex.ts:Date.now(),judul:String(f.judul).trim().slice(0,160),kelas:f.kelas,durasi:f.durasi,jumlah:f.pilih==='manual'?f.ids.length:Math.max(1,f.jumlah||1),acak:f.acak,mulai:f.mulai||0,selesai:f.selesai||0,aktif:f.aktif,kkm:Math.min(100,Math.max(0,f.kkm||0)),oleh:ex?ex.oleh:S.user.nama.slice(0,64),ids:f.ids,pilih:f.pilih,mapelF:f.mapelF,tampil:f.tampil,sekolah:schNorm(f.sekolah)==='ALL'?'':schNorm(f.sekolah),tok:!!f.tok,batas:f.batas||0,aksi:f.aksi||'peringatan',layar:!!f.layar,exambro:!!f.exambro});
@@ -910,7 +982,11 @@ document.addEventListener('click',function(e){
  else if(a==='sesibatal'){BS.sf=null;render()}
  else if(a==='sesisimpan')bsSfSave();
  else if(a==='sftoken'){var te=document.getElementById('sf-tokp');if(te){te.value=bsTokenBaru();var tc=document.getElementById('sf-tok');if(tc)tc.checked=true}}
- else if(a==='sfmapel'){bsSfRead();var mf=BS.sf.mapelF,ix=mf.indexOf(v);if(ix>-1)mf.splice(ix,1);else mf.push(v);render()}
+ else if(a==='sfmapel'){bsSfRead();var mf=BS.sf.mapelF,ix=mf.indexOf(v);if(ix>-1)mf.splice(ix,1);else mf.push(v);bsSfRefresh()}
+ else if(a==='sfmall'){bsSfRead();BS.sf.mapelF=[];bsSfRefresh()}
+ else if(a==='sfmada'){bsSfRead();var cm=bsSfStat(BS.sf).pm;BS.sf.mapelF=Object.keys(cm).filter(function(m){return cm[m]>0});bsSfRefresh()}
+ else if(a==='sfpsemua'&&BS.sf){bsSfRead();bsSfManualAll(BS.sf).forEach(function(q){if(BS.sf.ids.indexOf(q.id)<0)BS.sf.ids.push(q.id)});bsSfManualRefresh()}
+ else if(a==='sfkosong'&&BS.sf){bsSfRead();BS.sf.ids=[];bsSfManualRefresh()}
  else if(a==='sesiaktif'){var sa=BS.D.sesi.filter(function(x){return x.id===qid})[0];if(sa){sa.aktif=sa.aktif===false;bsPut('sesi',sa).then(function(){render()});render()}}
  else if(a==='sesigandakan'){
   var sg=BS.D.sesi.filter(function(x){return x.id===qid})[0];if(!sg)return;
@@ -936,9 +1012,10 @@ document.addEventListener('change',function(e){
  var t=e.target;
  if(t.classList&&t.classList.contains('sf-id')&&BS.sf){
   var ix=BS.sf.ids.indexOf(t.value);if(t.checked&&ix<0)BS.sf.ids.push(t.value);else if(!t.checked&&ix>-1)BS.sf.ids.splice(ix,1);
-  var n=document.getElementById('sf-n');if(n)n.textContent=BS.sf.ids.length+' soal dipilih. Hanya soal dengan peruntukan ujian atau keduanya yang tampil.';return;
+  var n=document.getElementById('sf-n');if(n)n.innerHTML=bsSfManualInfo(BS.sf);return;
  }
  if(t.id==='sf-pilih'||t.id==='sf-kelas'){bsSfRead();render();return}
+ if((t.id==='sf-mf'||t.id==='sf-tf')&&BS.sf){BS.sf[t.id==='sf-mf'?'mf':'tf']=t.value;bsSfManualRefresh();return}
  var a=t.dataset&&t.dataset.bs;if(!a)return;
  if(a==='tuj'){var id=t.dataset.q;(BS_IDX[id]?bsOverride(id,{tujuan:t.value}):bsPut('soal',Object.assign(BS.D.soal.filter(function(x){return x.id===id})[0],{tujuan:t.value}))).then(function(){toast('Peruntukan diubah')});BS.all=null}
  else if(a==='flab'){bsFormRead();render()}
@@ -950,7 +1027,8 @@ document.addEventListener('input',function(e){
  var t=e.target;
  if(t.id==='bq-q'){BS.flt.q=t.value;BS.flt.n=30;bsRerenderList()}
  else if(t.id==='rl-q'){BS.rl.q=t.value;BS.rl.n=20;var rl=document.getElementById('rl-list');if(rl)rl.innerHTML=bsRlList()}
- else if(t.id==='sf-q'&&BS.sf){BS.sf.q=t.value;var l=document.getElementById('sf-list');if(l)l.outerHTML=bsSfManual()}
+ else if(t.id==='sf-q'&&BS.sf){BS.sf.q=t.value;bsSfManualRefresh()}
+ else if(t.id==='sf-jumlah'&&BS.sf){BS.sf.jumlah=+t.value||0;var nn=document.getElementById('sf-note');if(nn)nn.innerHTML=bsSfNote(BS.sf)}
 });
 
 /* ---------- Pemberitahuan ujian di beranda ---------- */
