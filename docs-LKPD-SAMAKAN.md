@@ -31,3 +31,6 @@ Berkas baru: `js/lkpd-samakan.js` (dimuat setelah `ukk-kelola.js`). Tidak ada be
 - Tabel Hasil pemeriksaan: kolom **No** di depan.
 - Keterangan komponen (kriteria) ditulis dalam kurung, huruf miring, dan lebih kecil dari nama komponen.
 - Akhir lembar: tempat dan tanggal (tempat mengikuti kota sekolah aktif, tanggal dari isian Tanggal atau hari ini), lalu tanda tangan **Siswa Praktik** dan **Guru/Instruktur** tanpa garis tabel; nama (dari isian Nama siswa dan Guru/instruktur) tertulis di atas garis.
+
+## Tombol Cetak di pratinjau
+Saat guru/admin membuka Pratinjau, tombol **Cetak** muncul di samping Editor Guru (bilah ttindakan bawah memang disembunyikan pada pratinjau). Mencetak dari pratinjau tidak menyimpan draf apa pun.

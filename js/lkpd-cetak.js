@@ -102,7 +102,7 @@ document.addEventListener('click',function(e){
  e.stopPropagation();
  var lama=document.getElementById('lk-print');if(lama)lama.remove();
  try{
-  localStorage.setItem(lkKey(),JSON.stringify(lkRead()));
+  if(!LK.preview)localStorage.setItem(lkKey(),JSON.stringify(lkRead()));   /* pratinjau tidak menyimpan apa pun */
   var el=document.createElement('div');el.id='lk-print';el.innerHTML=susun(m);document.body.appendChild(el);
   document.body.classList.add('lk-printing');
  }catch(err){bersih()}
