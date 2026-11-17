@@ -46,8 +46,8 @@ function bsPack(k,o){
   else if(bsAman()){
    /* kunci dan pembahasan dipisah ke koleksi soal_kunci (hanya guru/admin yang bisa membaca) */
    if(bsHasKey(o))o.kc={kunci:o.kunci,rk:o.tipe==='kategori'?o.rows.map(function(r){return !!r[1]}):undefined,rub:o.tipe==='uraian'?o.rub:undefined,kj:o.tipe==='uraian'?(o.kj||''):undefined,bahas:o.bahas||''};
-   o.payload=JSON.stringify({q:o.q,opts:o.opts,rows:o.rows?o.rows.map(function(r){return [r[0]]}):undefined,lab:o.lab,ks:1,qi:o.qi||undefined,oi:o.oi||undefined,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined});
-  }else o.payload=JSON.stringify({q:o.q,opts:o.opts,kunci:o.kunci,rows:o.rows,lab:o.lab,bahas:o.bahas,qi:o.qi||undefined,oi:o.oi||undefined,rub:o.rub,kj:o.kj,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined});
+   o.payload=JSON.stringify({q:o.q,opts:o.opts,rows:o.rows?o.rows.map(function(r){return [r[0]]}):undefined,lab:o.lab,ks:1,qi:o.qi||undefined,oi:o.oi||undefined,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined,dari:o.dari||undefined});
+  }else o.payload=JSON.stringify({q:o.q,opts:o.opts,kunci:o.kunci,rows:o.rows,lab:o.lab,bahas:o.bahas,qi:o.qi||undefined,oi:o.oi||undefined,rub:o.rub,kj:o.kj,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined,dari:o.dari||undefined});
  }
  else if(k==='sesi')o.payload=JSON.stringify({ids:o.ids||[],pilih:o.pilih||'otomatis',mapelF:o.mapelF||[],tampil:!!o.tampil,sekolah:o.sekolah||'',tok:o.tok?1:0,tokH:bsAman()?undefined:(o.tokH||undefined),tokS:bsAman()?undefined:(o.tokS||undefined),batas:o.batas||0,aksi:o.aksi||'peringatan',layar:!!o.layar,exambro:!!o.exambro});
  else o.payload=JSON.stringify({ans:o.ans,order:o.order,oo:o.oo,pindah:o.pindah||0,pts:o.pts});
@@ -520,11 +520,36 @@ function bsFiltered(){
   return (!f.mapel||s.mapel===f.mapel)&&(!f.tipe||s.tipe===f.tipe)&&(!f.tuj||s.tujuan===f.tuj)&&(!q||(s.q+' '+(s.topik||'')+' '+(s.mapel||'')).toLowerCase().indexOf(q)>-1);
  });
 }
+/* Peta soal yang pernah diubah: salinan dari soal bawaan. Memakai penanda dari (soal baru); salinan lama dicocokkan dari kemiripan teks soal (mapel sama, kata sama minimal 60%). Disimpan sementara per daftar soal. */
+function bsSalinPeta(){
+ var all=bsSoalAll();if(BS.sm&&BS.smFor===all)return BS.sm;
+ var m={b:{},s:{}},baw=all.filter(function(x){return x.bawaan}),kb={};
+ function kata(t){var o={},n=0;String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').split(' ').forEach(function(w){if(w.length>2&&!o[w]){o[w]=1;n++}});o.n=n;return o}
+ baw.forEach(function(b){kb[b.id]=kata(b.q)});
+ all.forEach(function(x){
+  if(x.bawaan)return;
+  if(x.dari&&kb[x.dari]){m.b[x.dari]=1;m.s[x.id]=x.dari;return}
+  var kx=kata(x.q),best=0,bid='';if(!kx.n)return;
+  baw.forEach(function(b){
+   if(b.mapel!==x.mapel)return;
+   var k2=kb[b.id],i=0;for(var w in kx){if(w!=='n'&&k2[w])i++}
+   var j=i/(kx.n+k2.n-i);if(j>best){best=j;bid=b.id}
+  });
+  if(best>=0.6){m.b[bid]=1;m.s[x.id]=bid}
+ });
+ BS.sm=m;BS.smFor=all;return m;
+}
+function bsPilUbah(s,pm){
+ if(s.dib)return '<span class="pill warn" title="Terakhir diubah '+esc(bsWaktu(s.dib))+'">Diubah · '+esc(bsWaktu(s.dib).split(',')[0].split(' pukul')[0])+'</span>';
+ if(s.bawaan&&pm.b[s.id])return '<span class="pill warn" title="Soal bawaan ini sudah disalin dan diubah menjadi soal sendiri">Sudah disalin dan diubah</span>';
+ if(!s.bawaan&&pm.s[s.id])return '<span class="pill warn" title="Hasil salin dan ubah dari soal bawaan">Diubah dari bawaan</span>';
+ return '';
+}
 function bsBankList(){
  var all=bsFiltered(),sh=all.slice(0,BS.flt.n);
  return sh.map(function(s){
-  var op=BS.open[s.id],ar=bsAturanSalah(s);
-  return '<div class="card"><div class="row"><span class="pill plain">'+esc(s.mapel||'')+'</span><span class="pill plain">'+BS_TIPE[s.tipe]+'</span>'+(s.bawaan?'<span class="pill plain">Bawaan</span>':'<span class="pill">Soal sendiri</span>')+(s.dib?'<span class="pill warn" title="Terakhir diubah '+esc(bsWaktu(s.dib))+'">Diubah · '+esc(bsWaktu(s.dib).split(',')[0].split(' pukul')[0])+'</span>':'')+(s.gs?'<span class="pill plain">Grup stimulus</span>':'')+(window.btrPill?btrPill(s.id):'')+(s.aktif?'':'<span class="pill bad">Nonaktif</span>')+(ar?'<span class="pill warn">Belum sesuai aturan</span>':'')+'</div>'+
+  var op=BS.open[s.id],ar=bsAturanSalah(s),pm=bsSalinPeta();
+  return '<div class="card"><div class="row bs-tags"><span class="pill plain">'+esc(s.mapel||'')+'</span><span class="pill plain">'+BS_TIPE[s.tipe]+'</span>'+(s.bawaan?'<span class="pill plain">Bawaan</span>':'<span class="pill">Soal sendiri</span>')+bsPilUbah(s,pm)+(s.gs?'<span class="pill plain">Grup stimulus</span>':'')+(window.btrPill?btrPill(s.id):'')+(s.aktif?'':'<span class="pill bad">Nonaktif</span>')+(ar?'<span class="pill warn">Belum sesuai aturan</span>':'')+'</div>'+
    '<p class="bs-qs">'+esc(String(s.q).slice(0,150))+(String(s.q).length>150?'…':'')+'</p>'+
    (s.topik?'<p class="note">Topik: '+esc(s.topik)+(s.kelas?' · Kelas '+esc(s.kelas):'')+'</p>':'')+
    (window.cpNote?cpNote(s.id):'')+
@@ -633,7 +658,8 @@ function bsFormSave(){
  if(!q){toast('Isi teks soal');return}
  var o={id:f.id||uid(),ts:Date.now(),tipe:f.tipe,mapel:mapel.slice(0,64),topik:String(f.topik).trim().slice(0,120),kelas:f.kelas,tujuan:f.tujuan,aktif:true,oleh:S.user.nama.slice(0,64),q:q,bahas:String(f.bahas).trim()};
  var ex=BS.D.soal.filter(function(x){return x.id===o.id})[0];if(ex){o.aktif=ex.aktif!==false;o.oleh=ex.oleh||o.oleh}
- if(ex||f.salin)o.dib=Date.now();/* penanda: soal ini pernah diubah (atau salinan yang diubah dari soal bawaan) */
+ if(ex||f.salin)o.dib=Date.now();
+ if(ex&&ex.dari)o.dari=ex.dari;else if(f.salin&&f.dari)o.dari=f.dari;/* penanda: soal ini pernah diubah (atau salinan yang diubah dari soal bawaan) */
  if(f.tipe==='uraian'){
   var rb=f.rub.filter(function(r){return String(r[0]).trim()}).map(function(r){return [String(r[0]).trim().slice(0,120),Math.round((+r[1]||0)*100)/100]});
   if(!rb.length){toast('Isi minimal 1 kriteria rubrik');return}
@@ -985,7 +1011,7 @@ document.addEventListener('click',function(e){
  else if(a==='aktif'){var sq=bsSoalById(qid);if(sq){var np={aktif:!sq.aktif};(BS_IDX[qid]?bsOverride(qid,np):bsPut('soal',Object.assign(BS.D.soal.filter(function(x){return x.id===qid})[0],np))).then(function(){render()});render()}}
  else if(a==='baru'){bsPosSimpan('');BS.form=bsNewForm(null);render();window.scrollTo(0,0)}
  else if(a==='salin'||a==='ubah'){
-  var so=bsSoalById(qid);if(!so)return;bsPosSimpan(qid);var f=bsNewForm(so);if(a==='salin'){f.id='';f.salin=1}BS.form=f;render();window.scrollTo(0,0);
+  var so=bsSoalById(qid);if(!so)return;bsPosSimpan(qid);var f=bsNewForm(so);if(a==='salin'){f.id='';f.salin=1;f.dari=qid}BS.form=f;render();window.scrollTo(0,0);
  }
  else if(a==='hapussoal'){uiConfirm('Hapus soal ini?\nSoal yang sudah dipakai tidak akan tampil di riwayat siswa.',{ok:'Hapus',danger:true}).then(function(ok){if(ok)bsDel('soal',qid).then(function(){render()})})}
  else if(a==='batalform'){BS.form=null;render();bsPosPulih()}

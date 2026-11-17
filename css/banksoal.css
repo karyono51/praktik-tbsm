@@ -137,3 +137,5 @@ body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
 .bp-i{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;padding:10px 12px;border-radius:10px}
 .bp-i[aria-selected=true]{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .bp-i:disabled{opacity:.5}
+/* label mapel/modul yang panjang tidak lagi terpotong: turun baris di dalam kartu */
+.card .row .pill{max-width:100%;white-space:normal;line-height:1.3}
