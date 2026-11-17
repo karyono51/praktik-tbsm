@@ -34,3 +34,13 @@ Berkas baru: `js/lkpd-samakan.js` (dimuat setelah `ukk-kelola.js`). Tidak ada be
 
 ## Tombol Cetak di pratinjau
 Saat guru/admin membuka Pratinjau, tombol **Cetak** muncul di samping Editor Guru (bilah ttindakan bawah memang disembunyikan pada pratinjau). Mencetak dari pratinjau tidak menyimpan draf apa pun.
+
+## Cetak: akun staf, tanggal, dan baris identitas
+- Akun admin/guru yang mencetak otomatis menjadi **Guru/instruktur** (identitas dan tanda tangan); Nama siswa dikosongkan. Siswa yang mencetak: namanya jadi Nama siswa.
+- Dari pratinjau/akun staf, **Tanggal** dikosongkan (identitas dan baris tempat-tanggal di akhir, diberi garis titik untuk ditulis tangan).
+- Identitas memakai tiga kolom (label, titik dua, nilai) sehingga baris kedua nilai yang panjang rata dengan huruf pertama nilai, bukan dengan titik dua.
+
+## Cetak: akun staf, tanggal, dan baris identitas
+- Akun admin/guru yang mencetak otomatis menjadi **Guru/instruktur** (identitas dan tanda tangan); Nama siswa dikosongkan. Siswa yang mencetak: namanya jadi Nama siswa.
+- Dari pratinjau/akun staf, **Tanggal** dikosongkan (identitas dan baris tempat-tanggal di akhir, diberi garis titik untuk ditulis tangan).
+- Identitas memakai tiga kolom (label, titik dua, nilai) sehingga baris kedua nilai yang panjang rata dengan huruf pertama nilai, bukan dengan titik dua.
