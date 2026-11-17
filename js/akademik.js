@@ -320,6 +320,13 @@ function viewAkdKelas(){
 }
 
 /* --- Daftar siswa per kelas --- */
+/* NIS dari username: 26271032 menjadi 2627.1032 (8 angka dipisah titik di tengah); bukan angka tampil apa adanya, kosong bila tidak ada */
+function akNis(u){
+ var n=String((u&&(u.username||String(u.email||'').split('@')[0]))||'').trim();
+ if(/^\d{8}$/.test(n))return n.slice(0,4)+'.'+n.slice(4);
+ return /^[\d.]+$/.test(n)?n:'';
+}
+function akNisHtml(u){var n=akNis(u);return '<span class="ak-nis'+(n?'':' kosong')+'">'+(n?esc(n):'NIS belum ada')+'</span>'}
 function akSiswaRombel(k){
  var peta={};S.users.forEach(function(u){peta[u.id]=u});
  return (k.anggota||[]).map(function(id){return peta[id]}).filter(function(u){return u&&hasRole(u,'siswa')&&u.aktif!==false})
@@ -338,10 +345,10 @@ function viewAkdSiswa(){
   var d=akSiswaRombel(k);
   return '<div class="card"><div class="row sb"><b>'+esc(k.nama)+'</b>'+akPill(d.length+' siswa','ok')+'</div>'+
    '<div class="note">'+esc(akSekLabel(k.sekolah))+' · Wali kelas: '+(k.waliId?esc(akNamaUser(k.waliId)):'belum ditetapkan')+'</div>'+
-   (d.length?'<ol class="ak-nm">'+d.map(function(u){return '<li>'+esc(u.nama)+'</li>'}).join('')+'</ol>':'<p class="muted">Belum ada siswa di rombel ini.</p>')+
+   (d.length?'<div class="ak-nh"><span>Nama siswa</span><span>NIS</span></div><ol class="ak-nm">'+d.map(function(u){return '<li><span class="ak-n">'+esc(u.nama)+'</span>'+akNisHtml(u)+'</li>'}).join('')+'</ol>':'<p class="muted">Belum ada siswa di rombel ini.</p>')+
    '<div class="row">'+akBtn('anggota',k.id,akEdit()?'Atur anggota':'Lihat anggota')+'</div></div>';
  }).join('');
- if(!one&&tanpa.length)h+='<div class="card"><div class="row sb"><b>Belum punya rombel</b>'+akPill(tanpa.length+' siswa','warn')+'</div><ol class="ak-nm">'+tanpa.map(function(u){return '<li>'+esc(u.nama)+(u.kelas?' <small class="note">(Kelas '+esc(u.kelas)+')</small>':'')+'</li>'}).join('')+'</ol></div>';
+ if(!one&&tanpa.length)h+='<div class="card"><div class="row sb"><b>Belum punya rombel</b>'+akPill(tanpa.length+' siswa','warn')+'</div><ol class="ak-nm">'+tanpa.map(function(u){return '<li><span class="ak-n">'+esc(u.nama)+(u.kelas?' <small class="note">(Kelas '+esc(u.kelas)+')</small>':'')+'</span>'+akNisHtml(u)+'</li>'}).join('')+'</ol></div>';
  return h;
 }
 function akAnggotaHtml(id){
