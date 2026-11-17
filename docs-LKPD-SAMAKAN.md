@@ -26,3 +26,8 @@ Berkas baru: `js/lkpd-samakan.js` (dimuat setelah `ukk-kelola.js`). Tidak ada be
 - Tersimpan sebagai elemen ketiga baris: `checks: [komponen, kriteria, standar]`. Baris tanpa standar tetap `[komponen, kriteria]`, jadi modul lama tidak berubah.
 - Siswa melihat teks **Acuan: ...** di bawah kolom Standar manual (kolom isian siswa tetap ada); guru melihatnya juga di Detail pengumpulan. Perubahan kecil ada di `js/lkpd.js`.
 - Catatan: impor Excel LKPD masih memakai dua kolom, jadi impor yang menimpa Pemeriksaan akan menghapus standar manual. Ekspor/impor belum disesuaikan.
+
+## Cetak LKPD (js/lkpd-cetak.js)
+- Tabel Hasil pemeriksaan: kolom **No** di depan.
+- Keterangan komponen (kriteria) ditulis dalam kurung, huruf miring, dan lebih kecil dari nama komponen.
+- Akhir lembar: tempat dan tanggal (tempat mengikuti kota sekolah aktif, tanggal dari isian Tanggal atau hari ini), lalu tanda tangan **Siswa Praktik** dan **Guru/Instruktur** tanpa garis tabel; nama (dari isian Nama siswa dan Guru/instruktur) tertulis di atas garis.

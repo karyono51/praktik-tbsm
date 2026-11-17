@@ -28,6 +28,14 @@ var CSS='#lk-print{display:none}'+
 '#lk-print table{font-size:9pt}#lk-print tr{break-inside:avoid}'+
 '#lk-print input:not([type=checkbox]):not([type=radio]),#lk-print .lkc-ta{display:block;min-height:1.1em;border:0!important;border-bottom:1px dotted #000!important;white-space:pre-wrap;overflow-wrap:anywhere}'+
 '#lk-print .lk-foto img{max-height:5cm}'+
+'#lk-print .lkc-no{width:7mm;text-align:center;white-space:nowrap}'+
+'#lk-print .lkc-ket{font-style:italic;font-weight:400;font-size:7.5pt}'+
+'.lkc-akhir{margin-top:8px;break-inside:avoid}.lkc-tgl{text-align:right;font-size:10pt;margin:0 0 4px}'+
+'#lk-print table.lkc-ttd{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10pt}'+
+'#lk-print table.lkc-ttd td{border:0!important;text-align:center;vertical-align:bottom;padding:0 10mm}'+
+'#lk-print .lkc-ttd .lkc-peran{height:1.4em;vertical-align:top}'+
+'#lk-print .lkc-ttd .lkc-ruang{height:18mm}'+
+'#lk-print .lkc-ttd .lkc-nama{border-bottom:1px solid #000!important;min-height:1.3em;font-weight:700;padding-bottom:1px}'+
 '}';
 var st=document.createElement('style');st.textContent=CSS;document.head.appendChild(st);
 
@@ -42,6 +50,19 @@ function semester(){
 }
 function mapel(m){return m.kelas==='X'?'DDPK':'Kompetensi Kejuruan TSM'}
 function baris(arr){return arr.map(function(x){return '<tr><td>'+x[0]+'</td><td>'+(x[1]?': ':':')+lkEsc(x[1])+'</td></tr>'}).join('')}
+function tglPanjang(v){
+ var t=v?new Date(v+'T00:00:00'):new Date();if(isNaN(t.getTime()))t=new Date();
+ return t.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+}
+/* penutup: tempat dan tanggal, lalu tanda tangan siswa dan guru/instruktur tanpa garis tabel; nama di atas garis */
+function akhir(d){
+ var kota='';try{kota=schEf().kota||''}catch(e){}
+ var siswa=d.student||(window.S&&S.user&&S.user.nama)||'',guru=d.teacher||'';
+ return '<div class="lkc-akhir"><p class="lkc-tgl">'+(kota?lkEsc(kota)+', ':'')+lkEsc(tglPanjang(d.date))+'</p>'+
+  '<table class="lkc-ttd"><tbody><tr><td class="lkc-peran">Siswa Praktik,</td><td class="lkc-peran">Guru/Instruktur,</td></tr>'+
+  '<tr><td class="lkc-ruang"></td><td class="lkc-ruang"></td></tr>'+
+  '<tr><td><div class="lkc-nama">'+lkEsc(siswa)+'</div></td><td><div class="lkc-nama">'+lkEsc(guru)+'</div></td></tr></tbody></table></div>';
+}
 function susun(m){
  var asal=LK.tab,h,d=lkDraft();
  try{h=bagian('materi')+bagian('kerja')+bagian('evaluasi')}finally{LK.tab=asal}
@@ -52,11 +73,22 @@ function susun(m){
  Array.prototype.forEach.call(box.querySelectorAll('textarea'),function(t){
   var dv=document.createElement('div');dv.className='lkc-ta';dv.textContent=t.value;t.parentNode.replaceChild(dv,t);
  });
+ /* tabel hasil pemeriksaan: kolom No, dan keterangan komponen dalam kurung, miring, huruf lebih kecil */
+ Array.prototype.forEach.call(box.querySelectorAll('table'),function(tb){
+  var th=tb.querySelectorAll('thead th');
+  if(!th.length||th[0].textContent.trim()!=='Komponen'||!/Hasil aktual/i.test(tb.querySelector('thead').textContent))return;
+  var tr0=tb.querySelector('thead tr'),n=document.createElement('th');n.className='lkc-no';n.textContent='No';tr0.insertBefore(n,tr0.firstChild);
+  Array.prototype.forEach.call(tb.querySelectorAll('tbody tr'),function(tr,i){
+   var td=document.createElement('td');td.className='lkc-no';td.textContent=i+1;tr.insertBefore(td,tr.firstChild);
+   var k=tr.children[1],sm=k&&k.querySelector(':scope>small');
+   if(sm){var em=document.createElement('em');em.className='lkc-ket';em.textContent='('+sm.textContent.trim()+')';sm.parentNode.replaceChild(em,sm);k.insertBefore(document.createTextNode(' '),em)}
+  });
+ });
  var kop='<div class="lkc-kop"><img src="'+LOGO+'" alt=""><div><b>'+lkEsc(SEK.nama)+'</b><span>'+lkEsc(SEK.program)+'</span><small>'+lkEsc(SEK.alamat)+'</small></div></div>';
  var kiri=baris([['Judul/Materi',m.title],['Mata pelajaran',mapel(m)],['Kelas/Semester',(d.class||m.kelas)+' / '+semester()],['Fase/Kurikulum','Fase '+m.fase+' / Kurikulum Merdeka'],['Waktu pengerjaan',m.duration+' menit']]);
  var kanan=baris([['Nama siswa',d.student||(window.S&&S.user&&S.user.nama)||''],['Kelompok',d.group||''],['Tanggal',d.date||(typeof ymd==='function'?ymd(Date.now()):'')],['Tipe kendaraan',d.vehicle||''],['Guru/instruktur',d.teacher||'']]);
  var info='<div class="lkc-grid"><table class="lkc-info"><tbody>'+kiri+'</tbody></table><table class="lkc-info"><tbody>'+kanan+'</tbody></table></div>';
- return kop+info+box.innerHTML;
+ return kop+info+box.innerHTML+akhir(d);
 }
 function bersih(){document.body.classList.remove('lk-printing')}
 window.addEventListener('afterprint',bersih);
