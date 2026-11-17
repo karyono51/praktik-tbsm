@@ -545,6 +545,48 @@ function bsPilUbah(s,pm){
  if(!s.bawaan&&pm.s[s.id])return '<span class="pill warn" title="Hasil salin dan ubah dari soal bawaan">Diubah dari bawaan</span>';
  return '';
 }
+/* ---------- Cek soal duplikat ---------- */
+function bsDupTok(t){var o={},n=0;String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').split(' ').forEach(function(w){if(w.length>2&&!o[w]){o[w]=1;n++}});return {s:o,n:n}}
+function bsDupJac(a,b){if(!a.n||!b.n)return 0;var i=0,w;for(w in a.s)if(b.s[w])i++;return i/(a.n+b.n-i)}
+function bsDupNorm(t){return String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function bsDupTeks(x){return x.q+' '+(x.opts?x.opts.join(' '):'')+' '+(x.rows?x.rows.map(function(r){return r[0]}).join(' '):'')}
+/* Kelompok duplikat: soal sejenis dalam satu mapel dengan teks soal sama persis, teks soal sangat mirip (80% kata sama),
+   atau soal beserta pilihan/pernyataan 75% sama. Hasil disimpan sementara per daftar soal dan mapel terpilih. */
+function bsDupGrup(){
+ var all=bsSoalAll(),mp=BS.flt.mapel||'';
+ if(BS.dg&&BS.dgA===all&&BS.dgM===mp)return BS.dg;
+ var src=all.filter(function(x){return !mp||x.mapel===mp}),bk={},par={},T={};
+ function fi(a){while(par[a]!==a){par[a]=par[par[a]];a=par[a]}return a}
+ src.forEach(function(x){par[x.id]=x.id;T[x.id]={q:bsDupTok(x.q),f:bsDupTok(bsDupTeks(x)),n:bsDupNorm(x.q)};(bk[(x.mapel||'')+'|'+x.tipe]=bk[(x.mapel||'')+'|'+x.tipe]||[]).push(x)});
+ Object.keys(bk).forEach(function(k){
+  var L=bk[k];
+  for(var i=0;i<L.length;i++)for(var j=i+1;j<L.length;j++){
+   var a=L[i],b=L[j],ta=T[a.id],tb=T[b.id];
+   if((ta.n&&ta.n===tb.n)||bsDupJac(ta.q,tb.q)>=0.8||bsDupJac(ta.f,tb.f)>=0.75){var ra=fi(a.id),rb=fi(b.id);if(ra!==rb)par[rb]=ra}
+  }
+ });
+ var gr={};src.forEach(function(x){var r=fi(x.id);(gr[r]=gr[r]||[]).push(x)});
+ var out=Object.keys(gr).map(function(k){return gr[k]}).filter(function(a){return a.length>1});
+ out.forEach(function(a){a.sort(function(x,y){return (y.bawaan?1:0)-(x.bawaan?1:0)||String(x.id).localeCompare(String(y.id))})});
+ out.sort(function(a,b){return b.length-a.length||String(a[0].mapel).localeCompare(String(b[0].mapel))||String(a[0].id).localeCompare(String(b[0].id))});
+ BS.dg=out;BS.dgA=all;BS.dgM=mp;return out;
+}
+function bsDupHtml(){
+ var g=bsDupGrup(),pm=bsSalinPeta(),tot=g.reduce(function(t,a){return t+a.length},0),mp=BS.flt.mapel||'';
+ var h='<div class=\"card\"><div class=\"row sb\"><b>Cek soal duplikat</b><button type=\"button\" class=\"btn small\" data-bs=\"dupx\">Tutup</button></div><p class=\"note\">'+(mp?esc(mp):'Semua mapel')+' · '+g.length+' kelompok ('+tot+' soal). Dianggap duplikat bila teks soal sama persis, teks soal 80% sama, atau soal dan pilihannya 75% sama. Hanya soal sejenis dalam satu mapel yang dibandingkan. Pilih Mapel di filter untuk mempersempit.</p></div>';
+ if(!g.length)return h+'<p class=\"muted center\" style=\"padding:20px 0\">Tidak ditemukan soal duplikat.</p>';
+ h+=g.slice(0,40).map(function(a,i){
+  return '<div class=\"card\"><div class=\"row sb\"><b>Kelompok '+(i+1)+'</b><span class=\"pill plain\">'+a.length+' soal</span></div>'+a.map(function(x){
+   var op=BS.open[x.id];
+   return '<div style=\"border-top:1px solid var(--line);margin-top:10px;padding-top:10px\"><div class=\"row bs-tags\"><span class=\"pill plain\">'+BS_TIPE[x.tipe]+'</span>'+(x.bawaan?'<span class=\"pill plain\">Bawaan</span>':'<span class=\"pill\">Soal sendiri</span>')+bsPilUbah(x,pm)+(x.aktif?'':'<span class=\"pill bad\">Nonaktif</span>')+'</div>'+
+    '<p class=\"bs-qs\">'+esc(String(x.q).slice(0,160))+(String(x.q).length>160?'…':'')+'</p><p class=\"note mono\">'+esc(x.id)+(x.topik?' · '+esc(x.topik):'')+'</p>'+
+    '<div class=\"row\"><button type=\"button\" class=\"btn small\" data-bs=\"lihat\" data-q=\"'+x.id+'\">'+(op?'Tutup':'Lihat')+'</button><button type=\"button\" class=\"btn small\" data-bs=\"aktif\" data-q=\"'+x.id+'\">'+(x.aktif?'Nonaktifkan':'Aktifkan')+'</button>'+(!x.bawaan?'<button type=\"button\" class=\"btn small danger\" data-bs=\"hapussoal\" data-q=\"'+x.id+'\">Hapus</button>':'')+'</div>'+(op?bsRev(x,null,'',true):'')+'</div>';
+  }).join('')+'</div>';
+ }).join('');
+ if(g.length>40)h+='<p class=\"note center\">'+(g.length-40)+' kelompok lainnya tidak ditampilkan. Pilih Mapel untuk melihatnya.</p>';
+ return h;
+}
+function bsListIsi(){return BS.dup?bsDupHtml():bsBankList()}
 function bsBankList(){
  var all=bsFiltered(),sh=all.slice(0,BS.flt.n);
  return sh.map(function(s){
@@ -565,11 +607,11 @@ function bsViewBank(){
  all.forEach(function(s){if(!s.aktif)c.off++;else c[bsTujEf(s)]++});
  var f=BS.flt,mp=bsMapelList(),cnt=bsMapelHitung(all);
  return '<div class="stats"><div class="card"><span class="label">Total</span><b class="mono">'+all.length+'</b></div><div class="card"><span class="label">Latihan</span><b class="mono">'+(c.latihan+c.keduanya)+'</b></div><div class="card"><span class="label">Ujian</span><b class="mono">'+(c.ujian+c.keduanya)+'</b></div></div>'+
-  '<button type="button" class="btn primary" data-bs="baru">Tambah soal sendiri</button>'+
+  '<button type="button" class="btn" data-bs="dup" aria-pressed="'+(!!BS.dup)+'">'+(BS.dup?'Kembali ke daftar soal':'Cek soal duplikat')+'</button>'+'<button type="button" class="btn primary" data-bs="baru">Tambah soal sendiri</button>'+
   '<div class="card"><label class="f">Cari<input id="bq-q" type="search" value="'+esc(f.q)+'" placeholder="Kata dalam soal atau topik"></label><div class="two"><label class="f">Mapel<select data-bs="flt" data-k="mapel"><option value="">Semua</option>'+bsMapelOptHtml(mp,f.mapel,cnt)+'</select></label>'+
   '<label class="f">Jenis<select data-bs="flt" data-k="tipe"><option value="">Semua</option>'+Object.keys(BS_TIPE).map(function(t){return '<option value="'+t+'"'+(f.tipe===t?' selected':'')+'>'+BS_TIPE[t]+'</option>'}).join('')+'</select></label></div>'+
   '<label class="f">Peruntukan<select data-bs="flt" data-k="tuj"><option value="">Semua</option>'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(f.tuj===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label>'+(c.off?'<p class="note">'+c.off+' soal nonaktif.</p>':'')+'</div>'+
-  '<div class="stack" id="bq-list">'+bsBankList()+'</div>'+'';
+  '<div class="stack" id="bq-list">'+bsListIsi()+'</div>'+'';
 }
 /* Menu khusus guru/admin: riwayat latihan semua siswa (hasil ujian ada di CBT Online > Hasil) */
 BS.rl={q:'',kelas:'',mapel:'',n:20};
@@ -950,7 +992,7 @@ if(typeof refreshData==='function'){var _bsRefresh=refreshData;refreshData=async
 window.addEventListener('online',function(){if(S.user&&Cloud.on)bsFlushQ()});
 
 /* ---------- Aksi ---------- */
-function bsRerenderList(){var el=document.getElementById('bq-list');if(el)el.innerHTML=bsBankList()}
+function bsRerenderList(){var el=document.getElementById('bq-list');if(el)el.innerHTML=bsListIsi()}
 /* Posisi daftar Bank soal: dicatat saat form Ubah/Salin/Tambah dibuka, dipulihkan saat form ditutup (Batal atau Simpan).
    Kartu soal yang diubah dikembalikan ke tinggi layar yang sama; bila kartunya tidak ada lagi (mis. terfilter), pakai posisi gulir semula. */
 function bsPosSimpan(qid){
@@ -1009,6 +1051,8 @@ document.addEventListener('click',function(e){
  else if(a==='lihat'){BS.open[qid]=!BS.open[qid];bsRerenderList()}
  else if(a==='lagi'){BS.flt.n+=30;bsRerenderList()}
  else if(a==='aktif'){var sq=bsSoalById(qid);if(sq){var np={aktif:!sq.aktif};(BS_IDX[qid]?bsOverride(qid,np):bsPut('soal',Object.assign(BS.D.soal.filter(function(x){return x.id===qid})[0],np))).then(function(){render()});render()}}
+ else if(a==='dup'){BS.dup=!BS.dup;render();window.scrollTo(0,0)}
+ else if(a==='dupx'){BS.dup=false;render();window.scrollTo(0,0)}
  else if(a==='baru'){bsPosSimpan('');BS.form=bsNewForm(null);render();window.scrollTo(0,0)}
  else if(a==='salin'||a==='ubah'){
   var so=bsSoalById(qid);if(!so)return;bsPosSimpan(qid);var f=bsNewForm(so);if(a==='salin'){f.id='';f.salin=1;f.dari=qid}BS.form=f;render();window.scrollTo(0,0);
