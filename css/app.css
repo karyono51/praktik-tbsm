@@ -380,3 +380,12 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 /* v100: kelompok mata pelajaran yang dapat disembunyikan (Administrasi Akademik > Mata pelajaran) */
 .akd-grp{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;margin:12px 0 6px;padding:11px 14px;border:1px solid var(--line);border-radius:14px;background:var(--accent-soft);color:var(--ink)}
 .akd-grp .akd-chev{font-size:16px;color:var(--accent)}
+
+/* Akademik: daftar anggota rombel dan daftar siswa per kelas */
+.ak-ang{display:flex;align-items:center;gap:12px;padding:10px 4px;border-top:1px solid var(--line);font-size:15px;font-weight:400;color:var(--ink);line-height:1.4;min-height:44px;cursor:pointer}
+.ak-ang input[type=checkbox]{width:22px;height:22px;min-width:22px;flex:0 0 22px;padding:0;margin:0;accent-color:var(--accent)}
+.ak-ang>span{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.ak-ang.lain{color:var(--muted)}
+.ak-nm{margin:6px 0 12px;padding:0;list-style:none;counter-reset:nm}
+.ak-nm li{counter-increment:nm;display:flex;gap:12px;align-items:baseline;padding:9px 0;border-top:1px solid var(--line);font-size:15px;line-height:1.4;overflow-wrap:anywhere}
+.ak-nm li::before{content:counter(nm);flex:0 0 26px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}

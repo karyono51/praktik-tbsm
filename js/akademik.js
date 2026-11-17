@@ -3,14 +3,15 @@
    dibaca guru dan admin). Hanya admin yang menulis. Mode lokal memakai localStorage. Data acuan ada di akademik-data.js. */
 var AKC={tahun:'akademik',kelas:'akademik',mapel:'akademik',tugas:'akademik',guru:'akademik_sdm'};
 var AKK='tbsm-akd',AKQ='tbsm-akd-queue';
-var AKD={D:{tahun:[],kelas:[],mapel:[],tugas:[],guru:[]},loaded:false,loading:false,err:[],seeded:false,form:null,mem:null,tg:null,tgf:{},q:'',fl:'ALL',tf:'ALL',rep:null,open:{},busy:false};
+var AKD={D:{tahun:[],kelas:[],mapel:[],tugas:[],guru:[]},loaded:false,loading:false,err:[],seeded:false,form:null,mem:null,tg:null,tgf:{},q:'',fl:'ALL',tf:'ALL',sk:'',rep:null,open:{},busy:false};
 ICO.akdGuru='<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/>';
 ICO.akdKelas='<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M17.5 14v7"/>';
+ICO.akdSiswa='<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14.4c1.8.8 3 2.6 3 5.6"/>';
 ICO.akdMapel='<path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M9 8h6"/>';
 ICO.akdTata='<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="m9 12 2 2 4-4"/>';
-var AKTABS=['akd-guru','akd-kelas','akd-mapel','akd-tata'];
-var AKNAMA={'akd-guru':'Guru','akd-kelas':'Kelas','akd-mapel':'Mata pelajaran','akd-tata':'Tata kelola'};
-var AKICO={'akd-guru':'akdGuru','akd-kelas':'akdKelas','akd-mapel':'akdMapel','akd-tata':'akdTata'};
+var AKTABS=['akd-guru','akd-kelas','akd-siswa','akd-mapel','akd-tata'];
+var AKNAMA={'akd-guru':'Guru','akd-kelas':'Kelas','akd-siswa':'Daftar siswa','akd-mapel':'Mata pelajaran','akd-tata':'Tata kelola'};
+var AKICO={'akd-guru':'akdGuru','akd-kelas':'akdKelas','akd-siswa':'akdSiswa','akd-mapel':'akdMapel','akd-tata':'akdTata'};
 var AKTK=['X','XI','XII'];
 function akOn(){return AKTABS.indexOf(S.tab)>-1}
 function akEdit(){return !!S.user&&can('akademik')&&actRole()==='admin'}
@@ -248,6 +249,7 @@ function viewAkd(){
  if(!AKD.loaded)return h+'<p class="muted center" style="padding:32px 0">Memuat data akademik…</p>';
  if(S.tab==='akd-guru')return h+viewAkdGuru();
  if(S.tab==='akd-kelas')return h+viewAkdKelas();
+ if(S.tab==='akd-siswa')return h+viewAkdSiswa();
  if(S.tab==='akd-mapel')return h+viewAkdMapel();
  return h+viewAkdTata();
 }
@@ -303,7 +305,7 @@ function viewAkdKelas(){
  h+='<div class="stats"><div class="card"><span class="label">Rombel</span><b class="mono">'+kl.length+'</b></div><div class="card"><span class="label">Siswa aktif</span><b class="mono">'+sw.length+'</b></div><div class="card"><span class="label">Belum ber-rombel</span><b class="mono">'+tanpa+'</b></div></div>';
  if(AKD.mem)return h+akAnggotaHtml(AKD.mem);
  if(AKD.form)return h+akFormHtml();
- if(ed)h+='<div class="row">'+akBtn('kelas-baru',null,'Tambah rombel','primary')+akBtn('sinkron',null,AKD.busy?'Menyinkronkan…':'Sinkronkan dari akun')+'</div>';
+ if(ed)h+='<div class="row">'+akBtn('kelas-baru',null,'Tambah rombel','primary')+akBtn('sinkron',null,AKD.busy?'Menyinkronkan…':'Sinkron dari akun')+'</div>';
  h+='<div class="chips">'+['ALL'].concat(AKTK).map(function(c){return '<button type="button" data-akd="tf" data-id="'+c+'" aria-pressed="'+(AKD.tf===c)+'">'+(c==='ALL'?'Semua':'Kelas '+c)+'</button>'}).join('')+'</div>';
  var L=akKelasAll().filter(function(k){return AKD.tf==='ALL'||k.tingkat===AKD.tf});
  if(!L.length)return h+'<p class="muted center">Belum ada rombel. '+(ed?'Ketuk Sinkronkan dari akun untuk membuat rombel awal dari data siswa.':'')+'</p>';
@@ -313,17 +315,43 @@ function viewAkdKelas(){
    '<div class="row">'+akPill(akSekLabel(k.sekolah))+akPill((k.anggota||[]).length+' siswa')+(ta?akPill(ta.nama):'')+(k.aktif===false?akPill('Arsip','warn'):'')+'</div>'+
    '<div class="note">Wali kelas: '+(k.waliId?esc(akNamaUser(k.waliId)):'belum ditetapkan')+'</div>'+
    (tg.length?'<div class="note">'+tg.slice(0,5).map(function(t){var m=akById('mapel',t.mapelId);return esc((m?m.nama:'?')+' ('+akNamaUser(t.guruId)+')')}).join('; ')+(tg.length>5?' dan '+(tg.length-5)+' lainnya':'')+'</div>':'')+
-   '<div class="row">'+akBtn('anggota',k.id,ed?'Anggota':'Lihat anggota')+(ed?akBtn('edit',k.id,'Ubah',null,'kelas')+akBtn('arsip',k.id,k.aktif===false?'Aktifkan':'Arsipkan',null,'kelas'):'')+'</div></div>';
+   '<div class="row">'+akBtn('daftar',k.id,'Daftar siswa','primary')+akBtn('anggota',k.id,ed?'Atur anggota':'Lihat anggota')+(ed?akBtn('edit',k.id,'Ubah rombel',null,'kelas')+akBtn('arsip',k.id,k.aktif===false?'Aktifkan':'Arsipkan',null,'kelas'):'')+'</div></div>';
  }).join('');
+}
+
+/* --- Daftar siswa per kelas --- */
+function akSiswaRombel(k){
+ var peta={};S.users.forEach(function(u){peta[u.id]=u});
+ return (k.anggota||[]).map(function(id){return peta[id]}).filter(function(u){return u&&hasRole(u,'siswa')&&u.aktif!==false})
+  .sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
+}
+function viewAkdSiswa(){
+ var h='',kl=akAktif(akKelasAll()),pet=akAnggotaPeta();
+ var sw=akSiswaAktif(),tanpa=sw.filter(function(u){return !pet[u.id]}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
+ var one=AKD.sk?akById('kelas',AKD.sk):null;if(AKD.sk&&!one)AKD.sk='';
+ h+='<div class="chips">'+['ALL'].concat(AKTK).map(function(c){return '<button type="button" data-akd="sf" data-id="'+c+'" aria-pressed="'+(!one&&AKD.tf===c)+'">'+(c==='ALL'?'Semua kelas':'Kelas '+c)+'</button>'}).join('')+'</div>';
+ var L=one?[one]:kl.filter(function(k){return AKD.tf==='ALL'||k.tingkat===AKD.tf});
+ L=L.slice().sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id',{numeric:true})});
+ if(one)h+='<p class="note">Menampilkan satu rombel. Ketuk Semua kelas untuk melihat seluruhnya.</p>';
+ if(!L.length)h+='<p class="muted center">Belum ada rombel'+(AKD.tf!=='ALL'?' untuk Kelas '+AKD.tf:'')+'.</p>';
+ h+=L.map(function(k){
+  var d=akSiswaRombel(k);
+  return '<div class="card"><div class="row sb"><b>'+esc(k.nama)+'</b>'+akPill(d.length+' siswa','ok')+'</div>'+
+   '<div class="note">'+esc(akSekLabel(k.sekolah))+' · Wali kelas: '+(k.waliId?esc(akNamaUser(k.waliId)):'belum ditetapkan')+'</div>'+
+   (d.length?'<ol class="ak-nm">'+d.map(function(u){return '<li>'+esc(u.nama)+'</li>'}).join('')+'</ol>':'<p class="muted">Belum ada siswa di rombel ini.</p>')+
+   '<div class="row">'+akBtn('anggota',k.id,akEdit()?'Atur anggota':'Lihat anggota')+'</div></div>';
+ }).join('');
+ if(!one&&tanpa.length)h+='<div class="card"><div class="row sb"><b>Belum punya rombel</b>'+akPill(tanpa.length+' siswa','warn')+'</div><ol class="ak-nm">'+tanpa.map(function(u){return '<li>'+esc(u.nama)+(u.kelas?' <small class="note">(Kelas '+esc(u.kelas)+')</small>':'')+'</li>'}).join('')+'</ol></div>';
+ return h;
 }
 function akAnggotaHtml(id){
  var k=akById('kelas',id);if(!k)return '';
  var ed=akEdit(),pet=akAnggotaPeta(),cur=AKD.memSel||(k.anggota||[]);
  var sw=S.users.filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false&&u.kelas===k.tingkat&&(!k.sekolah||!SCH_LIST[String(u.sekolah||'').toUpperCase()]||String(u.sekolah).toUpperCase()===k.sekolah)}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
- var h='<div class="card"><div class="row sb"><b>Anggota · '+esc(k.nama)+'</b>'+akBtn('ang-tutup',null,'Tutup')+'</div><p class="note">Siswa kelas '+esc(k.tingkat)+' '+(k.sekolah?'di '+esc(akSekLabel(k.sekolah)):'')+'. Siswa yang sudah masuk rombel lain tidak bisa dipilih.</p>';
- if(ed)h+='<div class="row">'+akBtn('ang-semua',null,'Pilih semua yang belum ber-rombel')+'</div>';
+ var h='<div class="card"><div class="row sb"><b>'+(ed?'Atur anggota':'Anggota')+' · '+esc(k.nama)+'</b>'+akBtn('ang-tutup',null,'Tutup')+'</div><p class="note">Siswa kelas '+esc(k.tingkat)+' '+(k.sekolah?'di '+esc(akSekLabel(k.sekolah)):'')+'. Siswa yang sudah masuk rombel lain tidak bisa dipilih.</p>';
+ if(ed)h+='<div class="row">'+akBtn('ang-semua',null,'Pilih semua yang belum punya rombel')+'</div>';
  h+=sw.length?sw.map(function(u){var lain=pet[u.id]&&pet[u.id]!==k.id,on=cur.indexOf(u.id)>-1;
-  return '<label class="row" style="gap:10px;padding:6px 0"><input type="checkbox" data-akm="'+esc(u.id)+'"'+(on?' checked':'')+((lain||!ed)?' disabled':'')+'><span>'+esc(u.nama)+(lain?' <small class="note">('+esc((akById('kelas',pet[u.id])||{}).nama||'rombel lain')+')</small>':'')+'</span></label>'}).join(''):'<p class="muted">Tidak ada siswa yang sesuai.</p>';
+  return '<label class="ak-ang'+(lain?' lain':'')+'"><input type="checkbox" data-akm="'+esc(u.id)+'"'+(on?' checked':'')+((lain||!ed)?' disabled':'')+'><span>'+esc(u.nama)+(lain?' <small class="note">('+esc((akById('kelas',pet[u.id])||{}).nama||'rombel lain')+')</small>':'')+'</span></label>'}).join(''):'<p class="muted">Tidak ada siswa yang sesuai.</p>';
  if(ed)h+='<div class="row">'+akBtn('ang-simpan',id,'Simpan anggota','primary')+'</div>';
  return h+'</div>';
 }
@@ -487,6 +515,8 @@ document.addEventListener('click',async function(e){
  var b=e.target.closest&&e.target.closest('[data-akd]');if(!b||b.tagName==='INPUT')return;
  var a=b.dataset.akd,id=b.dataset.id,k=b.dataset.k,ed=akEdit();
  if(a==='tf'){AKD.tf=id;render()}
+ else if(a==='sf'){AKD.tf=id;AKD.sk='';render()}
+ else if(a==='daftar'){AKD.sk=id;AKD.mem=null;AKD.form=null;S.tab='akd-siswa';render();window.scrollTo(0,0)}
  else if(a==='fl'){AKD.fl=id;render()}
  else if(a==='grp'){AKD.gopen=AKD.gopen||{};AKD.gopen[id]=AKD.gopen[id]===false;render()}
  else if(a==='sinkron')akSinkron();
@@ -518,7 +548,7 @@ document.addEventListener('click',async function(e){
  }
  else if(a==='tg-del'){if(await uiConfirm('Hapus tugas mengajar ini?',{ok:'Hapus'})){await akDel('tugas',id);render()}}
  else if(a==='anggota'){AKD.mem=id;AKD.memSel=null;AKD.form=null;render();window.scrollTo(0,0)}
- else if(a==='ang-tutup'){AKD.mem=null;AKD.memSel=null;render()}
+ else if(a==='ang-tutup'){AKD.mem=null;AKD.memSel=null;render();window.scrollTo(0,0)}
  else if(a==='ang-semua'){
   var kk=akById('kelas',AKD.mem);if(!kk)return;var pet=akAnggotaPeta(),cur=(AKD.memSel||(kk.anggota||[])).slice();
   S.users.forEach(function(u){if(hasRole(u,'siswa')&&u.aktif!==false&&u.kelas===kk.tingkat&&(!kk.sekolah||!SCH_LIST[String(u.sekolah||'').toUpperCase()]||String(u.sekolah).toUpperCase()===kk.sekolah)&&(!pet[u.id]||pet[u.id]===kk.id)&&cur.indexOf(u.id)<0)cur.push(u.id)});
@@ -552,7 +582,7 @@ render=function(){
   var sb=document.querySelector('.sbody');
   if(sb&&!sb.querySelector('[data-v="akd-guru"]')){
    var cur=V.mode==='list'?S.tab:'';
-   var html='<button type="button" class="srow" data-act="menu" data-v="akd-guru"'+(AKTABS.indexOf(cur)>-1?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.akdTata,22)+'</span><span class="st"><b>Administrasi Akademik</b><small>'+(akEdit()?'Guru, kelas, mata pelajaran, tata kelola':'Guru, kelas, dan mata pelajaran')+'</small></span>'+svg(ICO.chev,18)+'</button>';
+   var html='<button type="button" class="srow" data-act="menu" data-v="akd-guru"'+(AKTABS.indexOf(cur)>-1?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.akdTata,22)+'</span><span class="st"><b>Administrasi Akademik</b><small>'+(akEdit()?'Guru, kelas, daftar siswa, mata pelajaran, tata kelola':'Guru, kelas, daftar siswa, dan mata pelajaran')+'</small></span>'+svg(ICO.chev,18)+'</button>';
    var br=sb.querySelector('.srow[data-v="beranda"]');
    if(br)br.insertAdjacentHTML('afterend',html);else sb.insertAdjacentHTML('beforeend',html);
   }
