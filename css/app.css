@@ -401,3 +401,12 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 .ak-el{margin-top:10px;padding:10px 0 2px;border-top:1px solid var(--line);display:grid;gap:6px}
 .ak-el>.row.sb b{font-size:14px;font-weight:600;line-height:1.35}
 .lk-elnote{margin:2px 0 0}.lk-elnote>summary{cursor:pointer}
+
+/* Tabel siswa yang belum mengumpulkan LKPD */
+.bm-wrap{overflow-x:auto;margin-top:8px;-webkit-overflow-scrolling:touch}
+.bm-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.bm-tbl th,.bm-tbl td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.bm-tbl th{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+.bm-tbl td.mono{white-space:nowrap}
+.bm-tbl .bm-no{width:34px;text-align:center;color:var(--muted)}
+.bm-tbl tbody tr:last-child td{border-bottom:0}
