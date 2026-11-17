@@ -2,13 +2,14 @@
    - Yang dicetak = SEMUA latihan yang cocok dengan filter yang sedang dipilih (nama, kelas, mapel), bukan hanya yang tampil di layar.
    - Kop sekolah, keterangan filter, ringkasan (jumlah latihan, rata-rata, tertinggi, terendah), lalu tabel per latihan.
    - Memakai window.print(): di dialog cetak ponsel pilih "Simpan sebagai PDF" bila ingin berkas.
-   Bergantung pada: banksoal.js (BS, bsRlRows, bsJudul), sekolah.js (SEK), logo.js (LOGO). Tidak mengubah data atau koleksi Appwrite. */
+   NIS diambil dari akun siswa (akNis di akademik.js) lewat sid hasil latihan; kosong ditulis -. Identitas dimulai dari Kelas; baris Nama siswa hanya muncul bila filter nama diisi.
+   Bergantung pada: banksoal.js (BS, bsRlRows, bsJudul), akademik.js (akNis), sekolah.js (SEK), logo.js (LOGO). Tidak mengubah data atau koleksi Appwrite. */
 (function(){
 function t(s){var d=document.createElement('div');d.textContent=String(s==null?'':s);return d.innerHTML}
 function tgl(ts){return ts?new Date(ts).toLocaleString('id-ID',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'-'}
 
 /* Susun HTML lembar cetak dari daftar baris hasil latihan dan filter aktif (fungsi murni, mudah diuji) */
-function rcBuild(rows,f,now){
+function rcBuild(rows,f,now,nisOf){
  f=f||{};
  var sk=typeof SEK!=='undefined'?SEK:{nama:'',program:'',alamat:''},logo=typeof LOGO!=='undefined'?LOGO:'';
  var skor=rows.map(function(x){return +x.score||0}),n=rows.length;
@@ -16,14 +17,16 @@ function rcBuild(rows,f,now){
  var tg=(now||new Date()).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
  var h='<div class="rc-kop"><img src="'+logo+'" alt=""><div><b>'+t(sk.nama)+'</b><span>'+t(sk.program)+'</span><small>'+t(sk.alamat)+'</small></div></div>';
  h+='<h1 class="rc-h">Riwayat Latihan Siswa</h1>';
- h+='<table class="rc-info"><tr><td>Nama siswa</td><td>: '+(f.q&&String(f.q).trim()?t(String(f.q).trim()):'Semua')+'</td><td>Jumlah latihan</td><td>: '+n+'</td></tr>'+
-  '<tr><td>Kelas</td><td>: '+(f.kelas?t(f.kelas):'Semua')+'</td><td>Rata-rata nilai</td><td>: '+avg+'</td></tr>'+
-  '<tr><td>Mapel</td><td>: '+(f.mapel?t(f.mapel):'Semua')+'</td><td>Tertinggi / terendah</td><td>: '+(n?mx+' / '+mn:'-')+'</td></tr></table>';
+ var nm=f.q&&String(f.q).trim()?String(f.q).trim():'',L=[['Kelas',f.kelas?t(f.kelas):'Semua'],['Mapel',f.mapel?t(f.mapel):'Semua']];
+ if(nm)L.push(['Nama siswa',t(nm)]);
+ var R=[['Jumlah latihan',n],['Rata-rata nilai',avg],['Tertinggi / terendah',n?mx+' / '+mn:'-']],ib='';
+ for(var r=0;r<Math.max(L.length,R.length);r++)ib+='<tr><td>'+(L[r]?L[r][0]:'')+'</td><td>'+(L[r]?': '+L[r][1]:'')+'</td><td>'+(R[r]?R[r][0]:'')+'</td><td>'+(R[r]?': '+R[r][1]:'')+'</td></tr>';
+ h+='<table class="rc-info">'+ib+'</table>';
  if(!n)return h+'<p class="rc-kosong">Tidak ada latihan yang cocok dengan filter ini.</p><p class="rc-ft">Dicetak '+t(tg)+' · '+t(sk.nama)+'</p>';
- h+='<table class="rc-t"><thead><tr><th>No</th><th>Nama siswa</th><th>Kelas</th><th>Mapel / modul</th><th>Waktu</th><th>Benar</th><th>Durasi</th><th>Nilai</th></tr></thead><tbody>';
+ h+='<table class="rc-t"><thead><tr><th>No</th><th>NIS</th><th>Nama siswa</th><th>Kelas</th><th>Mapel / modul</th><th>Waktu</th><th>Benar</th><th>Durasi</th><th>Nilai</th></tr></thead><tbody>';
  rows.forEach(function(x,i){
   var jd=typeof bsJudul==='function'?bsJudul(x):(x.sesiJudul||'Latihan soal');
-  h+='<tr><td class="c">'+(i+1)+'</td><td>'+t(x.siswa||'Tanpa nama')+'</td><td class="c">'+t(x.kelas||'-')+'</td><td>'+t(jd)+'</td><td>'+t(tgl(x.ts))+'</td><td class="c">'+t((x.benar==null?'-':x.benar)+' / '+(x.total==null?'-':x.total))+'</td><td class="c">'+Math.max(1,Math.round((x.detik||0)/60))+' mnt</td><td class="c"><b>'+t(x.score)+'</b></td></tr>';
+  h+='<tr><td class="c">'+(i+1)+'</td><td class="c">'+t((nisOf&&nisOf(x))||'-')+'</td><td>'+t(x.siswa||'Tanpa nama')+'</td><td class="c">'+t(x.kelas||'-')+'</td><td>'+t(jd)+'</td><td>'+t(tgl(x.ts))+'</td><td class="c">'+t((x.benar==null?'-':x.benar)+' / '+(x.total==null?'-':x.total))+'</td><td class="c">'+Math.max(1,Math.round((x.detik||0)/60))+' mnt</td><td class="c"><b>'+t(x.score)+'</b></td></tr>';
  });
  h+='</tbody></table><p class="rc-ft">Dicetak '+t(tg)+' · '+t(sk.nama)+'</p>';
  return h;
@@ -37,7 +40,9 @@ function cetak(){
  if(typeof bsRlRows!=='function'||typeof BS==='undefined')return;
  bersih();
  var rows=bsRlRows(),el=document.createElement('div');
- el.id='rc-print';el.innerHTML=rcBuild(rows,BS.rl,new Date());
+ el.id='rc-print';var um={};((window.S&&S.users)||[]).forEach(function(u){um[u.id]=u});
+ var nisOf=function(x){var u=x&&x.sid&&um[x.sid];return u&&typeof akNis==='function'?akNis(u):''};
+ el.innerHTML=rcBuild(rows,BS.rl,new Date(),nisOf);
  document.body.appendChild(el);document.body.classList.add('rc-printing');
  var img=el.querySelector('img'),go=function(){setTimeout(function(){window.print()},50)};
  if(img&&!img.complete){img.onload=go;img.onerror=go}else go();
@@ -71,7 +76,7 @@ if(typeof bsViewRiwayatLatihan==='function'){
  '#rc-print .rc-kop div{flex:1;text-align:center}#rc-print .rc-kop b{display:block;font-size:15pt;text-transform:uppercase;letter-spacing:.02em}'+
  '#rc-print .rc-kop span{display:block;font-size:11pt;font-weight:600}#rc-print .rc-kop small{display:block;font-size:9pt}'+
  '#rc-print .rc-h{font-size:14pt;text-align:center;margin:6px 0 8px;text-transform:uppercase}'+
- '#rc-print .rc-info{width:100%;border-collapse:collapse;font-size:10.5pt;margin-bottom:8px}#rc-print .rc-info td{padding:1px 4px;vertical-align:top}#rc-print .rc-info td:nth-child(odd){white-space:nowrap;width:1%}'+
+ '#rc-print .rc-info{width:100%;border-collapse:collapse;font-size:10.5pt;margin-bottom:8px}#rc-print .rc-info td{padding:1px 4px;vertical-align:top}#rc-print .rc-info td:nth-child(odd){white-space:nowrap;width:1%}#rc-print .rc-info td:nth-child(3){padding-left:30mm}'+
  '#rc-print .rc-t{width:100%;border-collapse:collapse;font-size:10pt}'+
  '#rc-print .rc-t th,#rc-print .rc-t td{border:1px solid #000;padding:2px 5px;text-align:left;vertical-align:top}'+
  '#rc-print .rc-t th{font-weight:700;text-align:center}#rc-print .rc-t td.c{text-align:center}'+
