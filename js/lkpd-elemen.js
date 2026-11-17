@@ -37,14 +37,19 @@ function lkElDetail(elId){
  function e(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
  return '<details><summary class="note">'+L.length+' modul LKPD di elemen ini</summary>'+L.map(function(m){return '<div class="note"><span class="mono">'+e(m.id)+'</span> '+e(m.title)+'</div>'}).join('')+'</details>';
 }
-/* kelompokkan kartu LKPD per Elemen CP; mods dan cards sejajar */
+/* urutkan kartu LKPD menurut Elemen CP; nama elemen dilampirkan di bawah tiap kartu (lipat, seperti Sumber acuan).
+   mods dan cards sejajar. Kartu tanpa elemen ditaruh di akhir tanpa lampiran. */
 function lkElGroup(mods,cards){
  if(!mods.some(function(m){return lkElOf(m)}))return cards.join('');
- var g={},order=[];
- mods.forEach(function(m,i){var k=lkElOf(m)||'';if(!g[k]){g[k]=[];order.push(k)}g[k].push(cards[i])});
  var pos={};lkElAll().forEach(function(e){pos[e.id]=e.urut});
- order.sort(function(a,b){return (a?pos[a]:9999)-(b?pos[b]:9999)});
- return order.map(function(k){
-  return '<div class="row sb" style="margin:14px 0 6px"><h3 class="grow">'+String(lkElLabel(k)).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</h3><span class="pill plain">'+g[k].length+' modul</span></div>'+g[k].join('');
+ function e(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+ return mods.map(function(m,i){
+  var k=lkElOf(m)||'';
+  return {o:k?pos[k]:9999,i:i,k:k,c:cards[i]};
+ }).sort(function(a,b){return a.o-b.o||a.i-b.i}).map(function(x){
+  if(!x.k)return x.c;
+  var lamp='<details class="lk-elnote"><summary class="note">Elemen CP</summary><div class="note">'+e(lkElLabel(x.k))+'</div></details>';
+  var z=x.c.lastIndexOf('</article>');
+  return z>-1?x.c.slice(0,z)+lamp+x.c.slice(z):x.c+lamp;
  }).join('');
 }

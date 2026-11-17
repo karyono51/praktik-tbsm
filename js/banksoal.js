@@ -702,9 +702,30 @@ function bsTokenBaru(){var A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',t='',b=new Uint3
 function bsSfPool(f){
  return bsPool('ujian',f.kelas==='ALL'?'':f.kelas).filter(function(q){return (!bsAman()||!q.bawaan)&&(!(f.mapelF&&f.mapelF.length)||f.mapelF.indexOf(q.mapel)>-1)});
 }
+/* alasan pool ujian kosong: bawaan tidak dipakai di mode aman, soal sendiri belum memenuhi aturan TKA, peruntukan latihan, kelas/mapel tidak cocok */
+function bsSfAlasan(f){
+ var kls=f.kelas==='ALL'?'':f.kelas,aman=bsAman(),bw=0,tkaSalah=0,latihan=0,kelasLain=0,mapelLain=0;
+ bsSoalAll().forEach(function(q){
+  if(!q.aktif)return;
+  if(q.bawaan){if(aman&&(q.tujuan==='keduanya'||q.tujuan==='ujian')&&(!q.kelas||!kls||q.kelas===kls))bw++;return}
+  if(q.tujuan==='latihan'){latihan++;return}
+  if(q.tujuan!=='keduanya'&&q.tujuan!=='ujian')return;
+  if(q.kelas&&kls&&q.kelas!==kls){kelasLain++;return}
+  if(bsAturanSalah(q)){tkaSalah++;return}
+  if(f.mapelF&&f.mapelF.length&&f.mapelF.indexOf(q.mapel)<0){mapelLain++;return}
+ });
+ var r=[];
+ if(bw)r.push(bw+' soal bawaan tidak dipakai untuk ujian di mode CBT aman (kunci jawabannya ada di aplikasi). Pakai Salin dan ubah di Bank soal, lalu set peruntukan Ujian atau Keduanya.');
+ if(tkaSalah)r.push(tkaSalah+' soal sendiri belum memenuhi aturan TKA (PG 5 pilihan A sampai E, kompleks kunci minimal 2, kategori 3 sampai 6 pernyataan), jadi hanya masuk latihan.');
+ if(latihan)r.push(latihan+' soal sendiri berperuntukan Latihan saja.');
+ if(kelasLain)r.push(kelasLain+' soal sendiri untuk kelas lain.');
+ if(mapelLain)r.push(mapelLain+' soal sendiri di luar mata pelajaran yang dipilih.');
+ if(!r.length)r.push('Belum ada soal sendiri berperuntukan Ujian atau Keduanya.');
+ return r.join(' ');
+}
 function bsSfManual(){
  var f=BS.sf,q=String(f.q||'').toLowerCase(),list=bsPool('ujian',f.kelas==='ALL'?'':f.kelas).filter(function(s){return (!bsAman()||!s.bawaan)&&(!q||(s.q+' '+s.mapel).toLowerCase().indexOf(q)>-1)});
- return '<div class="bs-pick" id="sf-list">'+list.map(function(s){return '<label class="bs-pk"><input type="checkbox" class="sf-id" value="'+s.id+'"'+(f.ids.indexOf(s.id)>-1?' checked':'')+'><span><small>'+esc(s.mapel)+' · '+BS_TIPE[s.tipe]+'</small><br>'+esc(String(s.q).slice(0,110))+'</span></label>'}).join('')+(list.length?'':'<p class="muted">Tidak ada soal ujian yang cocok.</p>')+'</div>';
+ return '<div class="bs-pick" id="sf-list">'+list.map(function(s){return '<label class="bs-pk"><input type="checkbox" class="sf-id" value="'+s.id+'"'+(f.ids.indexOf(s.id)>-1?' checked':'')+'><span><small>'+esc(s.mapel)+' · '+BS_TIPE[s.tipe]+'</small><br>'+esc(String(s.q).slice(0,110))+'</span></label>'}).join('')+(list.length?'':'<p class="muted">Tidak ada soal ujian yang cocok. '+esc(bsSfAlasan(f))+'</p>')+'</div>';
 }
 function bsViewSesiForm(){
  var f=BS.sf,mp=bsMapelList(),oto=f.pilih!=='manual';
@@ -714,7 +735,7 @@ function bsViewSesiForm(){
  h+='<label class="f">Sekolah<select id="sf-sekolah">'+schOptModul(f.sekolah)+'</select></label>';
  h+='<label class="f">Cara memilih soal<select id="sf-pilih"><option value="otomatis"'+(oto?' selected':'')+'>Otomatis dari bank soal (tiap siswa berbeda)</option><option value="manual"'+(oto?'':' selected')+'>Pilih soal sendiri</option></select></label>';
  if(oto){
-  h+='<label class="f">Jumlah soal<input id="sf-jumlah" type="number" inputmode="numeric" min="1" max="200" value="'+f.jumlah+'"></label><div><span class="label">Batasi mata pelajaran (kosong = semua)</span>'+bsMapelChipsHtml(mp,f.mapelF)+'</div><p class="note">'+bsSfPool(f).length+' soal ujian tersedia untuk pilihan ini.</p>';
+  h+='<label class="f">Jumlah soal<input id="sf-jumlah" type="number" inputmode="numeric" min="1" max="200" value="'+f.jumlah+'"></label><div><span class="label">Batasi mata pelajaran (kosong = semua)</span>'+bsMapelChipsHtml(mp,f.mapelF)+'</div>'+(bsSfPool(f).length?'<p class="note">'+bsSfPool(f).length+' soal ujian tersedia untuk pilihan ini.</p>':'<p class="note" style="color:var(--bad)"><b>0 soal ujian tersedia.</b> '+esc(bsSfAlasan(f))+'</p>');
  }else{
   h+='<label class="f">Cari soal<input id="sf-q" type="search" value="'+esc(f.q||'')+'"></label><p class="note" id="sf-n">'+f.ids.length+' soal dipilih. Hanya soal dengan peruntukan ujian atau keduanya yang tampil.</p>'+bsSfManual();
  }
@@ -738,7 +759,7 @@ async function bsSfSave(){
  if(!String(f.judul).trim()){toast('Isi judul sesi');return}
  if(!(f.durasi>0)){toast('Isi durasi dalam menit');return}
  if(f.pilih==='manual'&&!f.ids.length){toast('Pilih minimal satu soal');return}
- if(f.pilih!=='manual'&&!bsSfPool(f).length){toast('Tidak ada soal ujian yang tersedia untuk pilihan ini');return}
+ if(f.pilih!=='manual'&&!bsSfPool(f).length){toast('Belum ada soal ujian untuk pilihan ini. Lihat keterangan merah di formulir.');return}
  if(f.mulai&&f.selesai&&f.selesai<=f.mulai){toast('Waktu tutup harus setelah waktu mulai');return}
  var ex=BS.D.sesi.filter(function(x){return x.id===f.id})[0];
  var o=Object.assign(ex||{},{id:f.id||uid(),ts:ex?ex.ts:Date.now(),judul:String(f.judul).trim().slice(0,160),kelas:f.kelas,durasi:f.durasi,jumlah:f.pilih==='manual'?f.ids.length:Math.max(1,f.jumlah||1),acak:f.acak,mulai:f.mulai||0,selesai:f.selesai||0,aktif:f.aktif,kkm:Math.min(100,Math.max(0,f.kkm||0)),oleh:ex?ex.oleh:S.user.nama.slice(0,64),ids:f.ids,pilih:f.pilih,mapelF:f.mapelF,tampil:f.tampil,sekolah:schNorm(f.sekolah)==='ALL'?'':schNorm(f.sekolah),tok:!!f.tok,batas:f.batas||0,aksi:f.aksi||'peringatan',layar:!!f.layar,exambro:!!f.exambro});
