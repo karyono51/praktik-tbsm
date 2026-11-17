@@ -255,5 +255,38 @@ console.log('\nRilis token, proktor, dan log audit');
   globalThis.fetch = orig; void rusak;
 }
 
+console.log('\nPengikat perangkat (pindah perangkat butuh izin pengawas)');
+{
+  siapkan();
+  users.p1 = { $id: 'p1', email: 'pk@x.id', labels: ['proktor'] };
+  col('akun').set('AP', { $id: 'AP', email: 'pk@x.id', nama: 'Proktor', aktif: true, sekolah: 'MEDINA', peran: 'proktor' });
+  for (const [id, d] of col('akun')) if (/^A\d+$/.test(id)) d.peran = 'siswa';
+  const DA = 'perangkatA_123456789', DB2 = 'perangkatB_987654321';
+  let r = await call('u0', { action: 'mulai', sesiId: 'S1', token: 'ABC123', dev: DA }); const rid = r.body.rid;
+  cek('mulai mengikat catatan ke perangkat pertama', JSON.parse(col('soal_run').get(rid).payload).dev === DA);
+  r = await call('u0', { action: 'mulai', sesiId: 'S1', dev: DA }); cek('lanjut dari perangkat yang sama tanpa token', r.status === 200 && r.body.resume === true, r.body.error);
+  r = await call('u0', { action: 'mulai', sesiId: 'S1', dev: DB2 }); cek('perangkat lain tanpa izin ditolak', r.status === 403 && /perangkat lain/.test(r.body.error), r.body.error);
+  r = await call('u0', { action: 'mulai', sesiId: 'S1' }); cek('klien lama tanpa kode perangkat ditolak', r.status === 403 && /Segarkan/.test(r.body.error), r.body.error);
+  r = await call('u0', { action: 'mulai', sesiId: 'S1', dev: '<x>' }); cek('kode perangkat tidak valid dianggap kosong', r.status === 403);
+  r = await call('u1', { action: 'aksiRun', rid, op: 'izinPindah' }); cek('siswa tidak boleh memberi izin pindah', r.status === 403);
+  r = await call('p1', { action: 'aksiRun', rid, op: 'izinPindah' }); cek('proktor memberi izin pindah', r.status === 200);
+  r = await call('p1', { action: 'pantau', sesiId: 'S1' }); cek('pantau menandai izin yang aktif', (r.body.peserta.find((x) => x.sid === 'A0') || {}).izin > 0, JSON.stringify(r.body.peserta.find((x) => x.sid === 'A0')));
+  r = await call('u0', { action: 'mulai', sesiId: 'S1', dev: DB2 }); cek('dengan izin, perangkat baru bisa melanjutkan', r.status === 200 && r.body.resume === true, r.body.error);
+  cek('izin terpakai sekali dan perangkat berganti', (() => { const p = JSON.parse(col('soal_run').get(rid).payload); return p.dev === DB2 && p.izin === undefined; })());
+  r = await call('u0', { action: 'mulai', sesiId: 'S1', dev: DA }); cek('perangkat lama kini ditolak lagi', r.status === 403);
+  r = await call('u0', { action: 'simpan', rid, ans: {}, cur: 0, pindah: 0, dev: DA }); cek('perangkat lama tidak bisa menyimpan lagi', r.status === 409, JSON.stringify(r.body));
+  r = await call('u0', { action: 'simpan', rid, ans: {}, cur: 0, pindah: 0, dev: DB2 }); cek('perangkat baru menyimpan normal', r.status === 200);
+  r = await call('u0', { action: 'kirim', rid, ans: {}, dev: DA }); cek('perangkat lama tidak bisa mengirim', r.status === 409);
+  /* izin kedaluwarsa */
+  r = await call('u2', { action: 'mulai', sesiId: 'S2', dev: DA }); const rid2 = r.body.rid;
+  const d2 = col('soal_run').get(rid2), p2 = JSON.parse(d2.payload); p2.izin = Date.now() - 1000; d2.payload = JSON.stringify(p2);
+  r = await call('u2', { action: 'mulai', sesiId: 'S2', dev: DB2 }); cek('izin yang kedaluwarsa tidak berlaku', r.status === 403);
+  /* catatan lama (tanpa dev) */
+  const d3 = col('soal_run').get(rid2), p3 = JSON.parse(d3.payload); delete p3.dev; delete p3.izin; d3.payload = JSON.stringify(p3);
+  r = await call('u2', { action: 'mulai', sesiId: 'S2', dev: DB2 }); cek('catatan lama tanpa perangkat: terikat ke yang pertama melanjutkan', r.status === 200 && JSON.parse(col('soal_run').get(rid2).payload).dev === DB2);
+  const A = [...col('audit').values()].map((d) => d.aksi);
+  cek('audit: izin, pindah, dan penolakan tercatat', ['run.izinPindah', 'run.pindahOk', 'run.pindahTolak'].every((x) => A.includes(x)), A.join());
+}
+
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);

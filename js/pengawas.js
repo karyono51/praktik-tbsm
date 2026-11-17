@@ -72,6 +72,7 @@ function ruBody(){
    line='<p class="note">Terjawab '+p.ans+'/'+p.tot+' · sisa '+mmss(s2)+(p.ext?' (+'+Math.round(p.ext/60)+' mnt)':'')+' · keluar halaman '+p.v+(d.batas?'/'+d.batas:'')+' · aktif '+p.seen+' dtk lalu'+(p.k==='on'&&p.seen>150?' <b>(tidak aktif)</b>':'')+'</p>';
    act='<button type="button" class="btn small" data-ru="tambah" data-rid="'+esc(p.rid)+'" data-n="300">+5 mnt</button><button type="button" class="btn small" data-ru="tambah" data-rid="'+esc(p.rid)+'" data-n="900">+15 mnt</button>';
    if(p.v>0||p.k==='lock')act+='<button type="button" class="btn small" data-ru="buka" data-rid="'+esc(p.rid)+'">Buka kunci</button>';
+   if(p.k==='on'||p.k==='lock')act+='<button type="button" class="btn small'+(p.izin>0?' primary':'')+'" data-ru="pindah" data-rid="'+esc(p.rid)+'" data-nm="'+esc(p.nama)+'">'+(p.izin>0?'Izin pindah aktif':'Izinkan pindah perangkat')+'</button>';
    if(!p.stop)act+='<button type="button" class="btn small danger" data-ru="akhiri" data-rid="'+esc(p.rid)+'" data-nm="'+esc(p.nama)+'">Akhiri</button>';
   }
   return '<div class="card"><div class="row sb"><b>'+esc(p.nama)+'</b><span class="pill '+T[1]+'">'+T[0]+'</span></div><p class="note">Kelas '+esc(p.kelas||'-')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
@@ -100,6 +101,7 @@ document.addEventListener('click',function(e){
  else if(a==='tutup')uiConfirm('Tutup token? Peserta yang belum mulai tidak bisa masuk sampai token dirilis lagi.',{ok:'Tutup token'}).then(function(ok){if(ok)ruAksi({action:'rilisToken',sesiId:RU.sesi,menit:0},'Token ditutup')});
  else if(a==='tambah')ruAksi({action:'aksiRun',rid:rid,op:'tambah',detik:+b.dataset.n},'Waktu ditambah');
  else if(a==='buka')ruAksi({action:'aksiRun',rid:rid,op:'bukaKunci'},'Kunci dibuka');
+ else if(a==='pindah')uiConfirm('Izinkan '+(b.dataset.nm||'siswa ini')+' melanjutkan ujian dari perangkat lain? Izin berlaku 10 menit dan perangkat lama berhenti menyimpan jawaban setelah siswa pindah.',{ok:'Izinkan'}).then(function(ok){if(ok)ruAksi({action:'aksiRun',rid:rid,op:'izinPindah'},'Izin pindah perangkat 10 menit')});
  else if(a==='akhiri')uiConfirm('Akhiri ujian '+(b.dataset.nm||'siswa ini')+'? Jawabannya dikirim otomatis dan tidak bisa dilanjutkan.',{ok:'Akhiri',danger:true}).then(function(ok){if(ok)ruAksi({action:'aksiRun',rid:rid,op:'akhiri'},'Siswa akan mengirim jawabannya dalam beberapa detik')});
 });
 /* guru/admin: rilis dan tutup token dari Pantau (tombol dibuat cbt-staf.js) */

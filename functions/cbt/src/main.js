@@ -22,7 +22,8 @@
      rilisToken  {sesiId, menit}               guru/admin/proktor: rilis token sesi, berlaku `menit` menit (bawaan 15, maks 180); menit 0 = tutup token.
                                                Sesi dengan tokR wajib token yang sedang dirilis. -> {token, rilis, berlaku, now}
      pantau      {sesiId}                      guru/admin/proktor: status peserta tanpa jawaban, kunci, atau nilai. -> {peserta[], tok, now}
-     aksiRun     {rid, op, detik}              guru/admin/proktor: op = tambah (detik 300 atau 900) | bukaKunci | akhiri (hanya menghentikan, tanpa menilai).
+     aksiRun     {rid, op, detik}              guru/admin/proktor: op = tambah (detik 300 atau 900) | bukaKunci | izinPindah (10 menit) | akhiri (hanya menghentikan, tanpa menilai).
+                                               Mulai/simpan/kirim membawa `dev` (kode perangkat). Lanjut dari perangkat lain ditolak kecuali ada izinPindah.
      catat       {aksi, sesiId, ket}           guru/admin/proktor: catat aksi di perangkat ke log audit (diberi awalan klien.).
    Label Appwrite `proktor` (tanpa `guru`): hanya boleh memakai aksi rilisToken, pantau, aksiRun, dan catat. Semua aksi staf dicatat di koleksi `audit`.
 */
@@ -314,6 +315,7 @@ async function mulai(me, body) {
   const ex = await tryGet('soal_run', rid);
   if (ex) {
     if (ex.done) throw new Fail('Kamu sudah mengerjakan sesi ini.', 409);
+    await cekPerangkat(ex, me, body, s);
     return resumeResp(ex, s, now);
   }
   sesiBoleh(s, me.akun, now);
@@ -347,14 +349,38 @@ async function mulai(me, body) {
   ids.forEach((id) => { const q = Qs[id]; if (q && q.tipe !== 'kategori' && q.tipe !== 'uraian') { const ix = Array.from({ length: q.n }, (_, i) => i); oo[id] = s.acak !== false ? shuffle(ix) : ix; } });
   const dur = (s.durasi || 0) * 60;
   const p = { mode: 'ujian', sesiId, sesiJudul: s.judul || '', dur, ids, oo, ans: {}, cur: 0, chk: {}, pindah: 0, rg: {}, tampil: !!s.tampil, kkm: s.kkm };
+  const dev = devId(body.dev); if (dev) p.dev = dev;
   let doc;
   try {
     doc = await createDoc('soal_run', rid, { sid, sesiId, ts: now, done: false, payload: JSON.stringify(p), ext: 0, stop: false, pb: 0 }, userRead(me.id));
   } catch (e) {
-    if (e.code === 409) { const again = await getDoc('soal_run', rid); if (again.done) throw new Fail('Kamu sudah mengerjakan sesi ini.', 409); return resumeResp(again, s, now); }
+    if (e.code === 409) { const again = await getDoc('soal_run', rid); if (again.done) throw new Fail('Kamu sudah mengerjakan sesi ini.', 409); await cekPerangkat(again, me, body, s); return resumeResp(again, s, now); }
     throw e;
   }
   return respRun(doc, s, now, false);
+}
+/* ---------- Pengikat perangkat ----------
+   Catatan ujian diikat ke satu perangkat (kode acak yang dibuat peramban siswa, bukan identitas pribadi). Melanjutkan dari perangkat yang sama
+   (muat ulang, peramban tertutup) tetap bebas. Dari perangkat lain harus ada izin pengawas (aksiRun op izinPindah) yang berlaku IZIN_MS.
+   Ini penghalang terhadap token yang dibagikan atau akun yang dipinjam, bukan jaminan: kode perangkat berasal dari klien. */
+const IZIN_MS = 10 * 60000;
+function devId(v) { v = String(v || ''); return /^[A-Za-z0-9_-]{12,64}$/.test(v) ? v : ''; }
+async function cekPerangkat(run, me, body, s) {
+  const p = parse(run), dev = devId(body.dev), now = Date.now();
+  if (!p.dev) { if (dev) await updateDoc('soal_run', run.$id, { payload: JSON.stringify(Object.assign({}, p, { dev })) }); return; }   // catatan lama: ikat pada perangkat pertama yang melanjutkan
+  if (dev && dev === p.dev) return;
+  if (dev && Number(p.izin) > now) {
+    const next = Object.assign({}, p, { dev }); delete next.izin;
+    await updateDoc('soal_run', run.$id, { payload: JSON.stringify(next) });
+    await catatAudit(me, 'run.pindahOk', run.sesiId, String(me.akun.nama || run.sid), 'lanjut di perangkat baru dengan izin pengawas');
+    return;
+  }
+  await catatAudit(me, 'run.pindahTolak', run.sesiId, String(me.akun.nama || run.sid), dev ? 'ditolak: perangkat lain tanpa izin pengawas' : 'ditolak: klien lama tanpa kode perangkat');
+  throw new Fail(dev ? 'Ujian ini sedang dikerjakan di perangkat lain. Untuk pindah, minta pengawas menekan "Izinkan pindah perangkat", lalu coba lagi.' : 'Muat ulang aplikasi (tekan Segarkan) lalu coba lagi.', 403);
+}
+function perangkatSama(run, body) {   // simpan dan kirim: perangkat lama berhenti menimpa setelah ujian dipindahkan
+  const p = parse(run), dev = devId(body.dev);
+  if (p.dev && dev && dev !== p.dev) throw new Fail('Ujian ini sudah dilanjutkan di perangkat lain.', 409);
 }
 function respRun(doc, s, now, resume) {
   const st = runState(doc), p = st.p;
@@ -372,6 +398,7 @@ async function ownRun(me, rid) {
 
 async function simpan(me, body) {
   const run = await ownRun(me, body.rid), st = runState(run), now = Date.now();
+  if (!run.done && !me.staff) perangkatSama(run, body);
   if (run.done) return { ok: true, done: true, ext: st.ext, stop: st.stop, pb: st.pb, now, start: st.start };
   if (now <= endOf(st) + GRACE_MS) {
     const p = st.p, ids = p.ids || [];
@@ -415,6 +442,7 @@ function hasilOut(h) { const p = parse(h); return { id: h.$id, ts: h.ts, score: 
 
 async function kirimUjian(me, body) {
   const run = await ownRun(me, body.rid), st = runState(run), now = Date.now();
+  if (!run.done && !me.staff) perangkatSama(run, body);
   const inWin = now <= endOf(st) + GRACE_MS || st.stop;
   const r = await selesaikan(run, me, { ans: inWin ? body.ans : null, pindah: Math.max(0, Math.min(999, Number(body.pindah) || 0)) });
   const tampil = !!r.p.tampil;
@@ -613,6 +641,7 @@ async function pantau(me, body) {
     const lock = s.aksi === 'kunci' && batas > 0 && o.v >= batas;
     o.k = lock ? 'lock' : (o.sisa <= 0 || st.stop) ? 'habis' : 'on';
     if (st.stop) o.stop = true;
+    if (Number(st.p.izin) > now) o.izin = Math.round((st.p.izin - now) / 1000);
     return o;
   });
   const tok = { pakai: !!s.tok, wajib: !!s.tokR, token: '', rilis: 0, berlaku: 0, sisa: 0 };
@@ -633,6 +662,8 @@ async function aksiRun(me, body) {
   if (op === 'tambah') {
     const d = Number(body.detik); if (d !== 300 && d !== 900) throw new Fail('Tambahan waktu hanya 5 atau 15 menit.', 400);
     data = { ext: st.ext + d }; ket = '+' + (d / 60) + ' menit';
+  } else if (op === 'izinPindah') {
+    data = { payload: JSON.stringify(Object.assign({}, st.p, { izin: Date.now() + IZIN_MS })) }; ket = 'izin pindah perangkat ' + (IZIN_MS / 60000) + ' menit';
   } else if (op === 'bukaKunci') { data = { pb: st.p.pindah || 0 }; ket = 'buka kunci'; }
   else if (op === 'akhiri') { data = { stop: true }; ket = 'diakhiri pengawas'; }
   else throw new Fail('Aksi tidak dikenal.', 400);

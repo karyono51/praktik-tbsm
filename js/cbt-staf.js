@@ -125,6 +125,7 @@
    if(st.k==='on'||st.k==='lock'||st.k==='habis'){
     act+='<button type="button" class="btn small" data-bs="pn-ext" data-v="'+rid+'" data-n="300">+5 mnt</button><button type="button" class="btn small" data-bs="pn-ext" data-v="'+rid+'" data-n="900">+15 mnt</button>';
     if(st.v>0||st.lock)act+='<button type="button" class="btn small" data-bs="pn-buka" data-v="'+rid+'">Buka kunci</button>';
+    if((st.k==='on'||st.k==='lock')&&bsAman())act+='<button type="button" class="btn small" data-bs="pn-pindah" data-v="'+rid+'" data-nm="'+esc(u.nama)+'">Izinkan pindah perangkat</button>';
     if(st.k!=='habis'||!st.stop)act+='<button type="button" class="btn small" data-bs="pn-akhiri" data-v="'+rid+'">Akhiri</button>';
    }
    if(st.k==='done'&&!st.h&&st.run&&!bsAman())act+='<button type="button" class="btn small primary" data-bs="pn-nilai1" data-v="'+rid+'">Nilai dari jawaban</button>';
@@ -409,6 +410,7 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   else if(a==='pn-bukasesi'){PN.sesi=v;PN.runs=[];PN.hasil=[];PN.sesiLoaded='';render()}
   else if(a==='pn-ext'){var run=runOf(v);if(run)tulisRun(v,{ext:(Number(run.ext)||0)+(+b.dataset.n||300)},'Waktu ditambah')}
   else if(a==='pn-akhiri'){uiConfirm('Akhiri ujian siswa ini? Jawabannya dikirim otomatis dan tidak bisa dilanjutkan.',{ok:'Akhiri',danger:true}).then(function(ok){if(ok)tulisRun(v,{stop:true},'Siswa akan mengirim jawabannya dalam beberapa detik')})}
+  else if(a==='pn-pindah'){uiConfirm('Izinkan '+(b.dataset.nm||'siswa ini')+' melanjutkan ujian dari perangkat lain? Izin berlaku 10 menit dan perangkat lama berhenti menyimpan jawaban setelah siswa pindah.',{ok:'Izinkan'}).then(function(ok){if(!ok)return;cbtFn({action:'aksiRun',rid:v,op:'izinPindah'}).then(function(){toast('Izin pindah perangkat 10 menit')}).catch(function(er){toast('Gagal: '+((er&&er.message)||er))})})}
   else if(a==='pn-buka'){var r2=runOf(v);if(r2)tulisRun(v,{pb:pay(r2).pindah||0},'Kunci dibuka')}
   else if(a==='pn-extall'){
    var s=sesiById(PN.sesi);

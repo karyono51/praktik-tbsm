@@ -34,3 +34,13 @@ Proktor hanya bisa memakai sesi di sekolahnya.
 2. `node tools/gabung-cbt.mjs`, lalu deploy ulang fungsi **akun-admin** (atau `cbt` bila terpisah).
 3. Perbarui aplikasi (`tbsm-update`), lalu **Segarkan**.
 Sebelum langkah 1 dan 2 selesai, fitur lama tetap jalan; rilis token dan Ruang ujian baru berfungsi setelah fungsi server diperbarui.
+
+## Pindah perangkat butuh izin pengawas
+
+- Saat siswa mulai ujian, server mengikat catatan ujian ke satu perangkat (kode acak yang dibuat peramban, tanpa data pribadi).
+- Muat ulang, atau menutup lalu membuka lagi di perangkat yang sama, tetap bebas tanpa token.
+- Melanjutkan dari perangkat lain ditolak dengan pesan jelas. Pengawas menekan **Izinkan pindah perangkat** pada kartu siswa (Ruang ujian untuk proktor, Pantau untuk guru/admin). Izin berlaku 10 menit dan terpakai sekali.
+- Setelah siswa pindah, perangkat lama tidak bisa lagi menyimpan atau mengirim jawaban.
+- Log audit mencatat `run.izinPindah`, `run.pindahOk`, dan `run.pindahTolak` (penolakan menandakan token mungkin dibagikan).
+- Batasan: kode perangkat berasal dari peramban, jadi ini penghalang terhadap token yang dibagikan, bukan jaminan mutlak. Siswa yang menghapus data peramban akan dianggap perangkat baru dan perlu izin.
+- Perlu deploy ulang fungsi `akun-admin` (cbt.js ikut berubah) dan Perbarui aplikasi di perangkat.
