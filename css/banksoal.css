@@ -138,9 +138,9 @@ body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
 .bp-i[aria-selected=true]{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .bp-i:disabled{opacity:.5}
 
-/* pembeda jenis soal: PG = lingkaran (pilih satu), PG kompleks = kotak ceklis (pilih banyak) */
-.bs-opts .bs-opt.rd:not(.small)::after,.bs-opts .bs-opt.cb:not(.small)::after{content:"";flex:none;margin-left:auto;align-self:center;width:22px;height:22px;box-sizing:border-box;border:2px solid var(--muted);background:transparent center/16px 16px no-repeat;transform:none}
-.bs-opts .bs-opt.rd:not(.small)::after{border-radius:50%}
-.bs-opts .bs-opt.cb:not(.small)::after{border-radius:6px}
-.bs-opts .bs-opt.rd:not(.small)[aria-pressed=true]::after{border-color:var(--accent);background:var(--accent);box-shadow:inset 0 0 0 4px var(--accent-soft)}
-.bs-opts .bs-opt.cb:not(.small)[aria-pressed=true]::after{border-color:var(--accent);background-color:var(--accent);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+/* PG kompleks: pilihan berupa form ceklis (kotak centang di kiri, tanpa huruf A-E); PG biasa tetap huruf */
+.bs-opts .bs-opt.cb .ltr{width:28px;height:28px;border-radius:7px;border:2px solid var(--muted);background:var(--surface) center/18px 18px no-repeat;font-size:0}
+.bs-opts .bs-opt.cb[aria-pressed=true] .ltr{border-color:var(--accent);background-color:var(--accent);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.bs-opts .bs-opt.cb.ok .ltr{border-color:var(--ok)}
+.bs-opts .bs-opt.cb.bad .ltr{border-color:var(--bad)}
+.bs-opts .bs-opt.cb:not(.small)[aria-pressed=true]::after{content:none}

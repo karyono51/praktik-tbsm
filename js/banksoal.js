@@ -338,7 +338,7 @@ function bsQBody(q,r,mode){
   h+='<div class="bs-opts">'+order.map(function(oi,pos){
    var sel=q.tipe==='pg'?a===oi:(Array.isArray(a)&&a.indexOf(oi)>-1),cls='';
    if(locked){var key=q.tipe==='pg'?q.kunci===oi:q.kunci.indexOf(oi)>-1;cls=key?' ok':(sel?' bad':'')}
-   return '<button type="button" class="bs-opt '+(q.tipe==='kompleks'?'cb':'rd')+cls+'" data-bs="ans" data-q="'+q.id+'" data-v="'+oi+'" aria-pressed="'+!!sel+'"'+(locked?' disabled':'')+'><b class="ltr">'+bsLtr(pos)+'</b><span>'+(window.sgOptHtml?sgOptHtml(q,oi):esc(q.opts[oi]))+'</span></button>';
+   return '<button type="button" class="bs-opt'+(q.tipe==='kompleks'?' cb':'')+cls+'" data-bs="ans" data-q="'+q.id+'" data-v="'+oi+'" aria-pressed="'+!!sel+'"'+(locked?' disabled':'')+'><b class="ltr'+(q.tipe==='kompleks'?' cbx':'')+'">'+(q.tipe==='kompleks'?'':bsLtr(pos))+'</b><span>'+(window.sgOptHtml?sgOptHtml(q,oi):esc(q.opts[oi]))+'</span></button>';
   }).join('')+'</div>';
  }else{
   var lab=q.lab||['Benar','Salah'];
