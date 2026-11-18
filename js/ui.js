@@ -92,7 +92,7 @@ function viewRekap(){
 function viewAkun(){
  var q=A.q.toLowerCase(),e=A.edit,nGanda=kelompokGanda().reduce(function(t,g){return t+g.hapus.length},0);
  var UL=S.users.filter(schAkunOk),L=UL.filter(function(u){return (A.peran==='ALL'||hasRole(u,A.peran))&&(!q||(u.nama+' '+u.username+' '+(u.email||'')).toLowerCase().indexOf(q)>-1)});
- var chips=['ALL','admin','guru','siswa'].map(function(c){return '<button type="button" data-act="akunfilter" data-v="'+c+'" aria-pressed="'+(A.peran===c)+'">'+(c==='ALL'?'Semua':PERAN[c])+' <span class="mono">'+(c==='ALL'?UL.length:UL.filter(function(u){return hasRole(u,c)}).length)+'</span></button>'}).join('');
+ var chips=['ALL','admin','kepsek','guru','proktor','siswa'].filter(function(c){return c==='ALL'||PERAN[c]}).map(function(c){return '<button type="button" data-act="akunfilter" data-v="'+c+'" aria-pressed="'+(A.peran===c)+'">'+(c==='ALL'?'Semua':PERAN[c])+' <span class="mono">'+(c==='ALL'?UL.length:UL.filter(function(u){return hasRole(u,c)}).length)+'</span></button>'}).join('');
  var form=e?'<form class="card" data-form="akun"><h3>'+(e.id?'Ubah akun':'Akun baru')+'</h3>'+
   '<label class="f">Nama<input name="nama" required value="'+esc(e.nama)+'"></label>'+
   '<div class="two"><label class="f">Username<input name="username" value="'+esc(e.username)+'" placeholder="otomatis"></label><label class="f">Email<input name="email" type="email" value="'+esc(e.email)+'"'+(Cloud.on?' required':'')+'></label></div>'+
