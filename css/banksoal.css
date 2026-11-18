@@ -102,7 +102,6 @@ body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
 .ex-q .bs-opt{min-height:54px;padding:12px 14px;border-radius:14px;font-size:calc(16px + var(--exfs));align-items:center;touch-action:manipulation}
 .ex-q .bs-opt .ltr{width:32px;height:32px;border-radius:10px;font-size:14px}
 .ex-q .bs-opt:not(.small)[aria-pressed=true]{box-shadow:inset 0 0 0 1px var(--accent)}
-.ex-q .bs-opt:not(.small)[aria-pressed=true]::after{content:"";flex:none;margin-left:auto;width:16px;height:9px;border-left:3px solid var(--accent);border-bottom:3px solid var(--accent);transform:rotate(-45deg) translateY(-2px)}
 .ex-q .bs-opt.small{justify-content:center;min-height:50px;font-size:16px;font-weight:650}
 .ex-q .bs-opt.small[aria-pressed=true]{background:var(--accent);color:var(--onc);border-color:var(--accent)}
 .ex-q .bs-kr{padding:14px;gap:12px;border-radius:14px}
