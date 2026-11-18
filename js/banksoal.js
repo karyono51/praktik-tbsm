@@ -456,13 +456,15 @@ function bsViewRiwayat(){
  var rw=bsRwList(S.tab==='cbtonline'?'ujian':'latihan');
  return '<div class="row"><button type="button" class="btn small" data-bs="home">Kembali</button><h2>Riwayat</h2></div>'+(rw.length?rw.map(bsRiwayatRow).join(''):'<p class="muted">Belum ada riwayat.</p>');
 }
+/* simpan pilihan Mata pelajaran dan Jenis soal dari form ke BS.lat agar tidak hilang saat tampilan digambar ulang */
+function bsLatBaca(){var m=document.getElementById('bl-mapel'),t=document.getElementById('bl-tipe');if(m)BS.lat.mapel=m.value;if(t)BS.lat.tipe=t.value}
 function bsViewLatSetup(){
  var kelas=S.user.kelas||'',L=BS.lat,pool=bsPool('latihan',kelas).filter(function(q){return (!L.mapel||q.mapel===L.mapel)&&(!L.tipe||q.tipe===L.tipe)});
  var mp=bsMapelList(),n=L.n,cnt=bsMapelHitung(bsPool('latihan',kelas));
  return '<div class="row"><button type="button" class="btn small" data-bs="home">Kembali</button><h2>Atur latihan</h2></div><div class="card">'+
   '<label class="f">Mata pelajaran<select id="bl-mapel"><option value="">Semua</option>'+bsMapelOptHtml(mp.filter(function(m){return cnt[m]||L.mapel===m}),L.mapel,cnt)+'</select></label>'+
   '<label class="f">Jenis soal<select id="bl-tipe"><option value="">Semua</option>'+Object.keys(BS_TIPE).map(function(t){return '<option value="'+t+'"'+(L.tipe===t?' selected':'')+'>'+BS_TIPE[t]+'</option>'}).join('')+'</select></label>'+
-  '<div><span class="label">Jumlah soal</span><div class="chips" role="group">'+[5,10,20,0].map(function(v){return '<button type="button" data-bs="latn" data-v="'+v+'" aria-pressed="'+(n===v)+'">'+(v||'Semua')+'</button>'}).join('')+'</div></div>'+
+  '<div><span class="label">Jumlah soal</span><div class="chips" role="group">'+[5,10,15,20,25,30,0].map(function(v){return '<button type="button" data-bs="latn" data-v="'+v+'" aria-pressed="'+(n===v)+'">'+(v||'Semua')+'</button>'}).join('')+'</div></div>'+
   '<p class="note">'+pool.length+' soal sesuai pilihan.</p><button type="button" class="btn primary" data-bs="latmulai"'+(pool.length?'':' disabled')+'>Mulai</button></div>';
 }
 function bsViewRun(){
@@ -933,9 +935,9 @@ document.addEventListener('click',function(e){
  else if(a==='detail'){BS.res=v;BS.sub='detail';render();window.scrollTo(0,0)}
  else if(a==='latsetup'){BS.sub='latsetup';render()}
  else if(a==='rlmore'){BS.rl.n=(BS.rl.n||20)+20;render()}
- else if(a==='latn'){BS.lat.n=+v;render()}
+ else if(a==='latn'){bsLatBaca();BS.lat.n=+v;render()}
  else if(a==='latmulai'){
-  var m=document.getElementById('bl-mapel'),t=document.getElementById('bl-tipe');if(m)BS.lat.mapel=m.value;if(t)BS.lat.tipe=t.value;
+  bsLatBaca();
   var run=bsMake('latihan',null,BS.lat);if(!run.ids.length){toast('Tidak ada soal untuk pilihan ini');return}bsStartRun(run);
  }
  else if(a==='mulaiujian'){
@@ -1014,6 +1016,7 @@ document.addEventListener('change',function(e){
   var ix=BS.sf.ids.indexOf(t.value);if(t.checked&&ix<0)BS.sf.ids.push(t.value);else if(!t.checked&&ix>-1)BS.sf.ids.splice(ix,1);
   var n=document.getElementById('sf-n');if(n)n.innerHTML=bsSfManualInfo(BS.sf);return;
  }
+ if(t.id==='bl-mapel'||t.id==='bl-tipe'){bsLatBaca();render();return}
  if(t.id==='sf-pilih'||t.id==='sf-kelas'){bsSfRead();render();return}
  if((t.id==='sf-mf'||t.id==='sf-tf')&&BS.sf){BS.sf[t.id==='sf-mf'?'mf':'tf']=t.value;bsSfManualRefresh();return}
  var a=t.dataset&&t.dataset.bs;if(!a)return;
