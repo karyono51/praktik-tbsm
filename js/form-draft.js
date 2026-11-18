@@ -5,6 +5,10 @@
    2. Muat ulang halaman: isian teks di layar yang sedang dibuka dicatat di perangkat (localStorage, per akun,
       berlaku 24 jam) dan dikembalikan setelah halaman terbuka lagi pada tab yang sama. Form Bank soal memakai
       draft sendiri (bsDraftSave/bsDraftRestore di banksoal.js) karena datanya hidup di memori.
+   3. Draf Bank soal (form soal), CBT Online (form sesi), dan Atur latihan siswa: datanya hidup di memori (BS.form, BS.sf, BS.lat),
+      jadi disimpan utuh di localStorage (kunci tbsm-bsd, per akun, 24 jam) lewat bsDraftSave dan dipulihkan setelah soal selesai dimuat
+      (bsDraftRestore). Draf dihapus otomatis saat form disimpan atau dibatalkan. Gambar soal ikut disimpan bila muat; bila penyimpanan
+      penuh, draf disimpan tanpa gambar.
    Tidak pernah disimpan: kolom sandi, berkas, jawaban ujian (.bs-ur), isian LKPD siswa dan editor LKPD
    (keduanya sudah punya draft sendiri). Kolom diberi data-fd="skip" untuk dikecualikan.
    Bergantung pada: ui.js (render), nav.js (refreshData), core.js (S). Dimuat paling akhir. */
@@ -72,6 +76,49 @@ if(typeof window.refreshData==='function'){
  };
 }
 
+
+/* ---- Draf Bank soal / sesi CBT / Atur latihan (data di memori) ---- */
+var BD={K:'tbsm-bsd',d:null,done:false};
+try{var bj=JSON.parse(localStorage.getItem(BD.K)||'null');if(bj&&Date.now()-bj.t<=TTL)BD.d=bj;else if(bj)localStorage.removeItem(BD.K)}catch(e){}
+if(!BD.d)BD.done=true;
+function bdStaf(){try{return bsEdit()&&actRole()!=='siswa'}catch(e){return false}}
+window.bsLatBaca=function(){
+ if(!window.BS||!BS.lat)return;
+ var m=document.getElementById('bl-mapel'),t=document.getElementById('bl-tipe');
+ if(m)BS.lat.mapel=m.value;if(t)BS.lat.tipe=t.value;
+};
+window.bsDraftSave=function(){
+ try{
+  if(!BD.done||!window.BS||!window.S||!S.user||!window.bsOn||!bsOn())return;
+  if(window.bsFormRead)bsFormRead();if(window.bsSfRead)bsSfRead();bsLatBaca();
+  var lat=BS.sub==='latsetup'&&!BS.run;
+  if(!BS.form&&!BS.sf&&!lat){localStorage.removeItem(BD.K);return}
+  var o={u:S.user.id,t:Date.now(),tab:S.tab,bt:BS.tab,sub:lat?'latsetup':'',lat:lat?BS.lat:null,form:BS.form||null,sf:BS.sf||null};
+  try{localStorage.setItem(BD.K,JSON.stringify(o))}
+  catch(e){
+   try{
+    if(o.form){var f=JSON.parse(JSON.stringify(o.form));f.qi='';f.si='';f.oi=['','','','',''];o.form=f}
+    localStorage.setItem(BD.K,JSON.stringify(o));
+   }catch(e2){}
+  }
+ }catch(e){}
+};
+/* mengembalikan draf setelah halaman dimuat ulang; true bila ada yang dipulihkan (layar perlu digambar ulang) */
+window.bsDraftRestore=function(){
+ if(BD.done||!window.BS||!window.S||!S.user||!window.bsOn||!bsOn()||!BS.loaded)return false;
+ BD.done=true;
+ var d=BD.d;BD.d=null;
+ if(!d||d.u!==S.user.id||d.tab!==S.tab||BS.run)return false;
+ var n=false,staf=bdStaf();
+ if(staf){
+  if(d.form&&!BS.form&&!BS.sf&&S.tab!=='cbtonline'){BS.form=d.form;BS.tab='bank';n=true}
+  if(d.sf&&!BS.form&&!BS.sf&&S.tab==='cbtonline'){BS.sf=d.sf;BS.tab=d.bt||'sesi';n=true}
+ }else if(d.sub==='latsetup'&&BS.sub==='home'){
+  BS.lat=Object.assign({mapel:'',tipe:'',n:10},d.lat||{});BS.sub='latsetup';n=true;
+ }
+ return n;
+};
+
 /* ---- Muat ulang halaman ---- */
 function simpan(){
  try{
@@ -99,7 +146,12 @@ function sesudahRender(){
 }
 if(typeof window.render==='function'){
  var r0=window.render;
- window.render=function(){var r=r0.apply(this,arguments);try{sesudahRender()}catch(e){}return r};
+ window.render=function(){
+  var r=r0.apply(this,arguments);
+  try{sesudahRender()}catch(e){}
+  try{if(window.bsDraftRestore&&bsDraftRestore())r=r0.apply(this,arguments)}catch(e){}
+  return r;
+ };
 }
 document.addEventListener('input',function(e){if(e.target&&e.target.closest&&e.target.closest('#app'))nanti()},true);
 document.addEventListener('change',function(e){if(e.target&&e.target.closest&&e.target.closest('#app'))nanti()},true);

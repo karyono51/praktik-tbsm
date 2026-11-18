@@ -460,7 +460,7 @@ function bsViewRiwayat(){
 function bsViewLatSetup(){
  var kelas=S.user.kelas||'',L=BS.lat,pool=bsPool('latihan',kelas).filter(function(q){return (!L.mapel||q.mapel===L.mapel)&&(!L.tipe||q.tipe===L.tipe)});
  var mp=bsMapelList(),n=L.n,cnt=bsMapelHitung(bsPool('latihan',kelas));
- return '<div class="row"><button type="button" class="btn small" data-bs="home">Kembali</button><h2>Atur latihan</h2></div><div class="card">'+
+ return '<div class="row"><button type="button" class="btn small" data-bs="home">Kembali</button><h2>Atur latihan</h2></div><div class="card lat-set">'+
   '<label class="f">Mata pelajaran<select id="bl-mapel"><option value="">Semua</option>'+bsMapelOptHtml(mp.filter(function(m){return cnt[m]||L.mapel===m}),L.mapel,cnt)+'</select></label>'+
   '<label class="f">Jenis soal<select id="bl-tipe"><option value="">Semua</option>'+Object.keys(BS_TIPE).map(function(t){return '<option value="'+t+'"'+(L.tipe===t?' selected':'')+'>'+BS_TIPE[t]+'</option>'}).join('')+'</select></label>'+
   '<div><span class="label">Jumlah soal</span><div class="chips" role="group">'+[5,10,20,0].map(function(v){return '<button type="button" data-bs="latn" data-v="'+v+'" aria-pressed="'+(n===v)+'">'+(v||'Semua')+'</button>'}).join('')+'</div></div>'+
