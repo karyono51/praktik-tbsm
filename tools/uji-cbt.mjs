@@ -356,5 +356,60 @@ console.log('\nNomor peserta');
   r = await call('u5', { action: 'mulai', sesiId: 'S1', dev: 'dev_aaaaaaaaaaaa' }); cek('daftar dengan celah tetap bisa dipakai mulai', r.status === 200, r.body.error);
 }
 
+console.log('\nPembatas tebakan token berlapis (database)');
+{
+  const realNow = Date.now; let geser = 0; Date.now = () => realNow() + geser;
+  const salah = async (u, n) => { let last; for (let i = 0; i < n; i++) last = await call(u, { action: 'mulai', sesiId: 'S1', token: 'ZZ' + String(i).padStart(4, '0') }); return last; };
+  siapkan();
+  let r = await salah('u5', 10);
+  r = await call('u5', { action: 'mulai', sesiId: 'S1', token: 'ABC123' });
+  cek('tingkat 1: diblokir walau token benar', r.status === 429 && /Tunggu/.test(r.body.error), r.body.error);
+  mod._uji.semuaReset();   // simulasi fungsi restart / instans lain: memori kosong, database tetap
+  r = await call('u5', { action: 'mulai', sesiId: 'S1', token: 'ABC123' });
+  cek('blokir tahan restart (disimpan di database)', r.status === 429, r.status + ' ' + r.body.error);
+  geser += 6 * 60000; mod._uji.semuaReset();
+  r = await call('u5', { action: 'mulai', sesiId: 'S1', token: 'SALAH9' });
+  cek('lewat 5 menit: boleh mencoba lagi (403, bukan 429)', r.status === 403, r.status);
+  await salah('u5', 9);   // total 10 salah lagi -> tingkat 2
+  geser += 6 * 60000; mod._uji.semuaReset();
+  r = await call('u5', { action: 'mulai', sesiId: 'S1', token: 'ABC123' });
+  cek('tingkat 2 memblokir 15 menit (6 menit belum cukup)', r.status === 429, r.status);
+  geser += 10 * 60000; mod._uji.semuaReset();
+  await salah('u5', 10);   // tingkat 3
+  geser += 600 * 60000; mod._uji.semuaReset();
+  r = await call('u5', { action: 'mulai', sesiId: 'S1', token: 'ABC123' });
+  cek('tingkat 3: terkunci sampai pengawas membuka', r.status === 429 && /dikunci/.test(r.body.error), r.body.error);
+  r = await call('g1', { action: 'tebak', sesiId: 'S1' });
+  const row = r.body.rows && r.body.rows.find((x) => x.sid === 'A5');
+  cek('guru melihat akun terkunci di daftar tebakan', r.status === 200 && row && row.kunci === true && row.lv === 3 && row.nama === 'Siswa 5', JSON.stringify(r.body).slice(0, 160));
+  r = await call('u1', { action: 'tebak', sesiId: 'S1' }); cek('siswa tidak boleh melihat daftar tebakan', r.status === 403);
+  users.p2 = { $id: 'p2', email: 'pk2@x.id', labels: ['proktor'] }; col('akun').set('AP2', { $id: 'AP2', email: 'pk2@x.id', nama: 'Proktor Lain', aktif: true, sekolah: 'LAIN', peran: 'proktor' });
+  r = await call('p2', { action: 'tebak', sesiId: 'S1' }); cek('pengawas sekolah lain ditolak', r.status === 403, r.status + ' ' + r.body.error);
+  r = await call('u1', { action: 'bukaTebak', sesiId: 'S1', sid: 'A5' }); cek('siswa tidak boleh membuka blokir', r.status === 403);
+  r = await call('g1', { action: 'bukaTebak', sesiId: 'S1', sid: 'A5' });
+  cek('guru membuka blokir satu siswa', r.status === 200 && r.body.dibuka === 1, JSON.stringify(r.body));
+  r = await call('u5', { action: 'mulai', sesiId: 'S1', token: 'ABC123' });
+  cek('setelah dibuka, token benar diterima', r.status === 200, r.status + ' ' + (r.body.error || ''));
+  const aud = [...col('audit').values()].map((a) => a.aksi);
+  cek('log audit mencatat blokir dan pembukaan', aud.includes('token.blokir') && aud.includes('token.bukaTebak'), aud.join());
+  /* token benar membersihkan catatan salah */
+  siapkan(); await salah('u7', 3);
+  r = await call('g1', { action: 'tebak', sesiId: 'S1' }); cek('salah 3 kali: tampil di daftar (belum diblokir)', r.body.rows.some((x) => x.sid === 'A7' && x.n === 3 && !x.kunci), JSON.stringify(r.body.rows));
+  await call('u7', { action: 'mulai', sesiId: 'S1', token: 'ABC123' });
+  r = await call('g1', { action: 'tebak', sesiId: 'S1' }); cek('token benar menghapus catatan salah', !r.body.rows.some((x) => x.sid === 'A7'), JSON.stringify(r.body.rows));
+  /* banjir tebakan sesi: akun yang sudah salah 3x ke atas diblokir lebih awal */
+  siapkan();
+  for (let u = 10; u < 40; u++) await salah('u' + u, 4);   // 120 salah di satu sesi
+  r = await call('g1', { action: 'tebak', sesiId: 'S1' });
+  cek('banjir tebakan: ada akun diblokir sebelum mencapai 10 salah', r.body.rows.some((x) => x.lv >= 1 && x.tot < 10), JSON.stringify(r.body.rows.slice(0, 3)));
+  r = await call('u50', { action: 'mulai', sesiId: 'S1', token: 'ABC123' }); cek('banjir: akun yang belum pernah salah tidak ikut terhambat', r.status === 200, r.status);
+  /* database bermasalah tidak menggagalkan ujian */
+  siapkan();
+  const f0 = globalThis.fetch; globalThis.fetch = async (u, o) => (/soal_kunci\/(tz_|ti_)/.test(u) ? { ok: false, status: 500, json: async () => ({ message: 'rusak' }) } : f0(u, o));
+  r = await call('u8', { action: 'mulai', sesiId: 'S1', token: 'ABC123' }); cek('indeks tebakan rusak: siswa tetap bisa mulai', r.status === 200, r.status + ' ' + (r.body.error || ''));
+  r = await call('u9', { action: 'mulai', sesiId: 'S1', token: 'SALAH1' }); cek('indeks tebakan rusak: token salah tetap 403', r.status === 403, r.status);
+  globalThis.fetch = f0; Date.now = realNow;
+}
+
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);

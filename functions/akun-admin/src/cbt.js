@@ -50,10 +50,10 @@ const TTL_USER = 60000, TTL_SOAL = 60000, TTL_SESI = 10000;   // sesi dan token 
 const BUDGET_MS = Number(process.env.CBT_BUDGET_MS) || 18000, PAR = 4;     // satu panggilan massal berhenti sebelum batas waktu fungsi (disarankan 30 dtk)
 const EXAMBRO_UA = String(process.env.EXAMBRO_UA || 'TBSM-EXAM,VERSION/4.0').toUpperCase().split(',').map((t) => t.trim()).filter(Boolean);   // dipisah koma; samakan dengan EXAMBRO_UA di js/config.js
 const MAX_SALAH = 10, JENDELA_SALAH = 5 * 60000;
-const memo = { user: new Map(), soal: new Map(), sesi: new Map(), tok: new Map(), ros: new Map(), pool: null, salah: new Map() };
+const memo = { user: new Map(), soal: new Map(), sesi: new Map(), tok: new Map(), ros: new Map(), pool: null, salah: new Map(), idx: new Map() };
 function memGet(m, k, ttl) { const e = m.get(k); return e && Date.now() - e.t < ttl ? e.v : undefined; }
 function memSet(m, k, v, cap) { if (m.size >= cap) m.delete(m.keys().next().value); m.set(k, { t: Date.now(), v }); return v; }
-function memReset() { memo.user.clear(); memo.soal.clear(); memo.sesi.clear(); memo.tok.clear(); memo.ros.clear(); memo.pool = null; }
+function memReset() { memo.user.clear(); memo.soal.clear(); memo.sesi.clear(); memo.tok.clear(); memo.ros.clear(); memo.idx.clear(); memo.pool = null; }
 /* satu pekerjaan yang sama dari banyak siswa sekaligus hanya dikerjakan sekali (mencegah serbuan saat cache masih kosong) */
 const inflight = new Map();
 function sekali(key, fn) { if (inflight.has(key)) return inflight.get(key); const p = Promise.resolve().then(fn).finally(() => inflight.delete(key)); inflight.set(key, p); return p; }
@@ -66,6 +66,75 @@ function salahCatat(id) {
   const e = memo.salah.get(id), now = Date.now();
   if (!e || now - e.t0 >= JENDELA_SALAH) { if (memo.salah.size >= 5000) memo.salah.delete(memo.salah.keys().next().value); memo.salah.set(id, { n: 1, t0: now }); }
   else e.n++;
+}
+
+/* ---------- Pembatas tebakan token berlapis (disimpan di database, tahan restart dan banyak instans) ----------
+   Per akun per sesi: MAX_SALAH salah dalam JENDELA_SALAH -> blokir bertahap (tingkat 1: 5 mnt, 2: 15 mnt, 3: terkunci sampai pengawas membuka).
+   Per sesi: bila 100+ salah dalam 5 menit, akun yang sudah salah 3 kali ke atas langsung diblokir satu tingkat.
+   Disimpan di koleksi soal_kunci (tanpa skema baru): tz_<hash sesi|akun> dan indeks ti_<hash sesi> untuk tampilan pengawas.
+   Gagal membaca/menulis database tidak menggagalkan ujian: pembatas memori di atas tetap berjalan. */
+const BLOK_MS = [5 * 60000, 15 * 60000], SESI_BANJIR = 100, IDX_MAKS = 50;
+const hid = (pre, ...parts) => pre + crypto.createHash('sha1').update(parts.join('|')).digest('hex').slice(0, 28);
+const tzBaru = () => ({ n: 0, t0: 0, lv: 0, blok: 0, tot: 0, last: 0 });
+async function tebakDoc(id) {
+  const d = await tryGet('soal_kunci', id); let o = null;
+  if (d) { try { o = JSON.parse(d.payload || '{}'); } catch (e) { o = null; } }
+  return { id, ada: !!d, o: o || null };
+}
+async function tebakTulis(id, ada, o) {
+  const data = { payload: JSON.stringify(o) };
+  if (ada) return updateDoc('soal_kunci', id, data);
+  try { return await createDoc('soal_kunci', id, data); } catch (e) { if (e && e.code === 409) return updateDoc('soal_kunci', id, data); throw e; }
+}
+const menitSisa = (ms) => Math.max(1, Math.ceil(ms / 60000));
+/* indeks sesi (daftar akun yang pernah salah) disimpan sebentar di memori supaya jalur normal tidak menambah panggilan database */
+async function tebakIdx(sesiId, segar) {
+  if (!segar) { const c = memGet(memo.idx, sesiId, 2000); if (c) return c; }
+  return sekali('idx:' + sesiId + (segar ? ':s' : ''), async () => {
+    const t = await tebakDoc(hid('ti_', sesiId)), o = t.o || {};
+    return memSet(memo.idx, sesiId, { id: t.id, ada: t.ada, o: { agg: o.agg && typeof o.agg === 'object' ? o.agg : { n: 0, t0: 0 }, rows: o.rows && typeof o.rows === 'object' ? o.rows : {} } }, 500);
+  });
+}
+async function tebakIdxTulis(ix, sesiId) { await tebakTulis(ix.id, ix.ada, ix.o); ix.ada = true; memSet(memo.idx, sesiId, ix, 500); }
+/* sebelum memeriksa token: tolak akun yang sedang diblokir (juga bila token yang dikirim benar). -> {ada} atau null bila database gagal */
+async function tebakCek(akunId, sesiId, now) {
+  try {
+    const r = (await tebakIdx(sesiId, false)).o.rows[akunId];
+    if (r && r.blok === -1) throw new Fail('Akunmu dikunci karena terlalu banyak token salah. Minta pengawas membuka kunci.', 429);
+    if (r && r.blok > now) throw new Fail('Terlalu banyak token salah. Tunggu ' + menitSisa(r.blok - now) + ' menit lalu coba lagi, atau minta pengawas.', 429);
+    return { ada: !!r };
+  } catch (e) { if (e instanceof Fail) throw e; return null; }
+}
+async function tebakCatat(me, sesiId, now) {
+  try {
+    const akunId = me.akun.$id, t = await tebakDoc(hid('tz_', sesiId, akunId)), z = Object.assign(tzBaru(), t.o || {});
+    if (!z.t0 || now - z.t0 >= JENDELA_SALAH) { z.n = 0; z.t0 = now; }
+    z.n++; z.tot++; z.last = now;
+    const ix = await tebakIdx(sesiId, true), ag = ix.o.agg;
+    if (!ag.t0 || now - ag.t0 >= JENDELA_SALAH) { ag.n = 0; ag.t0 = now; }
+    ag.n++;
+    const banjir = ag.n > SESI_BANJIR && z.n >= 3;
+    let blokir = false;
+    if (z.n >= MAX_SALAH || banjir) { z.lv++; z.n = 0; z.t0 = 0; z.blok = z.lv >= 3 ? -1 : now + BLOK_MS[z.lv - 1]; blokir = true; }
+    ix.o.rows[akunId] = { nm: String(me.akun.nama || '').slice(0, 32), kl: String(me.akun.kelas || '').slice(0, 8), n: z.n, tot: z.tot, lv: z.lv, blok: z.blok, last: now };
+    const ks = Object.keys(ix.o.rows);
+    if (ks.length > IDX_MAKS) {   // buang yang paling lama; akun yang sedang diblokir dibuang terakhir
+      const w = (k) => { const r = ix.o.rows[k]; return (r.blok === -1 || r.blok > now ? 1e15 : 0) + r.last; };
+      ks.sort((a, b) => w(a) - w(b)).slice(0, ks.length - IDX_MAKS).forEach((k) => { delete ix.o.rows[k]; });
+    }
+    await tebakTulis(t.id, t.ada, z); await tebakIdxTulis(ix, sesiId);
+    if (blokir) await catatAudit(me, 'token.blokir', sesiId, String(me.akun.nama || ''), (z.lv >= 3 ? 'terkunci' : 'tingkat ' + z.lv) + (banjir ? ' · banjir tebakan sesi' : ''));
+  } catch (e) { /* pembatas memori tetap berlaku */ }
+}
+/* token benar: bersihkan catatan salah akun ini (hanya bila akun itu tercatat di indeks) */
+async function tebakBersih(akunId, sesiId, st) {
+  if (!st || !st.ada) return;
+  try {
+    const t = await tebakDoc(hid('tz_', sesiId, akunId));
+    if (t.ada) await updateDoc('soal_kunci', t.id, { payload: JSON.stringify(tzBaru()) });
+    const ix = await tebakIdx(sesiId, true);
+    if (ix.o.rows[akunId]) { delete ix.o.rows[akunId]; await tebakIdxTulis(ix, sesiId); }
+  } catch (e) { /* abaikan */ }
 }
 /* jalankan pekerjaan dengan paralelisme terbatas dan batas waktu; sisa pekerjaan dilaporkan, bukan dipaksa */
 async function jalankan(items, fn, deadline) {
@@ -349,12 +418,14 @@ async function mulai(me, body) {
   sesiBoleh(sj, me.akun, now);
   if (s.tok) {
     salahCek(me.akun.$id);
+    const tz = await tebakCek(me.akun.$id, sesiId, now);
     const ti = await tokenSesi(sesiId), tk = ti.token;
     const got = String(body.token || '').trim().toUpperCase();
     if (!tk) throw new Fail('Token sesi belum diatur guru.', 403);
     if (s.tokR && !tokAktif(ti, now)) throw new Fail('Token belum dirilis pengawas atau sudah kedaluwarsa. Minta pengawas merilis token.', 403);
-    if (!got || !same(got, tk.toUpperCase())) { salahCatat(me.akun.$id); throw new Fail('Token salah.', 403); }
+    if (!got || !same(got, tk.toUpperCase())) { salahCatat(me.akun.$id); await tebakCatat(me, sesiId, now); throw new Fail('Token salah.', 403); }
     memo.salah.delete(me.akun.$id);
+    await tebakBersih(me.akun.$id, sesiId, tz);
   }
   if (await tryGet('soal_hasil', 'h' + rid.slice(1))) throw new Fail('Kamu sudah mengerjakan sesi ini.', 409);
   let ids;
@@ -699,6 +770,40 @@ async function pantau(me, body) {
   const saya = rl.length && !me.staff ? ruangSaya(s, me).map((r) => String(r.nama || '')) : [];
   return { ok: true, now, judul: s.judul || '', durasi: s.durasi || 0, batas, peserta, tok, saya };
 }
+/* pengawas/guru: daftar akun yang salah token pada sesi (rows), dan membuka blokirnya */
+async function tebakDaftar(me, body) {
+  needPawas(me);
+  const { sesiId, s } = await sesiPawas(me, body), now = Date.now();
+  const ix = await tebakIdx(sesiId, true); let rows = Object.keys(ix.o.rows).map((k) => Object.assign({ sid: k }, ix.o.rows[k]));
+  if (ruangList(s).length && !me.staff) {
+    const ok = new Set(); ruangSaya(s, me).forEach((r) => r.sis.forEach((x) => ok.add(x)));
+    rows = rows.filter((r) => ok.has(r.sid));
+  }
+  rows = rows.filter((r) => r.blok === -1 || r.blok > now || r.n > 0).map((r) => ({ sid: r.sid, nama: r.nm, kelas: r.kl, n: r.n, tot: r.tot, lv: r.lv, kunci: r.blok === -1, sisa: r.blok > now ? Math.round((r.blok - now) / 1000) : 0 }));
+  rows.sort((a, b) => (b.kunci - a.kunci) || (b.lv - a.lv) || (b.n - a.n));
+  return { ok: true, now, rows };
+}
+async function bukaTebak(me, body) {
+  needPawas(me);
+  const { sesiId, s } = await sesiPawas(me, body);
+  const ix = await tebakIdx(sesiId, true);
+  let ids = body.semua === true ? Object.keys(ix.o.rows) : [String(body.sid || '')].filter((x) => ID_RE.test(x));
+  if (!ids.length) throw new Fail('Pilih siswa yang dibuka.', 400);
+  if (ruangList(s).length && !me.staff) {
+    const ok = new Set(); ruangSaya(s, me).forEach((r) => r.sis.forEach((x) => ok.add(x)));
+    if (!ruangSaya(s, me).length) throw new Fail('Kamu bukan proktor ruang mana pun di sesi ini.', 403);
+    ids = ids.filter((x) => ok.has(x));
+    if (!ids.length) throw new Fail('Siswa itu bukan di ruang yang kamu awasi.', 403);
+  }
+  for (const id of ids) {
+    const t = await tebakDoc(hid('tz_', sesiId, id));
+    if (t.ada) await updateDoc('soal_kunci', t.id, { payload: JSON.stringify(tzBaru()) });
+    delete ix.o.rows[id]; memo.salah.delete(id);
+  }
+  await tebakIdxTulis(ix, sesiId);
+  await catatAudit(me, 'token.bukaTebak', sesiId, body.semua === true ? 'semua' : ids[0], ids.length + ' akun');
+  return { ok: true, dibuka: ids.length };
+}
 async function aksiRun(me, body) {
   needPawas(me);
   const rid = String(body.rid || ''); if (!ID_RE.test(rid)) throw new Fail('Catatan ujian tidak valid.');
@@ -729,7 +834,7 @@ async function catat(me, body) {
 }
 
 export const _uji = { frac, nilai, cleanAns, runId, parse, memReset, semuaReset: () => { memReset(); memo.salah.clear(); inflight.clear(); } };
-export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua', 'nilaiUlang', 'nilaiUraian', 'rilisToken', 'pantau', 'aksiRun', 'catat']);
+export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua', 'nilaiUlang', 'nilaiUraian', 'rilisToken', 'pantau', 'aksiRun', 'catat', 'tebak', 'bukaTebak']);
 
 /* Dipakai sebagai fungsi sendiri (default export) atau dipanggil dari fungsi lain, mis. akun-admin (lihat tools/gabung-cbt.mjs). */
 export async function cbtHandle({ req, res, error, body }) {
@@ -751,6 +856,8 @@ export async function cbtHandle({ req, res, error, body }) {
       case 'rilisToken': return res.json(await rilisToken(me, body));
       case 'pantau': return res.json(await pantau(me, body));
       case 'aksiRun': return res.json(await aksiRun(me, body));
+      case 'tebak': return res.json(await tebakDaftar(me, body));
+      case 'bukaTebak': return res.json(await bukaTebak(me, body));
       case 'catat': return res.json(await catat(me, body));
       default: return res.json({ ok: false, error: 'Aksi tidak dikenal.' }, 400);
     }

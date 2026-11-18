@@ -128,7 +128,7 @@ setInterval(function(){
 
 /* ---------------- Log audit (admin) ---------------- */
 var AU={rows:[],err:'',busy:false,q:'',loaded:false};
-var LAB={'token.rilis':'Rilis token','token.tutup':'Tutup token','token.ganti':'Ganti token','run.tambah':'Tambah waktu','run.bukaKunci':'Buka kunci','run.akhiri':'Akhiri ujian siswa',
+var LAB={'token.rilis':'Rilis token','token.tutup':'Tutup token','token.ganti':'Ganti token','token.blokir':'Token salah: akun diblokir','token.bukaTebak':'Buka blokir token','run.tambah':'Tambah waktu','run.bukaKunci':'Buka kunci','run.akhiri':'Akhiri ujian siswa',
  'nilai.akhiri':'Nilai ujian siswa','nilai.akhiriSemua':'Nilai ujian yang berakhir','nilai.ulang':'Nilai ulang sesi','nilai.uraian':'Nilai soal uraian'};
 var KOL={soal_run:'catatan ujian',soal_hasil:'hasil ujian/latihan',soal_sesi:'sesi ujian',banksoal:'soal',hasil:'nilai',lkpd:'LKPD',lkpd_bukti:'bukti LKPD',akun:'akun'};
 function aksiLabel(a){
