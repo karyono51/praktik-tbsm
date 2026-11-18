@@ -40,6 +40,33 @@ export default async ({ req, res, error }) => {
     }
 
     if (!(caller.labels || []).includes('admin')) return res.json({ ok: false, error: 'Hanya admin yang boleh mengatur sandi.' }, 403);
+    /* Aksi "setlabel" (admin): samakan label Auth (admin, guru, proktor) dengan kolom peran di daftar akun.
+       Kiriman: { email, peran } atau { items: [{ email, peran }, ...] } (maks 200). Label lain (bukan admin/guru/proktor) dibiarkan.
+       Admin tidak bisa mencabut label admin dari akunnya sendiri. Perlu scope users.read dan users.write. */
+    if (body.action === 'setlabel') {
+      const KELOLA = ['admin', 'guru', 'proktor'];
+      const items = Array.isArray(body.items) ? body.items : [{ email: body.email, peran: body.peran }];
+      if (!items.length || items.length > 200) return res.json({ ok: false, error: 'Kirim 1 sampai 200 akun.' }, 400);
+      const hasil = [];
+      for (const it of items) {
+        const em = String((it && it.email) || '').trim().toLowerCase();
+        const peran = (Array.isArray(it && it.peran) ? it.peran : String((it && it.peran) || '').split(/[,\s]+/)).map((x) => String(x).trim().toLowerCase());
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { hasil.push({ email: em, status: 'email-tidak-valid' }); continue; }
+        try {
+          const f = await users.list([Query.equal('email', [em]), Query.limit(1)]);
+          if (!f.total) { hasil.push({ email: em, status: 'belum-ada-login' }); continue; }
+          const u = f.users[0];
+          const lama = u.labels || [];
+          const baru = lama.filter((l) => !KELOLA.includes(l)).concat(KELOLA.filter((l) => peran.includes(l)));
+          if (u.$id === callerId && !baru.includes('admin')) { hasil.push({ email: em, status: 'ditolak-admin-sendiri' }); continue; }
+          const sama = baru.length === lama.length && baru.every((l) => lama.includes(l));
+          if (!sama) await users.updateLabels(u.$id, baru);
+          hasil.push({ email: em, status: sama ? 'sudah-sama' : 'diubah', labels: baru.filter((l) => KELOLA.includes(l)) });
+        } catch (e) { hasil.push({ email: em, status: 'gagal', pesan: String(e && e.message ? e.message : e).slice(0, 120) }); }
+      }
+      return res.json({ ok: true, hasil });
+    }
+
     const email = String(body.email || '').trim().toLowerCase();
     const password = String(body.password || '');
     const name = String(body.name || '').trim().slice(0, 128) || email;
