@@ -42,6 +42,7 @@
  var sessionClosed={},lastCur='';
  function tidy(){
   var sb=document.querySelector('#drawer .sbody');if(!sb||sb.getAttribute('data-tidy')==='1'||!S.user)return;
+  try{if(typeof pkMenu==='function')pkMenu(sb)}catch(e){}
   var rows=[].slice.call(sb.querySelectorAll('.srow'));if(!rows.length)return;
   var brand=sb.querySelector('.sbrand'),prof=sb.querySelector('.sprofile');
   var staff=isStaff(),G=groups(staff,typeof can==='function'&&can('akun')),used=[],out=[];
