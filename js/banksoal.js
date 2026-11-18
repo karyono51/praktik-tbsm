@@ -791,6 +791,9 @@ function bsSfManualRefresh(){
  var l=document.getElementById('sf-list');if(l)l.outerHTML=bsSfManual();
  var n=document.getElementById('sf-n');if(n)n.innerHTML=bsSfManualInfo(f);
 }
+/* pilihan Jumlah soal sesi ujian: 5 sampai 30; nilai lama di luar daftar tetap tampil agar sesi lama tidak berubah diam-diam */
+function bsSfNChips(f){var L=[5,10,15,20,25,30];if(f.jumlah>0&&L.indexOf(f.jumlah)<0){L.push(f.jumlah);L.sort(function(a,b){return a-b})}
+ return L.map(function(v){return '<button type="button" data-bs="sfn" data-v="'+v+'" aria-pressed="'+(f.jumlah===v)+'">'+v+'</button>'}).join('')}
 function bsViewSesiForm(){
  var f=BS.sf,mp=bsMapelList(),oto=f.pilih!=='manual';
  var h='<div class="row"><button type="button" class="btn small" data-bs="sesibatal">Batal</button><h2>'+(f.id?'Ubah sesi':'Sesi ujian baru')+'</h2></div><div class="card">';
@@ -799,7 +802,7 @@ function bsViewSesiForm(){
  h+='<label class="f">Sekolah<select id="sf-sekolah">'+schOptModul(f.sekolah)+'</select></label>';
  h+='<label class="f">Cara memilih soal<select id="sf-pilih"><option value="otomatis"'+(oto?' selected':'')+'>Otomatis (acak per siswa)</option><option value="manual"'+(oto?'':' selected')+'>Pilih soal sendiri</option></select></label>';
  if(oto){
-  h+='<label class="f">Jumlah soal<input id="sf-jumlah" type="number" inputmode="numeric" min="1" max="200" value="'+f.jumlah+'"></label><div><span class="label">Batasi mata pelajaran (kosong = semua)</span><div id="sf-chips">'+bsSfChips(f)+'</div></div><div id="sf-note">'+bsSfNote(f)+'</div>';
+  h+='<div><span class="label">Jumlah soal</span><div class="chips" id="sf-nchips" role="group">'+bsSfNChips(f)+'</div></div><div><span class="label">Batasi mata pelajaran (kosong = semua)</span><div id="sf-chips">'+bsSfChips(f)+'</div></div><div id="sf-note">'+bsSfNote(f)+'</div>';
  }else{
   h+=bsSfManualBar(f)+bsSfManual();
  }
@@ -936,6 +939,7 @@ document.addEventListener('click',function(e){
  else if(a==='latsetup'){BS.sub='latsetup';render()}
  else if(a==='rlmore'){BS.rl.n=(BS.rl.n||20)+20;render()}
  else if(a==='latn'){bsLatBaca();BS.lat.n=+v;render()}
+ else if(a==='sfn'&&BS.sf){BS.sf.jumlah=+v;var nc=document.getElementById('sf-nchips');if(nc)nc.innerHTML=bsSfNChips(BS.sf);var nn2=document.getElementById('sf-note');if(nn2)nn2.innerHTML=bsSfNote(BS.sf)}
  else if(a==='latmulai'){
   bsLatBaca();
   var run=bsMake('latihan',null,BS.lat);if(!run.ids.length){toast('Tidak ada soal untuk pilihan ini');return}bsStartRun(run);
