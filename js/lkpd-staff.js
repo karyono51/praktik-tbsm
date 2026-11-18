@@ -70,7 +70,7 @@ function lksKumpul(m){
  }).join('');
  return '<div class="stats"><div class="card"><span class="label">Terkumpul</span><b class="mono">'+rows.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div><div class="card"><span class="label">Perlu koreksi</span><b class="mono">'+belumK+'</b></div></div>'+chips+
   (list||'<div class="card muted">Belum ada pengumpulan untuk LKPD ini.</div>')+
-  lkBelumHtml(tdk);
+  '<section class="card"><h3>Belum mengumpulkan ('+tdk.length+')</h3>'+(tdk.length?'<p class="note">'+tdk.map(function(u){return lkEsc(u.nama)}).join(', ')+'</p>':'<p class="muted">Semua siswa kelas ini sudah mengumpulkan, atau data siswa belum tersedia.</p>')+'</section>';
 }
 function lksAnalisis(m){
  LKA.id=m.id;

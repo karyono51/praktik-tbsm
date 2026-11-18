@@ -78,28 +78,9 @@ function lkaView(){
  h+='<section class="card"><h3>Perlu remedial (nilai di bawah '+s.kk+')</h3>'+(s.low.length?s.low.map(function(x){return '<div class="row sb"><span>'+lkEsc(x.r.siswa||'-')+'</span><b class="mono">'+x.r.score+'</b></div>'}).join(''):'<p class="muted">Semua siswa mencapai KKM.</p>')+'</section>'+lkaBelum(s);
  return h;
 }
-/* Daftar siswa yang belum mengumpulkan: tabel No, NIS, Nama, Rombel/Kelas (dipakai juga oleh lkpd-staff.js). */
-function lkBelumRombel(u){
- try{
-  var pm=typeof akAnggotaPeta==='function'?akAnggotaPeta():{},id=pm[u.id];
-  if(id){var k=AKD.D.kelas.filter(function(x){return x.id===id})[0];if(k&&k.nama)return String(k.nama)}
- }catch(e){}
- return String(u.kelas||'')
+function lkaBelum(s){
+ return '<section class="card"><h3>Belum mengumpulkan ('+s.belum.length+')</h3>'+(s.belum.length?'<p class="note">'+s.belum.map(function(u){return lkEsc(u.nama)}).join(', ')+'</p>':'<p class="muted">Semua siswa kelas ini sudah mengumpulkan, atau data siswa belum tersedia.</p>')+'</section>';
 }
-function lkBelumNis(u){try{return typeof akNis==='function'?akNis(u):''}catch(e){return ''}}
-function lkBelumRows(list){
- return list.map(function(u){return {nis:lkBelumNis(u),nama:String(u.nama||''),rombel:lkBelumRombel(u)}}).sort(function(a,b){
-  if(!a.nis!==!b.nis)return a.nis?-1:1;
-  return String(a.nis).localeCompare(String(b.nis),'id',{numeric:true})||a.nama.localeCompare(b.nama,'id')})
-}
-function lkBelumHtml(list){
- var r=lkBelumRows(list);
- return '<section class="card"><h3>Belum mengumpulkan ('+r.length+')</h3>'+(r.length?
-  '<div class="bm-wrap"><table class="bm-tbl"><thead><tr><th class="bm-no">No</th><th>NIS</th><th>Nama</th><th>Rombel/Kelas</th></tr></thead><tbody>'+
-  r.map(function(x,i){return '<tr><td class="bm-no">'+(i+1)+'</td><td class="mono">'+(x.nis?lkEsc(x.nis):'-')+'</td><td>'+lkEsc(x.nama)+'</td><td>'+(x.rombel?lkEsc(x.rombel):'-')+'</td></tr>'}).join('')+
-  '</tbody></table></div>':'<p class="muted">Semua siswa kelas ini sudah mengumpulkan, atau data siswa belum tersedia.</p>')+'</section>';
-}
-function lkaBelum(s){return lkBelumHtml(s.belum)}
 function lkaXls(){
  if(typeof needX==='function'&&!needX())return;
  var m=LKPD_MODULES.find(function(x){return x.id===LKA.id});if(!m)return;
@@ -109,7 +90,7 @@ function lkaXls(){
  add('Soal',[['No','Tipe','Soal','% benar','Tidak dijawab','Daya beda','Ket. daya beda']].concat(s.qs.map(function(x){return [x.i+1,x.t,String(x.q.q||''),x.pct,x.na,x.db===undefined||x.db===null?'':+x.db.toFixed(3),x.dbk||'']})));
  add('Langkah',[['Jenis','No','Butir','% terpenuhi']].concat(
   s.steps.map(function(x){return ['Langkah',x.i+1,x.name,x.pct]}),s.safe.map(function(x){return ['K3',x.i+1,x.name,x.pct]}),s.checks.map(function(x){return ['Komponen',x.i+1,x.name,x.pct]}),[['Analisis','','Bukti, penyebab, kesimpulan',s.ana]]));
- add('Siswa',[['Nama','Nilai','Praktik','Teori','Status','Tanggal']].concat(s.recs.slice().sort(function(a,b){return a.r.score-b.r.score}).map(function(x){return [x.r.siswa||'',x.r.score,x.r.practice||0,x.r.theory||0,x.r.score>=s.kk?'Kompeten':'Belum kompeten',tgl(x.r.ts)]}),[[],['Belum mengumpulkan'],['No','NIS','Nama','Rombel/Kelas']],lkBelumRows(s.belum).map(function(x,i){return [i+1,x.nis,x.nama,x.rombel]})));
+ add('Siswa',[['Nama','Nilai','Praktik','Teori','Status','Tanggal']].concat(s.recs.slice().sort(function(a,b){return a.r.score-b.r.score}).map(function(x){return [x.r.siswa||'',x.r.score,x.r.practice||0,x.r.theory||0,x.r.score>=s.kk?'Kompeten':'Belum kompeten',tgl(x.r.ts)]}),[[],['Belum mengumpulkan']],s.belum.map(function(u){return [u.nama]})));
  dl(wb,'Analisis_'+String(m.id).replace(/[^A-Za-z0-9_-]/g,''));
 }
 

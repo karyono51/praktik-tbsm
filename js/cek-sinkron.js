@@ -145,7 +145,7 @@ function viewSinkron(){
   });
   h+='<p class="note">Diperiksa '+ckWaktu(r.ts)+'.'+(staff?' Guru hanya melihat dokumen yang boleh dibacanya, jadi jumlah server untuk akun guru bisa lebih kecil daripada milik admin.':' Hanya data milik Anda yang dibandingkan.')+'</p>';
  }
- if(staff){
+ if(ckAdmin()){
   var dv=CK.drv;
   h+='<section class="card"><div class="row sb"><b>Foto bukti (Google Drive)</b>'+(dv?'<span class="pill '+(dv.ok?'ok':'bad')+'">'+(dv.ok?'Siap':'Bermasalah')+'</span>':'')+'</div>'+
    '<p class="note">'+(dv?esc(dv.msg)+' ('+ckWaktu(dv.ts)+')':'Periksa bahwa fungsi foto-drive terpasang, token Google masih berlaku, dan folder Drive bisa dibuka.')+'</p>'+
@@ -154,11 +154,13 @@ function viewSinkron(){
  if(staff)h+='<p class="note">Cara memastikan data muncul di perangkat lain: masuk di perangkat kedua dengan akun yang sama (atau akun admin), tekan Segarkan data, lalu buka halaman ini dan cocokkan jumlah Observasi di server.</p>';
  return h;
 }
+/* Tes foto Drive memeriksa token Google dan folder penyimpanan sekolah: urusan admin, guru tidak bisa memperbaikinya */
+function ckAdmin(){return !!S.user&&actRole()==='admin'}
 document.addEventListener('click',async function(e){
  var b=e.target.closest('[data-act^="ck-"]');if(!b)return;var a=b.dataset.act;
  if(a==='ck-run')ckPeriksa();
  else if(a==='ck-drive'){
-  if(CK.drvBusy)return;
+  if(CK.drvBusy||!ckAdmin())return;
   if(navigator.onLine===false){toast('Offline: tes Drive butuh internet');return}
   if(typeof ldCall!=='function'){toast('Modul foto belum siap');return}
   CK.drvBusy=true;render();

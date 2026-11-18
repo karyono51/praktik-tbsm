@@ -19,7 +19,7 @@ function actRole(){return S.act||(S.user?roleList(S.user)[0]:'siswa')}
 function setAct(r){S.act=r;S.role=r;try{localStorage.setItem('tbsm-act-'+S.user.id,r)}catch(e){}}
 function can(p){return !!S.user&&PERM[actRole()].indexOf(p)>-1}
 function kelasBoleh(){var ks=Object.keys(KELAS);if(!S.user||actRole()!=='siswa'||hasRole(S.user,'admin'))return ks;return ks.indexOf(S.user.kelas)>-1?[S.user.kelas]:ks}
-function isStaff(){return !!S.user&&actRole()!=='siswa'&&actRole()!=='proktor'}
+function isStaff(){return !!S.user&&actRole()!=='siswa'}
 function syncRoster(){S.roster=S.users.filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false&&schAkunOk(u)}).map(function(u){return {id:u.id,nama:u.nama,kelas:u.kelas}})}
 function visibleResults(){if(!isStaff())return S.results.filter(function(r){return r.sid===S.user.id});var m=schPeta();return S.results.filter(function(r){return schHasilOk(r,m)})}
 function lastFor(id){return visibleResults().filter(function(x){return x.jobId===id}).sort(function(a,b){return b.ts-a.ts})[0]}
@@ -65,7 +65,7 @@ var Cloud={on:CLOUD_ON,busy:false,
   await this.db.createDocument(CFG.DB,'akun',p.id,pick(p,FA));p.r=1;return p},
  enter:async function(me){var p=await this.resolve(me);this.authId=me.$id;try{localStorage.setItem('tbsm-auth',JSON.stringify({sid:p.id,auth:me.$id}))}catch(e){}if(p.aktif===false){await this.logout();throw new Error('Akun dinonaktifkan. Hubungi admin.')}
   S.user=p;S.users=[p];
-  if(roleList(p).some(function(r){return r!=='siswa'&&r!=='proktor'})){var pr=await Promise.all([this.list('akun'),this.list('hasil'),this.list('lkpd'),loadLKPDModuleDocs(this)]);S.users=pr[0].map(fromDoc);S.results=pr[1].map(fromDoc);S.lkpd=pr[2].map(fromDoc);S.lkpdModules=pr[3]}
+  if(roleList(p).some(function(r){return r!=='siswa'})){var pr=await Promise.all([this.list('akun'),this.list('hasil'),this.list('lkpd'),loadLKPDModuleDocs(this)]);S.users=pr[0].map(fromDoc);S.results=pr[1].map(fromDoc);S.lkpd=pr[2].map(fromDoc);S.lkpdModules=pr[3]}
   else {var qs=[Appwrite.Query.equal('sid',[p.id])],ps=await Promise.all([this.list('hasil',qs),this.list('lkpd',qs),loadLKPDModuleDocs(this)]);S.results=ps[0].map(fromDoc);S.lkpd=ps[1].map(fromDoc);S.lkpdModules=ps[2]}
   enter(S.users.find(function(u){return u.id===p.id})||p)},
  flush:async function(){

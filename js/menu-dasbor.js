@@ -23,11 +23,11 @@
  /* Kelompok menurut urutan tampil. keys/pre: pengenal data-v baris; post: baris yang ditaruh setelah baris berawalan pre. */
  function groups(staff,admin){
   return [
-   {key:'home',label:'',ic:null,keys:['beranda','ruangujian','akd-guru']},
+   {key:'home',label:'',ic:null,keys:['beranda','akd-guru']},
    {key:'ajar',label:staff?'Pembelajaran':'Pembelajaran kelas saya',ic:'kelas',pre:['lkpd:','kelas:'],post:['nilai-akhir-ukk']},
    {key:'uji',label:staff?'Ujian dan nilai':'Ujian, nilai, dan acuan',ic:'menu',keys:staff?['banksoal','cbtonline','riwayatlatihan','rekap','kompetensi']:['banksoal','cbtonline','rekap','kompetensi','acuan']},
    {key:'obs',label:'Supervisi',ic:'observasi',keys:['observasi','observasi-siswa','observasi-ukk']},
-   {key:'sys',label:'Pengaturan',ic:'menu',keys:['acuan','akun','hapusnilai','logaudit','sinkron']},
+   {key:'sys',label:'Pengaturan',ic:'menu',keys:['acuan','akun','hapusnilai','sinkron']},
    {key:'app',label:'Akun dan aplikasi',ic:'keluar',keys:['gantisandi','segarkan','perbarui'],compact:true},
    {key:'keluar',label:'',ic:null,keys:['keluar'],compact:true}
   ];
@@ -42,7 +42,6 @@
  var sessionClosed={},lastCur='';
  function tidy(){
   var sb=document.querySelector('#drawer .sbody');if(!sb||sb.getAttribute('data-tidy')==='1'||!S.user)return;
-  try{if(typeof pkMenu==='function')pkMenu(sb)}catch(e){}
   var rows=[].slice.call(sb.querySelectorAll('.srow'));if(!rows.length)return;
   var brand=sb.querySelector('.sbrand'),prof=sb.querySelector('.sprofile');
   var staff=isStaff(),G=groups(staff,typeof can==='function'&&can('akun')),used=[],out=[];

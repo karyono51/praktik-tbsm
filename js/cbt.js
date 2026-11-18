@@ -38,18 +38,7 @@
 
  /* ---------- Panggilan fungsi server ---------- */
  function lomba(p,ms){return new Promise(function(res,rej){var t=setTimeout(function(){var e=new Error('Waktu tunggu habis');e.code=408;rej(e)},ms);p.then(function(v){clearTimeout(t);res(v)},function(e){clearTimeout(t);rej(e)})})}
- /* Kode perangkat: acak, dibuat sekali per peramban, tanpa data pribadi. Server mengikat catatan ujian ke kode ini (lihat cekPerangkat di fungsi cbt). */
- var DEV_MEM='';
- function cbtDev(){
-  try{var d=localStorage.getItem('tbsm_dev');if(d&&/^[A-Za-z0-9_-]{12,64}$/.test(d))return d}catch(e){}
-  if(DEV_MEM)return DEV_MEM;
-  var a=new Uint8Array(18);try{crypto.getRandomValues(a)}catch(e){for(var i=0;i<a.length;i++)a[i]=Math.floor(Math.random()*256)}
-  var d2='';for(var j=0;j<a.length;j++)d2+=(a[j]+256).toString(16).slice(1);
-  DEV_MEM=d2;try{localStorage.setItem('tbsm_dev',d2)}catch(e){}
-  return d2;
- }
  window.cbtFn=async function(body){
-  if(body&&!body.dev&&(body.action==='mulai'||body.action==='simpan'||(body.action==='kirim'&&body.mode!=='latihan')))body=Object.assign({dev:cbtDev()},body);
   var cl=(Cloud.acc&&Cloud.acc.client)||new Appwrite.Client().setEndpoint(CFG.APPWRITE_ENDPOINT).setProject(CFG.APPWRITE_PROJECT);
   var t0=Date.now(),ex;
   try{ex=await lomba(new Appwrite.Functions(cl).createExecution(CFG.FN_CBT||'cbt',JSON.stringify(body),false,'/','POST',{'content-type':'application/json'}),25000)}

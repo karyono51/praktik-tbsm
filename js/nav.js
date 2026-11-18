@@ -47,7 +47,7 @@ function navApply(u){
 /* ---- Segarkan data dari Appwrite tanpa pindah halaman ---- */
 if(Cloud.on){
  Cloud.refresh=async function(){
-  var p=S.user,Q=Appwrite.Query,staff=roleList(p).some(function(r){return r!=='siswa'&&r!=='proktor'});
+  var p=S.user,Q=Appwrite.Query,staff=roleList(p).some(function(r){return r!=='siswa'});
   var res,lk,mods,obs=null,us=null,qs=[Q.equal('sid',[p.id])];
   /* semua koleksi dimuat bersamaan (dulu satu per satu) */
   if(staff){var r=await Promise.all([this.list('akun'),this.list('hasil'),this.list('lkpd'),loadLKPDModuleDocs(this),loadObsDocs(this)]);us=r[0].map(fromDoc);res=r[1].map(fromDoc);lk=r[2].map(fromDoc);mods=r[3];obs=r[4]}
