@@ -669,7 +669,7 @@ function bsFormRead(){
 function bsViewForm(){
  var f=BS.form,mp=bsMapelList(),h='<div class="row"><button type="button" class="btn small" data-bs="batalform">Batal</button><h2>'+(f.id?'Ubah soal':'Soal baru')+'</h2></div><div class="card">';
  h+='<div class="seg bs4">'+Object.keys(BS_TIPE).map(function(t){return '<button type="button" data-bs="ftipe" data-v="'+t+'" aria-pressed="'+(f.tipe===t)+'">'+BS_TIPE[t]+'</button>'}).join('')+'</div>';
- h+='<label class="f">Mata pelajaran<input id="bf-mapel" list="bf-mp" value="'+esc(f.mapel)+'" placeholder="Contoh: Dasar TBSM"><datalist id="bf-mp">'+mp.map(function(m){return '<option value="'+esc(m)+'">'}).join('')+'</datalist></label>';
+ h+='<label class="f">Mata pelajaran<span class="bf-mprow"><input id="bf-mapel" value="'+esc(f.mapel)+'" placeholder="Ketik mapel baru atau ketuk Pilih" autocomplete="off"><button type="button" class="btn" data-bs="pilmapel">Pilih</button></span></label>';
  h+='<label class="f">Topik (opsional)<input id="bf-topik" value="'+esc(f.topik)+'"></label>';
  h+='<div class="two"><label class="f">Kelas<select id="bf-kelas">'+[['','Semua kelas'],['X','Kelas X'],['XI','Kelas XI'],['XII','Kelas XII']].map(function(k){return '<option value="'+k[0]+'"'+(f.kelas===k[0]?' selected':'')+'>'+k[1]+'</option>'}).join('')+'</select></label>'+
   '<label class="f">Peruntukan<select id="bf-tujuan">'+Object.keys(BS_TUJ).map(function(t){return '<option value="'+t+'"'+(f.tujuan===t?' selected':'')+'>'+BS_TUJ[t]+'</option>'}).join('')+'</select></label></div>';

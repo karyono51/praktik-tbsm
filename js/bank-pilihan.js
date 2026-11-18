@@ -36,6 +36,30 @@
   document.body.appendChild(ov);
   var on=ov.querySelector('[aria-selected="true"]');if(on&&on.scrollIntoView)on.scrollIntoView({block:'center'});
  }
+ /* Mata pelajaran di form soal: kolom ketik bebas + tombol Pilih yang membuka daftar mapel (pengganti datalist bawaan yang sering kosong di Android) */
+ function bukaMapel(){
+  var inp=document.getElementById('bf-mapel');if(!inp)return;
+  tutup();
+  var list=(window.bsMapelList?bsMapelList():[]),cur=String(inp.value||'').trim(),opts=[],h='';
+  function it(m){opts.push(m);return '<button type=\"button\" class=\"bp-i\" role=\"option\" data-i=\"'+(opts.length-1)+'\" aria-selected=\"'+(m===cur)+'\">'+esc(m)+'</button>'}
+  if(window.bsMapelGrup)bsMapelGrup(list).forEach(function(g){h+='<div class=\"bp-g\">'+esc(g.judul)+'</div>'+g.items.map(it).join('')});
+  else h+=list.map(it).join('');
+  if(!list.length)h+='<p class=\"bp-g\">Belum ada mapel. Ketik nama mapel di kolomnya.</p>';
+  var ov=document.createElement('div');
+  ov.id='bp-ov';ov.className='ui-ov bp-ov';
+  ov.innerHTML='<div class=\"bp-sheet\" role=\"dialog\" aria-modal=\"true\" aria-label=\"Mata pelajaran\"><div class=\"bp-h\"><span>Mata pelajaran</span><button type=\"button\" class=\"bp-x\" data-u=\"x\">Tutup</button></div><div class=\"bp-l\" role=\"listbox\">'+h+'<button type=\"button\" class=\"bp-i bp-baru\" data-baru=\"1\">+ Ketik mapel baru</button></div></div>';
+  ov.addEventListener('click',function(e){
+   var t=e.target;
+   if(t===ov||(t.closest&&t.closest('.bp-x'))){tutup();return}
+   var b=t.closest&&t.closest('.bp-i');if(!b)return;
+   if(b.getAttribute('data-baru')){tutup();inp.focus();return}
+   var m=opts[+b.getAttribute('data-i')];tutup();
+   if(m!==undefined){inp.value=m;inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}))}
+  });
+  document.body.appendChild(ov);
+  var on=ov.querySelector('[aria-selected=\"true\"]');if(on&&on.scrollIntoView)on.scrollIntoView({block:'center'});
+ }
+ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-bs=\"pilmapel\"]');if(!b)return;e.preventDefault();e.stopPropagation();bukaMapel()},true);
  /* mencegah dialog bawaan, lalu membuka lembar sendiri */
  document.addEventListener('mousedown',function(e){if(cari(e))e.preventDefault()},true);
  document.addEventListener('click',function(e){var s=cari(e);if(!s)return;e.preventDefault();e.stopPropagation();buka(s)},true);

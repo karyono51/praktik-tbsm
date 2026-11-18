@@ -162,3 +162,8 @@ body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
 /* tombol Kembali dan aksi kecil pada layar latihan: sasaran ketuk minimal 40px */
 .row>.btn.small[data-bs=home]{min-height:40px;padding:0 16px;border-radius:12px}
 @media(min-width:720px){.lat-set{max-width:560px;margin-left:auto;margin-right:auto}}
+
+/* kolom Mata pelajaran di form soal: isian + tombol Pilih */
+.bf-mprow{display:flex;gap:8px;align-items:stretch}
+.bf-mprow input{flex:1;min-width:0}
+.bf-mprow .btn{flex:none;min-height:46px;padding:0 18px;border-radius:12px;font-weight:650}
