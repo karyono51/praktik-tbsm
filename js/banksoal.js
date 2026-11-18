@@ -550,12 +550,24 @@ function bsViewBank(){
 }
 /* Menu khusus guru/admin: riwayat latihan semua siswa (hasil ujian ada di CBT Online > Hasil) */
 BS.rl={q:'',kelas:'',mapel:'',n:20};
+/* filter Riwayat latihan siswa disimpan di perangkat agar tidak ter-reset setelah refresh */
+var BS_RLK='tbsm.rl.filter';
+function bsRlSimpan(){try{localStorage.setItem(BS_RLK,JSON.stringify({q:BS.rl.q,kelas:BS.rl.kelas,mapel:BS.rl.mapel}))}catch(e){}}
+(function(){try{var j=JSON.parse(localStorage.getItem(BS_RLK)||'null');if(j){BS.rl.q=String(j.q||'');BS.rl.kelas=String(j.kelas||'');BS.rl.mapel=String(j.mapel||'')}}catch(e){}})();
+/* rombel aktif (dari data Akademik) yang boleh dilihat akun ini; memicu pemuatan data bila belum ada */
+function bsRlRombel(){
+ if(!window.AKD||!AKD.D)return [];
+ if(!AKD.loaded&&!AKD.loading&&window.akLoad&&window.isStaff&&isStaff())akLoad();
+ var L=(AKD.D.kelas||[]).filter(function(k){return k.aktif!==false&&(!window.akOk||akOk(k))});
+ var seen={};return L.filter(function(k){if(seen[k.nama])return false;seen[k.nama]=1;return true}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id',{numeric:true})});
+}
 ICO.riwayatlatihan='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
 function bsRlRows(){
- var pm=schPeta(),f=BS.rl,q=String(f.q||'').trim().toLowerCase();
+ var pm=schPeta(),f=BS.rl,q=String(f.q||'').trim().toLowerCase(),rb=null;
+ if(f.kelas){var rk=bsRlRombel().filter(function(k){return k.nama===f.kelas})[0];if(rk){rb={};(rk.anggota||[]).forEach(function(id){rb[id]=1})}}
  return BS.D.hasil.filter(function(x){
   if(x.mode!=='latihan'||!schHasilOk(x,pm))return false;
-  if(f.kelas&&(x.kelas||'')!==f.kelas)return false;
+  if(f.kelas){if(rb){if(!rb[x.sid])return false}else if((x.kelas||'')!==f.kelas)return false}
   if(f.mapel&&bsJudul(x).indexOf(f.mapel)!==0)return false;
   if(q&&String(x.siswa||'').toLowerCase().indexOf(q)<0)return false;
   return true;
@@ -568,12 +580,19 @@ function bsRlList(){
   return '<div class="card"><div class="row sb"><span class="row"><span class="pill ok">Latihan</span><b>'+esc(x.siswa||'Tanpa nama')+'</b></span><b class="mono">'+x.score+'</b></div><div class="row sb"><span class="note">Kelas '+esc(x.kelas||'-')+' · '+esc(bsJudul(x))+'<br>'+bsWaktu(x.ts)+' · '+x.benar+' benar dari '+x.total+' · '+Math.max(1,Math.round((x.detik||0)/60))+' menit</span><button type="button" class="btn small" data-bs="detail" data-v="'+x.id+'">Detail</button></div></div>';
  }).join('')+(rows.length>mx?'<button type="button" class="btn" data-bs="rlmore">Tampilkan lebih banyak ('+(rows.length-mx)+' lagi)</button>':'');
 }
+function bsRlKelasSel(kl){
+ var f=BS.rl,rb=bsRlRombel(),nm={};rb.forEach(function(k){nm[k.nama]=1});
+ var tk=Object.keys(kl).filter(function(v){return !nm[v]}).sort();
+ if(f.kelas&&!nm[f.kelas]&&tk.indexOf(f.kelas)<0)tk.push(f.kelas);
+ var op=function(v){return '<option'+(f.kelas===v?' selected':'')+'>'+esc(v)+'</option>'};
+ return '<label class="f">Rombel/Kelas<select data-bs="rlf" data-k="kelas"><option value="">Semua</option>'+(rb.length?'<optgroup label="Rombel">'+rb.map(function(k){return op(k.nama)}).join('')+'</optgroup>':'')+(tk.length?'<optgroup label="'+(rb.length?'Tingkat kelas':'Kelas')+'">'+tk.map(op).join('')+'</optgroup>':'')+'</select></label>';
+}
 function bsViewRiwayatLatihan(){
  var pm=schPeta(),f=BS.rl,all=BS.D.hasil.filter(function(x){return x.mode==='latihan'&&schHasilOk(x,pm)}),kl={},mp={};
  all.forEach(function(x){if(x.kelas)kl[x.kelas]=1;var m=bsJudul(x);if(m&&m!=='Latihan soal'&&m.indexOf(' + ')<0)mp[m]=1});
  bsMapelList().forEach(function(m){mp[m]=1});
  var sel=function(k,lab,o){return '<label class="f">'+lab+'<select data-bs="rlf" data-k="'+k+'"><option value="">Semua</option>'+(k==='mapel'?bsMapelOptHtml(Object.keys(o),f[k]):Object.keys(o).sort().map(function(v){return '<option'+(f[k]===v?' selected':'')+'>'+esc(v)+'</option>'}).join(''))+'</select></label>'};
- return '<div class="card"><label class="f">Cari nama siswa<input id="rl-q" type="search" value="'+esc(f.q)+'" placeholder="Nama siswa"></label><div class="two">'+sel('kelas','Kelas',kl)+sel('mapel','Mapel',mp)+'</div></div><div class="stack" id="rl-list">'+bsRlList()+'</div>';
+ return '<div class="card"><label class="f">Cari nama siswa<input id="rl-q" type="search" value="'+esc(f.q)+'" placeholder="Nama siswa"></label><div class="two">'+bsRlKelasSel(kl)+sel('mapel','Mapel',mp)+'</div></div><div class="stack" id="rl-list">'+bsRlList()+'</div>';
 }
 
 /* ---------- Guru: form soal ---------- */
@@ -1028,12 +1047,12 @@ document.addEventListener('change',function(e){
  else if(a==='flab'){bsFormRead();render()}
  else if(a==='flt'){BS.flt[t.dataset.k]=t.value;BS.flt.n=30;render()}
  else if(a==='hs'){BS.hs=t.value;render()}
- else if(a==='rlf'){BS.rl[t.dataset.k]=t.value;BS.rl.n=20;render()}
+ else if(a==='rlf'){BS.rl[t.dataset.k]=t.value;BS.rl.n=20;bsRlSimpan();render()}
 });
 document.addEventListener('input',function(e){
  var t=e.target;
  if(t.id==='bq-q'){BS.flt.q=t.value;BS.flt.n=30;bsRerenderList()}
- else if(t.id==='rl-q'){BS.rl.q=t.value;BS.rl.n=20;var rl=document.getElementById('rl-list');if(rl)rl.innerHTML=bsRlList()}
+ else if(t.id==='rl-q'){BS.rl.q=t.value;BS.rl.n=20;bsRlSimpan();var rl=document.getElementById('rl-list');if(rl)rl.innerHTML=bsRlList()}
  else if(t.id==='sf-q'&&BS.sf){BS.sf.q=t.value;bsSfManualRefresh()}
  else if(t.id==='sf-jumlah'&&BS.sf){BS.sf.jumlah=+t.value||0;var nn=document.getElementById('sf-note');if(nn)nn.innerHTML=bsSfNote(BS.sf)}
 });
