@@ -1029,7 +1029,7 @@ document.addEventListener('click',function(e){
  else if(a==='detail'){BS.res=v;BS.sub='detail';render();window.scrollTo(0,0)}
  else if(a==='latsetup'){BS.sub='latsetup';render()}
  else if(a==='rlmore'){BS.rl.n=(BS.rl.n||20)+20;render()}
- else if(a==='latn'){BS.lat.n=+v;render()}
+ else if(a==='latn'){var lm=document.getElementById('bl-mapel'),lt=document.getElementById('bl-tipe');if(lm)BS.lat.mapel=lm.value;if(lt)BS.lat.tipe=lt.value;BS.lat.n=+v;render()}
  else if(a==='latmulai'){
   var m=document.getElementById('bl-mapel'),t=document.getElementById('bl-tipe');if(m)BS.lat.mapel=m.value;if(t)BS.lat.tipe=t.value;
   var run=bsMake('latihan',null,BS.lat);if(!run.ids.length){toast('Tidak ada soal untuk pilihan ini');return}bsStartRun(run);
@@ -1113,6 +1113,7 @@ document.addEventListener('change',function(e){
   var ix=BS.sf.ids.indexOf(t.value);if(t.checked&&ix<0)BS.sf.ids.push(t.value);else if(!t.checked&&ix>-1)BS.sf.ids.splice(ix,1);
   var n=document.getElementById('sf-n');if(n)n.innerHTML=bsSfManualInfo(BS.sf);return;
  }
+ if(t.id==='bl-mapel'||t.id==='bl-tipe'){BS.lat[t.id==='bl-mapel'?'mapel':'tipe']=t.value;render();return}
  if(t.id==='sf-pilih'||t.id==='sf-kelas'){bsSfRead();render();return}
  if((t.id==='sf-mf'||t.id==='sf-tf')&&BS.sf){BS.sf[t.id==='sf-mf'?'mf':'tf']=t.value;bsSfManualRefresh();return}
  var a=t.dataset&&t.dataset.bs;if(!a)return;
