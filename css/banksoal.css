@@ -102,6 +102,7 @@ body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
 .ex-q .bs-opt{min-height:54px;padding:12px 14px;border-radius:14px;font-size:calc(16px + var(--exfs));align-items:center;touch-action:manipulation}
 .ex-q .bs-opt .ltr{width:32px;height:32px;border-radius:10px;font-size:14px}
 .ex-q .bs-opt:not(.small)[aria-pressed=true]{box-shadow:inset 0 0 0 1px var(--accent)}
+.ex-q .bs-opt:not(.small)[aria-pressed=true]::after{content:"";flex:none;margin-left:auto;width:16px;height:9px;border-left:3px solid var(--accent);border-bottom:3px solid var(--accent);transform:rotate(-45deg) translateY(-2px)}
 .ex-q .bs-opt.small{justify-content:center;min-height:50px;font-size:16px;font-weight:650}
 .ex-q .bs-opt.small[aria-pressed=true]{background:var(--accent);color:var(--onc);border-color:var(--accent)}
 .ex-q .bs-kr{padding:14px;gap:12px;border-radius:14px}
@@ -127,9 +128,8 @@ body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
 @media(min-width:720px){.ex-q,.ex-top .ex-bar,.ex-nav{max-width:760px;margin-left:auto;margin-right:auto}}
 
 /* lembar pilihan filter Bank soal (js/bank-pilihan.js): huruf sama dengan kartu filter */
-/* .ui-ov dari dialog.js disuntik belakangan (align-items:center; padding:18px), jadi selektor digandakan agar menang */
-.ui-ov.bp-ov{align-items:flex-end;padding:12px 12px calc(12px + env(safe-area-inset-bottom))}
-.ui-ov.bp-ov .bp-sheet{width:min(100%,560px);max-height:70vh;max-height:70dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:20px;box-shadow:0 14px 40px -12px rgba(0,0,0,.4)}
+.bp-ov{align-items:flex-end;padding:0}
+.bp-sheet{width:min(100%,560px);max-height:70vh;display:flex;flex-direction:column;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -14px 40px -12px rgba(0,0,0,.4);padding-bottom:env(safe-area-inset-bottom)}
 .bp-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px;font-weight:500;color:var(--muted)}
 .bp-x{border:0;background:none;color:var(--accent);font:inherit;font-weight:600;padding:4px 8px}
 .bp-l{overflow-y:auto;overscroll-behavior:contain;padding:6px 8px 10px}
@@ -137,10 +137,13 @@ body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
 .bp-i{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;padding:10px 12px;border-radius:10px}
 .bp-i[aria-selected=true]{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .bp-i:disabled{opacity:.5}
+/* label mapel/modul yang panjang tidak lagi terpotong: turun baris di dalam kartu */
+.card .row .pill{max-width:100%;white-space:normal;line-height:1.3}
 
-/* PG kompleks: pilihan berupa form ceklis (kotak centang di kiri, tanpa huruf A-E); PG biasa tetap huruf */
-.bs-opts .bs-opt.cb .ltr{width:28px;height:28px;border-radius:7px;border:2px solid var(--muted);background:var(--surface) center/18px 18px no-repeat;font-size:0}
-.bs-opts .bs-opt.cb[aria-pressed=true] .ltr{border-color:var(--accent);background-color:var(--accent);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-.bs-opts .bs-opt.cb.ok .ltr{border-color:var(--ok)}
-.bs-opts .bs-opt.cb.bad .ltr{border-color:var(--bad)}
-.bs-opts .bs-opt.cb:not(.small)[aria-pressed=true]::after{content:none}
+/* Pantau: nama panjang tidak mendorong label status ke baris bawah */
+#pn-body .row.sb{flex-wrap:nowrap;align-items:flex-start}#pn-body .row.sb>b{min-width:0;overflow-wrap:anywhere}#pn-body .row.sb>.pill{flex:none}
+
+/* Form sesi: chip mapel lebih rapat, opsi token bersarang di bawah "Wajib token" */
+.card .chips button[data-bs="sfmapel"]{padding:6px 12px;font-size:13px;min-height:0;line-height:1.3}
+.bs-sub{display:grid;gap:10px;margin:2px 0 4px 30px;padding-left:12px;border-left:2px solid var(--line)}
+.bs-sub[hidden]{display:none}
