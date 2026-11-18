@@ -13,7 +13,7 @@ window.rgOf=function(s,uid){var l=rgList(s);for(var i=0;i<l.length;i++)if(l[i].s
 /* siswa terdaftar untuk sesi (kelas dan sekolah) */
 window.rgRoster=function(s){
  if(Array.isArray(s.pes)){   /* daftar tetap: persis siswa di daftar, urut kelas lalu nama */
-  var ps={};s.pes.forEach(function(x){ps[x]=1});
+  var ps={};s.pes.forEach(function(x){if(x)ps[x]=1});
   return S.users.filter(function(u){return ps[u.id]}).sort(function(a,b){return String(a.kelas||'').localeCompare(String(b.kelas||''),'id')||String(a.nama).localeCompare(String(b.nama),'id')});
  }
  return rgDinamis(s);
@@ -25,6 +25,14 @@ window.rgDinamis=function(s){
   var sk=String(s.sekolah||'').toUpperCase(),uk=String(u.sekolah||'').toUpperCase();
   return !(sk&&uk&&uk!=='ALL'&&sk!==uk);
  }).sort(function(a,b){return String(a.kelas||'').localeCompare(String(b.kelas||''),'id')||String(a.nama).localeCompare(String(b.nama),'id')});
+};
+/* nomor peserta dari daftar tetap: awalan + urutan, celah ('') dijaga agar nomor tidak bergeser */
+window.rgNomor=function(s,uid){
+ if(!s||!s.nomor||!Array.isArray(s.pes))return '';
+ var ix=s.pes.indexOf(uid);if(ix<0)return '';
+ var n=s.nomor,d=Math.max(2,Math.min(5,+n.d||3)),a=+n.a||1,v=String(a+ix);
+ while(v.length<d)v='0'+v;
+ return String(n.p||'').slice(0,16)+v;
 };
 window.rgLabel=function(r){return r?String(r.nama||'Ruang')+(r.gel?' · gelombang '+r.gel:''):''};
 function pkNama(id){var u=S.users.filter(function(x){return x.id===id})[0];return u?u.nama:''}
@@ -86,6 +94,17 @@ function man(f){
  return h+'</div>'+(ros.length>lm?'<p class="note">Menampilkan '+lm+' dari '+ros.length+'. Persempit dengan pencarian.</p>':'');
 }
 /* ---------- Daftar peserta tetap ---------- */
+function pesN(f){return f.pes.filter(Boolean).length}
+function nomorBox(f){
+ var n=f.nomor,h='<label class="bs-ck"><input type="checkbox" data-rgf="nomor-on"'+(n?' checked':'')+'> Beri nomor peserta</label>';
+ if(n){
+  var ct=rgNomor({nomor:n,pes:[1]},1);
+  h+='<div class="two"><label class="f">Awalan<input data-rgf="nomor-p" value="'+e(n.p||'')+'" maxlength="16" placeholder="26-TSM-"></label><label class="f">Digit<input data-rgf="nomor-d" type="number" inputmode="numeric" min="2" max="5" value="'+(n.d||3)+'"></label></div>'+
+   '<label class="f">Mulai dari<input data-rgf="nomor-a" type="number" inputmode="numeric" min="0" value="'+(n.a||1)+'"></label>'+
+   '<p class="note" id="nomor-ct">Contoh nomor pertama: <b class="mono">'+e(ct)+'</b>. Nomor mengikuti urutan di daftar tetap (kelas lalu nama saat dibekukan). Siswa susulan mendapat nomor berikutnya, dan siswa yang dikeluarkan meninggalkan nomor kosong supaya nomor lain tidak berubah.</p>';
+ }
+ return h;
+}
 function pesInner(f){
  var tetap=Array.isArray(f.pes),din=rgDinamis(f),h='';
  if(!tetap){
@@ -93,11 +112,11 @@ function pesInner(f){
    '<div class="row"><button type="button" class="btn small primary" data-rg="beku">Bekukan daftar sekarang</button></div>';
  }
  var ada={};f.pes.forEach(function(x){ada[x]=1});var dd={};din.forEach(function(u){dd[u.id]=1});
- var baru=din.filter(function(u){return !ada[u.id]}).length,hilang=f.pes.filter(function(x){return !dd[x]}).length;
- h+='<p class="note">Daftar tetap: <b class="mono">'+f.pes.length+'</b> siswa, dibekukan '+(f.pesTs?bsWaktu(f.pesTs):'')+'. Dibanding kelas sekarang: '+baru+' siswa baru di kelas, '+hilang+' tidak lagi cocok dengan kelas/sekolah. Hanya siswa di daftar yang bisa mulai ujian.</p>';
+ var baru=din.filter(function(u){return !ada[u.id]}).length,hilang=f.pes.filter(function(x){return x&&!dd[x]}).length;
+ h+='<p class="note">Daftar tetap: <b class="mono">'+pesN(f)+'</b> siswa, dibekukan '+(f.pesTs?bsWaktu(f.pesTs):'')+'. Dibanding kelas sekarang: '+baru+' siswa baru di kelas, '+hilang+' tidak lagi cocok dengan kelas/sekolah. Hanya siswa di daftar yang bisa mulai ujian.</p>';
  h+='<div class="row"><button type="button" class="btn small" data-rg="pesman">'+(f.pesMan?'Tutup kelola daftar':'Tambah atau keluarkan siswa')+'</button><button type="button" class="btn small" data-rg="segar">Perbarui dari kelas</button><button type="button" class="btn small danger" data-rg="lepas">Lepas pembekuan</button></div>';
  if(f.pesMan)h+='<div id="pes-man">'+pesMan(f)+'</div>';
- return h;
+ return h+nomorBox(f);
 }
 function pesMan(f){
  var q=String(f.pesQ||'').toLowerCase().trim(),ada={};f.pes.forEach(function(x){ada[x]=1});
@@ -121,7 +140,7 @@ document.addEventListener('click',async function(ev){
  ev.preventDefault();
  if(a==='beku'){f.pes=rgDinamis(f).map(function(u){return u.id});f.pesTs=Date.now();repaint();toast('Daftar dibekukan: '+f.pes.length+' siswa. Simpan sesi untuk menyimpannya.')}
  else if(a==='segar'){
-  if(!(await uiConfirm('Ganti daftar tetap dengan daftar kelas saat ini? Siswa susulan yang ditambah manual hilang, dan siswa yang sudah ditempatkan di ruang tapi tidak lagi di daftar dikeluarkan dari ruang.',{ok:'Perbarui'})))return;
+  if(!(await uiConfirm('Ganti daftar tetap dengan daftar kelas saat ini? Nomor peserta ikut dihitung ulang. Siswa susulan yang ditambah manual hilang, dan siswa yang sudah ditempatkan di ruang tapi tidak lagi di daftar dikeluarkan dari ruang.',{ok:'Perbarui'})))return;
   f.pes=rgDinamis(f).map(function(u){return u.id});f.pesTs=Date.now();var ok={};f.pes.forEach(function(x){ok[x]=1});R.forEach(function(r){r.sis=r.sis.filter(function(x){return ok[x]})});repaint();
  }else if(a==='lepas'){
   if(!(await uiConfirm('Lepas pembekuan? Daftar peserta kembali dihitung dari kelas dan sekolah.',{ok:'Lepas'})))return;
@@ -156,12 +175,18 @@ function ubah(ev){
  else if(k==='s'&&r)r.s=ts(t.value);
  else if(k==='q'){f.rgQ=t.value;var b=document.getElementById('rg-man');if(b)b.innerHTML=man(f);var q=document.querySelector('[data-rgf="q"]');if(q){q.focus();try{q.setSelectionRange(q.value.length,q.value.length)}catch(x){}}return}
  else if(k==='pesq'){f.pesQ=t.value;var pm=document.getElementById('pes-man');if(pm){pm.innerHTML=pesMan(f);var q2=document.querySelector('[data-rgf="pesq"]');if(q2){q2.focus();try{q2.setSelectionRange(q2.value.length,q2.value.length)}catch(x){}}}return}
+ else if(k==='nomor-on'){f.nomor=t.checked?(f.nomor||{p:'',d:3,a:1}):null;repaint();return}
+ else if(k==='nomor-p'||k==='nomor-d'||k==='nomor-a'){
+  f.nomor=f.nomor||{p:'',d:3,a:1};
+  if(k==='nomor-p')f.nomor.p=t.value.replace(/[^A-Za-z0-9\-\/.]/g,'').slice(0,16);else if(k==='nomor-d')f.nomor.d=Math.max(2,Math.min(5,+t.value||3));else f.nomor.a=Math.max(0,+t.value||1);
+  var ctn=document.getElementById('nomor-ct');if(ctn)ctn.innerHTML='Contoh nomor pertama: <b class="mono">'+e(rgNomor({nomor:f.nomor,pes:[1]},1))+'</b>. Nomor mengikuti urutan di daftar tetap.';return;
+ }
  else if(k==='pes'){
   var u2=t.dataset.u,in2=f.pes.indexOf(u2)>-1;
   if(t.checked&&!in2)f.pes.push(u2);
-  else if(!t.checked&&in2){f.pes=f.pes.filter(function(x){return x!==u2});R.forEach(function(x){x.sis=x.sis.filter(function(id){return id!==u2})})}
+  else if(!t.checked&&in2){if(f.nomor)f.pes[f.pes.indexOf(u2)]='';else f.pes=f.pes.filter(function(x){return x!==u2});R.forEach(function(x){x.sis=x.sis.filter(function(id){return id!==u2})})}
   var pb=document.getElementById('pes-box');
-  if(pb){var ps=pb.querySelector('p.note');if(ps)ps.innerHTML='Daftar tetap: <b class="mono">'+f.pes.length+'</b> siswa';}
+  if(pb){var ps=pb.querySelector('p.note');if(ps)ps.innerHTML='Daftar tetap: <b class="mono">'+pesN(f)+'</b> siswa';}
   return;
  }
  else if(k==='sis'){

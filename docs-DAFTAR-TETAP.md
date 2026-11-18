@@ -21,3 +21,12 @@ Tanpa pembekuan, daftar peserta sesi dihitung dari kelas dan sekolah akun setiap
 - Daftar disimpan di dalam sesi (batas sekitar 17.000 karakter bersama penempatan ruang dan soal manual). Untuk ratusan siswa, pakai beberapa sesi.
 - Id siswa di dalam sesi terbaca oleh peramban siswa, hanya berupa id akun tanpa nama.
 - Perubahan fungsi server: deploy ulang `akun-admin`.
+
+## Nomor peserta
+Aktif setelah daftar dibekukan: centang **Beri nomor peserta** di bagian Daftar peserta.
+- Format: awalan + urutan, misalnya awalan `26-TSM-`, 3 digit, mulai 1 menjadi `26-TSM-001`, `26-TSM-002`, dan seterusnya. Pratinjau nomor pertama tampil di formulir.
+- Urutan mengikuti daftar tetap (kelas lalu nama saat dibekukan). Siswa susulan mendapat nomor berikutnya.
+- Siswa yang dikeluarkan meninggalkan nomor kosong, jadi nomor siswa lain tidak bergeser. Membekukan ulang atau memakai Perbarui dari kelas menghitung ulang semua nomor, jadi lakukan sebelum kartu dicetak.
+- Nomor tampil di kartu peserta (bersama username), daftar hadir, Pantau guru, dan Ruang ujian proktor.
+- Nomor tidak dipakai untuk login dan tidak mengubah siapa yang boleh ikut.
+- Perubahan fungsi server: deploy ulang `akun-admin`.

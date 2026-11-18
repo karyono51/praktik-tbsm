@@ -295,6 +295,11 @@ function sesiBoleh(s, akun, now) {
 function ruangList(s) { return Array.isArray(s.ruang) ? s.ruang.filter((r) => r && Array.isArray(r.sis)) : []; }
 function ruangSiswa(s, sid) { return ruangList(s).find((r) => r.sis.includes(sid)) || null; }
 function ruangSaya(s, me) { return ruangList(s).filter((r) => r.pk && r.pk === me.akun.$id); }
+/* nomor peserta: awalan + urutan di daftar tetap (indeks + mulai), diisi nol sebanyak d digit. Siswa yang dikeluarkan meninggalkan celah ('' di daftar) supaya nomor lain tidak bergeser. */
+function nomorPeserta(s, ix) {
+  const n = s.nomor || {}, d = Math.max(2, Math.min(5, Number(n.d) || 3)), a = Number(n.a) || 1;
+  return String(n.p || '').slice(0, 16) + String(a + ix).padStart(d, '0');
+}
 function wajibRuangnya(s, me, sid) {
   if (me.staff || !ruangList(s).length) return;
   const r = ruangSiswa(s, sid); if (!r || r.pk !== me.akun.$id) throw new Fail('Siswa ini bukan di ruangmu.', 403);
@@ -644,7 +649,8 @@ async function rosterSesi(s) {
   if (Array.isArray(s.pes)) {   // daftar tetap: akun dibaca per id (nama terkini), akun yang sudah dihapus dilewati
     const k = 'P|' + s.id + '|' + s.pes.length + '|' + (s.pesTs || 0), c0 = memGet(memo.ros, k, 30000); if (c0) return c0;
     const docs = [];
-    for (let i = 0; i < s.pes.length; i += 50) docs.push(...await listDocs('akun', [Q.equal('$id', s.pes.slice(i, i + 50))]));
+    const idp = s.pes.filter(Boolean);   // '' = nomor peserta yang dikosongkan
+    for (let i = 0; i < idp.length; i += 50) docs.push(...await listDocs('akun', [Q.equal('$id', idp.slice(i, i + 50))]));
     const r0 = docs.map((a) => ({ id: a.$id, nama: String(a.nama || ''), kelas: a.kelas || '' })).sort((x, y) => x.nama.localeCompare(y.nama, 'id'));
     return memSet(memo.ros, k, r0, 200);
   }
@@ -670,6 +676,7 @@ async function pantau(me, body) {
   const batas = Number(s.batas) || 0;
   const peserta = ros.map((a) => {
     const run = by[a.id], o = { sid: a.id, nama: a.nama, kelas: a.kelas, k: 'belum' };
+    if (s.nomor && Array.isArray(s.pes)) { const ix = s.pes.indexOf(a.id); if (ix > -1) o.no = nomorPeserta(s, ix); }
     if (rmap[a.id]) { o.ruang = String(rmap[a.id].nama || ''); o.gel = String(rmap[a.id].gel || ''); }
     if (!run) return o;
     o.rid = run.$id;

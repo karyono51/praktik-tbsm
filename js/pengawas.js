@@ -76,7 +76,7 @@ function ruBody(){
    if(p.k==='on'||p.k==='lock')act+='<button type="button" class="btn small'+(p.izin>0?' primary':'')+'" data-ru="pindah" data-rid="'+esc(p.rid)+'" data-nm="'+esc(p.nama)+'">'+(p.izin>0?'Izin pindah aktif':'Izinkan pindah perangkat')+'</button>';
    if(!p.stop)act+='<button type="button" class="btn small danger" data-ru="akhiri" data-rid="'+esc(p.rid)+'" data-nm="'+esc(p.nama)+'">Akhiri</button>';
   }
-  return '<div class="card"><div class="row sb"><b>'+esc(p.nama)+'</b><span class="pill '+T[1]+'">'+T[0]+'</span></div><p class="note">Kelas '+esc(p.kelas||'-')+(p.ruang?' · '+esc(p.ruang)+(p.gel?' · gelombang '+esc(p.gel):''):'')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
+  return '<div class="card"><div class="row sb"><b>'+esc(p.nama)+'</b><span class="pill '+T[1]+'">'+T[0]+'</span></div><p class="note">'+(p.no?'<b class="mono">'+esc(p.no)+'</b> · ':'')+'Kelas '+esc(p.kelas||'-')+(p.ruang?' · '+esc(p.ruang)+(p.gel?' · gelombang '+esc(p.gel):''):'')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
  }).join('')+(rows.length>lm?'<p class="note">Menampilkan '+lm+' dari '+rows.length+' peserta (yang perlu perhatian di atas).</p>':'');
  return h;
 }

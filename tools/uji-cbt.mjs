@@ -342,5 +342,19 @@ console.log('\nDaftar peserta tetap');
   r = await call('u2', { action: 'mulai', sesiId: 'S1', dev: 'dev_eeeeeeeeeeee' }); cek('tanpa daftar tetap: kembali dihitung dari kelas', r.status === 200, r.body.error);
 }
 
+console.log('\nNomor peserta');
+{
+  siapkan();
+  users.p1 = { $id: 'p1', email: 'pk@x.id', labels: ['proktor'] };
+  col('akun').set('AP', { $id: 'AP', email: 'pk@x.id', nama: 'Proktor', aktif: true, sekolah: 'MEDINA', peran: 'proktor' });
+  for (const [id, d] of col('akun')) if (/^A\d+$/.test(id)) d.peran = 'siswa';
+  const sesi = col('soal_sesi').get('S1'), pj = JSON.parse(sesi.payload); pj.tok = false; pj.pes = ['A5', '', 'A2']; pj.nomor = { p: '26-TSM-', d: 3, a: 10 }; sesi.payload = JSON.stringify(pj);
+  let r = await call('g1', { action: 'pantau', sesiId: 'S1' });
+  const no = Object.fromEntries(r.body.peserta.map((x) => [x.sid, x.no]));
+  cek('nomor mengikuti urutan daftar, mulai dari 10, 3 digit, dengan awalan', no.A5 === '26-TSM-010' && no.A2 === '26-TSM-012', JSON.stringify(no));
+  cek('celah dijaga: nomor siswa setelah celah tidak bergeser dan celah tidak jadi peserta', r.body.peserta.length === 2);
+  r = await call('u5', { action: 'mulai', sesiId: 'S1', dev: 'dev_aaaaaaaaaaaa' }); cek('daftar dengan celah tetap bisa dipakai mulai', r.status === 200, r.body.error);
+}
+
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);
