@@ -5,7 +5,8 @@
    Dimuat setelah cbt.js. Dokumen: docs-CBT.md */
 (function(){
  if(typeof BS==='undefined')return;
- var PN={sesi:'',runs:[],hasil:[],at:0,busy:false,err:'',timer:0,sesiLoaded:'',coba:{}};
+ var PN={rg:'',sesi:'',runs:[],hasil:[],at:0,busy:false,err:'',timer:0,sesiLoaded:'',coba:{}};
+ window.PNref=PN;   /* dipakai pengawas.js untuk tombol rilis token */
  var AN={sesi:'',urut:'p'};
 
  function sesiList(){return BS.D.sesi.filter(schAkunOk).sort(function(a,b){return (b.ts||0)-(a.ts||0)})}
@@ -28,6 +29,7 @@
   return '<label class="f">Sesi ujian<select data-bs="'+act+'">'+(all?'<option value="ALL"'+(cur==='ALL'?' selected':'')+'>Semua sesi dibuka</option>':'')+L.map(function(s){return '<option value="'+s.id+'"'+(s.id===cur?' selected':'')+'>'+esc(s.judul)+' · Kelas '+(s.kelas==='ALL'?'semua':s.kelas)+'</option>'}).join('')+'</select></label>';
  }
  function roster(s){
+  if(Array.isArray(s.pes)&&window.rgRoster)return rgRoster(s);
   return S.users.filter(function(u){
    if(!hasRole(u,'siswa')||u.aktif===false)return false;
    if(s.kelas&&s.kelas!=='ALL'&&u.kelas!==s.kelas)return false;
@@ -87,11 +89,18 @@
   if(!s)return '<p class="muted">Belum ada sesi ujian. Buat sesi di tab Sesi.</p>';
   var runs={};PN.runs.forEach(function(d){runs[d.sid]=d});
   var hs=hasilSesi(s.id),ros=roster(s),rows=ros.map(function(u){return {u:u,s:statusRow(u,s,runs,hs)}});
+  if(window.rgSaring)rows=rgSaring(s,rows,PN.rg);
   /* peserta yang punya catatan tetapi tidak ada di daftar akun kelas */
   var count={belum:0,on:0,done:0,lock:0,habis:0};rows.forEach(function(r){count[r.s.k]++});
-  var h='';
+  var h=(window.rgBeku?rgBeku(s):'')+(window.rgPilih?rgPilih(s,PN.rg):'');
   if(s.tok){
    var tk=BS.tk[s.id]||s.tokP||'';
+   var tr=(BS.tkR&&BS.tkR[s.id])||{rilis:0,berlaku:0},sisaT=tr.rilis&&tr.berlaku?Math.round((tr.rilis+tr.berlaku*60000-Jam.now())/1000):0;
+   if(s.tokR&&bsAman()){
+    h+='<div class="card center"><span class="label">Token sesi (dirilis pengawas)</span>'+
+     (sisaT>0?'<div class="bs-token mono">'+(tk?esc(tk):'—')+'</div><p class="note">Berlaku sekitar '+Math.ceil(sisaT/60)+' menit lagi</p><div class="row"><button type="button" class="btn small" data-bs="pn-rilis" data-n="15">Rilis ulang 15 mnt</button><button type="button" class="btn small" data-bs="pn-tutup">Tutup token</button><button type="button" class="btn small" data-bs="pn-token">Ganti token</button></div>'
+      :'<div class="bs-token mono">—</div><p class="note">Token belum dirilis atau sudah ditutup. Siswa yang belum mulai belum bisa masuk.</p><div class="row"><button type="button" class="btn small primary" data-bs="pn-rilis" data-n="15">Rilis token 15 mnt</button><button type="button" class="btn small" data-bs="pn-token">Ganti token</button></div>')+'</div>';
+   }else
    h+='<div class="card center"><span class="label">Token sesi</span><div class="bs-token mono">'+(tk?esc(tk):'—')+'</div><button type="button" class="btn small" data-bs="pn-token">Ganti token</button></div>';
   }
   h+='<div class="stats">'+[['Belum','belum'],['Mengerjakan','on'],['Selesai','done'],['Terkunci','lock'],['Habis','habis']].map(function(x){return '<div class="card"><span class="label">'+x[0]+'</span><b class="mono">'+count[x[1]]+'</b></div>'}).join('')+'</div>';
@@ -102,6 +111,7 @@
    '<button type="button" class="btn small" data-bs="pn-nilai"'+(count.habis&&bsAman()?'':' disabled')+'>Nilai yang berakhir</button>'+
    (!bsAman()&&tunggu?'<button type="button" class="btn small primary" data-bs="pn-nilaisemua">Nilai dari jawaban ('+tunggu+')</button>':'')+'</div>';
   h+='<p class="note">'+(PN.err?'Gagal memuat: '+esc(PN.err):'Diperbarui '+jam(PN.at)+' · otomatis tiap 8 detik')+'</p>';
+  h+='<div class="row">'+CETAK+'</div>';   /* tombol cetak di atas daftar, bukan di bawah ratusan kartu */
   if(!rows.length)return h+'<p class="muted">Tidak ada siswa terdaftar untuk sesi ini.</p>';
   h+=rows.map(function(r){
    var u=r.u,st=r.s,line='';
@@ -117,21 +127,22 @@
    if(st.k==='on'||st.k==='lock'||st.k==='habis'){
     act+='<button type="button" class="btn small" data-bs="pn-ext" data-v="'+rid+'" data-n="300">+5 mnt</button><button type="button" class="btn small" data-bs="pn-ext" data-v="'+rid+'" data-n="900">+15 mnt</button>';
     if(st.v>0||st.lock)act+='<button type="button" class="btn small" data-bs="pn-buka" data-v="'+rid+'">Buka kunci</button>';
+    if((st.k==='on'||st.k==='lock')&&bsAman())act+='<button type="button" class="btn small" data-bs="pn-pindah" data-v="'+rid+'" data-nm="'+esc(u.nama)+'">Izinkan pindah perangkat</button>';
     if(st.k!=='habis'||!st.stop)act+='<button type="button" class="btn small" data-bs="pn-akhiri" data-v="'+rid+'">Akhiri</button>';
    }
    if(st.k==='done'&&!st.h&&st.run&&!bsAman())act+='<button type="button" class="btn small primary" data-bs="pn-nilai1" data-v="'+rid+'">Nilai dari jawaban</button>';
    if(st.k==='done'&&st.h&&!bsAman())act+='<button type="button" class="btn small" data-bs="pn-susulan" data-v="'+u.id+'">Susulan</button>';
    if(st.k==='done'||st.run)act+='<button type="button" class="btn small danger" data-bs="pn-reset" data-v="'+u.id+'">Ulang</button>';
-   return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">Kelas '+esc(u.kelas||'-')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
+   return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">'+(window.rgNomor&&rgNomor(s,u.id)?'<b class="mono">'+esc(rgNomor(s,u.id))+'</b> · ':'')+'Kelas '+esc(u.kelas||'-')+(window.rgOf&&rgOf(s,u.id)?' · '+esc(rgLabel(rgOf(s,u.id))):'')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
   }).join('');
   return h;
  }
- var CETAK='<button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button>';
+ var CETAK='<button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button><button type="button" class="btn small" data-bs="an-siswa">Hasil per siswa</button><button type="button" class="btn small" data-bs="an-siswa-r">Hasil per siswa + rincian</button>';
  window.bsViewPantau=function(){
   if(!Cloud.on)return '<div class="card"><p>Pantau langsung butuh mode server (Appwrite). Aplikasi ini sedang berjalan tanpa server, jadi hanya data di perangkat ini yang ada.</p></div>';
   PN.sesi=pilihPantau(PN.sesi);
   if(PN.sesi&&PN.sesiLoaded!==PN.sesi&&!PN.busy)pnLoad().then(pnPaint);
-  return '<div class="card">'+selSesi('pn-sesi',PN.sesi,true)+'</div><div id="pn-body">'+pnBody()+'</div>'+(PN.sesi&&PN.sesi!=='ALL'?'<div class="row">'+CETAK+'</div>':'');
+  return '<div class="card">'+selSesi('pn-sesi',PN.sesi,true)+'</div><div id="pn-body">'+pnBody()+'</div>';
  };
  function pnPaint(){var e=document.getElementById('pn-body');if(e)e.innerHTML=pnBody()}
  function inPantau(){return !!S.user&&bsOn()&&BS.tab==='pantau'&&isStaff()&&Cloud.on}
@@ -291,10 +302,10 @@
   AN.sesi=pilihSesi(AN.sesi);
   if(!AN.sesi)return '<p class="muted">Belum ada sesi ujian.</p>';
   var a=analisis(AN.sesi),h='<div class="card">'+selSesi('an-sesi',AN.sesi)+'</div>';
-  if(!a||!a.H.length)return h+'<p class="muted">Belum ada peserta yang selesai pada sesi ini.</p><div class="row"><button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button></div>';
+  if(!a||!a.H.length)return h+'<p class="muted">Belum ada peserta yang selesai pada sesi ini.</p><div class="row"><button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button><button type="button" class="btn small" data-bs="an-siswa">Hasil per siswa</button><button type="button" class="btn small" data-bs="an-siswa-r">Hasil per siswa + rincian</button></div>';
   var st=a.st,f=function(x){return Math.round(x*10)/10};
   h+='<div class="stats"><div class="card"><span class="label">Peserta</span><b class="mono">'+st.n+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+f(st.mean)+'</b></div><div class="card"><span class="label">Median</span><b class="mono">'+f(st.med)+'</b></div><div class="card"><span class="label">Simpangan baku</span><b class="mono">'+f(st.sd)+'</b></div><div class="card"><span class="label">Tertinggi</span><b class="mono">'+st.max+'</b></div><div class="card"><span class="label">Terendah</span><b class="mono">'+st.min+'</b></div><div class="card"><span class="label">Tuntas (KKM '+a.kkm+')</span><b class="mono">'+Math.round(a.tuntas/st.n*100)+'%</b></div>'+(a.rel?'<div class="card"><span class="label">Reliabilitas (α)</span><b class="mono">'+a.rel.a.toFixed(2)+'</b><span class="note">'+a.rel.ket+' · '+a.rel.k+' soal</span></div>':'')+'</div>';
-  h+='<div class="row"><button type="button" class="btn small" data-bs="an-ekspor">Ekspor Excel</button><button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button>'+(bsEdit()?'<button type="button" class="btn small" data-bs="an-ulang">Nilai ulang dengan kunci terbaru</button>':'')+'<label class="f" style="min-width:150px">Urutkan<select data-bs="an-urut"><option value="p"'+(AN.urut==='p'?' selected':'')+'>Tersukar dulu</option><option value="db"'+(AN.urut==='db'?' selected':'')+'>Daya beda terendah</option><option value="n"'+(AN.urut==='n'?' selected':'')+'>Paling banyak diujikan</option></select></label></div>';
+  h+='<div class="row"><button type="button" class="btn small" data-bs="an-ekspor">Ekspor Excel</button><button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button><button type="button" class="btn small" data-bs="an-siswa">Hasil per siswa</button><button type="button" class="btn small" data-bs="an-siswa-r">Hasil per siswa + rincian</button>'+(bsEdit()?'<button type="button" class="btn small" data-bs="an-ulang">Nilai ulang dengan kunci terbaru</button>':'')+'<label class="f" style="min-width:150px">Urutkan<select data-bs="an-urut"><option value="p"'+(AN.urut==='p'?' selected':'')+'>Tersukar dulu</option><option value="db"'+(AN.urut==='db'?' selected':'')+'>Daya beda terendah</option><option value="n"'+(AN.urut==='n'?' selected':'')+'>Paling banyak diujikan</option></select></label></div>';
   h+=a.items.map(function(o){
    if(o.nokey)return '<div class="card"><p class="note">'+esc(String(o.q.q||'').slice(0,100))+'</p><p class="note">Kunci tidak tersedia di perangkat ini, soal dilewati.</p></div>';
    var warn=o.db!==null&&o.db<0?'<span class="pill bad">Periksa kunci</span>':'';
@@ -339,7 +350,9 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   var tk=BS.tk[s.id]||s.tokP||'';
   if(!s.tok||!tk){toast('Sesi ini tidak memakai token');return}
   var jd=(s.mulai?bsWaktu(s.mulai):'Sesuai jadwal guru')+(s.selesai?' sampai '+bsWaktu(s.selesai):'');
-  var cards=roster(s).map(function(u){return '<div style="border:1px solid #000;padding:8px 10px;break-inside:avoid;font-size:10pt"><b>KARTU PESERTA UJIAN ONLINE</b><br>'+teks(SEK.nama)+'<hr style="margin:4px 0">Nama: <b>'+teks(u.nama)+'</b><br>Kelas: '+teks(u.kelas||'-')+'<br>Sesi: '+teks(s.judul)+'<br>Jadwal: '+teks(jd)+'<br>Durasi: '+(s.durasi||0)+' menit<br>Token: <b style="font-size:18pt;letter-spacing:3px">'+teks(tk)+'</b></div>'}).join('');
+  var adaRg=window.rgList&&rgList(s).length,urut=roster(s);
+  if(adaRg)urut=urut.map(function(u,i){return {u:u,i:i,k:(function(){var g=rgOf(s,u.id);return g?rgList(s).indexOf(g):999})()}}).sort(function(a,b){return a.k-b.k||a.i-b.i}).map(function(x){return x.u});
+  var cards=urut.map(function(u){var g=adaRg?rgOf(s,u.id):null;return '<div style="border:1px solid #000;padding:8px 10px;break-inside:avoid;font-size:10pt"><b>KARTU PESERTA UJIAN ONLINE</b><br>'+teks(SEK.nama)+'<hr style="margin:4px 0">Nama: <b>'+teks(u.nama)+'</b><br>'+(rgNomor(s,u.id)?'No. peserta: <b>'+teks(rgNomor(s,u.id))+'</b><br>':'')+(u.username?'Username: '+teks(u.username)+'<br>':'')+'Kelas: '+teks(u.kelas||'-')+'<br>'+(adaRg?'Ruang: <b>'+teks(g?rgLabel(g):'belum ditempatkan')+'</b><br>':'')+'Sesi: '+teks(s.judul)+'<br>Jadwal: '+teks(adaRg&&g?rgJadwal(s,g):jd)+'<br>Durasi: '+(s.durasi||0)+' menit<br>'+(s.tokR&&bsAman()?'Token: <b>dibacakan pengawas saat ujian dimulai</b>':'Token: <b style="font-size:18pt;letter-spacing:3px">'+teks(tk)+'</b>')+'</div>'}).join('');
   if(!cards){toast('Tidak ada siswa terdaftar untuk sesi ini');return}
   cetakHtml('<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+cards+'</div>');
  }
@@ -367,19 +380,30 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   if(Cloud.on&&PN.sesiLoaded!==id){PN.sesi=id;await pnLoad()}
   var runs={};PN.runs.forEach(function(d){runs[d.sid]=d});
   var hs=hasilSesi(id),ros=roster(s);
-  var hadir=0,rows=ros.map(function(u,i){
-   var h=hs[u.id],run=runs[u.id],mulai=run?Date.parse(run.$createdAt):(h?(h.ts-(h.detik||0)*1000):0);
-   if(h||run)hadir++;
-   return '<tr><td>'+(i+1)+'</td><td>'+teks(u.nama)+'</td><td>'+teks(u.kelas||'')+'</td><td>'+((h||run)?'Hadir':'Tidak hadir')+'</td><td>'+(mulai?jam(mulai):'')+'</td><td>'+(h?jam(h.ts):'')+'</td><td>'+(h?h.score:'')+'</td><td>'+(h&&h.pindah?h.pindah:'')+'</td><td style="width:70px"></td></tr>';
-  }).join('');
   var kop='<div class="ujk"><img src="'+LOGO+'" alt=""><div><b>'+teks(SEK.nama)+'</b><span>'+teks(SEK.program)+'</span><small>'+teks(SEK.alamat)+'</small></div></div>';
-  var html=kop+'<h2 style="text-align:center;margin:6px 0">DAFTAR HADIR DAN BERITA ACARA UJIAN</h2>'+
+  /* satu bagian per ruang bila sesi beruang (halaman baru tiap ruang), atau satu bagian untuk semua */
+  var grup=[];
+  if(window.rgList&&rgList(s).length){
+   rgList(s).forEach(function(g){grup.push({g:g,ros:ros.filter(function(u){return g.sis.indexOf(u.id)>-1})})});
+   var tak=ros.filter(function(u){return !rgOf(s,u.id)});if(tak.length)grup.push({g:null,ros:tak});
+  }else grup.push({g:null,ros:ros,semua:true});
+  var html=grup.map(function(G,gi){
+   var hadir=0,rows=G.ros.map(function(u,i){
+    var h=hs[u.id],run=runs[u.id],mulai=run?Date.parse(run.$createdAt):(h?(h.ts-(h.detik||0)*1000):0);
+    if(h||run)hadir++;
+    return '<tr><td>'+(i+1)+'</td>'+(s.nomor?'<td>'+teks(rgNomor(s,u.id))+'</td>':'')+'<td>'+teks(u.nama)+'</td><td>'+teks(u.kelas||'')+'</td><td>'+((h||run)?'Hadir':'Tidak hadir')+'</td><td>'+(mulai?jam(mulai):'')+'</td><td>'+(h?jam(h.ts):'')+'</td><td>'+(h?h.score:'')+'</td><td>'+(h&&h.pindah?h.pindah:'')+'</td><td style="width:70px"></td></tr>';
+   }).join('');
+   var g=G.g,pkn=g&&g.pk&&rgPkNama?rgPkNama(g.pk):'';
+   var ruangBaris=G.semua?'':'<tr><td>Ruang</td><td>'+teks(g?rgLabel(g):'Belum ditempatkan')+'</td><td>Proktor</td><td>'+teks(pkn||'-')+'</td></tr>';
+   var tgl=(g&&g.m)||s.mulai||Date.now();
+   return '<div'+(gi?' style="break-before:page;page-break-before:always"':'')+'>'+kop+'<h2 style="text-align:center;margin:6px 0">DAFTAR HADIR DAN BERITA ACARA UJIAN</h2>'+
    '<table style="margin-bottom:6px"><tbody><tr><td style="width:22%">Sesi ujian</td><td>'+teks(s.judul)+'</td><td style="width:18%">Kelas</td><td style="width:14%">'+teks(s.kelas==='ALL'?'Semua':s.kelas)+'</td></tr>'+
-   '<tr><td>Hari dan tanggal</td><td>'+teks(new Date(s.mulai||Date.now()).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+'</td><td>Durasi</td><td>'+(s.durasi||0)+' menit</td></tr></tbody></table>'+
-   '<table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Kehadiran</th><th>Mulai</th><th>Selesai</th><th>Nilai</th><th>Keluar halaman</th><th>Paraf</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-   '<p style="margin-top:8px">Peserta terdaftar: <b>'+ros.length+'</b> · Hadir: <b>'+hadir+'</b> · Tidak hadir: <b>'+(ros.length-hadir)+'</b></p>'+
+   '<tr><td>Hari dan tanggal</td><td>'+teks(new Date(tgl).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+'</td><td>Durasi</td><td>'+(s.durasi||0)+' menit</td></tr>'+ruangBaris+'</tbody></table>'+
+   '<table><thead><tr><th>No</th>'+(s.nomor?'<th>No. peserta</th>':'')+'<th>Nama</th><th>Kelas</th><th>Kehadiran</th><th>Mulai</th><th>Selesai</th><th>Nilai</th><th>Keluar halaman</th><th>Paraf</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+   '<p style="margin-top:8px">Peserta terdaftar'+(Array.isArray(s.pes)?' (daftar tetap)':'')+': <b>'+G.ros.length+'</b> · Hadir: <b>'+hadir+'</b> · Tidak hadir: <b>'+(G.ros.length-hadir)+'</b></p>'+
    '<p>Catatan selama ujian:</p><div style="border:1px solid #000;height:64px"></div>'+
-   '<div style="display:flex;justify-content:space-between;margin-top:18px;text-align:center"><div style="width:45%">Pengawas<br><br><br><br>(................................)</div><div style="width:45%">Guru mata pelajaran<br><br><br><br>(................................)</div></div>';
+   '<div style="display:flex;justify-content:space-between;margin-top:18px;text-align:center"><div style="width:45%">Pengawas'+(pkn?' ('+teks(pkn)+')':'')+'<br><br><br><br>(................................)</div><div style="width:45%">Guru mata pelajaran<br><br><br><br>(................................)</div></div></div>';
+  }).join('');
   var old=document.getElementById('uj-print');if(old)old.remove();
   var el=document.createElement('div');el.id='uj-print';el.innerHTML=html;document.body.appendChild(el);
   document.body.classList.add('uj-printing');
@@ -390,9 +414,10 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
  document.addEventListener('change',function(e){
   var b=e.target.closest&&e.target.closest('select[data-bs]');if(!b)return;
   var a=b.dataset.bs;
-  if(a==='pn-sesi'){PN.sesi=b.value;PN.runs=[];PN.hasil=[];PN.sesiLoaded='';render()}
+  if(a==='pn-sesi'){PN.rg='';PN.sesi=b.value;PN.runs=[];PN.hasil=[];PN.sesiLoaded='';render()}
   else if(a==='an-sesi'){AN.sesi=b.value;render()}
   else if(a==='an-urut'){AN.urut=b.value;render()}
+  else if(a==='pn-rg'){PN.rg=b.value;render()}
  });
  document.addEventListener('click',function(e){
   var b=e.target.closest&&e.target.closest('[data-bs]');if(!b||b.tagName==='SELECT')return;
@@ -401,6 +426,8 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   else if(a==='pn-bukasesi'){PN.sesi=v;PN.runs=[];PN.hasil=[];PN.sesiLoaded='';render()}
   else if(a==='pn-ext'){var run=runOf(v);if(run)tulisRun(v,{ext:(Number(run.ext)||0)+(+b.dataset.n||300)},'Waktu ditambah')}
   else if(a==='pn-akhiri'){uiConfirm('Akhiri ujian siswa ini? Jawabannya dikirim otomatis dan tidak bisa dilanjutkan.',{ok:'Akhiri',danger:true}).then(function(ok){if(ok)tulisRun(v,{stop:true},'Siswa akan mengirim jawabannya dalam beberapa detik')})}
+  else if(a==='pn-pindah'){uiConfirm('Izinkan '+(b.dataset.nm||'siswa ini')+' melanjutkan ujian dari perangkat lain? Izin berlaku 10 menit dan perangkat lama berhenti menyimpan jawaban setelah siswa pindah.',{ok:'Izinkan'}).then(function(ok){if(!ok)return;cbtFn({action:'aksiRun',rid:v,op:'izinPindah'}).then(function(){toast('Izin pindah perangkat 10 menit')}).catch(function(er){toast('Gagal: '+((er&&er.message)||er))})})}
+  else if(a==='pn-beku'){var sb=sesiById(v);if(!sb)return;uiConfirm('Bekukan daftar peserta? Daftar saat ini ('+roster(sb).length+' siswa) disimpan ke sesi dan tidak berubah lagi mengikuti kelas. Anda masih bisa menambah atau mengeluarkan siswa dari menu Sesi.',{ok:'Bekukan'}).then(function(ok){if(!ok)return;var o=Object.assign({},sb,{pes:roster(sb).map(function(u){return u.id}),pesTs:Date.now()});bsPut('sesi',o).then(function(r){toast(r?'Daftar peserta dibekukan':'Disimpan di perangkat, menunggu terkirim');render()})})}
   else if(a==='pn-buka'){var r2=runOf(v);if(r2)tulisRun(v,{pb:pay(r2).pindah||0},'Kunci dibuka')}
   else if(a==='pn-extall'){
    var s=sesiById(PN.sesi);
@@ -489,4 +516,5 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   else if(a==='an-kartu')kartuToken(sesiAktif());
   else if(a==='an-rekap')rekapKelas(sesiAktif());
  });
+ window.cbtStaf={roster:roster,hasilSesi:hasilSesi,sesiById:sesiById,PN:PN,pnLoad:pnLoad,cetakHtml:cetakHtml,teks:teks,jam:jam,sesiAktif:sesiAktif};
 })();

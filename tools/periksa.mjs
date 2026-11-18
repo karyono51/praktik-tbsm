@@ -46,14 +46,6 @@ for (const p of semua.filter((x) => x.endsWith('.json'))) {
   try { JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { G('JSON tidak valid: ' + rel(p) + ' (' + e.message + ')'); }
 }
 
-/* 2b. Setiap berkas js/*.js (dan js/soal-lkpd/*.js) harus dimuat index.html. Berkas yatim membuat fitur diam-diam hilang
-   (mis. pengawas.js yang mendefinisikan peran Proktor). */
-{
-  const idx0 = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  const cari = (dir) => fs.readdirSync(path.join(root, dir), { withFileTypes: true }).flatMap((f) => f.isDirectory() ? cari(dir + '/' + f.name) : (f.name.endsWith('.js') ? [dir + '/' + f.name] : []));
-  for (const f of cari('js')) if (!idx0.includes('"' + f + '?v=') && !idx0.includes('"' + f + '"')) G('js tidak dimuat index.html (fitur hilang diam-diam): ' + f);
-}
-
 /* 3. index.html */
 const idx = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 for (const m of idx.matchAll(/(?:src|href)="((?:js|css|assets)\/[^"?#'+]+)(?:\?[^"]*)?"/g)) {

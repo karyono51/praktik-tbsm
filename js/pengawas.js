@@ -175,28 +175,17 @@ viewKatalog=function(){
 };
 var _enter=enter;
 enter=function(u){_enter.apply(this,arguments);try{if(isPk())S.tab='ruangujian'}catch(e){}};
-/* Menu laci untuk Proktor dan Admin. Dipanggil juga oleh menu-dasbor.js SEBELUM baris dikelompokkan,
-   supaya Ruang ujian dan Log audit ikut masuk kelompok (dulu terpasang sesudahnya dan jatuh di bawah Keluar).
-   Proktor hanya melihat: Ruang ujian, Ganti sandi, Segarkan data, Perbarui aplikasi, Keluar. */
-function pkMenu(sb){
- if(!sb||!S.user)return;
- var cur=V.mode==='list'?S.tab:'';
- function baris(v,ic,jd,ket){return '<button type="button" class="srow" data-act="menu" data-v="'+v+'"'+(cur===v?' aria-current="page"':'')+'><span class="ico">'+svg(ic,22)+'</span><span class="st"><b>'+jd+'</b><small>'+ket+'</small></span>'+svg(ICO.chev,18)+'</button>'}
- if(isPk()){
-  var ok=['ruangujian','gantisandi','segarkan','perbarui','keluar'];
-  [].slice.call(sb.querySelectorAll('.srow')).forEach(function(r){if(ok.indexOf(r.dataset.v)<0)r.parentNode.removeChild(r)});
-  [].slice.call(sb.querySelectorAll('.chip')).forEach(function(c){if(!/Sesi/.test(c.textContent))c.parentNode.removeChild(c)});
-  if(!sb.querySelector('[data-v="ruangujian"]'))sb.insertAdjacentHTML('beforeend',baris('ruangujian',ICO.cbtonline,'Ruang ujian','Token dan pantau peserta'));
- }
- if(isAdm()&&!sb.querySelector('[data-v="logaudit"]'))sb.insertAdjacentHTML('beforeend',baris('logaudit',ICO.hapus||ICO.cbtonline,'Log audit','Riwayat aksi guru dan proktor'));
-}
-window.pkMenu=pkMenu;
 var _render=render;
 render=function(){
- /* Proktor hanya punya satu halaman (Ruang ujian); beranda siswa, LKPD, dan lainnya dialihkan ke sana */
- try{if(isPk()&&V.mode==='list'&&S.tab!=='ruangujian')S.tab='ruangujian'}catch(e){}
  _render.apply(this,arguments);
- try{pkMenu(document.querySelector('.sbody'))}catch(e){}
+ try{
+  if(!S.user)return;
+  var sb=document.querySelector('.sbody');if(!sb)return;
+  var cur=V.mode==='list'?S.tab:'';
+  function baris(v,ic,jd,ket){return '<button type="button" class="srow" data-act="menu" data-v="'+v+'"'+(cur===v?' aria-current="page"':'')+'><span class="ico">'+svg(ic,22)+'</span><span class="st"><b>'+jd+'</b><small>'+ket+'</small></span></button>'}
+  if(isPk()&&!sb.querySelector('[data-v="ruangujian"]'))sb.insertAdjacentHTML('beforeend',baris('ruangujian',ICO.cbtonline,'Ruang ujian','Token dan pantau peserta'));
+  if(isAdm()&&!sb.querySelector('[data-v="logaudit"]'))sb.insertAdjacentHTML('beforeend',baris('logaudit',ICO.hapus||ICO.cbtonline,'Log audit','Riwayat aksi guru dan proktor'));
+ }catch(e){}
 };
 
 /* ---------------- Pencatatan aksi di perangkat ke audit ---------------- */

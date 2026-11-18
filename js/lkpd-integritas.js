@@ -66,7 +66,7 @@ function lkiDitinjau(x){
  if(typeof lkHasK!=='function'||!lkHasK(x))return false;
  var by=String(x.verifOleh||'').trim();
  if(!by||!(Number(x.verifTs)>=Number(x.ts)))return false;
- var st=(S.users||[]).filter(function(u){return roleList(u).some(function(r){return r!=='siswa'})});
+ var st=(S.users||[]).filter(function(u){return roleList(u).some(function(r){return r!=='siswa'&&r!=='proktor'})});
  if(st.length&&!st.some(function(u){return String(u.nama||'').trim()===by}))return false;
  return true;
 }

@@ -199,3 +199,6 @@ Berkas utama: `js/ukk-kelola.js` (ditulis ulang), dengan penyesuaian kecil di `j
 
 ## Soal grup
 Satu stimulus (teks atau gambar) untuk beberapa soal, di Bank soal dan kuis Editor LKPD, termasuk ujian dan cetak soal. Berkas baru: `js/soal-grup.js`, uji `tools/uji-grup.mjs`. Tidak ada perubahan Appwrite. Panduan di `docs-SOAL-GRUP.md`. Excel Bank soal dan LKPD punya kolom Grup dan Stimulus. Analisis butir lintas sesi di `js/butir.js`.
+
+## Pra-unduh soal
+Siswa menyiapkan gambar soal sesi sebelum token dirilis. Berkas baru: `js/pra-unduh.js`, uji `tools/uji-pra.mjs`. Tidak ada perubahan Appwrite atau fungsi. Panduan di `docs-PRA-UNDUH.md`.

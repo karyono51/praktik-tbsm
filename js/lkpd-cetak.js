@@ -16,7 +16,7 @@ var CSS='#lk-print{display:none}'+
 '.lkc-kop small{display:block;font-size:8.5pt}'+
 '.lkc-grid{display:flex;gap:12px;margin:0 0 6px}.lkc-grid table{flex:1 1 0;min-width:0}'+
 '.lkc-info{width:100%;border-collapse:collapse;font-size:9.5pt}'+
-'.lkc-info td{padding:1px 3px;border:0!important;vertical-align:top}.lkc-info td:first-child{width:27mm;font-weight:700;white-space:nowrap}.lkc-info td:last-child{border-bottom:1px dotted #000!important;min-height:1.1em}'+
+'.lkc-info td{padding:1px 3px;border:0!important;vertical-align:top}.lkc-info td:first-child{width:27mm;font-weight:700;white-space:nowrap}.lkc-info td.lkc-k{width:2.5mm;padding-right:0;border-bottom:1px dotted #000!important}.lkc-info td.lkc-v{border-bottom:1px dotted #000!important;min-height:1.1em}'+
 '#lk-print .card{padding:4px 6px!important;margin:4px 0!important;border:1px solid #999!important;border-radius:0!important;break-inside:auto!important}'+
 '#lk-print h2{font-size:11pt;margin:3px 0 2px}#lk-print h3{font-size:10pt;margin:3px 0 2px}'+
 '#lk-print p{margin:2px 0}#lk-print ul{margin:2px 0;padding-left:16px}#lk-print li{margin:0}'+
@@ -28,6 +28,14 @@ var CSS='#lk-print{display:none}'+
 '#lk-print table{font-size:9pt}#lk-print tr{break-inside:avoid}'+
 '#lk-print input:not([type=checkbox]):not([type=radio]),#lk-print .lkc-ta{display:block;min-height:1.1em;border:0!important;border-bottom:1px dotted #000!important;white-space:pre-wrap;overflow-wrap:anywhere}'+
 '#lk-print .lk-foto img{max-height:5cm}'+
+'#lk-print .lkc-no{width:7mm;text-align:center;white-space:nowrap}'+
+'#lk-print .lkc-ket{font-style:italic;font-weight:400;font-size:7.5pt}'+
+'.lkc-kosong{display:inline-block;width:38mm;border-bottom:1px dotted #000;height:1em;vertical-align:bottom}.lkc-akhir{margin-top:8px;break-inside:avoid}.lkc-tgl{text-align:right;font-size:10pt;margin:0 0 4px}'+
+'#lk-print table.lkc-ttd{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10pt}'+
+'#lk-print table.lkc-ttd td{border:0!important;text-align:center;vertical-align:bottom;padding:0 10mm}'+
+'#lk-print .lkc-ttd .lkc-peran{height:1.4em;vertical-align:top}'+
+'#lk-print .lkc-ttd .lkc-ruang{height:18mm}'+
+'#lk-print .lkc-ttd .lkc-nama{border-bottom:1px solid #000!important;min-height:1.3em;font-weight:700;padding-bottom:1px}'+
 '}';
 var st=document.createElement('style');st.textContent=CSS;document.head.appendChild(st);
 
@@ -41,7 +49,28 @@ function semester(){
  return bln>=7?'Ganjil '+y+'/'+(y+1):'Genap '+(y-1)+'/'+y;
 }
 function mapel(m){return m.kelas==='X'?'DDPK':'Kompetensi Kejuruan TSM'}
-function baris(arr){return arr.map(function(x){return '<tr><td>'+x[0]+'</td><td>'+(x[1]?': ':':')+lkEsc(x[1])+'</td></tr>'}).join('')}
+function baris(arr){return arr.map(function(x){return '<tr><td>'+x[0]+'</td><td class="lkc-k">:</td><td class="lkc-v">'+lkEsc(x[1])+'</td></tr>'}).join('')}
+/* Akun admin/guru yang mencetak menjadi Guru/instruktur; nama siswa dan tanggal dikosongkan (diisi tangan).
+   Siswa yang mencetak: namanya jadi Nama siswa, tanggal dari isian lembar kerja. */
+function pihak(d){
+ var u=(window.S&&S.user&&S.user.nama)||'',staf=false;try{staf=isStaff()}catch(e){}
+ if(staf||LK.preview)return {siswa:'',guru:u||d.teacher||'',tanggal:''};
+ return {siswa:d.student||u,guru:d.teacher||'',tanggal:d.date||(typeof ymd==='function'?ymd(Date.now()):'')};
+}
+function tglPanjang(v){
+ var t=v?new Date(v+'T00:00:00'):new Date();if(isNaN(t.getTime()))t=new Date();
+ return t.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+}
+/* penutup: tempat dan tanggal, lalu tanda tangan siswa dan guru/instruktur tanpa garis tabel; nama di atas garis */
+function akhir(d){
+ var kota='';try{kota=schEf().kota||''}catch(e){}
+ var p=pihak(d),siswa=p.siswa,guru=p.guru;
+ var tgl=p.tanggal?lkEsc(tglPanjang(p.tanggal)):'<span class="lkc-kosong"></span>';
+ return '<div class="lkc-akhir"><p class="lkc-tgl">'+(kota?lkEsc(kota)+', ':'')+tgl+'</p>'+
+  '<table class="lkc-ttd"><tbody><tr><td class="lkc-peran">Siswa Praktik,</td><td class="lkc-peran">Guru/Instruktur,</td></tr>'+
+  '<tr><td class="lkc-ruang"></td><td class="lkc-ruang"></td></tr>'+
+  '<tr><td><div class="lkc-nama">'+lkEsc(siswa)+'</div></td><td><div class="lkc-nama">'+lkEsc(guru)+'</div></td></tr></tbody></table></div>';
+}
 function susun(m){
  var asal=LK.tab,h,d=lkDraft();
  try{h=bagian('materi')+bagian('kerja')+bagian('evaluasi')}finally{LK.tab=asal}
@@ -52,11 +81,23 @@ function susun(m){
  Array.prototype.forEach.call(box.querySelectorAll('textarea'),function(t){
   var dv=document.createElement('div');dv.className='lkc-ta';dv.textContent=t.value;t.parentNode.replaceChild(dv,t);
  });
+ /* tabel hasil pemeriksaan: kolom No, dan keterangan komponen dalam kurung, miring, huruf lebih kecil */
+ Array.prototype.forEach.call(box.querySelectorAll('table'),function(tb){
+  var th=tb.querySelectorAll('thead th');
+  if(!th.length||th[0].textContent.trim()!=='Komponen'||!/Hasil aktual/i.test(tb.querySelector('thead').textContent))return;
+  var tr0=tb.querySelector('thead tr'),n=document.createElement('th');n.className='lkc-no';n.textContent='No';tr0.insertBefore(n,tr0.firstChild);
+  Array.prototype.forEach.call(tb.querySelectorAll('tbody tr'),function(tr,i){
+   var td=document.createElement('td');td.className='lkc-no';td.textContent=i+1;tr.insertBefore(td,tr.firstChild);
+   var k=tr.children[1],sm=k&&k.querySelector(':scope>small');
+   if(sm){var em=document.createElement('em');em.className='lkc-ket';em.textContent='('+sm.textContent.trim()+')';sm.parentNode.replaceChild(em,sm);k.insertBefore(document.createTextNode(' '),em)}
+  });
+ });
  var kop='<div class="lkc-kop"><img src="'+LOGO+'" alt=""><div><b>'+lkEsc(SEK.nama)+'</b><span>'+lkEsc(SEK.program)+'</span><small>'+lkEsc(SEK.alamat)+'</small></div></div>';
  var kiri=baris([['Judul/Materi',m.title],['Mata pelajaran',mapel(m)],['Kelas/Semester',(d.class||m.kelas)+' / '+semester()],['Fase/Kurikulum','Fase '+m.fase+' / Kurikulum Merdeka'],['Waktu pengerjaan',m.duration+' menit']]);
- var kanan=baris([['Nama siswa',d.student||(window.S&&S.user&&S.user.nama)||''],['Kelompok',d.group||''],['Tanggal',d.date||(typeof ymd==='function'?ymd(Date.now()):'')],['Tipe kendaraan',d.vehicle||''],['Guru/instruktur',d.teacher||'']]);
+ var p=pihak(d);
+ var kanan=baris([['Nama siswa',p.siswa],['Kelompok',d.group||''],['Tanggal',p.tanggal],['Tipe kendaraan',d.vehicle||''],['Guru/instruktur',p.guru]]);
  var info='<div class="lkc-grid"><table class="lkc-info"><tbody>'+kiri+'</tbody></table><table class="lkc-info"><tbody>'+kanan+'</tbody></table></div>';
- return kop+info+box.innerHTML;
+ return kop+info+box.innerHTML+akhir(d);
 }
 function bersih(){document.body.classList.remove('lk-printing')}
 window.addEventListener('afterprint',bersih);
@@ -70,7 +111,7 @@ document.addEventListener('click',function(e){
  e.stopPropagation();
  var lama=document.getElementById('lk-print');if(lama)lama.remove();
  try{
-  localStorage.setItem(lkKey(),JSON.stringify(lkRead()));
+  if(!LK.preview)localStorage.setItem(lkKey(),JSON.stringify(lkRead()));   /* pratinjau tidak menyimpan apa pun */
   var el=document.createElement('div');el.id='lk-print';el.innerHTML=susun(m);document.body.appendChild(el);
   document.body.classList.add('lk-printing');
  }catch(err){bersih()}

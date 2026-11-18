@@ -45,7 +45,7 @@
  }catch(e){}
 
  /* 3. Tombol dan pilihan yang jelas mengubah data */
- var BS_TULIS=/^(aktif|baru|hapushasil|hapussoal|salin|sesiaktif|sesibaru|sesigandakan|sesihapus|sesisimpan|sesiubah|simpansoal|ubah|tuj|kirimulang|bsio-apply|pn-(akhiri|ext|extall|nilai|nilai1|nilaisemua|reset|susulan|token|buka|bukasesi)|an-ulang)$/;
+ var BS_TULIS=/^(aktif|baru|hapushasil|hapussoal|salin|sesiaktif|sesibaru|sesigandakan|sesihapus|sesisimpan|sesiubah|simpansoal|ubah|tuj|kirimulang|bsio-apply|pn-(akhiri|ext|extall|nilai|nilai1|nilaisemua|reset|susulan|token|buka|pindah|beku|bukasesi)|an-ulang)$/;
  var ACT_BOLEH=/^(menu|drawer|refresh|switchrole|menulogout|mypw|updateapp|akunfilter|rtab|back)$/;
  var ACT_TULIS=/(hapus|delete|simpan|save|tambah|add|baru|new|impor|imp[a-z]*apply|reset|edit|ubah|kkm|setpw|nonaktif|salin|ganda|submit|kirim|akhiri)/i;
  function blok(e){
