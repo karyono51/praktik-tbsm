@@ -25,6 +25,7 @@
      aksiRun     {rid, op, detik}              guru/admin/proktor: op = tambah (detik 300 atau 900) | bukaKunci | izinPindah (10 menit) | akhiri (hanya menghentikan, tanpa menilai).
                                                Mulai/simpan/kirim membawa `dev` (kode perangkat). Lanjut dari perangkat lain ditolak kecuali ada izinPindah.
      catat       {aksi, sesiId, ket}           guru/admin/proktor: catat aksi di perangkat ke log audit (diberi awalan klien.).
+   Daftar peserta tetap: payload sesi `pes` (id akun siswa) dan `pesTs`. Bila ada, daftar itu yang berlaku (bukan kelas/sekolah akun saat ini) untuk mulai dan pantau.
    Label Appwrite `proktor` (tanpa `guru`): hanya boleh memakai aksi rilisToken, pantau, aksiRun, dan catat. Semua aksi staf dicatat di koleksi `audit`.
 */
 import crypto from 'node:crypto';
@@ -331,10 +332,14 @@ async function mulai(me, body) {
     return resumeResp(ex, s, now);
   }
   let sj = s;
+  if (Array.isArray(s.pes)) {   // daftar peserta tetap: yang menentukan hanya daftar, bukan kelas atau sekolah akun saat ini
+    if (!s.pes.includes(sid)) throw new Fail('Kamu tidak terdaftar sebagai peserta sesi ini. Hubungi guru.', 403);
+    sj = Object.assign({}, sj, { kelas: 'ALL', sekolah: '' });
+  }
   if (ruangList(s).length) {
     const rg = ruangSiswa(s, sid);
     if (!rg) throw new Fail('Kamu belum ditempatkan di ruang ujian. Hubungi pengawas.', 403);
-    sj = Object.assign({}, s, { mulai: Number(rg.m) || s.mulai, selesai: Number(rg.s) || s.selesai });   // jadwal gelombang ruang
+    sj = Object.assign({}, sj, { mulai: Number(rg.m) || s.mulai, selesai: Number(rg.s) || s.selesai });   // jadwal gelombang ruang
   }
   sesiBoleh(sj, me.akun, now);
   if (s.tok) {
@@ -636,6 +641,13 @@ async function rilisToken(me, body) {
   return { ok: true, token: m ? token : '', rilis: m ? now : 0, berlaku: m, now };
 }
 async function rosterSesi(s) {
+  if (Array.isArray(s.pes)) {   // daftar tetap: akun dibaca per id (nama terkini), akun yang sudah dihapus dilewati
+    const k = 'P|' + s.id + '|' + s.pes.length + '|' + (s.pesTs || 0), c0 = memGet(memo.ros, k, 30000); if (c0) return c0;
+    const docs = [];
+    for (let i = 0; i < s.pes.length; i += 50) docs.push(...await listDocs('akun', [Q.equal('$id', s.pes.slice(i, i + 50))]));
+    const r0 = docs.map((a) => ({ id: a.$id, nama: String(a.nama || ''), kelas: a.kelas || '' })).sort((x, y) => x.nama.localeCompare(y.nama, 'id'));
+    return memSet(memo.ros, k, r0, 200);
+  }
   const key = String(s.kelas || 'ALL') + '|' + String(s.sekolah || ''), c = memGet(memo.ros, key, 30000); if (c) return c;
   const sk = String(s.sekolah || '').toUpperCase();
   const all = await listDocs('akun', s.kelas && s.kelas !== 'ALL' ? [Q.equal('kelas', [s.kelas])] : []);

@@ -323,5 +323,24 @@ console.log('\nRuang dan gelombang');
   r = await call('u20', { action: 'mulai', sesiId: 'S2' }); cek('sesi tanpa ruang tetap berjalan seperti biasa', r.status === 200);
 }
 
+console.log('\nDaftar peserta tetap');
+{
+  siapkan();
+  users.p1 = { $id: 'p1', email: 'pk@x.id', labels: ['proktor'] };
+  col('akun').set('AP', { $id: 'AP', email: 'pk@x.id', nama: 'Proktor', aktif: true, sekolah: 'MEDINA', peran: 'proktor' });
+  for (const [id, d] of col('akun')) if (/^A\d+$/.test(id)) d.peran = 'siswa';
+  const sesi = col('soal_sesi').get('S1'), pj = JSON.parse(sesi.payload); pj.tok = false; pj.pes = ['A0', 'A1', 'A59']; pj.pesTs = Date.now();   // A59 kelas XI-B, sesi untuk XI-A
+  sesi.payload = JSON.stringify(pj);
+  let r = await call('u0', { action: 'mulai', sesiId: 'S1', dev: 'dev_aaaaaaaaaaaa' }); cek('peserta di daftar bisa mulai', r.status === 200, r.body.error);
+  r = await call('u2', { action: 'mulai', sesiId: 'S1', dev: 'dev_bbbbbbbbbbbb' }); cek('siswa kelas yang sama tapi tidak di daftar ditolak', r.status === 403 && /tidak terdaftar/.test(r.body.error), r.body.error);
+  r = await call('u59', { action: 'mulai', sesiId: 'S1', dev: 'dev_cccccccccccc' }); cek('siswa kelas lain yang ditambahkan guru (susulan) boleh', r.status === 200, r.body.error);
+  col('akun').get('A1').kelas = 'XII-C'; col('akun').get('A1').aktif = false;
+  r = await call('u1', { action: 'mulai', sesiId: 'S1', dev: 'dev_dddddddddddd' }); cek('pindah kelas setelah dibekukan tidak mengubah hak ikut', r.status === 200 || /tidak aktif|nonaktif/i.test(r.body.error || ''), r.body.error);
+  r = await call('g1', { action: 'pantau', sesiId: 'S1' });
+  cek('pantau memakai daftar tetap (3 peserta, termasuk nonaktif dan kelas lain)', r.status === 200 && r.body.peserta.map((x) => x.sid).sort().join() === 'A0,A1,A59', r.body.peserta && r.body.peserta.map((x) => x.sid).join());
+  const pj2 = JSON.parse(sesi.payload); delete pj2.pes; sesi.payload = JSON.stringify(pj2); mod._uji.semuaReset();
+  r = await call('u2', { action: 'mulai', sesiId: 'S1', dev: 'dev_eeeeeeeeeeee' }); cek('tanpa daftar tetap: kembali dihitung dari kelas', r.status === 200, r.body.error);
+}
+
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);

@@ -29,6 +29,7 @@
   return '<label class="f">Sesi ujian<select data-bs="'+act+'">'+(all?'<option value="ALL"'+(cur==='ALL'?' selected':'')+'>Semua sesi dibuka</option>':'')+L.map(function(s){return '<option value="'+s.id+'"'+(s.id===cur?' selected':'')+'>'+esc(s.judul)+' · Kelas '+(s.kelas==='ALL'?'semua':s.kelas)+'</option>'}).join('')+'</select></label>';
  }
  function roster(s){
+  if(Array.isArray(s.pes)&&window.rgRoster)return rgRoster(s);
   return S.users.filter(function(u){
    if(!hasRole(u,'siswa')||u.aktif===false)return false;
    if(s.kelas&&s.kelas!=='ALL'&&u.kelas!==s.kelas)return false;
@@ -91,7 +92,7 @@
   if(window.rgSaring)rows=rgSaring(s,rows,PN.rg);
   /* peserta yang punya catatan tetapi tidak ada di daftar akun kelas */
   var count={belum:0,on:0,done:0,lock:0,habis:0};rows.forEach(function(r){count[r.s.k]++});
-  var h=window.rgPilih?rgPilih(s,PN.rg):'';
+  var h=(window.rgBeku?rgBeku(s):'')+(window.rgPilih?rgPilih(s,PN.rg):'');
   if(s.tok){
    var tk=BS.tk[s.id]||s.tokP||'';
    var tr=(BS.tkR&&BS.tkR[s.id])||{rilis:0,berlaku:0},sisaT=tr.rilis&&tr.berlaku?Math.round((tr.rilis+tr.berlaku*60000-Jam.now())/1000):0;
@@ -399,7 +400,7 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
    '<table style="margin-bottom:6px"><tbody><tr><td style="width:22%">Sesi ujian</td><td>'+teks(s.judul)+'</td><td style="width:18%">Kelas</td><td style="width:14%">'+teks(s.kelas==='ALL'?'Semua':s.kelas)+'</td></tr>'+
    '<tr><td>Hari dan tanggal</td><td>'+teks(new Date(tgl).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+'</td><td>Durasi</td><td>'+(s.durasi||0)+' menit</td></tr>'+ruangBaris+'</tbody></table>'+
    '<table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Kehadiran</th><th>Mulai</th><th>Selesai</th><th>Nilai</th><th>Keluar halaman</th><th>Paraf</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-   '<p style="margin-top:8px">Peserta terdaftar: <b>'+G.ros.length+'</b> · Hadir: <b>'+hadir+'</b> · Tidak hadir: <b>'+(G.ros.length-hadir)+'</b></p>'+
+   '<p style="margin-top:8px">Peserta terdaftar'+(Array.isArray(s.pes)?' (daftar tetap)':'')+': <b>'+G.ros.length+'</b> · Hadir: <b>'+hadir+'</b> · Tidak hadir: <b>'+(G.ros.length-hadir)+'</b></p>'+
    '<p>Catatan selama ujian:</p><div style="border:1px solid #000;height:64px"></div>'+
    '<div style="display:flex;justify-content:space-between;margin-top:18px;text-align:center"><div style="width:45%">Pengawas'+(pkn?' ('+teks(pkn)+')':'')+'<br><br><br><br>(................................)</div><div style="width:45%">Guru mata pelajaran<br><br><br><br>(................................)</div></div></div>';
   }).join('');
@@ -426,6 +427,7 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   else if(a==='pn-ext'){var run=runOf(v);if(run)tulisRun(v,{ext:(Number(run.ext)||0)+(+b.dataset.n||300)},'Waktu ditambah')}
   else if(a==='pn-akhiri'){uiConfirm('Akhiri ujian siswa ini? Jawabannya dikirim otomatis dan tidak bisa dilanjutkan.',{ok:'Akhiri',danger:true}).then(function(ok){if(ok)tulisRun(v,{stop:true},'Siswa akan mengirim jawabannya dalam beberapa detik')})}
   else if(a==='pn-pindah'){uiConfirm('Izinkan '+(b.dataset.nm||'siswa ini')+' melanjutkan ujian dari perangkat lain? Izin berlaku 10 menit dan perangkat lama berhenti menyimpan jawaban setelah siswa pindah.',{ok:'Izinkan'}).then(function(ok){if(!ok)return;cbtFn({action:'aksiRun',rid:v,op:'izinPindah'}).then(function(){toast('Izin pindah perangkat 10 menit')}).catch(function(er){toast('Gagal: '+((er&&er.message)||er))})})}
+  else if(a==='pn-beku'){var sb=sesiById(v);if(!sb)return;uiConfirm('Bekukan daftar peserta? Daftar saat ini ('+roster(sb).length+' siswa) disimpan ke sesi dan tidak berubah lagi mengikuti kelas. Anda masih bisa menambah atau mengeluarkan siswa dari menu Sesi.',{ok:'Bekukan'}).then(function(ok){if(!ok)return;var o=Object.assign({},sb,{pes:roster(sb).map(function(u){return u.id}),pesTs:Date.now()});bsPut('sesi',o).then(function(r){toast(r?'Daftar peserta dibekukan':'Disimpan di perangkat, menunggu terkirim');render()})})}
   else if(a==='pn-buka'){var r2=runOf(v);if(r2)tulisRun(v,{pb:pay(r2).pindah||0},'Kunci dibuka')}
   else if(a==='pn-extall'){
    var s=sesiById(PN.sesi);

@@ -12,6 +12,13 @@ window.rgList=function(s){return s&&Array.isArray(s.ruang)?s.ruang.filter(functi
 window.rgOf=function(s,uid){var l=rgList(s);for(var i=0;i<l.length;i++)if(l[i].sis.indexOf(uid)>-1)return l[i];return null};
 /* siswa terdaftar untuk sesi (kelas dan sekolah) */
 window.rgRoster=function(s){
+ if(Array.isArray(s.pes)){   /* daftar tetap: persis siswa di daftar, urut kelas lalu nama */
+  var ps={};s.pes.forEach(function(x){ps[x]=1});
+  return S.users.filter(function(u){return ps[u.id]}).sort(function(a,b){return String(a.kelas||'').localeCompare(String(b.kelas||''),'id')||String(a.nama).localeCompare(String(b.nama),'id')});
+ }
+ return rgDinamis(s);
+};
+window.rgDinamis=function(s){
  return S.users.filter(function(u){
   if(!hasRole(u,'siswa')||u.aktif===false)return false;
   if(s.kelas&&s.kelas!=='ALL'&&u.kelas!==s.kelas)return false;
@@ -38,7 +45,7 @@ window.rgCek=function(f){
   if(nm[n])return 'Nama ruang "'+l[i].nama+'" dipakai dua kali';nm[n]=1;
   if(l[i].m&&l[i].s&&l[i].s<=l[i].m)return 'Ruang "'+l[i].nama+'": waktu tutup harus setelah waktu buka';
  }
- if(JSON.stringify(rgPak(l)).length+JSON.stringify(f.ids||[]).length>17000)return 'Penempatan terlalu besar untuk satu sesi. Bagi siswa ke beberapa sesi (misalnya per kelas)';
+ if(JSON.stringify(rgPak(l)).length+JSON.stringify(f.ids||[]).length+JSON.stringify(f.pes||[]).length>17000)return 'Penempatan terlalu besar untuk satu sesi. Bagi siswa ke beberapa sesi (misalnya per kelas)';
  return '';
 };
 window.rgBelum=function(f){
@@ -78,8 +85,30 @@ function man(f){
  }).join('');
  return h+'</div>'+(ros.length>lm?'<p class="note">Menampilkan '+lm+' dari '+ros.length+'. Persempit dengan pencarian.</p>':'');
 }
-window.rgForm=function(f){return '<div class="card" style="background:var(--bg)"><b>Ruang dan gelombang</b><div id="rg-box">'+inner(f)+'</div></div>'};
-function repaint(){var f=F(),b=document.getElementById('rg-box');if(f&&b)b.innerHTML=inner(f)}
+/* ---------- Daftar peserta tetap ---------- */
+function pesInner(f){
+ var tetap=Array.isArray(f.pes),din=rgDinamis(f),h='';
+ if(!tetap){
+  return '<p class="note">Daftar peserta dihitung dari kelas dan sekolah setiap kali dibuka: <b class="mono">'+din.length+'</b> siswa saat ini. Siswa yang pindah kelas atau akunnya diubah setelah ujian dijadwalkan mengubah daftar hadir dan rekap. Bekukan daftar agar tetap.</p>'+
+   '<div class="row"><button type="button" class="btn small primary" data-rg="beku">Bekukan daftar sekarang</button></div>';
+ }
+ var ada={};f.pes.forEach(function(x){ada[x]=1});var dd={};din.forEach(function(u){dd[u.id]=1});
+ var baru=din.filter(function(u){return !ada[u.id]}).length,hilang=f.pes.filter(function(x){return !dd[x]}).length;
+ h+='<p class="note">Daftar tetap: <b class="mono">'+f.pes.length+'</b> siswa, dibekukan '+(f.pesTs?bsWaktu(f.pesTs):'')+'. Dibanding kelas sekarang: '+baru+' siswa baru di kelas, '+hilang+' tidak lagi cocok dengan kelas/sekolah. Hanya siswa di daftar yang bisa mulai ujian.</p>';
+ h+='<div class="row"><button type="button" class="btn small" data-rg="pesman">'+(f.pesMan?'Tutup kelola daftar':'Tambah atau keluarkan siswa')+'</button><button type="button" class="btn small" data-rg="segar">Perbarui dari kelas</button><button type="button" class="btn small danger" data-rg="lepas">Lepas pembekuan</button></div>';
+ if(f.pesMan)h+='<div id="pes-man">'+pesMan(f)+'</div>';
+ return h;
+}
+function pesMan(f){
+ var q=String(f.pesQ||'').toLowerCase().trim(),ada={};f.pes.forEach(function(x){ada[x]=1});
+ var src=q?S.users.filter(function(u){return hasRole(u,'siswa')&&(String(u.nama).toLowerCase().indexOf(q)>-1||String(u.kelas||'').toLowerCase().indexOf(q)>-1)}):S.users.filter(function(u){return ada[u.id]});
+ src=src.slice().sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
+ var lm=40,h='<label class="f">Cari siswa (semua kelas)<input data-rgf="pesq" type="search" value="'+e(f.pesQ||'')+'" placeholder="Nama atau kelas, untuk menambah siswa susulan"></label><div>';
+ h+=src.slice(0,lm).map(function(u){return '<label class="bs-ck"><input type="checkbox" data-rgf="pes" data-u="'+e(u.id)+'"'+(ada[u.id]?' checked':'')+'> '+e(u.nama)+' <small class="muted">'+e(u.kelas||'')+'</small></label>'}).join('');
+ return h+'</div>'+(src.length>lm?'<p class="note">Menampilkan '+lm+' dari '+src.length+'. Persempit dengan pencarian.</p>':(q?'':'<p class="note">Daftar siswa di sesi ini. Ketik nama untuk mencari siswa lain.</p>'));
+}
+window.rgForm=function(f){return '<div class="card" style="background:var(--bg)"><b>Daftar peserta</b><div id="pes-box">'+pesInner(f)+'</div></div><div class="card" style="background:var(--bg)"><b>Ruang dan gelombang</b><div id="rg-box">'+inner(f)+'</div></div>'};
+function repaint(){var f=F(),b=document.getElementById('rg-box');if(f&&b)b.innerHTML=inner(f);var c=document.getElementById('pes-box');if(f&&c)c.innerHTML=pesInner(f)}
 
 function baru(f){
  var n=(f.ruang||[]).length+1,id='r'+Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36);
@@ -90,7 +119,15 @@ document.addEventListener('click',async function(ev){
  var f=F();if(!f)return;
  var a=b.dataset.rg,R=f.ruang=f.ruang||[],i=+b.dataset.i;
  ev.preventDefault();
- if(a==='add'){R.push(baru(f));repaint()}
+ if(a==='beku'){f.pes=rgDinamis(f).map(function(u){return u.id});f.pesTs=Date.now();repaint();toast('Daftar dibekukan: '+f.pes.length+' siswa. Simpan sesi untuk menyimpannya.')}
+ else if(a==='segar'){
+  if(!(await uiConfirm('Ganti daftar tetap dengan daftar kelas saat ini? Siswa susulan yang ditambah manual hilang, dan siswa yang sudah ditempatkan di ruang tapi tidak lagi di daftar dikeluarkan dari ruang.',{ok:'Perbarui'})))return;
+  f.pes=rgDinamis(f).map(function(u){return u.id});f.pesTs=Date.now();var ok={};f.pes.forEach(function(x){ok[x]=1});R.forEach(function(r){r.sis=r.sis.filter(function(x){return ok[x]})});repaint();
+ }else if(a==='lepas'){
+  if(!(await uiConfirm('Lepas pembekuan? Daftar peserta kembali dihitung dari kelas dan sekolah.',{ok:'Lepas'})))return;
+  f.pes=null;f.pesTs=0;f.pesMan=false;repaint();
+ }else if(a==='pesman'){f.pesMan=!f.pesMan;repaint()}
+ else if(a==='add'){R.push(baru(f));repaint()}
  else if(a==='del'){
   var r=R[i];if(!r)return;
   if(r.sis.length&&!(await uiConfirm('Hapus '+r.nama+'? '+r.sis.length+' siswa di dalamnya menjadi belum ditempatkan.',{ok:'Hapus',danger:true})))return;
@@ -118,6 +155,15 @@ function ubah(ev){
  else if(k==='m'&&r)r.m=ts(t.value);
  else if(k==='s'&&r)r.s=ts(t.value);
  else if(k==='q'){f.rgQ=t.value;var b=document.getElementById('rg-man');if(b)b.innerHTML=man(f);var q=document.querySelector('[data-rgf="q"]');if(q){q.focus();try{q.setSelectionRange(q.value.length,q.value.length)}catch(x){}}return}
+ else if(k==='pesq'){f.pesQ=t.value;var pm=document.getElementById('pes-man');if(pm){pm.innerHTML=pesMan(f);var q2=document.querySelector('[data-rgf="pesq"]');if(q2){q2.focus();try{q2.setSelectionRange(q2.value.length,q2.value.length)}catch(x){}}}return}
+ else if(k==='pes'){
+  var u2=t.dataset.u,in2=f.pes.indexOf(u2)>-1;
+  if(t.checked&&!in2)f.pes.push(u2);
+  else if(!t.checked&&in2){f.pes=f.pes.filter(function(x){return x!==u2});R.forEach(function(x){x.sis=x.sis.filter(function(id){return id!==u2})})}
+  var pb=document.getElementById('pes-box');
+  if(pb){var ps=pb.querySelector('p.note');if(ps)ps.innerHTML='Daftar tetap: <b class="mono">'+f.pes.length+'</b> siswa';}
+  return;
+ }
  else if(k==='sis'){
   R.forEach(function(x){x.sis=x.sis.filter(function(id){return id!==t.dataset.u})});
   var tj=R.filter(function(x){return x.id===t.value})[0];if(tj)tj.sis.push(t.dataset.u);
@@ -137,4 +183,8 @@ window.rgSaring=function(s,rows,cur){
  return rows.filter(function(r){var g=rgOf(s,r.u.id);return cur==='-'?!g:(g&&g.id===cur)});
 };
 window.rgPkNama=pkNama;
+window.rgBeku=function(s){
+ if(Array.isArray(s.pes))return '<p class="note">Daftar peserta tetap: <b class="mono">'+s.pes.length+'</b> siswa'+(s.pesTs?', dibekukan '+bsWaktu(s.pesTs):'')+'.</p>';
+ return '<div class="card"><p class="note">Daftar peserta masih dihitung dari kelas, jadi bisa berubah bila akun diubah. Bekukan sebelum ujian berjalan.</p><button type="button" class="btn small" data-bs="pn-beku" data-v="'+e(s.id)+'">Bekukan daftar peserta</button></div>';
+};
 })();
