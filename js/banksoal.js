@@ -433,6 +433,7 @@ function bsViewSiswa(){
   var jml=s.pilih==='manual'?(s.ids||[]).length:(s.jumlah||'semua');
   return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+(done?'ok':st.c)+'">'+(done?'Selesai':st.t)+'</span></div><p class="note">'+jml+' soal · '+(s.durasi||0)+' menit'+(s.mulai?' · mulai '+bsWaktu(s.mulai):'')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+(s.tok?' · pakai token':'')+'</p>'+
    (done?'<p>Nilai: <b class="mono">'+done.score+'</b> ('+done.benar+' benar dari '+done.total+')</p>':'')+
+   (window.pdBaris?pdBaris(s,done):'')+
    (go?'<button type="button" class="btn primary" data-bs="mulaiujian" data-v="'+s.id+'">Mulai ujian</button>':'')+'</div>';
  }).join('')+'</section>';
  if(cbt)return h+bsRiwayatBlok('ujian');
