@@ -5,7 +5,7 @@
    Dimuat setelah cbt.js. Dokumen: docs-CBT.md */
 (function(){
  if(typeof BS==='undefined')return;
- var PN={sesi:'',runs:[],hasil:[],at:0,busy:false,err:'',timer:0,sesiLoaded:'',coba:{}};
+ var PN={rg:'',sesi:'',runs:[],hasil:[],at:0,busy:false,err:'',timer:0,sesiLoaded:'',coba:{}};
  window.PNref=PN;   /* dipakai pengawas.js untuk tombol rilis token */
  var AN={sesi:'',urut:'p'};
 
@@ -88,9 +88,10 @@
   if(!s)return '<p class="muted">Belum ada sesi ujian. Buat sesi di tab Sesi.</p>';
   var runs={};PN.runs.forEach(function(d){runs[d.sid]=d});
   var hs=hasilSesi(s.id),ros=roster(s),rows=ros.map(function(u){return {u:u,s:statusRow(u,s,runs,hs)}});
+  if(window.rgSaring)rows=rgSaring(s,rows,PN.rg);
   /* peserta yang punya catatan tetapi tidak ada di daftar akun kelas */
   var count={belum:0,on:0,done:0,lock:0,habis:0};rows.forEach(function(r){count[r.s.k]++});
-  var h='';
+  var h=window.rgPilih?rgPilih(s,PN.rg):'';
   if(s.tok){
    var tk=BS.tk[s.id]||s.tokP||'';
    var tr=(BS.tkR&&BS.tkR[s.id])||{rilis:0,berlaku:0},sisaT=tr.rilis&&tr.berlaku?Math.round((tr.rilis+tr.berlaku*60000-Jam.now())/1000):0;
@@ -131,7 +132,7 @@
    if(st.k==='done'&&!st.h&&st.run&&!bsAman())act+='<button type="button" class="btn small primary" data-bs="pn-nilai1" data-v="'+rid+'">Nilai dari jawaban</button>';
    if(st.k==='done'&&st.h&&!bsAman())act+='<button type="button" class="btn small" data-bs="pn-susulan" data-v="'+u.id+'">Susulan</button>';
    if(st.k==='done'||st.run)act+='<button type="button" class="btn small danger" data-bs="pn-reset" data-v="'+u.id+'">Ulang</button>';
-   return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">Kelas '+esc(u.kelas||'-')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
+   return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">Kelas '+esc(u.kelas||'-')+(window.rgOf&&rgOf(s,u.id)?' · '+esc(rgLabel(rgOf(s,u.id))):'')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
   }).join('');
   return h;
  }
@@ -348,7 +349,9 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   var tk=BS.tk[s.id]||s.tokP||'';
   if(!s.tok||!tk){toast('Sesi ini tidak memakai token');return}
   var jd=(s.mulai?bsWaktu(s.mulai):'Sesuai jadwal guru')+(s.selesai?' sampai '+bsWaktu(s.selesai):'');
-  var cards=roster(s).map(function(u){return '<div style="border:1px solid #000;padding:8px 10px;break-inside:avoid;font-size:10pt"><b>KARTU PESERTA UJIAN ONLINE</b><br>'+teks(SEK.nama)+'<hr style="margin:4px 0">Nama: <b>'+teks(u.nama)+'</b><br>Kelas: '+teks(u.kelas||'-')+'<br>Sesi: '+teks(s.judul)+'<br>Jadwal: '+teks(jd)+'<br>Durasi: '+(s.durasi||0)+' menit<br>'+(s.tokR&&bsAman()?'Token: <b>dibacakan pengawas saat ujian dimulai</b>':'Token: <b style="font-size:18pt;letter-spacing:3px">'+teks(tk)+'</b>')+'</div>'}).join('');
+  var adaRg=window.rgList&&rgList(s).length,urut=roster(s);
+  if(adaRg)urut=urut.map(function(u,i){return {u:u,i:i,k:(function(){var g=rgOf(s,u.id);return g?rgList(s).indexOf(g):999})()}}).sort(function(a,b){return a.k-b.k||a.i-b.i}).map(function(x){return x.u});
+  var cards=urut.map(function(u){var g=adaRg?rgOf(s,u.id):null;return '<div style="border:1px solid #000;padding:8px 10px;break-inside:avoid;font-size:10pt"><b>KARTU PESERTA UJIAN ONLINE</b><br>'+teks(SEK.nama)+'<hr style="margin:4px 0">Nama: <b>'+teks(u.nama)+'</b><br>Kelas: '+teks(u.kelas||'-')+'<br>'+(adaRg?'Ruang: <b>'+teks(g?rgLabel(g):'belum ditempatkan')+'</b><br>':'')+'Sesi: '+teks(s.judul)+'<br>Jadwal: '+teks(adaRg&&g?rgJadwal(s,g):jd)+'<br>Durasi: '+(s.durasi||0)+' menit<br>'+(s.tokR&&bsAman()?'Token: <b>dibacakan pengawas saat ujian dimulai</b>':'Token: <b style="font-size:18pt;letter-spacing:3px">'+teks(tk)+'</b>')+'</div>'}).join('');
   if(!cards){toast('Tidak ada siswa terdaftar untuk sesi ini');return}
   cetakHtml('<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+cards+'</div>');
  }
@@ -376,19 +379,30 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   if(Cloud.on&&PN.sesiLoaded!==id){PN.sesi=id;await pnLoad()}
   var runs={};PN.runs.forEach(function(d){runs[d.sid]=d});
   var hs=hasilSesi(id),ros=roster(s);
-  var hadir=0,rows=ros.map(function(u,i){
-   var h=hs[u.id],run=runs[u.id],mulai=run?Date.parse(run.$createdAt):(h?(h.ts-(h.detik||0)*1000):0);
-   if(h||run)hadir++;
-   return '<tr><td>'+(i+1)+'</td><td>'+teks(u.nama)+'</td><td>'+teks(u.kelas||'')+'</td><td>'+((h||run)?'Hadir':'Tidak hadir')+'</td><td>'+(mulai?jam(mulai):'')+'</td><td>'+(h?jam(h.ts):'')+'</td><td>'+(h?h.score:'')+'</td><td>'+(h&&h.pindah?h.pindah:'')+'</td><td style="width:70px"></td></tr>';
-  }).join('');
   var kop='<div class="ujk"><img src="'+LOGO+'" alt=""><div><b>'+teks(SEK.nama)+'</b><span>'+teks(SEK.program)+'</span><small>'+teks(SEK.alamat)+'</small></div></div>';
-  var html=kop+'<h2 style="text-align:center;margin:6px 0">DAFTAR HADIR DAN BERITA ACARA UJIAN</h2>'+
+  /* satu bagian per ruang bila sesi beruang (halaman baru tiap ruang), atau satu bagian untuk semua */
+  var grup=[];
+  if(window.rgList&&rgList(s).length){
+   rgList(s).forEach(function(g){grup.push({g:g,ros:ros.filter(function(u){return g.sis.indexOf(u.id)>-1})})});
+   var tak=ros.filter(function(u){return !rgOf(s,u.id)});if(tak.length)grup.push({g:null,ros:tak});
+  }else grup.push({g:null,ros:ros,semua:true});
+  var html=grup.map(function(G,gi){
+   var hadir=0,rows=G.ros.map(function(u,i){
+    var h=hs[u.id],run=runs[u.id],mulai=run?Date.parse(run.$createdAt):(h?(h.ts-(h.detik||0)*1000):0);
+    if(h||run)hadir++;
+    return '<tr><td>'+(i+1)+'</td><td>'+teks(u.nama)+'</td><td>'+teks(u.kelas||'')+'</td><td>'+((h||run)?'Hadir':'Tidak hadir')+'</td><td>'+(mulai?jam(mulai):'')+'</td><td>'+(h?jam(h.ts):'')+'</td><td>'+(h?h.score:'')+'</td><td>'+(h&&h.pindah?h.pindah:'')+'</td><td style="width:70px"></td></tr>';
+   }).join('');
+   var g=G.g,pkn=g&&g.pk&&rgPkNama?rgPkNama(g.pk):'';
+   var ruangBaris=G.semua?'':'<tr><td>Ruang</td><td>'+teks(g?rgLabel(g):'Belum ditempatkan')+'</td><td>Proktor</td><td>'+teks(pkn||'-')+'</td></tr>';
+   var tgl=(g&&g.m)||s.mulai||Date.now();
+   return '<div'+(gi?' style="break-before:page;page-break-before:always"':'')+'>'+kop+'<h2 style="text-align:center;margin:6px 0">DAFTAR HADIR DAN BERITA ACARA UJIAN</h2>'+
    '<table style="margin-bottom:6px"><tbody><tr><td style="width:22%">Sesi ujian</td><td>'+teks(s.judul)+'</td><td style="width:18%">Kelas</td><td style="width:14%">'+teks(s.kelas==='ALL'?'Semua':s.kelas)+'</td></tr>'+
-   '<tr><td>Hari dan tanggal</td><td>'+teks(new Date(s.mulai||Date.now()).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+'</td><td>Durasi</td><td>'+(s.durasi||0)+' menit</td></tr></tbody></table>'+
+   '<tr><td>Hari dan tanggal</td><td>'+teks(new Date(tgl).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+'</td><td>Durasi</td><td>'+(s.durasi||0)+' menit</td></tr>'+ruangBaris+'</tbody></table>'+
    '<table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Kehadiran</th><th>Mulai</th><th>Selesai</th><th>Nilai</th><th>Keluar halaman</th><th>Paraf</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-   '<p style="margin-top:8px">Peserta terdaftar: <b>'+ros.length+'</b> · Hadir: <b>'+hadir+'</b> · Tidak hadir: <b>'+(ros.length-hadir)+'</b></p>'+
+   '<p style="margin-top:8px">Peserta terdaftar: <b>'+G.ros.length+'</b> · Hadir: <b>'+hadir+'</b> · Tidak hadir: <b>'+(G.ros.length-hadir)+'</b></p>'+
    '<p>Catatan selama ujian:</p><div style="border:1px solid #000;height:64px"></div>'+
-   '<div style="display:flex;justify-content:space-between;margin-top:18px;text-align:center"><div style="width:45%">Pengawas<br><br><br><br>(................................)</div><div style="width:45%">Guru mata pelajaran<br><br><br><br>(................................)</div></div>';
+   '<div style="display:flex;justify-content:space-between;margin-top:18px;text-align:center"><div style="width:45%">Pengawas'+(pkn?' ('+teks(pkn)+')':'')+'<br><br><br><br>(................................)</div><div style="width:45%">Guru mata pelajaran<br><br><br><br>(................................)</div></div></div>';
+  }).join('');
   var old=document.getElementById('uj-print');if(old)old.remove();
   var el=document.createElement('div');el.id='uj-print';el.innerHTML=html;document.body.appendChild(el);
   document.body.classList.add('uj-printing');
@@ -399,9 +413,10 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
  document.addEventListener('change',function(e){
   var b=e.target.closest&&e.target.closest('select[data-bs]');if(!b)return;
   var a=b.dataset.bs;
-  if(a==='pn-sesi'){PN.sesi=b.value;PN.runs=[];PN.hasil=[];PN.sesiLoaded='';render()}
+  if(a==='pn-sesi'){PN.rg='';PN.sesi=b.value;PN.runs=[];PN.hasil=[];PN.sesiLoaded='';render()}
   else if(a==='an-sesi'){AN.sesi=b.value;render()}
   else if(a==='an-urut'){AN.urut=b.value;render()}
+  else if(a==='pn-rg'){PN.rg=b.value;render()}
  });
  document.addEventListener('click',function(e){
   var b=e.target.closest&&e.target.closest('[data-bs]');if(!b||b.tagName==='SELECT')return;

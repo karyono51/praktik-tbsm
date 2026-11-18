@@ -61,6 +61,7 @@ function ruBody(){
   '<label class="f" style="margin-top:8px">Masa berlaku<select id="ru-menit">'+[5,10,15,30,60].map(function(m){return '<option value="'+m+'"'+(RU.menit===m?' selected':'')+'>'+m+' menit</option>'}).join('')+'</select></label></div>';
  var c={belum:0,on:0,lock:0,habis:0,done:0};d.peserta.forEach(function(p){c[p.k]++});
  h+='<div class="stats">'+[['Belum','belum'],['Mengerjakan','on'],['Selesai','done'],['Terkunci','lock'],['Habis','habis']].map(function(x){return '<div class="card"><span class="label">'+x[0]+'</span><b class="mono">'+c[x[1]]+'</b></div>'}).join('')+'</div>';
+ if(d.saya&&d.saya.length)h+='<p class="note">Ruang yang kamu awasi: <b>'+d.saya.map(esc).join(', ')+'</b></p>';
  h+='<div class="row"><button type="button" class="btn small" data-ru="muat">Muat ulang</button></div>';
  h+='<p class="note">'+(RU.err?'Gagal memuat: '+esc(RU.err):'Diperbarui '+jam(RU.t0)+' · otomatis tiap 8 detik')+'</p>';
  if(!d.peserta.length)return h+'<p class="muted">Tidak ada siswa terdaftar untuk sesi ini.</p>';
@@ -75,7 +76,7 @@ function ruBody(){
    if(p.k==='on'||p.k==='lock')act+='<button type="button" class="btn small'+(p.izin>0?' primary':'')+'" data-ru="pindah" data-rid="'+esc(p.rid)+'" data-nm="'+esc(p.nama)+'">'+(p.izin>0?'Izin pindah aktif':'Izinkan pindah perangkat')+'</button>';
    if(!p.stop)act+='<button type="button" class="btn small danger" data-ru="akhiri" data-rid="'+esc(p.rid)+'" data-nm="'+esc(p.nama)+'">Akhiri</button>';
   }
-  return '<div class="card"><div class="row sb"><b>'+esc(p.nama)+'</b><span class="pill '+T[1]+'">'+T[0]+'</span></div><p class="note">Kelas '+esc(p.kelas||'-')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
+  return '<div class="card"><div class="row sb"><b>'+esc(p.nama)+'</b><span class="pill '+T[1]+'">'+T[0]+'</span></div><p class="note">Kelas '+esc(p.kelas||'-')+(p.ruang?' · '+esc(p.ruang)+(p.gel?' · gelombang '+esc(p.gel):''):'')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
  }).join('')+(rows.length>lm?'<p class="note">Menampilkan '+lm+' dari '+rows.length+' peserta (yang perlu perhatian di atas).</p>':'');
  return h;
 }

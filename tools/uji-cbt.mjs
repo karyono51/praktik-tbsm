@@ -288,5 +288,40 @@ console.log('\nPengikat perangkat (pindah perangkat butuh izin pengawas)');
   cek('audit: izin, pindah, dan penolakan tercatat', ['run.izinPindah', 'run.pindahOk', 'run.pindahTolak'].every((x) => A.includes(x)), A.join());
 }
 
+console.log('\nRuang dan gelombang');
+{
+  siapkan();
+  users.p1 = { $id: 'p1', email: 'pk@x.id', labels: ['proktor'] };
+  col('akun').set('AP', { $id: 'AP', email: 'pk@x.id', nama: 'Proktor 1', aktif: true, sekolah: 'MEDINA', peran: 'proktor' });
+  users.p2 = { $id: 'p2', email: 'pk2@x.id', labels: ['proktor'] };
+  col('akun').set('AP2', { $id: 'AP2', email: 'pk2@x.id', nama: 'Proktor 2', aktif: true, sekolah: 'MEDINA', peran: 'proktor' });
+  users.p3 = { $id: 'p3', email: 'pk3@x.id', labels: ['proktor'] };
+  col('akun').set('AP3', { $id: 'AP3', email: 'pk3@x.id', nama: 'Proktor 3', aktif: true, sekolah: 'MEDINA', peran: 'proktor' });
+  for (const [id, d] of col('akun')) if (/^A\d+$/.test(id)) d.peran = 'siswa';
+  const sesi = col('soal_sesi').get('S1'), pj = JSON.parse(sesi.payload); pj.tokR = true;
+  const lalu = Date.now() - 3600e3, nanti = Date.now() + 3600e3;
+  pj.ruang = [
+    { id: 'r1', nama: 'Lab 1', gel: '1', pk: 'AP', m: lalu, s: nanti, sis: ['A0', 'A1', 'A2'] },
+    { id: 'r2', nama: 'Lab 2', gel: '2', pk: 'AP2', m: nanti, s: nanti + 3600e3, sis: ['A3', 'A4'] }
+  ];
+  sesi.payload = JSON.stringify(pj);
+  await call('g1', { action: 'rilisToken', sesiId: 'S1', menit: 30 });
+  let r = await call('u0', { action: 'mulai', sesiId: 'S1', token: 'ABC123', dev: 'dev_aaaaaaaaaaaa' }); cek('siswa di ruang yang sedang buka bisa mulai', r.status === 200, r.body.error);
+  r = await call('u3', { action: 'mulai', sesiId: 'S1', token: 'ABC123', dev: 'dev_bbbbbbbbbbbb' }); cek('gelombang 2 belum dibuka: siswa ditolak', r.status === 403 && /belum dibuka/.test(r.body.error), r.body.error);
+  r = await call('u10', { action: 'mulai', sesiId: 'S1', token: 'ABC123', dev: 'dev_cccccccccccc' }); cek('siswa tanpa ruang ditolak', r.status === 403 && /belum ditempatkan/.test(r.body.error), r.body.error);
+  r = await call('p1', { action: 'pantau', sesiId: 'S1' });
+  cek('proktor 1 hanya melihat siswa ruangnya', r.status === 200 && r.body.peserta.map((x) => x.sid).sort().join() === 'A0,A1,A2', r.body.peserta && r.body.peserta.map((x) => x.sid).join());
+  cek('peserta membawa nama ruang dan gelombang', r.body.peserta.every((x) => x.ruang === 'Lab 1' && x.gel === '1') && r.body.saya.join() === 'Lab 1');
+  r = await call('p3', { action: 'pantau', sesiId: 'S1' }); cek('proktor tanpa ruang ditolak memantau', r.status === 403);
+  r = await call('p3', { action: 'rilisToken', sesiId: 'S1', menit: 5 }); cek('proktor tanpa ruang ditolak merilis token', r.status === 403);
+  r = await call('p1', { action: 'rilisToken', sesiId: 'S1', menit: 5 }); cek('proktor ber-ruang boleh merilis token', r.status === 200);
+  r = await call('g1', { action: 'pantau', sesiId: 'S1' }); cek('guru melihat semua ruang', r.status === 200 && r.body.peserta.length >= 5 && r.body.peserta.some((x) => x.ruang === 'Lab 2'));
+  r = await call('p1', { action: 'aksiRun', rid: 'rS1_A0', op: 'tambah', detik: 300 }); cek('proktor bertindak untuk siswa ruangnya', r.status === 200, r.body.error);
+  r = await call('p2', { action: 'aksiRun', rid: 'rS1_A0', op: 'tambah', detik: 300 }); cek('proktor ruang lain ditolak', r.status === 403 && /ruangmu/.test(r.body.error), r.body.error);
+  r = await call('g1', { action: 'aksiRun', rid: 'rS1_A0', op: 'tambah', detik: 300 }); cek('guru bebas bertindak lintas ruang', r.status === 200);
+  /* sesi tanpa ruang tidak berubah */
+  r = await call('u20', { action: 'mulai', sesiId: 'S2' }); cek('sesi tanpa ruang tetap berjalan seperti biasa', r.status === 200);
+}
+
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);

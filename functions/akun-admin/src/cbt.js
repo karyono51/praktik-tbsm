@@ -287,6 +287,18 @@ function sesiBoleh(s, akun, now) {
   if (sk && ak && ak !== 'ALL' && sk !== ak) throw new Fail('Sesi ini bukan untuk sekolahmu.', 403);
 }
 
+/* ---------- Ruang dan gelombang ----------
+   Payload sesi memuat ruang: [{id, nama, gel, pk (id akun proktor), m, s (jadwal ruang, bila beda dari sesi), sis: [id akun siswa]}].
+   Sesi beruang: siswa harus ditempatkan di salah satu ruang, jadwal buka/tutup mengikuti ruangnya (gelombang),
+   dan proktor (bukan guru/admin) hanya memantau dan bertindak untuk siswa di ruang yang ia awasi. Sesi tanpa ruang bekerja seperti biasa. */
+function ruangList(s) { return Array.isArray(s.ruang) ? s.ruang.filter((r) => r && Array.isArray(r.sis)) : []; }
+function ruangSiswa(s, sid) { return ruangList(s).find((r) => r.sis.includes(sid)) || null; }
+function ruangSaya(s, me) { return ruangList(s).filter((r) => r.pk && r.pk === me.akun.$id); }
+function wajibRuangnya(s, me, sid) {
+  if (me.staff || !ruangList(s).length) return;
+  const r = ruangSiswa(s, sid); if (!r || r.pk !== me.akun.$id) throw new Fail('Siswa ini bukan di ruangmu.', 403);
+}
+
 /* ---------- Util ---------- */
 function h32(s) { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
 function runId(sesiId, sid) {
@@ -318,7 +330,13 @@ async function mulai(me, body) {
     await cekPerangkat(ex, me, body, s);
     return resumeResp(ex, s, now);
   }
-  sesiBoleh(s, me.akun, now);
+  let sj = s;
+  if (ruangList(s).length) {
+    const rg = ruangSiswa(s, sid);
+    if (!rg) throw new Fail('Kamu belum ditempatkan di ruang ujian. Hubungi pengawas.', 403);
+    sj = Object.assign({}, s, { mulai: Number(rg.m) || s.mulai, selesai: Number(rg.s) || s.selesai });   // jadwal gelombang ruang
+  }
+  sesiBoleh(sj, me.akun, now);
   if (s.tok) {
     salahCek(me.akun.$id);
     const ti = await tokenSesi(sesiId), tk = ti.token;
@@ -607,6 +625,7 @@ async function rilisToken(me, body) {
   needPawas(me);
   const { sesiId, s } = await sesiPawas(me, body);
   if (!s.tok) throw new Fail('Sesi ini tidak memakai token.', 400);
+  if (ruangList(s).length && !me.staff && !ruangSaya(s, me).length) throw new Fail('Kamu bukan proktor ruang mana pun di sesi ini.', 403);
   const kd = await tryGet('soal_kunci', 'tk_' + sesiId); let j = {};
   try { j = JSON.parse((kd && kd.payload) || '{}'); } catch (e) { j = {}; }
   const token = String(j.token || ''); if (!kd || !token) throw new Fail('Token sesi belum diatur guru.', 403);
@@ -627,11 +646,19 @@ async function rosterSesi(s) {
 async function pantau(me, body) {
   needPawas(me);
   const { sesiId, s } = await sesiPawas(me, body), now = Date.now();
-  const [runs, ros] = await Promise.all([listDocs('soal_run', [Q.equal('sesiId', [sesiId])]), rosterSesi(s)]);
+  const [runs, ros0] = await Promise.all([listDocs('soal_run', [Q.equal('sesiId', [sesiId])]), rosterSesi(s)]);
   const by = {}; runs.forEach((r) => { by[r.sid] = r; });
+  const rl = ruangList(s), rmap = {}; rl.forEach((r) => r.sis.forEach((x) => { rmap[x] = r; }));
+  let ros = ros0;
+  if (rl.length && !me.staff) {
+    const mine = ruangSaya(s, me); if (!mine.length) throw new Fail('Kamu bukan proktor ruang mana pun di sesi ini.', 403);
+    const ok = new Set(); mine.forEach((r) => r.sis.forEach((x) => ok.add(x)));
+    ros = ros0.filter((a) => ok.has(a.id));
+  }
   const batas = Number(s.batas) || 0;
   const peserta = ros.map((a) => {
     const run = by[a.id], o = { sid: a.id, nama: a.nama, kelas: a.kelas, k: 'belum' };
+    if (rmap[a.id]) { o.ruang = String(rmap[a.id].nama || ''); o.gel = String(rmap[a.id].gel || ''); }
     if (!run) return o;
     o.rid = run.$id;
     if (run.done) { o.k = 'done'; return o; }
@@ -650,7 +677,8 @@ async function pantau(me, body) {
     tok.rilis = ti.rilis; tok.berlaku = ti.berlaku; tok.sisa = aktif ? Math.round((ti.rilis + ti.berlaku * 60000 - now) / 1000) : 0;
     if (!s.tokR || aktif) tok.token = ti.token;
   }
-  return { ok: true, now, judul: s.judul || '', durasi: s.durasi || 0, batas, peserta, tok };
+  const saya = rl.length && !me.staff ? ruangSaya(s, me).map((r) => String(r.nama || '')) : [];
+  return { ok: true, now, judul: s.judul || '', durasi: s.durasi || 0, batas, peserta, tok, saya };
 }
 async function aksiRun(me, body) {
   needPawas(me);
@@ -658,6 +686,7 @@ async function aksiRun(me, body) {
   const run = await tryGet('soal_run', rid); if (!run) throw new Fail('Catatan ujian tidak ditemukan.', 404);
   const sd = await sesiDoc(run.sesiId); sekolahOk(sd ? parse(sd) : {}, me);
   if (run.done) throw new Fail('Ujian ini sudah selesai.', 409);
+  wajibRuangnya(parse(sd || {}), me, run.sid);
   const st = runState(run), op = String(body.op || ''); let data, ket;
   if (op === 'tambah') {
     const d = Number(body.detik); if (d !== 300 && d !== 900) throw new Fail('Tambahan waktu hanya 5 atau 15 menit.', 400);
