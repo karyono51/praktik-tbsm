@@ -137,7 +137,7 @@
   }).join('');
   return h;
  }
- var CETAK='<button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button>';
+ var CETAK='<button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button><button type="button" class="btn small" data-bs="an-siswa">Hasil per siswa</button><button type="button" class="btn small" data-bs="an-siswa-r">Hasil per siswa + rincian</button>';
  window.bsViewPantau=function(){
   if(!Cloud.on)return '<div class="card"><p>Pantau langsung butuh mode server (Appwrite). Aplikasi ini sedang berjalan tanpa server, jadi hanya data di perangkat ini yang ada.</p></div>';
   PN.sesi=pilihPantau(PN.sesi);
@@ -302,10 +302,10 @@
   AN.sesi=pilihSesi(AN.sesi);
   if(!AN.sesi)return '<p class="muted">Belum ada sesi ujian.</p>';
   var a=analisis(AN.sesi),h='<div class="card">'+selSesi('an-sesi',AN.sesi)+'</div>';
-  if(!a||!a.H.length)return h+'<p class="muted">Belum ada peserta yang selesai pada sesi ini.</p><div class="row"><button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button></div>';
+  if(!a||!a.H.length)return h+'<p class="muted">Belum ada peserta yang selesai pada sesi ini.</p><div class="row"><button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button><button type="button" class="btn small" data-bs="an-siswa">Hasil per siswa</button><button type="button" class="btn small" data-bs="an-siswa-r">Hasil per siswa + rincian</button></div>';
   var st=a.st,f=function(x){return Math.round(x*10)/10};
   h+='<div class="stats"><div class="card"><span class="label">Peserta</span><b class="mono">'+st.n+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+f(st.mean)+'</b></div><div class="card"><span class="label">Median</span><b class="mono">'+f(st.med)+'</b></div><div class="card"><span class="label">Simpangan baku</span><b class="mono">'+f(st.sd)+'</b></div><div class="card"><span class="label">Tertinggi</span><b class="mono">'+st.max+'</b></div><div class="card"><span class="label">Terendah</span><b class="mono">'+st.min+'</b></div><div class="card"><span class="label">Tuntas (KKM '+a.kkm+')</span><b class="mono">'+Math.round(a.tuntas/st.n*100)+'%</b></div>'+(a.rel?'<div class="card"><span class="label">Reliabilitas (α)</span><b class="mono">'+a.rel.a.toFixed(2)+'</b><span class="note">'+a.rel.ket+' · '+a.rel.k+' soal</span></div>':'')+'</div>';
-  h+='<div class="row"><button type="button" class="btn small" data-bs="an-ekspor">Ekspor Excel</button><button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button>'+(bsEdit()?'<button type="button" class="btn small" data-bs="an-ulang">Nilai ulang dengan kunci terbaru</button>':'')+'<label class="f" style="min-width:150px">Urutkan<select data-bs="an-urut"><option value="p"'+(AN.urut==='p'?' selected':'')+'>Tersukar dulu</option><option value="db"'+(AN.urut==='db'?' selected':'')+'>Daya beda terendah</option><option value="n"'+(AN.urut==='n'?' selected':'')+'>Paling banyak diujikan</option></select></label></div>';
+  h+='<div class="row"><button type="button" class="btn small" data-bs="an-ekspor">Ekspor Excel</button><button type="button" class="btn small" data-bs="an-hadir">Hadir dan berita acara</button><button type="button" class="btn small" data-bs="an-kartu">Kartu token</button><button type="button" class="btn small" data-bs="an-rekap">Rekap per kelas</button><button type="button" class="btn small" data-bs="an-siswa">Hasil per siswa</button><button type="button" class="btn small" data-bs="an-siswa-r">Hasil per siswa + rincian</button>'+(bsEdit()?'<button type="button" class="btn small" data-bs="an-ulang">Nilai ulang dengan kunci terbaru</button>':'')+'<label class="f" style="min-width:150px">Urutkan<select data-bs="an-urut"><option value="p"'+(AN.urut==='p'?' selected':'')+'>Tersukar dulu</option><option value="db"'+(AN.urut==='db'?' selected':'')+'>Daya beda terendah</option><option value="n"'+(AN.urut==='n'?' selected':'')+'>Paling banyak diujikan</option></select></label></div>';
   h+=a.items.map(function(o){
    if(o.nokey)return '<div class="card"><p class="note">'+esc(String(o.q.q||'').slice(0,100))+'</p><p class="note">Kunci tidak tersedia di perangkat ini, soal dilewati.</p></div>';
    var warn=o.db!==null&&o.db<0?'<span class="pill bad">Periksa kunci</span>':'';
@@ -516,4 +516,5 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   else if(a==='an-kartu')kartuToken(sesiAktif());
   else if(a==='an-rekap')rekapKelas(sesiAktif());
  });
+ window.cbtStaf={roster:roster,hasilSesi:hasilSesi,sesiById:sesiById,PN:PN,pnLoad:pnLoad,cetakHtml:cetakHtml,teks:teks,jam:jam,sesiAktif:sesiAktif};
 })();
