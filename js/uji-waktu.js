@@ -26,6 +26,11 @@ window.ujiSyarat=function(){
  if(isStaff())return (!V.group||!V.group.length||!V.peserta)?'Pilih atau tambah siswa yang dinilai dulu. Isian terbuka setelah itu.':'';
  if(!String(V.peserta||'').trim())return 'Nama belum terbaca dari akun. Muat ulang halaman atau hubungi guru.';
  if(V.job.ukk&&String(V.nis||'').trim().length<3)return 'Isi NIS kamu dulu (minimal 3 karakter). Lembar pemeriksaan terbuka setelah NIS terisi, lalu waktu berjalan otomatis saat butir pertama diisi.';
+ if(V.job.ukk){
+  var asli='';try{asli=typeof akNis==='function'?akNis(S.user):''}catch(er){}
+  var dig=function(x){return String(x||'').replace(/\D/g,'')};
+  if(dig(asli)&&dig(V.nis)!==dig(asli))return 'NIS yang kamu isi belum cocok dengan NIS akunmu. Periksa lagi. Lembar pemeriksaan terbuka setelah NIS cocok.';
+ }
  return '';
 };
 function paint(){
