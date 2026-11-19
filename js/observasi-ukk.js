@@ -41,7 +41,7 @@ function obuVisible(){
  var L=schObsList(S.observasi||[]).filter(function(r){return r.tipe==='ukk'&&(can('observasi-semua')||(!!S.user&&r.pengamatId===S.user.id))});
  return L.sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))||b.ts-a.ts});
 }
-function obuBaru(){return {id:'',lembar:OU.lembar,sel:'',nama:'',nis:'',kelas:Object.keys(KELAS)[0],tanggal:ymd(Date.now()),penguji:(S.user&&S.user.nama)||'',v:2,nilai:{},lvl:{},cat:{},catatan:''}}
+function obuBaru(){return {id:'',lembar:OU.lembar,sel:'',nama:'',nis:'',kelas:KELAS.XII?'XII':Object.keys(KELAS)[0],tanggal:ymd(Date.now()),penguji:(S.user&&S.user.nama)||'',v:2,nilai:{},lvl:{},cat:{},catatan:''}}
 function obuDraftDari(r){
  var p=obsPay(r),sel=(r.guruId&&S.users.some(function(u){return u.id===r.guruId}))?r.guruId:'__lain';
  return {id:r.id,lembar:obuKey(r),sel:sel,nama:sel==='__lain'?r.guru:'',nis:p.nis||'',kelas:r.kelas||Object.keys(KELAS)[0],tanggal:r.tanggal||ymd(Date.now()),penguji:p.penguji||r.pengamat||'',v:2,lama:p.v!==2,nilai:p.v===2?p.nilai:{},lvl:p.v===2?(p.lvl||{}):{},cat:p.cat,catatan:p.catatan||''};
