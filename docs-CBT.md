@@ -125,3 +125,9 @@ Tiap siswa mendapat soal acak berbeda untuk tiap jenis; uraian ditaruh paling ak
 - Tersimpan di `payload` sesi (`jns`), tanpa perubahan atribut Appwrite. Sesi lama tidak berubah.
 - Peringatan "soal tersedia kurang" dihitung per kelas dan per jenis. Menyimpan dengan semua jenis 0 ditolak.
 - Fungsi server (`functions/cbt`, salinan di `akun-admin/src/cbt.js`) ikut diubah: **deploy ulang `akun-admin`** bila memakai CBT mode aman. `node tools/uji-cbt.mjs`: 140 lulus.
+
+---
+
+# Pembaruan: ekspor akun siswa per kelas
+
+Menu **Akun** punya tombol **Ekspor siswa per kelas**. Hasilnya satu berkas `Akun_Siswa_per_Kelas.xlsx` berisi lembar **Kelas X**, **Kelas XI**, **Kelas XII** (hanya kelas yang ada siswanya), **Tanpa kelas** bila ada, dan **Semua siswa**. Kolom: No, Nama, Username, Email, Kelas, Sekolah, Status. Hanya siswa dari sekolah yang boleh dilihat akun Anda. Sandi tidak ikut diekspor.

@@ -85,6 +85,26 @@ function xlsAkun(){
  var L=S.users.filter(schAkunOk).sort(function(a,b){return a.peran.localeCompare(b.peran)||a.nama.localeCompare(b.nama)});
  book([['Akun',[['No','Nama','Username','Email','Peran','Kelas','Sekolah','Status','Dibuat']].concat(L.map(function(u,i){return [i+1,u.nama,u.username,u.email||'',peranLabel(u.peran),u.kelas||'',u.sekolah==='ALL'?'ALL':(SCH_LIST[u.sekolah]?SCH_LIST[u.sekolah].kode:''),u.aktif===false?'Nonaktif':'Aktif',u.dibuat?new Date(u.dibuat).toLocaleDateString('id-ID'):'']})),[5,28,20,30,9,7,10,10,12]]],'Akun_TBSM');
 }
+/* Ekspor akun siswa per kelas: satu berkas, satu lembar per kelas (X, XI, XII, Tanpa kelas) ditambah lembar Semua siswa. Mengikuti sekolah yang boleh dilihat. */
+function xlsSiswaKelas(){
+ if(!needX())return;
+ var L=S.users.filter(function(u){return schAkunOk(u)&&hasRole(u,'siswa')});
+ if(!L.length){toast('Belum ada akun siswa');return}
+ var H=['No','Nama','Username','Email','Kelas','Sekolah','Status'];
+ function row(u,i){return [i+1,u.nama,u.username,u.email||'',u.kelas||'',u.sekolah==='ALL'?'ALL':(SCH_LIST[u.sekolah]?SCH_LIST[u.sekolah].kode:''),u.aktif===false?'Nonaktif':'Aktif']}
+ function urut(a,b){return String(a.nama).localeCompare(String(b.nama))}
+ var W=[5,28,20,30,7,10,10],pairs=[],kls=['X','XI','XII'];
+ kls.forEach(function(k){
+  var m=L.filter(function(u){return u.kelas===k}).sort(urut);
+  if(m.length)pairs.push(['Kelas '+k,[H].concat(m.map(row)),W]);
+ });
+ var lain=L.filter(function(u){return kls.indexOf(u.kelas)<0}).sort(urut);
+ if(lain.length)pairs.push(['Tanpa kelas',[H].concat(lain.map(row)),W]);
+ var semua=L.slice().sort(function(a,b){return (kls.indexOf(a.kelas)+9)%9-(kls.indexOf(b.kelas)+9)%9||urut(a,b)});
+ pairs.push(['Semua siswa',[H].concat(semua.map(row)),W]);
+ book(pairs,'Akun_Siswa_per_Kelas');
+ toast('Diekspor: '+L.length+' siswa, '+(pairs.length-1)+' lembar kelas');
+}
 function tplAkun(){
  if(!needX())return;
  book([['Akun',[['Nama','Username','Email','Sandi','Peran','Kelas','Sekolah','Status'],['Contoh Siswa','contoh.siswa','contoh.siswa@sekolah.sch.id','','siswa','X','DF','aktif'],['Contoh Guru','contoh.guru','contoh.guru@sekolah.sch.id','','guru','','MEDINA','aktif']],[26,18,30,14,9,8,10,9]],
