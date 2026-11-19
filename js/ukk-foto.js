@@ -10,6 +10,9 @@ function ukFotoSimpan(){try{if(typeof ujiDraftSimpan==='function')ujiDraftSimpan
 /* Pesan kekurangan foto, atau '' bila semua foto wajib sudah terisi */
 function ukFotoKurang(){
  if(!V.job||!V.job.ukk||V.mode!=='exam')return '';
+ /* Latihan siswa: foto tidak menahan penyelesaian. Waktu habis: hasil tetap dihitung otomatis walau foto belum lengkap. */
+ if(!isStaff()&&V.job.cfg&&V.job.cfg.mode==='latihan')return '';
+ if(V.job.menit&&V.sec>=V.job.menit*60)return '';
  var w=ukFotoWajib();if(!w.length)return '';
  var keys=V.kel?['*']:(nameList().length?nameList():[V.peserta]),out=[];
  keys.forEach(function(k){
@@ -116,6 +119,7 @@ function ukIndividu(){return !!(V.job&&V.job.ukk&&V.job.cfg&&V.job.cfg.mode==='u
    Ujian tetap mensyaratkan semua butir terisi. */
 function ukBisaHitung(){
  if(!(V.job&&V.job.ukk&&V.job.cfg&&V.job.cfg.mode==='latihan'))return groupComplete();
+ if(!isStaff())return true; /* latihan siswa: boleh selesai kapan saja */
  return V.kel?doneOf('*')>0:nameList().every(function(n){return doneOf(n)>0});
 }
 
