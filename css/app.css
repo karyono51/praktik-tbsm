@@ -415,3 +415,12 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 .akn-sheet{max-height:min(90vh,760px)}
 .akn-body{overflow-y:auto;overscroll-behavior:contain;padding:0 4px 12px}
 .akn-body>.card{border:0;box-shadow:none;background:none;margin:0}
+
+/* Peran akun: kotak pilihan rata dua kolom, yang dipilih diberi warna */
+fieldset.roles{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 10px 12px}
+fieldset.roles legend{padding:0 6px}
+fieldset.roles .chk{box-sizing:border-box;min-height:46px;margin:0;padding:8px 12px;gap:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;font-weight:500;line-height:1.2;transition:background .12s,border-color .12s}
+fieldset.roles .chk input{flex:0 0 auto;width:20px;height:20px;margin:0;accent-color:var(--accent)}
+fieldset.roles .chk:has(input:checked){background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:340px){fieldset.roles{grid-template-columns:1fr}}
