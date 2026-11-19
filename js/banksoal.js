@@ -49,7 +49,7 @@ function bsPack(k,o){
    o.payload=JSON.stringify({q:o.q,opts:o.opts,rows:o.rows?o.rows.map(function(r){return [r[0]]}):undefined,lab:o.lab,ks:1,qi:o.qi||undefined,oi:o.oi||undefined,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined,dari:o.dari||undefined});
   }else o.payload=JSON.stringify({q:o.q,opts:o.opts,kunci:o.kunci,rows:o.rows,lab:o.lab,bahas:o.bahas,qi:o.qi||undefined,oi:o.oi||undefined,rub:o.rub,kj:o.kj,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined,dari:o.dari||undefined});
  }
- else if(k==='sesi')o.payload=JSON.stringify({ids:o.ids||[],pilih:o.pilih||'otomatis',mapelF:o.mapelF||[],tampil:!!o.tampil,sekolah:o.sekolah||'',tok:o.tok?1:0,tokR:o.tokR?1:0,tokH:bsAman()?undefined:(o.tokH||undefined),tokS:bsAman()?undefined:(o.tokS||undefined),batas:o.batas||0,aksi:o.aksi||'peringatan',layar:!!o.layar,exambro:!!o.exambro,ruang:(o.ruang&&o.ruang.length)?o.ruang:undefined,pes:Array.isArray(o.pes)?o.pes:undefined,pesTs:Array.isArray(o.pes)?(o.pesTs||0):undefined,nomor:(Array.isArray(o.pes)&&o.nomor)?o.nomor:undefined});
+ else if(k==='sesi')o.payload=JSON.stringify({ids:o.ids||[],jns:(o.jns&&o.pilih!=='manual')?o.jns:undefined,jumlahUr:(typeof o.jumlahUr==='number'&&!o.jns&&o.pilih!=='manual')?o.jumlahUr:undefined,pilih:o.pilih||'otomatis',mapelF:o.mapelF||[],tampil:!!o.tampil,sekolah:o.sekolah||'',tok:o.tok?1:0,tokR:o.tokR?1:0,tokH:bsAman()?undefined:(o.tokH||undefined),tokS:bsAman()?undefined:(o.tokS||undefined),batas:o.batas||0,aksi:o.aksi||'peringatan',layar:!!o.layar,exambro:!!o.exambro,ruang:(o.ruang&&o.ruang.length)?o.ruang:undefined,pes:Array.isArray(o.pes)?o.pes:undefined,pesTs:Array.isArray(o.pes)?(o.pesTs||0):undefined,nomor:(Array.isArray(o.pes)&&o.nomor)?o.nomor:undefined});
  else o.payload=JSON.stringify({ans:o.ans,order:o.order,oo:o.oo,pindah:o.pindah||0,pts:o.pts});
 }
 function bsQueueGet(){try{return JSON.parse(localStorage.getItem(BSQ)||'[]')}catch(e){return []}}
@@ -255,6 +255,36 @@ function bsOn(){return S.tab==='banksoal'||S.tab==='cbtonline'||S.tab==='riwayat
 function bsEdit(){return !!S.user&&isStaff()&&can('nilai')}
 
 /* ---------- Sesi dan percobaan ---------- */
+/* Jumlah soal per jenis (sesi otomatis). s.jns={pg,kompleks,kategori,uraian}: tiap jenis diambil acak sebanyak angkanya (0 = tidak dipakai).
+   Mengembalikan daftar kelompok [{t:[jenis],n}] berurutan PG, kompleks, kategori, uraian; null = cara lama (satu jumlah, semua jenis dicampur).
+   jumlahUr (versi sebelumnya): PG/kompleks/kategori = jumlah, uraian = jumlahUr. */
+function bsGrup(s){
+ if(!s||s.pilih==='manual')return null;
+ var j=s.jns;
+ if(j&&typeof j==='object'){
+  var g=[];['pg','kompleks','kategori','uraian'].forEach(function(t){var n=Math.max(0,Math.min(200,parseInt(j[t],10)||0));if(n>0)g.push({t:[t],n:n})});
+  return g.length?g:null;
+ }
+ if(typeof s.jumlahUr==='number'&&s.jumlahUr>=0){var g2=[{t:['pg','kompleks','kategori'],n:s.jumlah||0}];if(s.jumlahUr>0)g2.push({t:['uraian'],n:s.jumlahUr});return g2}
+ return null;
+}
+function bsGrupNama(g){return g.t.length>1?'PG':BS_TIPE[g.t[0]]}
+function bsJnsForm(s){
+ if(s.jns&&typeof s.jns==='object')return {pg:+s.jns.pg||0,kompleks:+s.jns.kompleks||0,kategori:+s.jns.kategori||0,uraian:+s.jns.uraian||0};
+ if(typeof s.jumlahUr==='number')return {pg:s.jumlah||0,kompleks:0,kategori:0,uraian:s.jumlahUr};
+ return null;
+}
+function bsUrAkhir(ids){
+ var pg=[],ur=[];
+ ids.forEach(function(id){var q=bsSoalById(id);(q&&q.tipe==='uraian'?ur:pg).push(id)});
+ return pg.concat(ur);
+}
+function bsJmlTxt(s){
+ if(s.pilih==='manual')return (s.ids||[]).length+' soal pilihan';
+ var g=bsGrup(s);
+ if(g)return g.map(function(x){return (x.n||'semua')+' '+bsGrupNama(x)}).join(' + ')+' acak';
+ return (s.jumlah||'semua')+' soal acak';
+}
 function bsSesiStatus(s){
  var n=Jam.now();
  if(s.aktif===false)return {k:'off',t:'Nonaktif',c:'plain'};
@@ -273,10 +303,18 @@ function bsMake(mode,sesi,opt){
   if(sesi.pilih==='manual')ids=(sesi.ids||[]).filter(function(id){return !!bsSoalById(id)});
   else{
    var pool=bsPool('ujian',kelas).filter(function(q){return !(sesi.mapelF&&sesi.mapelF.length)||sesi.mapelF.indexOf(q.mapel)>-1});
-   pool=bsShuffle(pool);ids=(window.sgrPilih?sgrPilih(pool,sesi.jumlah):pool.slice(0,sesi.jumlah||pool.length)).map(function(q){return q.id});
+   pool=bsShuffle(pool);
+   var pk=function(l,n){return window.sgrPilih?sgrPilih(l,n):l.slice(0,n||l.length)};
+   var gr=bsGrup(sesi);
+   if(gr){
+    ids=[];
+    gr.forEach(function(g){ids=ids.concat(pk(pool.filter(function(q){return g.t.indexOf(q.tipe)>-1}),g.n))});
+    ids=ids.map(function(q){return q.id});
+   }else ids=pk(pool,sesi.jumlah).map(function(q){return q.id});
   }
   if(acak&&sesi.pilih==='manual')ids=bsShuffle(ids);
   if(window.sgrAturList)ids=sgrAturList(ids,bsSoalById);
+  if(bsGrup(sesi))ids=bsUrAkhir(ids);
  }else{
   var p2=bsPool('latihan',kelas).filter(function(q){return (!opt.mapel||q.mapel===opt.mapel)&&(!opt.tipe||q.tipe===opt.tipe)});
   ids=(window.sgrPilih?sgrPilih(bsShuffle(p2),opt.n):bsShuffle(p2).slice(0,opt.n||p2.length)).map(function(q){return q.id});
@@ -430,7 +468,7 @@ function bsViewSiswa(){
  if(cbt&&!sesi.length)h+='<p class="muted">Belum ada sesi ujian untuk kelasmu.</p>';
  if(cbt)h+=sesi.map(function(s){
   var st=bsSesiStatus(s),done=BS.D.hasil.filter(function(x){return x.sid===S.user.id&&x.sesiId===s.id&&x.mode==='ujian'})[0],go=st.k==='on'&&!done&&!(run&&run.sesiId===s.id);
-  var jml=s.pilih==='manual'?(s.ids||[]).length:(s.jumlah||'semua');
+  var jml=s.pilih==='manual'?(s.ids||[]).length:bsGrup(s)?bsGrup(s).reduce(function(a,g){return a+g.n},0):(s.jumlah||'semua');
   return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+(done?'ok':st.c)+'">'+(done?'Selesai':st.t)+'</span></div><p class="note">'+jml+' soal · '+(s.durasi||0)+' menit'+(s.mulai?' · mulai '+bsWaktu(s.mulai):'')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+(s.tok?' · pakai token':'')+'</p>'+
    (done?'<p>Nilai: <b class="mono">'+done.score+'</b> ('+done.benar+' benar dari '+done.total+')</p>':'')+
    (window.pdBaris?pdBaris(s,done):'')+
@@ -741,7 +779,7 @@ function bsViewSesi(){
  var ss=BS.D.sesi.filter(schAkunOk).sort(function(a,b){return (b.ts||0)-(a.ts||0)}),h='<button type="button" class="btn primary" data-bs="sesibaru">Buat sesi ujian</button>';
  if(!ss.length)h+='<p class="muted">Belum ada sesi ujian.</p>';
  h+=ss.map(function(s){
-  var st=bsSesiStatus(s),n=BS.D.hasil.filter(function(x){return x.sesiId===s.id}).length,jml=s.pilih==='manual'?(s.ids||[]).length+' soal pilihan':(s.jumlah||'semua')+' soal acak'+((s.mapelF&&s.mapelF.length)?' ('+s.mapelF.join(', ')+')':'');
+  var st=bsSesiStatus(s),n=BS.D.hasil.filter(function(x){return x.sesiId===s.id}).length,jml=bsJmlTxt(s)+((s.pilih!=='manual'&&s.mapelF&&s.mapelF.length)?' ('+s.mapelF.join(', ')+')':'');
   return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">'+schLabelModul(s.sekolah)+' · Kelas '+(s.kelas==='ALL'||!s.kelas?'semua':esc(s.kelas))+' · '+jml+' · '+(s.durasi||0)+' menit · KKM '+(s.kkm||S.kkm)+'</p><p class="note">'+(s.mulai?'Mulai '+bsWaktu(s.mulai):'Tanpa jadwal mulai')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+' · '+n+' pengumpulan'+(s.acak!==false?' · diacak':'')+(s.tampil?' · pembahasan ditampilkan':'')+'</p>'+
    '<div class="row"><button type="button" class="btn small" data-bs="sesiubah" data-q="'+s.id+'">Ubah</button><button type="button" class="btn small" data-bs="sesiaktif" data-q="'+s.id+'">'+(s.aktif===false?'Aktifkan':'Nonaktifkan')+'</button><button type="button" class="btn small" data-bs="sesihasil" data-q="'+s.id+'">Lihat hasil</button><button type="button" class="btn small" data-bs="sesigandakan" data-q="'+s.id+'">Gandakan</button><button type="button" class="btn small danger" data-bs="sesihapus" data-q="'+s.id+'">Hapus</button></div></div>';
  }).join('');
@@ -755,8 +793,8 @@ function bsGeserKerja(ts,n){
  return d.getTime();
 }
 function bsNewSesi(s){
- return s?{id:s.id,judul:s.judul,kelas:s.kelas||'ALL',durasi:s.durasi||60,jumlah:s.jumlah||20,pilih:s.pilih||'otomatis',mapelF:(s.mapelF||[]).slice(),ids:(s.ids||[]).slice(),acak:s.acak!==false,tampil:!!s.tampil,kkm:s.kkm||S.kkm,mulai:s.mulai||0,selesai:s.selesai||0,aktif:s.aktif!==false,sekolah:s.sekolah||'',q:'',tok:!!s.tok,tokR:!!s.tokR,tokP:BS.tk[s.id]||s.tokP||'',batas:s.batas||0,aksi:s.aksi||'peringatan',layar:!!s.layar,exambro:!!s.exambro,ruang:(s.ruang||[]).map(function(r){return Object.assign({},r,{sis:(r.sis||[]).slice()})}),pes:Array.isArray(s.pes)?s.pes.slice():null,pesTs:s.pesTs||0,nomor:s.nomor?Object.assign({},s.nomor):null}:
-  {id:'',judul:'',kelas:'ALL',durasi:60,jumlah:20,pilih:'otomatis',mapelF:[],ids:[],acak:true,tampil:false,kkm:S.kkm,mulai:0,selesai:0,aktif:true,sekolah:schKode()||'',q:'',tok:false,tokR:bsAman(),tokP:'',batas:0,aksi:'peringatan',layar:false,exambro:false,ruang:[],pes:null,pesTs:0,nomor:null};
+ return s?{id:s.id,judul:s.judul,kelas:s.kelas||'ALL',durasi:s.durasi||60,jumlah:s.jumlah||20,jns:bsJnsForm(s),pilih:s.pilih||'otomatis',mapelF:(s.mapelF||[]).slice(),ids:(s.ids||[]).slice(),acak:s.acak!==false,tampil:!!s.tampil,kkm:s.kkm||S.kkm,mulai:s.mulai||0,selesai:s.selesai||0,aktif:s.aktif!==false,sekolah:s.sekolah||'',q:'',tok:!!s.tok,tokR:!!s.tokR,tokP:BS.tk[s.id]||s.tokP||'',batas:s.batas||0,aksi:s.aksi||'peringatan',layar:!!s.layar,exambro:!!s.exambro,ruang:(s.ruang||[]).map(function(r){return Object.assign({},r,{sis:(r.sis||[]).slice()})}),pes:Array.isArray(s.pes)?s.pes.slice():null,pesTs:s.pesTs||0,nomor:s.nomor?Object.assign({},s.nomor):null}:
+  {id:'',judul:'',kelas:'ALL',durasi:60,jumlah:20,jns:null,pilih:'otomatis',mapelF:[],ids:[],acak:true,tampil:false,kkm:S.kkm,mulai:0,selesai:0,aktif:true,sekolah:schKode()||'',q:'',tok:false,tokR:bsAman(),tokP:'',batas:0,aksi:'peringatan',layar:false,exambro:false,ruang:[],pes:null,pesTs:0,nomor:null};
 }
 function bsSfRead(){
  var f=BS.sf;if(!f||!document.getElementById('sf-judul'))return;
@@ -764,6 +802,12 @@ function bsSfRead(){
  function c(id){var e=document.getElementById(id);return !!(e&&e.checked)}
  f.judul=v('sf-judul');f.kelas=v('sf-kelas')||f.kelas;if(document.getElementById('sf-sekolah'))f.sekolah=v('sf-sekolah');f.durasi=+v('sf-durasi')||0;f.pilih=v('sf-pilih')||f.pilih;f.kkm=+v('sf-kkm')||f.kkm;
  if(document.getElementById('sf-jumlah'))f.jumlah=+v('sf-jumlah')||0;
+ if(document.getElementById('sf-jm')){
+  if(v('sf-jm')==='jenis'){
+   var jj={};['pg','kompleks','kategori','uraian'].forEach(function(t){var e=document.getElementById('sf-jn-'+t);jj[t]=e?Math.max(0,Math.min(200,parseInt(e.value,10)||0)):(f.jns?(f.jns[t]||0):(t==='pg'?(f.jumlah||0):0))});
+   f.jns=jj;
+  }else f.jns=null;
+ }
  f.acak=c('sf-acak');f.tampil=c('sf-tampil');f.aktif=c('sf-aktif');
  if(document.getElementById('sf-tok')){f.tok=c('sf-tok');if(document.getElementById('sf-tokr'))f.tokR=c('sf-tokr');f.tokP=v('sf-tokp').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12);f.batas=Math.max(0,Math.min(50,+v('sf-batas')||0));f.aksi=v('sf-aksi')||'peringatan';f.layar=c('sf-layar');f.exambro=c('sf-exambro')}
  f.mulai=v('sf-mulai')?new Date(v('sf-mulai')).getTime():0;f.selesai=v('sf-selesai')?new Date(v('sf-selesai')).getTime():0;
@@ -777,8 +821,25 @@ function bsSfStat(f){
  var kls=f.kelas==='ALL'?'':f.kelas,base=bsSfBase(kls),pm={},sel=bsSfPoolFor(f,kls),pt={},pk={};
  base.forEach(function(q){pm[q.mapel]=(pm[q.mapel]||0)+1});
  sel.forEach(function(q){pt[q.tipe]=(pt[q.tipe]||0)+1});
- (kls?[kls]:['X','XI','XII']).forEach(function(k){pk[k]=bsSfPoolFor(f,k).length});
- return {base:base.length,pm:pm,sel:sel.length,pt:pt,pk:pk};
+ var pkT={};
+ (kls?[kls]:['X','XI','XII']).forEach(function(k){var l=bsSfPoolFor(f,k),c={};l.forEach(function(q){c[q.tipe]=(c[q.tipe]||0)+1});pk[k]=l.length;pkT[k]=c});
+ return {base:base.length,pm:pm,sel:sel.length,pt:pt,pk:pk,pkT:pkT};
+}
+/* daftar kelas yang soalnya kurang dari jumlah diminta (teks siap tampil); kosong = cukup */
+function bsSfKurang(f,st){
+ var ks=Object.keys(st.pk),out=[];
+ var gr=bsGrup(f);
+ if(gr){
+  ks.forEach(function(k){
+   var m=[];
+   gr.forEach(function(x){var a=x.t.reduce(function(t,y){return t+((st.pkT[k]||{})[y]||0)},0);if(x.n>0&&a<x.n)m.push(bsGrupNama(x)+' '+a+' dari '+x.n)});
+   if(m.length)out.push('Kelas '+k+': '+m.join(', '));
+  });
+ }else{
+  var j=f.jumlah>0?f.jumlah:st.sel;
+  if(f.jumlah>0)ks.filter(function(k){return st.pk[k]<j}).forEach(function(k){out.push('Kelas '+k+' hanya mendapat '+st.pk[k]+' soal')});
+ }
+ return out;
 }
 function bsSfNote(f){
  var st=bsSfStat(f);
@@ -788,8 +849,8 @@ function bsSfNote(f){
  if(tp.length)h+='<p class="note">Jenis: '+tp.join(' · ')+(st.pt.uraian?'. Soal uraian dinilai manual oleh guru.':'')+'</p>';
  var ks=Object.keys(st.pk);
  if(f.kelas==='ALL')h+='<p class="note">Per kelas siswa: '+ks.map(function(k){return 'Kelas '+k+' '+st.pk[k]}).join(' · ')+'</p>';
- var j=f.jumlah>0?f.jumlah:st.sel,kurang=ks.filter(function(k){return st.pk[k]<j});
- if(f.jumlah>0&&kurang.length)h+='<p class="note" style="color:var(--warn)"><b>Jumlah soal '+f.jumlah+' melebihi soal tersedia.</b> '+kurang.map(function(k){return 'Kelas '+k+' hanya mendapat '+st.pk[k]+' soal'}).join('; ')+'.</p>';
+ var kr=bsSfKurang(f,st);
+ if(kr.length)h+='<p class="note" style="color:var(--warn)"><b>Soal tersedia kurang dari jumlah yang diminta.</b> '+kr.join('; ')+'.</p>';
  return h;
 }
 function bsSfRefresh(){
@@ -871,7 +932,13 @@ function bsViewSesiForm(){
  h+='<label class="f">Sekolah<select id="sf-sekolah">'+schOptModul(f.sekolah)+'</select></label>';
  h+='<label class="f">Cara memilih soal<select id="sf-pilih"><option value="otomatis"'+(oto?' selected':'')+'>Otomatis (acak per siswa)</option><option value="manual"'+(oto?'':' selected')+'>Pilih soal sendiri</option></select></label>';
  if(oto){
-  h+='<label class="f">Jumlah soal<input id="sf-jumlah" type="number" inputmode="numeric" min="1" max="200" value="'+f.jumlah+'"></label><div><span class="label">Batasi mata pelajaran (kosong = semua)</span><div id="sf-chips">'+bsSfChips(f)+'</div></div><div id="sf-note">'+bsSfNote(f)+'</div>';
+  var jn=f.jns;
+  h+='<label class="f">Jumlah soal ditentukan<select id="sf-jm"><option value="campur"'+(jn?'':' selected')+'>Satu jumlah (semua jenis dicampur)</option><option value="jenis"'+(jn?' selected':'')+'>Per jenis soal</option></select></label>';
+  if(jn){
+   var nI=function(t,l){return '<label class="f">'+l+'<input id="sf-jn-'+t+'" type="number" inputmode="numeric" min="0" max="200" value="'+(jn[t]||0)+'"></label>'};
+   h+='<div class="two">'+nI('pg','PG')+nI('kompleks','PG kompleks')+'</div><div class="two">'+nI('kategori','PG kategori')+nI('uraian','Uraian')+'</div><p class="note" style="margin:-4px 0 8px">Isi 0 untuk jenis yang tidak dipakai. Tiap siswa mendapat soal acak berbeda; uraian ditaruh paling akhir.</p>';
+  }else h+='<label class="f">Jumlah soal<input id="sf-jumlah" type="number" inputmode="numeric" min="1" max="200" value="'+f.jumlah+'"></label>';
+  h+='<div><span class="label">Batasi mata pelajaran (kosong = semua)</span><div id="sf-chips">'+bsSfChips(f)+'</div></div><div id="sf-note">'+bsSfNote(f)+'</div>';
  }else{
   h+=bsSfManualBar(f)+bsSfManual();
  }
@@ -906,9 +973,10 @@ async function bsSfSave(){
   if(f.ids.length<n0)toast((n0-f.ids.length)+' soal tidak memenuhi syarat dan dilepas');
  }
  if(f.pilih!=='manual'){
+  if(f.jns&&!bsGrup(f)){toast('Isi jumlah minimal satu jenis soal');return}
   if(!bsSfPool(f).length){toast('Belum ada soal ujian untuk pilihan ini. Lihat keterangan merah di formulir.');return}
-  var st=bsSfStat(f),kr=Object.keys(st.pk).filter(function(k){return f.jumlah>st.pk[k]});
-  if(f.jumlah>0&&kr.length&&!(await uiConfirm('Jumlah soal ('+f.jumlah+') melebihi soal tersedia.\n'+kr.map(function(k){return 'Kelas '+k+': '+st.pk[k]+' soal'}).join('\n')+'\nSiswa hanya mendapat soal yang tersedia. Tetap simpan?',{ok:'Tetap simpan'})))return;
+  var st=bsSfStat(f),kr=bsSfKurang(f,st);
+  if(kr.length&&!(await uiConfirm('Jumlah soal yang diminta ('+bsJmlTxt(f)+') melebihi soal tersedia.\n'+kr.join('\n')+'\nSiswa hanya mendapat soal yang tersedia. Tetap simpan?',{ok:'Tetap simpan'})))return;
  }
  if(f.mulai&&f.selesai&&f.selesai<=f.mulai){toast('Waktu tutup harus setelah waktu mulai');return}
  if(window.rgCek){
@@ -917,7 +985,7 @@ async function bsSfSave(){
   if(bl&&!(await uiConfirm(bl+' siswa belum ditempatkan di ruang dan tidak bisa mulai ujian. Tetap simpan?',{ok:'Tetap simpan'})))return;
  }
  var ex=BS.D.sesi.filter(function(x){return x.id===f.id})[0];
- var o=Object.assign(ex||{},{id:f.id||uid(),ts:ex?ex.ts:Date.now(),judul:String(f.judul).trim().slice(0,160),kelas:f.kelas,durasi:f.durasi,jumlah:f.pilih==='manual'?f.ids.length:Math.max(1,f.jumlah||1),acak:f.acak,mulai:f.mulai||0,selesai:f.selesai||0,aktif:f.aktif,kkm:Math.min(100,Math.max(0,f.kkm||0)),oleh:ex?ex.oleh:S.user.nama.slice(0,64),ids:f.ids,pilih:f.pilih,mapelF:f.mapelF,tampil:f.tampil,sekolah:schNorm(f.sekolah)==='ALL'?'':schNorm(f.sekolah),tok:!!f.tok,tokR:!!f.tok&&!!f.tokR&&bsAman(),batas:f.batas||0,aksi:f.aksi||'peringatan',layar:!!f.layar,exambro:!!f.exambro,ruang:window.rgPak?rgPak(f.ruang):[],pes:Array.isArray(f.pes)?f.pes:undefined,pesTs:Array.isArray(f.pes)?(f.pesTs||Date.now()):undefined,nomor:(Array.isArray(f.pes)&&f.nomor)?{p:String(f.nomor.p||'').slice(0,16),d:Math.max(2,Math.min(5,+f.nomor.d||3)),a:Math.max(0,+f.nomor.a||1)}:undefined});
+ var o=Object.assign(ex||{},{id:f.id||uid(),ts:ex?ex.ts:Date.now(),judul:String(f.judul).trim().slice(0,160),kelas:f.kelas,durasi:f.durasi,jumlah:f.pilih==='manual'?f.ids.length:bsGrup(f)?bsGrup(f).reduce(function(a,g){return a+g.n},0):Math.max(1,f.jumlah||1),jns:(f.pilih!=='manual'&&bsGrup(f))?f.jns:undefined,jumlahUr:undefined,acak:f.acak,mulai:f.mulai||0,selesai:f.selesai||0,aktif:f.aktif,kkm:Math.min(100,Math.max(0,f.kkm||0)),oleh:ex?ex.oleh:S.user.nama.slice(0,64),ids:f.ids,pilih:f.pilih,mapelF:f.mapelF,tampil:f.tampil,sekolah:schNorm(f.sekolah)==='ALL'?'':schNorm(f.sekolah),tok:!!f.tok,tokR:!!f.tok&&!!f.tokR&&bsAman(),batas:f.batas||0,aksi:f.aksi||'peringatan',layar:!!f.layar,exambro:!!f.exambro,ruang:window.rgPak?rgPak(f.ruang):[],pes:Array.isArray(f.pes)?f.pes:undefined,pesTs:Array.isArray(f.pes)?(f.pesTs||Date.now()):undefined,nomor:(Array.isArray(f.pes)&&f.nomor)?{p:String(f.nomor.p||'').slice(0,16),d:Math.max(2,Math.min(5,+f.nomor.d||3)),a:Math.max(0,+f.nomor.a||1)}:undefined});
  if(o.tok){
   if(!f.tokP)f.tokP=bsTokenBaru();
   o.tokP=f.tokP;
@@ -1114,7 +1182,7 @@ document.addEventListener('change',function(e){
   var n=document.getElementById('sf-n');if(n)n.innerHTML=bsSfManualInfo(BS.sf);return;
  }
  if(t.id==='bl-mapel'||t.id==='bl-tipe'){BS.lat[t.id==='bl-mapel'?'mapel':'tipe']=t.value;render();return}
- if(t.id==='sf-pilih'||t.id==='sf-kelas'){bsSfRead();render();return}
+ if(t.id==='sf-pilih'||t.id==='sf-kelas'||t.id==='sf-jm'){bsSfRead();render();return}
  if((t.id==='sf-mf'||t.id==='sf-tf')&&BS.sf){BS.sf[t.id==='sf-mf'?'mf':'tf']=t.value;bsSfManualRefresh();return}
  var a=t.dataset&&t.dataset.bs;if(!a)return;
  if(a==='tuj'){var id=t.dataset.q;(BS_IDX[id]?bsOverride(id,{tujuan:t.value}):bsPut('soal',Object.assign(BS.D.soal.filter(function(x){return x.id===id})[0],{tujuan:t.value}))).then(function(){toast('Peruntukan diubah')});BS.all=null}
@@ -1128,7 +1196,7 @@ document.addEventListener('input',function(e){
  if(t.id==='bq-q'){BS.flt.q=t.value;BS.flt.n=30;bsRerenderList()}
  else if(t.id==='rl-q'){BS.rl.q=t.value;BS.rl.n=20;var rl=document.getElementById('rl-list');if(rl)rl.innerHTML=bsRlList()}
  else if(t.id==='sf-q'&&BS.sf){BS.sf.q=t.value;bsSfManualRefresh()}
- else if(t.id==='sf-jumlah'&&BS.sf){BS.sf.jumlah=+t.value||0;var nn=document.getElementById('sf-note');if(nn)nn.innerHTML=bsSfNote(BS.sf)}
+ else if((t.id==='sf-jumlah'||(t.id||'').indexOf('sf-jn-')===0)&&BS.sf){bsSfRead();var nn=document.getElementById('sf-note');if(nn)nn.innerHTML=bsSfNote(BS.sf)}
 });
 
 /* ---------- Pemberitahuan ujian di beranda ---------- */

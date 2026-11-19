@@ -112,3 +112,16 @@ Guru/admin: **CBT Online > Analisis** atau **Pantau > Hasil per siswa** mencetak
 - Siswa yang belum mengerjakan tidak dicetak. Proktor tidak melihat nilai (hanya guru/admin), jadi tombolnya tidak menghasilkan halaman untuk proktor.
 - Pencetakan dicatat di log audit sebagai `klien.cetak.hasil-siswa` (mode aman).
 - Berkas: `js/cetak-siswa.js`, uji `tools/uji-cetak-siswa.mjs`. Tidak ada perubahan Appwrite atau fungsi.
+
+---
+
+# Pembaruan: jumlah soal per jenis (sesi otomatis)
+
+Pada formulir sesi, cara memilih soal **Otomatis (acak per siswa)**, ada pilihan **Jumlah soal ditentukan**:
+- **Satu jumlah (semua jenis dicampur)**: cara lama, bawaan formulir (20 soal).
+- **Per jenis soal**: isi sendiri jumlah **PG**, **PG kompleks**, **PG kategori**, dan **Uraian**. Isi 0 untuk jenis yang tidak dipakai. Contoh: PG 25 + Uraian 5, atau PG 20 + PG kategori 5 + Uraian 3.
+
+Tiap siswa mendapat soal acak berbeda untuk tiap jenis; uraian ditaruh paling akhir. Pilihan mapel dan kelas tetap berlaku.
+- Tersimpan di `payload` sesi (`jns`), tanpa perubahan atribut Appwrite. Sesi lama tidak berubah.
+- Peringatan "soal tersedia kurang" dihitung per kelas dan per jenis. Menyimpan dengan semua jenis 0 ditolak.
+- Fungsi server (`functions/cbt`, salinan di `akun-admin/src/cbt.js`) ikut diubah: **deploy ulang `akun-admin`** bila memakai CBT mode aman. `node tools/uji-cbt.mjs`: 140 lulus.

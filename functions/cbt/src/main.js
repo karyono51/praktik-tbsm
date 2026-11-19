@@ -439,7 +439,18 @@ async function mulai(me, body) {
     const all = await poolUjian(), mf = s.mapelF || [];
     const Qa = all.length <= 600 ? await loadQ(all.map((q) => q.id)) : null;   // kunci seluruh pool diambil sekali untuk semua siswa, bukan per siswa
     const pool = shuffle(all.filter((q) => okKelas(q) && (!mf.length || mf.indexOf(q.mapel) > -1) && (!Qa || aturanOk(Qa[q.id]))));
-    ids = pool.slice(0, s.jumlah || pool.length).map((q) => q.id);
+    /* jumlah per jenis (s.jns) atau cara lama; uraian selalu di akhir */
+    let gr = null; const J = s.jns;
+    if (J && typeof J === 'object') {
+      gr = [];
+      ['pg', 'kompleks', 'kategori', 'uraian'].forEach((t) => { const n = Math.max(0, Math.min(200, parseInt(J[t], 10) || 0)); if (n > 0) gr.push({ t: [t], n }); });
+      if (!gr.length) gr = null;
+    } else if (typeof s.jumlahUr === 'number' && s.jumlahUr >= 0) {
+      gr = [{ t: ['pg', 'kompleks', 'kategori'], n: s.jumlah || 0 }];
+      if (s.jumlahUr > 0) gr.push({ t: ['uraian'], n: s.jumlahUr });
+    }
+    if (gr) ids = [].concat(...gr.map((g) => { const l = pool.filter((q) => g.t.includes(q.tipe)); return g.n ? l.slice(0, g.n) : l; })).map((q) => q.id);
+    else ids = pool.slice(0, s.jumlah || pool.length).map((q) => q.id);
   }
   if (!ids.length) throw new Fail('Sesi ini belum memiliki soal.', 400);
   const Qs = await loadQ(ids), oo = {};
