@@ -88,7 +88,8 @@ function obuItemHtml(it,d){
 }
 function obuFormView(){
  var d=OU.d,h=obuHitung(d,d.lembar),LB=obuLb(d.lembar);
- var gopt='<option value="">Pilih siswa</option>'+obsOrang('siswa').map(function(u){return '<option value="'+esc(u.id)+'"'+(d.sel===u.id?' selected':'')+'>'+esc(u.nama)+' ('+esc(u.kelas||'-')+')</option>'}).join('')+'<option value="__lain"'+(d.sel==='__lain'?' selected':'')+'>Lainnya (ketik nama)</option>';
+ var sis=obsOrang('siswa').filter(function(u){return u.kelas===d.kelas||u.id===d.sel});
+ var gopt='<option value="">'+(sis.length?'Pilih siswa Kelas '+esc(d.kelas):'Belum ada siswa Kelas '+esc(d.kelas))+'</option>'+sis.map(function(u){return '<option value="'+esc(u.id)+'"'+(d.sel===u.id?' selected':'')+'>'+esc(u.nama)+(u.kelas&&u.kelas!==d.kelas?' ('+esc(u.kelas)+')':'')+'</option>'}).join('')+'<option value="__lain"'+(d.sel==='__lain'?' selected':'')+'>Lainnya (ketik nama)</option>';
  var kopt=Object.keys(KELAS).map(function(k){return '<option value="'+k+'"'+(d.kelas===k?' selected':'')+'>Kelas '+k+'</option>'}).join('');
  var items=LB.grup.map(function(g){return '<h3 class="obs-group">'+esc(g.g)+'</h3>'+g.items.map(function(it){return obuItemHtml(it,d)}).join('')}).join('');
  return '<div class="row sb"><h2>'+(d.id?'Ubah: ':'Baru: ')+'Observasi UKK</h2><button type="button" class="btn small" data-act="obu-cancel">Batal</button></div>'+obuInfoCard(d.lembar)+
@@ -344,6 +345,7 @@ document.addEventListener('change',function(e){
  if(!OU.d||OU.mode!=='form'||!t.dataset||!t.dataset.obu)return;
  OU.d[t.dataset.obu]=t.value;
  if(t.dataset.obu==='sel'){var u=S.users.find(function(x){return x.id===t.value});if(u&&u.kelas&&KELAS[u.kelas])OU.d.kelas=u.kelas;render()}
+ else if(t.dataset.obu==='kelas'){var cu=S.users.find(function(x){return x.id===OU.d.sel});if(cu&&cu.kelas!==OU.d.kelas){OU.d.sel='';OU.d.nis=''}render()}
 });
 
 /* ---- Menu, tab, dan tombol kembali ---- */
