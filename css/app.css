@@ -410,3 +410,8 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 .bm-tbl td.mono{white-space:nowrap}
 .bm-tbl .bm-no{width:34px;text-align:center;color:var(--muted)}
 .bm-tbl tbody tr:last-child td{border-bottom:0}
+
+/* Formulir akun: lembar dari bawah di atas daftar, jadi posisi daftar tidak berubah saat Ubah/Simpan */
+.akn-sheet{max-height:min(90vh,760px)}
+.akn-body{overflow-y:auto;overscroll-behavior:contain;padding:0 4px 12px}
+.akn-body>.card{border:0;box-shadow:none;background:none;margin:0}

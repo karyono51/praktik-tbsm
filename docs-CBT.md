@@ -136,3 +136,10 @@ Menu **Akun**, tombol **Ekspor siswa per kelas**: sebelum berkas dibuat, muncul 
 - Bila belum ada rombel, pilihan memakai kelas pada akun.
 
 Kolom: No, NIS, Nama, Username, Email, Rombel, Kelas, Sekolah, Status. Hanya siswa dari sekolah yang boleh dilihat akun Anda. Sandi tidak ikut diekspor.
+
+---
+
+# Pembaruan: menu Akun
+
+- **Ubah/Tambah akun** membuka formulir sebagai lembar dari bawah di atas daftar (sebelumnya di atas daftar sehingga harus menggulir ke atas dan kehilangan posisi). Daftar tidak bergeser: setelah **Simpan** atau **Tutup**, Anda kembali tepat di akun yang tadi dan bisa lanjut ke akun berikutnya. Tombol kembali HP menutup lembar.
+- Label peran pada kartu akun memakai semua peran akun (mis. "Admin + Guru"); sebelumnya akun dengan lebih dari satu peran menampilkan "undefined".
