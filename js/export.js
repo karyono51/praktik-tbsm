@@ -85,25 +85,65 @@ function xlsAkun(){
  var L=S.users.filter(schAkunOk).sort(function(a,b){return a.peran.localeCompare(b.peran)||a.nama.localeCompare(b.nama)});
  book([['Akun',[['No','Nama','Username','Email','Peran','Kelas','Sekolah','Status','Dibuat']].concat(L.map(function(u,i){return [i+1,u.nama,u.username,u.email||'',peranLabel(u.peran),u.kelas||'',u.sekolah==='ALL'?'ALL':(SCH_LIST[u.sekolah]?SCH_LIST[u.sekolah].kode:''),u.aktif===false?'Nonaktif':'Aktif',u.dibuat?new Date(u.dibuat).toLocaleDateString('id-ID'):'']})),[5,28,20,30,9,7,10,10,12]]],'Akun_TBSM');
 }
-/* Ekspor akun siswa per kelas: satu berkas, satu lembar per kelas (X, XI, XII, Tanpa kelas) ditambah lembar Semua siswa. Mengikuti sekolah yang boleh dilihat. */
-function xlsSiswaKelas(){
- if(!needX())return;
- var L=S.users.filter(function(u){return schAkunOk(u)&&hasRole(u,'siswa')});
- if(!L.length){toast('Belum ada akun siswa');return}
- var H=['No','Nama','Username','Email','Kelas','Sekolah','Status'];
- function row(u,i){return [i+1,u.nama,u.username,u.email||'',u.kelas||'',u.sekolah==='ALL'?'ALL':(SCH_LIST[u.sekolah]?SCH_LIST[u.sekolah].kode:''),u.aktif===false?'Nonaktif':'Aktif']}
- function urut(a,b){return String(a.nama).localeCompare(String(b.nama))}
- var W=[5,28,20,30,7,10,10],pairs=[],kls=['X','XI','XII'];
- kls.forEach(function(k){
-  var m=L.filter(function(u){return u.kelas===k}).sort(urut);
-  if(m.length)pairs.push(['Kelas '+k,[H].concat(m.map(row)),W]);
+/* Ekspor akun siswa: pilih dulu rombel atau kelas, baru berkas dibuat. Pilihan: satu rombel, satu tingkat (X, XI, XII), siswa yang belum punya rombel,
+   atau semua (satu lembar per rombel). Rombel dibaca dari menu Akademik; bila belum ada rombel, pilihan memakai kelas pada akun. Hanya sekolah yang boleh dilihat. */
+function exSiswaGrup(){
+ var L=S.users.filter(function(u){return schAkunOk(u)&&hasRole(u,'siswa')}),peta={},used={},tk=['X','XI','XII'];
+ L.forEach(function(u){peta[u.id]=u});
+ var kl=[];try{if(typeof akKelasAll==='function'&&typeof AKD!=='undefined')kl=akKelasAll().filter(function(k){return k.aktif!==false})}catch(e){kl=[]}
+ var ur=function(a,b){return (typeof akUrutNis==='function')?akUrutNis(a,b):String(a.nama).localeCompare(String(b.nama),'id')};
+ var rom=kl.map(function(k){
+  var m=(k.anggota||[]).map(function(id){return peta[id]}).filter(Boolean).sort(ur);
+  m.forEach(function(u){used[u.id]=k.nama});
+  return {nama:k.nama,ket:(typeof akSekLabel==='function'?akSekLabel(k.sekolah):''),list:m};
  });
- var lain=L.filter(function(u){return kls.indexOf(u.kelas)<0}).sort(urut);
- if(lain.length)pairs.push(['Tanpa kelas',[H].concat(lain.map(row)),W]);
- var semua=L.slice().sort(function(a,b){return (kls.indexOf(a.kelas)+9)%9-(kls.indexOf(b.kelas)+9)%9||urut(a,b)});
- pairs.push(['Semua siswa',[H].concat(semua.map(row)),W]);
- book(pairs,'Akun_Siswa_per_Kelas');
- toast('Diekspor: '+L.length+' siswa, '+(pairs.length-1)+' lembar kelas');
+ var tanpa=kl.length?L.filter(function(u){return !used[u.id]}).sort(ur):[];
+ var ting=tk.map(function(k){return {nama:'Kelas '+k,ket:'',list:L.filter(function(u){return u.kelas===k}).sort(ur)}}).filter(function(g){return g.list.length});
+ return {all:L,used:used,rom:rom,tanpa:tanpa,ting:ting,ur:ur};
+}
+function exSiswaBuat(D,groups,file){
+ if(!groups.length||!groups.some(function(g){return g.list.length})){toast('Tidak ada siswa pada pilihan ini');return}
+ var H=['No','NIS','Nama','Username','Email','Rombel','Kelas','Sekolah','Status'],W=[5,12,28,20,30,16,7,10,10],pairs=[],nama={};
+ function row(u,i){return [i+1,(typeof akNis==='function'?akNis(u):''),u.nama,u.username,u.email||'',D.used[u.id]||'',u.kelas||'',u.sekolah==='ALL'?'ALL':(SCH_LIST[u.sekolah]?SCH_LIST[u.sekolah].kode:''),u.aktif===false?'Nonaktif':'Aktif']}
+ function judul(t){var b=String(t).replace(/[\[\]:*?\/\\]/g,' ').replace(/\s+/g,' ').trim().slice(0,28)||'Lembar',n=b,k=2;while(nama[n.toLowerCase()])n=b+' '+(k++);nama[n.toLowerCase()]=1;return n}
+ var tot=0;
+ groups.forEach(function(g){if(!g.list.length)return;tot+=g.list.length;pairs.push([judul(g.nama),[H].concat(g.list.map(row)),W])});
+ if(pairs.length>1){
+  var sem=[],seen={};groups.forEach(function(g){g.list.forEach(function(u){if(!seen[u.id]){seen[u.id]=1;sem.push(u)}})});
+  pairs.push([judul('Semua siswa'),[H].concat(sem.map(row)),W]);tot=sem.length;
+ }
+ book(pairs,file);toast('Diekspor: '+tot+' siswa'+(pairs.length>1?', '+(pairs.length-1)+' lembar':''));
+}
+async function xlsSiswaKelas(){
+ if(!needX())return;
+ try{if(typeof akLoad==='function'&&typeof AKD!=='undefined'&&!AKD.loaded)await akLoad()}catch(e){}
+ var D=exSiswaGrup();
+ if(!D.all.length){toast('Belum ada akun siswa');return}
+ var old=document.getElementById('bp-ov');if(old)old.remove();
+ var opts=[],h='';
+ function it(lab,sub,groups,file){opts.push({g:groups,f:file});return '<button type="button" class="bp-i" role="option" data-i="'+(opts.length-1)+'">'+esc(lab)+'<small class="note" style="display:block">'+esc(sub)+'</small></button>'}
+ function n(l){return l.length+' siswa'}
+ var prim=D.rom.length?D.rom:D.ting;
+ h+=it('Semua '+(D.rom.length?'rombel':'kelas'),'Satu lembar per '+(D.rom.length?'rombel':'kelas')+(D.tanpa.length?', plus yang belum punya rombel':'')+' · '+D.all.length+' siswa',prim.concat(D.tanpa.length?[{nama:'Belum punya rombel',list:D.tanpa}]:[]),'Akun_Siswa_per_'+(D.rom.length?'Rombel':'Kelas'));
+ if(D.rom.length){
+  h+='<div class="bp-g">Rombel</div>';
+  D.rom.forEach(function(g){h+=it(g.nama,[g.ket,n(g.list)].filter(Boolean).join(' · '),[g],'Akun_Siswa_'+g.nama.replace(/[^A-Za-z0-9]+/g,'_'))});
+  if(D.tanpa.length)h+=it('Belum punya rombel',n(D.tanpa),[{nama:'Belum punya rombel',list:D.tanpa}],'Akun_Siswa_Tanpa_Rombel');
+ }
+ if(D.ting.length){
+  h+='<div class="bp-g">'+(D.rom.length?'Tingkat kelas (dari akun)':'Kelas')+'</div>';
+  D.ting.forEach(function(g){h+=it(g.nama,n(g.list),[g],'Akun_Siswa_'+g.nama.replace(/\s+/g,'_'))});
+ }
+ var ov=document.createElement('div');ov.id='bp-ov';ov.className='ui-ov bp-ov';
+ ov.innerHTML='<div class="bp-sheet" role="dialog" aria-modal="true" aria-label="Pilih rombel atau kelas"><div class="bp-h"><span>Pilih rombel atau kelas yang diekspor</span><button type="button" class="bp-x" data-u="x">Tutup</button></div><div class="bp-l" role="listbox">'+h+'</div></div>';
+ ov.addEventListener('click',function(e){
+  var t=e.target;
+  if(t===ov||(t.closest&&t.closest('.bp-x'))){ov.remove();return}
+  var b=t.closest&&t.closest('.bp-i');if(!b)return;
+  var o=opts[+b.getAttribute('data-i')];ov.remove();
+  if(o)exSiswaBuat(D,o.g,o.f);
+ });
+ document.body.appendChild(ov);
 }
 function tplAkun(){
  if(!needX())return;

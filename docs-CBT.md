@@ -128,6 +128,11 @@ Tiap siswa mendapat soal acak berbeda untuk tiap jenis; uraian ditaruh paling ak
 
 ---
 
-# Pembaruan: ekspor akun siswa per kelas
+# Pembaruan: ekspor akun siswa, pilih rombel/kelas dulu
 
-Menu **Akun** punya tombol **Ekspor siswa per kelas**. Hasilnya satu berkas `Akun_Siswa_per_Kelas.xlsx` berisi lembar **Kelas X**, **Kelas XI**, **Kelas XII** (hanya kelas yang ada siswanya), **Tanpa kelas** bila ada, dan **Semua siswa**. Kolom: No, Nama, Username, Email, Kelas, Sekolah, Status. Hanya siswa dari sekolah yang boleh dilihat akun Anda. Sandi tidak ikut diekspor.
+Menu **Akun**, tombol **Ekspor siswa per kelas**: sebelum berkas dibuat, muncul lembar pilihan.
+- **Semua rombel**: satu lembar per rombel, plus lembar siswa yang belum punya rombel dan lembar **Semua siswa**.
+- **Satu rombel** (dari menu Akademik, lengkap dengan jumlah siswa), **Belum punya rombel**, atau **Kelas X / XI / XII** (dari kelas pada akun).
+- Bila belum ada rombel, pilihan memakai kelas pada akun.
+
+Kolom: No, NIS, Nama, Username, Email, Rombel, Kelas, Sekolah, Status. Hanya siswa dari sekolah yang boleh dilihat akun Anda. Sandi tidak ikut diekspor.
