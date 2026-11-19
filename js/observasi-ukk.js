@@ -344,7 +344,7 @@ document.addEventListener('change',function(e){
  if(t.id==='obulb'){OU.lembar=OBU.lb[t.value]?t.value:'vario';render();return}
  if(!OU.d||OU.mode!=='form'||!t.dataset||!t.dataset.obu)return;
  OU.d[t.dataset.obu]=t.value;
- if(t.dataset.obu==='sel'){var u=S.users.find(function(x){return x.id===t.value});if(u&&u.kelas&&KELAS[u.kelas])OU.d.kelas=u.kelas;render()}
+ if(t.dataset.obu==='sel'){var u=S.users.find(function(x){return x.id===t.value});if(u&&u.kelas&&KELAS[u.kelas])OU.d.kelas=u.kelas;if(u){var nn='';try{nn=typeof akNis==='function'?akNis(u):''}catch(er){}OU.d.nis=nn||''}else if(!t.value)OU.d.nis='';render()}
  else if(t.dataset.obu==='kelas'){var cu=S.users.find(function(x){return x.id===OU.d.sel});if(cu&&cu.kelas!==OU.d.kelas){OU.d.sel='';OU.d.nis=''}render()}
 });
 
