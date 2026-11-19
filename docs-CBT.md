@@ -144,3 +144,4 @@ Kolom: No, NIS, Nama, Username, Email, Rombel, Kelas, Sekolah, Status. Hanya sis
 - **Ubah/Tambah akun** membuka formulir sebagai lembar dari bawah di atas daftar (sebelumnya di atas daftar sehingga harus menggulir ke atas dan kehilangan posisi). Daftar tidak bergeser: setelah **Simpan** atau **Tutup**, Anda kembali tepat di akun yang tadi dan bisa lanjut ke akun berikutnya. Tombol kembali HP menutup lembar.
 - Label peran pada kartu akun memakai semua peran akun (mis. "Admin + Guru"); sebelumnya akun dengan lebih dari satu peran menampilkan "undefined".
 - **Pilihan peran** pada formulir akun ditata rata dua kolom berupa kotak yang bisa diketuk; peran yang dipilih diberi warna hijau (sebelumnya tersusun tidak rata dan memotong baris).
+- **CBT Online**: kartu **Rata-rata** di ringkasan atas (Sesi, Dibuka, Selesai) disembunyikan. Rata-rata di tab Hasil dan Analisis tidak berubah.

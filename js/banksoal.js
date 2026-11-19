@@ -544,12 +544,12 @@ function bsViewStaff(){
  if(BS.tab==='analisis')return h+(window.bsViewAnalisis?bsViewAnalisis():'');
  return h+bsViewHasil();
 }
-/* ringkasan CBT Online (guru): sesi, sesi dibuka, hasil ujian masuk, rata-rata nilai */
+/* ringkasan CBT Online (guru): sesi, sesi dibuka, hasil ujian masuk (rata-rata nilai disembunyikan) */
 function bsCbtRingkas(){
  if(BS.sf)return '';
  var pm=schPeta(),ses=BS.D.sesi.filter(schAkunOk),buka=ses.filter(function(x){return bsSesiStatus(x).k==='on'}).length;
- var hs=BS.D.hasil.filter(function(x){return x.mode==='ujian'&&schHasilOk(x,pm)}),avg=hs.length?Math.round(hs.reduce(function(a,x){return a+x.score},0)/hs.length):0;
- return '<div class="stats"><div class="card"><span class="label">Sesi</span><b class="mono">'+ses.length+'</b></div><div class="card"><span class="label">Dibuka</span><b class="mono">'+buka+'</b></div><div class="card"><span class="label">Selesai</span><b class="mono">'+hs.length+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+(hs.length?avg:'-')+'</b></div></div>'+(can('akun')?'<p class="note">Mode ujian: <b>'+(bsAman()?'Aman':'Biasa')+'</b></p>':'');
+ var hs=BS.D.hasil.filter(function(x){return x.mode==='ujian'&&schHasilOk(x,pm)});
+ return '<div class="stats"><div class="card"><span class="label">Sesi</span><b class="mono">'+ses.length+'</b></div><div class="card"><span class="label">Dibuka</span><b class="mono">'+buka+'</b></div><div class="card"><span class="label">Selesai</span><b class="mono">'+hs.length+'</b></div></div>'+(can('akun')?'<p class="note">Mode ujian: <b>'+(bsAman()?'Aman':'Biasa')+'</b></p>':'');
 }
 
 /* ---------- Guru: bank soal ---------- */
