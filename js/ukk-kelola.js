@@ -150,7 +150,7 @@ window.ukkCardInfo=function(j){
   tags='<span class="pill '+(ukkTampil(j)?'ok':'warn')+'">'+(ukkTampil(j)?'Tampil':'Tersembunyi')+'</span><span class="pill '+(c.mode==='ujian'?'warn':'ok')+'">'+(c.mode==='ujian'?'Ujian':'Latihan')+'</span>'+
    '<span class="pill plain">'+(rs.length?rs.length+' penilaian · rata-rata '+avg:'Belum ada penilaian')+'</span>'+
    (c.maxTry?'<span class="pill plain">'+c.maxTry+'× kesempatan</span>':'')+(c.buka?'<span class="pill plain">Buka '+esc(ukkFmt(c.buka))+'</span>':'')+(c.tutup?'<span class="pill plain">Tutup '+esc(ukkFmt(c.tutup))+'</span>':'')+
-   (j.diubah?'<span class="pill plain">Diedit</span>':'')+(j.custom?'<span class="pill plain">Unit sendiri</span>':'');
+   (j.custom?'<span class="pill plain">Unit sendiri</span>':'');
  }else{
   tags='<span class="pill '+(c.mode==='ujian'?'warn':'ok')+'">'+(c.mode==='ujian'?'Ujian':'Latihan')+'</span>';
   if(c.mode==='ujian'&&c.maxTry)tags+='<span class="pill plain">Kesempatan '+ukkPakai(j)+'/'+c.maxTry+'</span>';

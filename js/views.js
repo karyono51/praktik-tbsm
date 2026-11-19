@@ -4,13 +4,13 @@ function viewKatalog(){
   var pn=staff?ukkPanel():'';if(pn)return pn;
   var list=JOBS.filter(function(j){return j.kelas===S.kelas&&schAkunOk(j)&&(staff||ukkTampil(j))});
   var jobs=list.map(function(j){
-    var l=lastFor(j.id),st='<span class="pill plain">Belum dicoba</span>';
+    var l=lastFor(j.id),st=staff?'':'<span class="pill plain">Belum dicoba</span>';
     if(l)st='<span class="pill '+(l.kompeten?'ok':'bad')+'">'+(l.kompeten?'Kompeten':'Belum kompeten')+' · '+l.score+'</span>';
     var wajib=j.items.filter(function(i){return i.k}).length;
     return '<article class="card job '+(l?(l.kompeten?'st-ok':'st-bad'):'')+'"><div class="row sb"><h3 class="grow">'+esc(j.judul)+'</h3></div>'+
       '<div class="meta"><span>'+esc(j.unit)+'</span><span class="mono">'+j.menit+' menit</span><span>'+j.items.length+' butir, '+wajib+' wajib</span></div>'+
       (j.skkni?'<div><span class="pill plain mono" title="Kode unit SKKNI">SKKNI '+esc(j.skkni)+'</span></div>':'')+ukkCardInfo(j)+
-      '<div class="row sb" style="flex-wrap:wrap;gap:8px">'+st+'</div>'+ukkCardAction(j)+'</article>';
+      (st?'<div class="row sb" style="flex-wrap:wrap;gap:8px">'+st+'</div>':'')+ukkCardAction(j)+'</article>';
   }).join('');
   return '<div class="row sb"><div><h2>'+k.judul+'</h2><p class="note">'+k.sub+'</p></div><span class="pill plain">'+list.length+' unit</span></div>'+
     '<p class="note">'+(staff?'Mode guru: ketuk Kelola UKK untuk melihat hasil penilaian, mengatur tampil, kesempatan, dan jadwal, serta pratinjau dan edit isi unit UKK. Hasil penilaian tercatat sebagai Penilaian.':'Mode siswa: latihan mandiri dengan pengukur waktu. Hasil tercatat sebagai Latihan.')+' '+(kb.length>1?'Ganti kelas lewat menu di dasbor.':'Unit di sini khusus kelas kamu.')+'</p>'+ukkTopBar()+'<div class="jobs">'+(jobs||'<div class="card"><p class="muted">Belum ada unit uji untuk kelas ini.</p></div>')+'</div>';
