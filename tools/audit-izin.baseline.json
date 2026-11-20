@@ -3,11 +3,8 @@
   "diterima": [
     "BACA-USERS:akun",
     "DOCSEC-MATI:akun",
-    "KUNCI:banksoal",
-    "KUNCI:soal_sesi",
     "NILAI-PALSU:hasil",
     "NILAI-PALSU:lkpd",
-    "NILAI-PALSU:soal_hasil",
     "PERAN-PALSU:akun"
   ]
 }

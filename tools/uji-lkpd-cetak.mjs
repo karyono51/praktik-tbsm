@@ -31,7 +31,7 @@ const ctx = {
   LOGO: 'data:image/png;base64,LOGO', SEK: { nama: 'SMKS Contoh', program: 'TBSM', alamat: 'Jl. Contoh 1' },
   lkioExport() {}, uiOk: () => true, lkEditorDefaults: () => ({}), lkSerialize: (m) => m, lkModuleStore() {},
 };
-ctx.window = ctx; ctx.globalThis = ctx; ctx.addEventListener = () => {}; ctx.scrollTo = () => {};
+ctx.viewBeranda = () => ''; ctx.window = ctx; ctx.globalThis = ctx; ctx.addEventListener = () => {}; ctx.scrollTo = () => {};
 vm.createContext(ctx);
 const run = (code) => vm.runInContext(code, ctx);
 for (const f of ['js/banksoal.js', 'js/soal-gambar.js', 'js/lkpd-soal.js', 'js/lkpd-editor.js', 'js/lkpd-gambar.js', 'js/cetak-soal.js']) {

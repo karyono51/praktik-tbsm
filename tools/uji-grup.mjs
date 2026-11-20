@@ -31,7 +31,7 @@ const ctx = {
   LOGO: 'data:image/png;base64,LOGO', SEK: { nama: 'SMKS Contoh', program: 'TBSM', alamat: 'Jl. Contoh 1' },
   lkioExport() {}, lkListView() {}, viewLKPD() {}, lkmCfg: () => ({}), uiOk: () => true, lkEditorDefaults: () => ({}), lkSerialize: (m) => m, lkModuleStore() {}, lkeLive() {},
 };
-ctx.window = ctx; ctx.globalThis = ctx; ctx.addEventListener = () => {}; ctx.scrollTo = () => {};
+ctx.viewBeranda = () => ''; ctx.window = ctx; ctx.globalThis = ctx; ctx.addEventListener = () => {}; ctx.scrollTo = () => {};
 vm.createContext(ctx);
 const run = (code) => vm.runInContext(code, ctx);
 for (const f of ['js/banksoal.js', 'js/soal-gambar.js', 'js/lkpd-soal.js', 'js/lkpd-editor.js', 'js/lkpd-gambar.js', 'js/cetak-soal.js', 'js/soal-grup.js', 'js/banksoal-io.js', 'js/lkpd-io.js', 'js/butir.js']) {
@@ -149,9 +149,9 @@ ok('impor: kode grup yang sama memakai ulang grup di Bank soal, stimulus dari fi
 ok('impor: memperbarui soal sendiri membawa stimulus baru dan mempertahankan gn', run("RU.upd.length===1&&RU.upd[0].st==='Bacaan baru'&&RU.upd[0].gn===1"), run("JSON.stringify(RU.upd.map(function(x){return [x.st,x.gn]}))"));
 run("RR.add[1].si='drive:IMG';BS.D.soal=RR.add.concat([]);BS.all=null;var RI=bsioProcess([R({q:'Soal lima',gs:'G1'})]);");
 ok('impor: gambar stimulus grup ikut diwariskan ke soal baru', run("RI.add[0].si==='drive:IMG'"), run("JSON.stringify(RI.add)"));
-ok('ekspor: kolom Grup dan Stimulus ada di kepala', run("BSIO_HEAD.slice(-2).join()")==='Grup,Stimulus');
+ok('ekspor: kolom Grup dan Stimulus ada di kepala', run("BSIO_HEAD.slice(BSIO_HEAD.indexOf('Grup'),BSIO_HEAD.indexOf('Grup')+2).join()")==='Grup,Stimulus');
 run("BS.D.soal=RR.add.concat([]);BS.all=null;BSIO_SEEN={};var X1=bsioRow(BS.D.soal[0]),X2=bsioRow(BS.D.soal[1]);BSIO_SEEN=null;");
-ok('ekspor: stimulus hanya di baris pertama grup', run("X1[X1.length-2]===BS.D.soal[0].gs&&X1[X1.length-1]==='Bacaan umum'&&X2[X2.length-1]===''&&X2[X2.length-2]===BS.D.soal[1].gs"));
+ok('ekspor: stimulus hanya di baris pertama grup', run("var ig=BSIO_HEAD.indexOf('Grup'),is=BSIO_HEAD.indexOf('Stimulus');X1[ig]===BS.D.soal[0].gs&&X1[is]==='Bacaan umum'&&X2[is]===''&&X2[ig]===BS.D.soal[1].gs"));
 ok('ekspor lalu impor ulang tidak membuat soal ganda (semua dilewati)', run("var ex=BS.D.soal.map(function(s){var r=bsioRow(s),o={};BSIO_HEAD.forEach(function(h,i){var c=BSIO_HB[bsioKey(h)];if(c&&o[c]===undefined)o[c]=r[i]});return o});BSIO_SEEN=null;var RX=bsioProcess(ex);RX.add.length===0"), run("JSON.stringify(RX&&{a:RX.add.length,e:RX.err})"));
 
 console.log('Excel LKPD');
