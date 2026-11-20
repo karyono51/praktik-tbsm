@@ -424,3 +424,15 @@ fieldset.roles .chk input{flex:0 0 auto;width:20px;height:20px;margin:0;accent-c
 fieldset.roles .chk:has(input:checked){background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
 fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:340px){fieldset.roles{grid-template-columns:1fr}}
+
+/* Form sesi: kelas peserta, rombel, dan tombol aksi rapi */
+.sf-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sf-seg .bs-ck{margin:0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.sf-seg .bs-ck:has(input:checked){border-color:var(--accent);background:var(--bg)}
+.sf-rmb{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.sf-rmb .note{margin:0}
+.sf-rl{display:flex;flex-direction:column;gap:6px}
+.sf-rl .bs-ck{margin:0;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);align-items:center}
+.sf-rl .bs-ck small{margin-left:auto}
+.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn-grid .btn{width:100%;text-align:center;white-space:normal}

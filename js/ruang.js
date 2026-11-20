@@ -132,7 +132,7 @@ window.rgBelum=function(f){
 function inner(f){
  var R=f.ruang=f.ruang||[],ros=rgRoster(f),pk=S.users.filter(function(u){return hasRole(u,'proktor')&&u.aktif!==false});
  var belum=rgBelum(f),h='';
- h+='<p class="note">Bagi siswa ke ruang. Tiap ruang bisa punya kapasitas, proktor sendiri, dan jadwal sendiri (gelombang). Satu kelas boleh disebar ke beberapa ruang. Bila ada ruang, hanya siswa yang ditempatkan yang bisa mulai, dan proktor hanya mengawasi ruangnya. Tanpa ruang, sesi berjalan seperti biasa.</p>';
+ h+='<p class="note">Opsional. Tiap ruang punya kapasitas, proktor, dan jadwal (gelombang). Bila ada ruang, hanya siswa yang ditempatkan yang bisa mulai.</p>';
  R.forEach(function(r,i){
   h+='<div class="card"><div class="row sb"><b>Ruang '+(i+1)+'</b><button type="button" class="btn small danger" data-rg="del" data-i="'+i+'">Hapus</button></div>'+
    '<div class="two"><label class="f">Nama ruang<input data-rgf="nama" data-i="'+i+'" value="'+e(r.nama)+'" maxlength="40" placeholder="Lab TSM 1"></label>'+
@@ -144,11 +144,11 @@ function inner(f){
    '<p class="note"><b class="mono">'+r.sis.length+'</b>'+(+r.kap>0?' dari '+(+r.kap):'')+' siswa'+(r.sis.length?' · '+e(rgKomp(r)):'')+'</p>'+(+r.kap>0&&r.sis.length>+r.kap?'<p class="note" style="color:var(--bad,#c0392b)">Melebihi kapasitas '+(r.sis.length-r.kap)+' siswa. Pindahkan sebelum menyimpan.</p>':'')+'</div>';
  });
  if(!pk.length&&R.length)h+='<p class="note">Belum ada akun berperan Proktor. Buat di menu Akun, lalu beri label proktor di Appwrite (docs-PENGAWAS.md).</p>';
- h+='<label class="f">Cara bagi otomatis<select data-rgf="mode"><option value="rata"'+((f.rgMode||'rata')==='rata'?' selected':'')+'>Rata sesuai kapasitas, kelas berurutan</option><option value="penuh"'+(f.rgMode==='penuh'?' selected':'')+'>Isi ruang satu per satu sampai penuh</option><option value="campur"'+(f.rgMode==='campur'?' selected':'')+'>Bergilir, tiap ruang campuran kelas</option></select></label>';
- h+='<div class="row"><button type="button" class="btn small" data-rg="add">Tambah ruang</button>'+
+ h+='<label class="f">Cara bagi otomatis<select data-rgf="mode"><option value="rata"'+((f.rgMode||'rata')==='rata'?' selected':'')+'>Rata, rombel berurutan</option><option value="penuh"'+(f.rgMode==='penuh'?' selected':'')+'>Isi satu per satu sampai penuh</option><option value="campur"'+(f.rgMode==='campur'?' selected':'')+'>Bergilir, rombel dicampur</option></select></label>';
+ h+='<div class="btn-grid"><button type="button" class="btn small" data-rg="add">Tambah ruang</button>'+
   '<button type="button" class="btn small primary" data-rg="auto"'+(R.length?'':' disabled')+'>Bagi otomatis</button>'+
-  '<button type="button" class="btn small" data-rg="man"'+(R.length?'':' disabled')+'>'+(f.rgMan?'Tutup penempatan manual':'Tempatkan manual')+'</button>'+
-  '<button type="button" class="btn small" data-rg="clear"'+(R.length?'':' disabled')+'>Kosongkan penempatan</button></div>';
+  '<button type="button" class="btn small" data-rg="man"'+(R.length?'':' disabled')+'>'+(f.rgMan?'Tutup manual':'Tempatkan manual')+'</button>'+
+  '<button type="button" class="btn small" data-rg="clear"'+(R.length?'':' disabled')+'>Kosongkan</button></div>';
  if(R.length)h+='<p class="note">Siswa terdaftar <b class="mono">'+ros.length+'</b> · belum ditempatkan <b class="mono" style="'+(belum?'color:var(--bad,#c0392b)':'')+'">'+belum+'</b>'+(belum?' (tidak bisa mulai ujian)':'')+'</p>';
  if(f.rgMan&&R.length)h+='<div id="rg-man">'+man(f)+'</div>';
  return h;
@@ -177,13 +177,13 @@ function nomorBox(f){
 window.rgRombel=function(f){
  if(window.AKD&&!AKD.loaded&&!AKD.loading&&window.akLoad&&!f.rmbMuat){f.rmbMuat=1;try{akLoad().then(function(){repaint()})}catch(x){}}
  var kl=bsKls(f);
- if(kl.length!==1)return '<p class="note">Pilih satu tingkat di atas untuk memilih rombelnya. Dengan "Semua kelas", seluruh siswa sekolah ini ikut.</p>';
- var L=rgRombelList(f),sel=f.rmb=(f.rmb||[]).filter(function(id){return L.some(function(k){return k.id===id})}),h='<div class="card" style="background:var(--bg)"><b>Rombel kelas '+e(kl[0])+'</b>';
- if(!L.length)return h+'<p class="note">Belum ada rombel kelas '+e(kl[0])+' untuk sekolah sesi ini. Buat rombel di Administrasi Akademik (Kelas). Tanpa memilih rombel, semua siswa kelas '+e(kl[0])+' ikut.</p></div>';
- h+='<p class="note">Centang rombel yang ikut sesi ini. Daftar peserta otomatis menjadi anggota rombel terpilih. Tanpa centang, semua siswa kelas '+e(kl[0])+' ikut.</p>';
- h+=L.map(function(k){var n=(k.anggota||[]).filter(function(id){var u=S.users.filter(function(x){return x.id===id})[0];return u&&hasRole(u,'siswa')&&u.aktif!==false}).length;return '<label class="bs-ck"><input type="checkbox" data-rgf="rmb" data-k="'+e(k.id)+'"'+(sel.indexOf(k.id)>-1?' checked':'')+'> '+e(k.nama)+' <small class="muted">'+n+' siswa</small></label>'}).join('');
- h+='<div class="row"><button type="button" class="btn small" data-rg="rmbsemua">Semua rombel</button><button type="button" class="btn small" data-rg="rmbkosong"'+(sel.length?'':' disabled')+'>Kosongkan</button></div>';
- if(sel.length)h+='<p class="note">Terpilih <b class="mono">'+sel.length+'</b> rombel, <b class="mono">'+(Array.isArray(f.pes)?f.pes.length:0)+'</b> siswa.</p>';
+ if(kl.length!==1)return '<p class="note">Pilih satu tingkat untuk memilih rombelnya. "Semua kelas" mengikutkan seluruh siswa sekolah ini.</p>';
+ var L=rgRombelList(f),sel=f.rmb=(f.rmb||[]).filter(function(id){return L.some(function(k){return k.id===id})}),h='<div class="sf-rmb"><span class="label">Rombel kelas '+e(kl[0])+'</span>';
+ if(!L.length)return h+'<p class="note">Belum ada rombel kelas '+e(kl[0])+' di sekolah ini (buat di Administrasi Akademik). Semua siswa kelas '+e(kl[0])+' ikut.</p></div>';
+ h+='<p class="note">Centang rombel yang ikut. Tanpa centang, semua siswa kelas '+e(kl[0])+' ikut.</p><div class="sf-rl">';
+ h+=L.map(function(k){var n=(k.anggota||[]).filter(function(id){var u=S.users.filter(function(x){return x.id===id})[0];return u&&hasRole(u,'siswa')&&u.aktif!==false}).length;return '<label class="bs-ck"><input type="checkbox" data-rgf="rmb" data-k="'+e(k.id)+'"'+(sel.indexOf(k.id)>-1?' checked':'')+'> '+e(k.nama)+' <small class="muted">'+n+' siswa</small></label>'}).join('')+'</div>';
+ h+='<div class="btn-grid"><button type="button" class="btn small" data-rg="rmbsemua">Semua rombel</button><button type="button" class="btn small" data-rg="rmbkosong"'+(sel.length?'':' disabled')+'>Kosongkan</button></div>';
+ if(sel.length)h+='<p class="note"><b class="mono">'+sel.length+'</b> rombel terpilih · <b class="mono">'+(Array.isArray(f.pes)?f.pes.length:0)+'</b> siswa</p>';
  return h+'</div>';
 };
 /* daftar peserta mengikuti rombel terpilih (daftar tetap); tanpa rombel terpilih, kembali dihitung dari tingkat */
@@ -204,8 +204,8 @@ window.rgGantiTingkat=function(f){
 function pesInner(f){
  var tetap=Array.isArray(f.pes),din=rgDinamis(f),h='';
  if(!tetap){
-  return '<p class="note">Daftar peserta dihitung dari kelas dan sekolah setiap kali dibuka: <b class="mono">'+din.length+'</b> siswa saat ini. Siswa yang pindah kelas atau akunnya diubah setelah ujian dijadwalkan mengubah daftar hadir dan rekap. Bekukan daftar agar tetap.</p>'+
-   '<div class="row"><button type="button" class="btn small primary" data-rg="beku">Bekukan daftar sekarang</button></div>';
+  return '<p class="note"><b class="mono">'+din.length+'</b> siswa, dihitung dari kelas dan sekolah. Bekukan daftar agar tidak berubah bila ada siswa pindah kelas.</p>'+
+   '<div class="btn-grid"><button type="button" class="btn small primary" data-rg="beku">Bekukan daftar sekarang</button></div>';
  }
  var ada={};f.pes.forEach(function(x){ada[x]=1});var dd={};din.forEach(function(u){dd[u.id]=1});
  var baru=din.filter(function(u){return !ada[u.id]}).length,hilang=f.pes.filter(function(x){return x&&!dd[x]}).length;
