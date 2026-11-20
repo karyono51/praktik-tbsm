@@ -52,14 +52,16 @@ const BUDGET_MS = Number(process.env.CBT_BUDGET_MS) || 18000, PAR = 4;     // sa
 const SEB_UA = String(process.env.SEB_UA || 'SEB/,SEB_IOS').toUpperCase().split(',').map((t) => t.trim()).filter(Boolean);
 const SEB_CK = String(process.env.SEB_CONFIG_KEYS || '').toLowerCase().split(',').map((t) => t.trim()).filter((t) => /^[0-9a-f]{64}$/.test(t));
 const SEB_BEK = String(process.env.SEB_BEK || '').toLowerCase().split(',').map((t) => t.trim()).filter((t) => /^[0-9a-f]{64}$/.test(t));
-function cekSeb(body) {
+/* alasan penolakan: '' (lolos), 'ua' (bukan SEB), 'ck' (Config Key tidak cocok), 'bek' (Browser Exam Key tidak cocok) */
+function sebAlasan(body) {
   const ua = String(body.ua || '').toUpperCase(), url = String(body.sebUrl || '').slice(0, 2000);
-  if (!SEB_UA.some((t) => ua.includes(t))) return false;
+  if (!SEB_UA.some((t) => ua.includes(t))) return 'ua';
   const ok = (keys, h) => { h = String(h || '').toLowerCase(); return keys.some((k) => crypto.createHash('sha256').update(url + k).digest('hex') === h); };
-  if (SEB_CK.length && !ok(SEB_CK, body.sebCk)) return false;
-  if (SEB_BEK.length && !ok(SEB_BEK, body.sebBek)) return false;
-  return true;
+  if (SEB_CK.length && !ok(SEB_CK, body.sebCk)) return 'ck';
+  if (SEB_BEK.length && !ok(SEB_BEK, body.sebBek)) return 'bek';
+  return '';
 }
+function cekSeb(body) { return !sebAlasan(body); }
 const EXAMBRO_UA = String(process.env.EXAMBRO_UA || 'TBSM-EXAM,VERSION/4.0').toUpperCase().split(',').map((t) => t.trim()).filter(Boolean);   // dipisah koma; samakan dengan EXAMBRO_UA di js/config.js
 const MAX_SALAH = 10, JENDELA_SALAH = 5 * 60000;
 const memo = { user: new Map(), soal: new Map(), sesi: new Map(), tok: new Map(), ros: new Map(), pool: null, salah: new Map(), idx: new Map() };
@@ -411,7 +413,10 @@ async function mulai(me, body) {
   const s = parse(sd), now = Date.now(), sid = me.akun.$id, rid = runId(sesiId, sid);
   /* Wajib Exambro: UserAgent dikirim klien; bisa dipalsukan, jadi ini penghalang, bukan jaminan. */
   if (s.exambro && !EXAMBRO_UA.some((t) => String(body.ua || '').toUpperCase().includes(t))) throw new Fail('Sesi ini wajib dikerjakan lewat aplikasi Exambro.', 403);
-  if (s.seb && !cekSeb(body)) throw new Fail('Sesi ini wajib dikerjakan lewat Safe Exam Browser (SEB) dengan konfigurasi sekolah.', 403);
+  if (s.seb) {
+    const al = sebAlasan(body);
+    if (al) { await sebTolakCatat(me, sesiId, al, now); throw new Fail('Sesi ini wajib dikerjakan lewat Safe Exam Browser (SEB) dengan konfigurasi sekolah.', 403); }
+  }
   const ex = await tryGet('soal_run', rid);
   if (ex) {
     if (ex.done) throw new Fail('Kamu sudah mengerjakan sesi ini.', 409);
@@ -807,6 +812,37 @@ async function tebakDaftar(me, body) {
   rows.sort((a, b) => (b.kunci - a.kunci) || (b.lv - a.lv) || (b.n - a.n));
   return { ok: true, now, rows };
 }
+/* ---------- Catatan penolakan SEB (untuk pemantauan pengawas) ----------
+   Satu indeks si_<hash sesi> di soal_kunci: baris per akun {nm, kl, n, why, last}. Gagal menulis tidak boleh mengubah hasil penolakan.
+   Satu akun ditulis paling sering sekali per 15 detik per instans, supaya ratusan siswa yang ditolak bersamaan tidak membanjiri database. */
+const SEB_IDX_MAKS = 100, SEB_JEDA = 15000, sebTulisTerakhir = new Map();
+async function sebTolakCatat(me, sesiId, alasan, now) {
+  try {
+    const akunId = me.akun.$id, kunci = sesiId + '|' + akunId, t = sebTulisTerakhir.get(kunci);
+    if (t && now - t < SEB_JEDA) return;
+    if (sebTulisTerakhir.size >= 5000) sebTulisTerakhir.delete(sebTulisTerakhir.keys().next().value);
+    sebTulisTerakhir.set(kunci, now);
+    const d = await tebakDoc(hid('si_', sesiId)), o = d.o && typeof d.o === 'object' && d.o.rows ? d.o : { rows: {} };
+    const r = o.rows[akunId] || { n: 0 };
+    o.rows[akunId] = { nm: String(me.akun.nama || '').slice(0, 32), kl: String(me.akun.kelas || '').slice(0, 8), n: (r.n || 0) + 1, why: alasan, last: now };
+    const ks = Object.keys(o.rows);
+    if (ks.length > SEB_IDX_MAKS) ks.sort((a, b) => o.rows[a].last - o.rows[b].last).slice(0, ks.length - SEB_IDX_MAKS).forEach((k) => { delete o.rows[k]; });
+    await tebakTulis(d.id, d.ada, o);
+  } catch (e) { /* abaikan */ }
+}
+async function sebTolakDaftar(me, body) {
+  needPawas(me);
+  const { sesiId, s } = await sesiPawas(me, body), now = Date.now();
+  const d = await tebakDoc(hid('si_', sesiId)), o = d.o && d.o.rows ? d.o : { rows: {} };
+  let rows = Object.keys(o.rows).map((k) => Object.assign({ sid: k }, o.rows[k]));
+  if (ruangList(s).length && !me.staff) {
+    const ok = new Set(); ruangSaya(s, me).forEach((r) => r.sis.forEach((x) => ok.add(x)));
+    rows = rows.filter((r) => ok.has(r.sid));
+  }
+  rows = rows.filter((r) => now - r.last < 6 * 3600000).map((r) => ({ sid: r.sid, nama: r.nm, kelas: r.kl, n: r.n, why: r.why, last: r.last }));
+  rows.sort((a, b) => b.last - a.last);
+  return { ok: true, now, rows };
+}
 async function bukaTebak(me, body) {
   needPawas(me);
   const { sesiId, s } = await sesiPawas(me, body);
@@ -858,7 +894,7 @@ async function catat(me, body) {
 }
 
 export const _uji = { frac, nilai, cleanAns, runId, parse, memReset, semuaReset: () => { memReset(); memo.salah.clear(); inflight.clear(); } };
-export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua', 'nilaiUlang', 'nilaiUraian', 'rilisToken', 'pantau', 'aksiRun', 'catat', 'tebak', 'bukaTebak']);
+export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua', 'nilaiUlang', 'nilaiUraian', 'rilisToken', 'pantau', 'aksiRun', 'catat', 'tebak', 'bukaTebak', 'sebTolak']);
 
 /* Dipakai sebagai fungsi sendiri (default export) atau dipanggil dari fungsi lain, mis. akun-admin (lihat tools/gabung-cbt.mjs). */
 export async function cbtHandle({ req, res, error, body }) {
@@ -881,6 +917,7 @@ export async function cbtHandle({ req, res, error, body }) {
       case 'pantau': return res.json(await pantau(me, body));
       case 'aksiRun': return res.json(await aksiRun(me, body));
       case 'tebak': return res.json(await tebakDaftar(me, body));
+      case 'sebTolak': return res.json(await sebTolakDaftar(me, body));
       case 'bukaTebak': return res.json(await bukaTebak(me, body));
       case 'catat': return res.json(await catat(me, body));
       default: return res.json({ ok: false, error: 'Aksi tidak dikenal.' }, 400);

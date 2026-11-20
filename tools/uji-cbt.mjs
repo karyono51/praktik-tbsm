@@ -37,6 +37,7 @@ globalThis.fetch = async (url, opt) => {
   if (method === 'PATCH') { const d = c.get(id); if (!d) return res(404, { message: 'tidak ada' }); Object.assign(d, body.data, { $updatedAt: now }); return res(200, d); }
   return res(400, { message: 'salah' });
 };
+process.env.SEB_CONFIG_KEYS = 'a'.repeat(64);   // Config Key uji untuk sesi Wajib SEB
 process.env.CBT_BUDGET_MS = '600';   // batas waktu massal dipersingkat agar jalur "sisa" ikut teruji
 process.env.APPWRITE_FUNCTION_API_ENDPOINT = 'http://aw/v1'; process.env.APPWRITE_FUNCTION_PROJECT_ID = 'p';
 const mod = await import(pathToFileURL(path.join(root, 'functions/cbt/src/main.js')).href);
@@ -409,6 +410,46 @@ console.log('\nPembatas tebakan token berlapis (database)');
   r = await call('u8', { action: 'mulai', sesiId: 'S1', token: 'ABC123' }); cek('indeks tebakan rusak: siswa tetap bisa mulai', r.status === 200, r.status + ' ' + (r.body.error || ''));
   r = await call('u9', { action: 'mulai', sesiId: 'S1', token: 'SALAH1' }); cek('indeks tebakan rusak: token salah tetap 403', r.status === 403, r.status);
   globalThis.fetch = f0; Date.now = realNow;
+}
+
+console.log('\nSEB: penolakan dicatat untuk pengawas');
+{
+  const crypto = await import('node:crypto'), KEY = 'a'.repeat(64), URL0 = 'https://x.id/praktik/?s=medina';
+  const hash = (u, k) => crypto.createHash('sha256').update(u + k).digest('hex');
+  siapkan();
+  col('soal_sesi').set('S3', { $id: 'S3', aktif: true, payload: JSON.stringify({ judul: 'Ujian SEB', durasi: 30, jumlah: 5, kelas: 'XI-A', sekolah: 'MEDINA', seb: true, acak: false }) });
+  let r = await call('u1', { action: 'mulai', sesiId: 'S3', ua: 'Mozilla/5.0 Chrome' });
+  cek('bukan SEB: ditolak 403', r.status === 403 && /Safe Exam Browser/.test(r.body.error), r.status);
+  r = await call('u2', { action: 'mulai', sesiId: 'S3', ua: 'Mozilla SEB/3.5', sebUrl: URL0, sebCk: hash(URL0, 'b'.repeat(64)) });
+  cek('SEB dengan Config Key salah: ditolak 403', r.status === 403, r.status);
+  r = await call('u3', { action: 'mulai', sesiId: 'S3', ua: 'Mozilla SEB/3.5', sebUrl: URL0, sebCk: hash(URL0, KEY) });
+  cek('SEB dengan Config Key benar: lolos', r.status === 200, r.status + ' ' + (r.body.error || ''));
+  r = await call('g1', { action: 'sebTolak', sesiId: 'S3' });
+  const bar = (r.body.rows || []);
+  cek('pengawas melihat dua siswa ditolak, siswa yang lolos tidak', r.status === 200 && bar.length === 2 && !bar.some((x) => x.sid === 'A3'), JSON.stringify(r.body).slice(0, 200));
+  cek('alasan dibedakan: bukan SEB (ua) dan Config Key (ck)', bar.some((x) => x.sid === 'A1' && x.why === 'ua') && bar.some((x) => x.sid === 'A2' && x.why === 'ck'), JSON.stringify(bar));
+  cek('catatan memuat nama dan kelas', bar.every((x) => x.nama && x.kelas), JSON.stringify(bar));
+  await call('u1', { action: 'mulai', sesiId: 'S3', ua: 'Mozilla/5.0 Chrome' });
+  r = await call('g1', { action: 'sebTolak', sesiId: 'S3' });
+  cek('percobaan beruntun dalam jeda tidak menulis ulang (hemat database)', r.body.rows.find((x) => x.sid === 'A1').n === 1, JSON.stringify(r.body.rows));
+  r = await call('u4', { action: 'sebTolak', sesiId: 'S3' });
+  cek('siswa tidak boleh melihat catatan penolakan', r.status === 403, r.status);
+  /* database catatan rusak tidak mengubah hasil: tetap 403, bukan 500 */
+  const f1 = globalThis.fetch; globalThis.fetch = async (u, o) => (/soal_kunci\/si_/.test(u) ? { ok: false, status: 500, json: async () => ({ message: 'rusak' }) } : f1(u, o));
+  r = await call('u5', { action: 'mulai', sesiId: 'S3', ua: 'Mozilla/5.0 Chrome' });
+  cek('catatan penolakan gagal ditulis: siswa tetap ditolak dengan 403', r.status === 403 && /Safe Exam Browser/.test(r.body.error), r.status);
+  globalThis.fetch = f1;
+}
+
+console.log('\nDaftar aksi fungsi (akun-admin hanya meneruskan aksi di CBT_AKSI)');
+{
+  const fs = await import('node:fs'), src = fs.readFileSync(path.join(root, 'functions/cbt/src/main.js'), 'utf8');
+  const sw = src.slice(src.indexOf('switch (body.action)'), src.indexOf('switch (body.action)') + 3000);
+  const aksi = [...sw.matchAll(/case '([A-Za-z]+)':/g)].map((m) => m[1]);
+  const tak = aksi.filter((a) => !mod.CBT_AKSI.has(a));
+  cek('setiap aksi di fungsi CBT terdaftar di CBT_AKSI (jika tidak, akun-admin menolaknya)', aksi.length > 10 && !tak.length, 'tidak terdaftar: ' + tak.join());
+  cek('sebTolak terdaftar', mod.CBT_AKSI.has('sebTolak'));
+  cek('salinan di akun-admin sama dengan fungsi CBT', fs.readFileSync(path.join(root, 'functions/akun-admin/src/cbt.js'), 'utf8') === src, 'jalankan: node tools/gabung-cbt.mjs');
 }
 
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');

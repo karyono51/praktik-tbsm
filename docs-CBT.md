@@ -154,3 +154,9 @@ Kolom: No, NIS, Nama, Username, Email, Rombel, Kelas, Sekolah, Status. Hanya sis
 - **Peruntukan uraian** kini bisa dipilih guru (Latihan / Ujian / Latihan dan ujian). Default tetap Ujian, dan soal uraian lama tetap Ujian, jadi tidak bocor ke latihan sebelum guru mengubahnya. Impor Excel: kolom peruntukan dihormati, kosong = Ujian.
 - Mode aman: kunci uraian ada di `soal_kunci`, jadi di latihan siswa hanya melihat rubrik/pesan "Kunci tidak ditampilkan".
 - **Jumlah soal latihan**: pilihan 5, 10, 20, 30 (tombol "Semua" dihapus).
+
+## Pantau hari ujian dan cadangan Excel (v82)
+- **Kartu "Perlu perhatian"** di Pantau: siswa tidak aktif lebih dari 2,5 menit, siswa terkunci, siswa ditolak SEB (lihat docs-SEB.md), dan banyak siswa belum mulai (30% atau minimal 3 siswa, 10 menit setelah sesi dibuka).
+- **Per kelas**: bila peserta sesi lebih dari satu kelas, ringkasan selesai, mengerjakan, belum, terkunci, habis, dan tidak aktif per kelas.
+- **Cadangan Excel**: tombol "Cadangan Excel" di Pantau mengunduh status dan nilai semua peserta, catatan SEB ditolak, dan info sesi. Unduhan **otomatis sekali per sesi** bila Pantau sedang terbuka saat sesi berakhir (dalam 24 jam) atau semua peserta sudah selesai. Tanda sudah dicadangkan disimpan di perangkat; tombol manual selalu bisa dipakai lagi. Data yang gagal dimuat tidak pernah dicadangkan.
+- Uji: `node tools/uji-pantau.mjs`, `node tools/uji-cbt.mjs`.

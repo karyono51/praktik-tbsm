@@ -21,3 +21,9 @@
 - Config Key dihitung dari alamat halaman. Pastikan alamat mulai di file .seb sama dengan alamat yang dibuka siswa (domain yang sama).
 - Android tidak punya SEB resmi untuk ujian ini. Tetap gunakan Exambro di sana.
 - Uji dulu dengan satu siswa percobaan sebelum hari ujian.
+
+## Pemantauan siswa yang ditolak SEB (v82)
+- Setiap kali siswa ditolak server pada sesi Wajib SEB, server mencatat nama, kelas, jumlah percobaan, dan **alasannya**: `bukan dibuka dari SEB` (UserAgent) atau `Config Key tidak cocok` (juga `Browser Exam Key tidak cocok` bila SEB_BEK diisi).
+- Tab **Pantau** menampilkan kartu "Perlu perhatian" bila ada siswa yang belum mulai dan ditolak dalam 15 menit terakhir, lengkap dengan petunjuk perbaikan (Config Key: periksa file .seb sekolah yang benar, SEB_CONFIG_KEYS, dan deploy ulang fungsi).
+- Catatan disimpan di koleksi `soal_kunci` (dokumen `si_...`, tanpa skema baru), paling banyak 100 siswa terbaru per sesi, satu tulisan per siswa tiap 15 detik. Gagal menulis tidak mengubah hasil penolakan.
+- Aksi server baru `sebTolak` (guru, admin, proktor; proktor hanya melihat siswa ruangnya). **Fungsi akun-admin harus di-deploy ulang** agar aksi ini dikenali.
