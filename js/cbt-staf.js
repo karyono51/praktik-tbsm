@@ -95,7 +95,7 @@
  /* ringkasan per kelas (hanya bila peserta lebih dari satu kelas) */
  function pnPerKelas(rows){
   var by={},ur=[];
-  rows.forEach(function(r){var k=r.u.kelas||'-';if(!by[k]){by[k]={n:0,belum:0,on:0,done:0,lock:0,habis:0,diam:0};ur.push(k)}var b=by[k];b.n++;b[r.s.k]=(b[r.s.k]||0)+1;if(r.s.k==='on'&&r.s.seen>150000)b.diam++});
+  rows.forEach(function(r){var k=(window.rgGrup?rgGrup(r.u):r.u.kelas)||'-';if(!by[k]){by[k]={n:0,belum:0,on:0,done:0,lock:0,habis:0,diam:0};ur.push(k)}var b=by[k];b.n++;b[r.s.k]=(b[r.s.k]||0)+1;if(r.s.k==='on'&&r.s.seen>150000)b.diam++});
   if(ur.length<2)return '';
   ur.sort(function(a,b){return String(a).localeCompare(String(b),'id',{numeric:true})});
   return '<div class="card"><span class="label">Per kelas</span>'+ur.map(function(k){var b=by[k];return '<p class="note"><b>'+esc(k)+'</b> · '+b.n+' siswa · selesai <b class="mono">'+b.done+'</b> · mengerjakan <b class="mono">'+b.on+'</b> · belum <b class="mono">'+b.belum+'</b>'+(b.lock?' · terkunci <b class="mono">'+b.lock+'</b>':'')+(b.habis?' · habis <b class="mono">'+b.habis+'</b>':'')+(b.diam?' · tidak aktif <b class="mono">'+b.diam+'</b>':'')+'</p>'}).join('')+'</div>';
@@ -206,7 +206,7 @@
    if(st.k==='done'&&!st.h&&st.run&&!bsAman())act+='<button type="button" class="btn small primary" data-bs="pn-nilai1" data-v="'+rid+'">Nilai dari jawaban</button>';
    if(st.k==='done'&&st.h&&!bsAman())act+='<button type="button" class="btn small" data-bs="pn-susulan" data-v="'+u.id+'">Susulan</button>';
    if(st.k==='done'||st.run)act+='<button type="button" class="btn small danger" data-bs="pn-reset" data-v="'+u.id+'">Ulang</button>';
-   return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">'+(window.rgNomor&&rgNomor(s,u.id)?'<b class="mono">'+esc(rgNomor(s,u.id))+'</b> · ':'')+'Kelas '+esc(u.kelas||'-')+(window.rgOf&&rgOf(s,u.id)?' · '+esc(rgLabel(rgOf(s,u.id))):'')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
+   return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">'+(window.rgNomor&&rgNomor(s,u.id)?'<b class="mono">'+esc(rgNomor(s,u.id))+'</b> · ':'')+'Kelas '+esc((window.rgGrup?rgGrup(u):u.kelas)||'-')+(window.rgOf&&rgOf(s,u.id)?' · '+esc(rgLabel(rgOf(s,u.id))):'')+'</p>'+line+(act?'<div class="row">'+act+'</div>':'')+'</div>';
   }).join('');
   return h;
  }
@@ -426,7 +426,7 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   var jd=(s.mulai?bsWaktu(s.mulai):'Sesuai jadwal guru')+(s.selesai?' sampai '+bsWaktu(s.selesai):'');
   var adaRg=window.rgList&&rgList(s).length,urut=roster(s);
   if(adaRg)urut=urut.map(function(u,i){return {u:u,i:i,k:(function(){var g=rgOf(s,u.id);return g?rgList(s).indexOf(g):999})()}}).sort(function(a,b){return a.k-b.k||a.i-b.i}).map(function(x){return x.u});
-  var cards=urut.map(function(u){var g=adaRg?rgOf(s,u.id):null;return '<div style="border:1px solid #000;padding:8px 10px;break-inside:avoid;font-size:10pt"><b>KARTU PESERTA UJIAN ONLINE</b><br>'+teks(SEK.nama)+'<hr style="margin:4px 0">Nama: <b>'+teks(u.nama)+'</b><br>'+(rgNomor(s,u.id)?'No. peserta: <b>'+teks(rgNomor(s,u.id))+'</b><br>':'')+(u.username?'Username: '+teks(u.username)+'<br>':'')+'Kelas: '+teks(u.kelas||'-')+'<br>'+(adaRg?'Ruang: <b>'+teks(g?rgLabel(g):'belum ditempatkan')+'</b><br>':'')+'Sesi: '+teks(s.judul)+'<br>Jadwal: '+teks(adaRg&&g?rgJadwal(s,g):jd)+'<br>Durasi: '+(s.durasi||0)+' menit<br>'+(s.tokR&&bsAman()?'Token: <b>dibacakan pengawas saat ujian dimulai</b>':'Token: <b style="font-size:18pt;letter-spacing:3px">'+teks(tk)+'</b>')+'</div>'}).join('');
+  var cards=urut.map(function(u){var g=adaRg?rgOf(s,u.id):null;return '<div style="border:1px solid #000;padding:8px 10px;break-inside:avoid;font-size:10pt"><b>KARTU PESERTA UJIAN ONLINE</b><br>'+teks(SEK.nama)+'<hr style="margin:4px 0">Nama: <b>'+teks(u.nama)+'</b><br>'+(rgNomor(s,u.id)?'No. peserta: <b>'+teks(rgNomor(s,u.id))+'</b><br>':'')+(u.username?'Username: '+teks(u.username)+'<br>':'')+'Kelas: '+teks((window.rgGrup?rgGrup(u):u.kelas)||'-')+'<br>'+(adaRg?'Ruang: <b>'+teks(g?rgLabel(g):'belum ditempatkan')+'</b><br>':'')+'Sesi: '+teks(s.judul)+'<br>Jadwal: '+teks(adaRg&&g?rgJadwal(s,g):jd)+'<br>Durasi: '+(s.durasi||0)+' menit<br>'+(s.tokR&&bsAman()?'Token: <b>dibacakan pengawas saat ujian dimulai</b>':'Token: <b style="font-size:18pt;letter-spacing:3px">'+teks(tk)+'</b>')+'</div>'}).join('');
   if(!cards){toast('Tidak ada siswa terdaftar untuk sesi ini');return}
   cetakHtml('<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+cards+'</div>');
  }
@@ -436,7 +436,7 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
   var s=sesiById(id);if(!s)return;
   if(Cloud.on&&PN.sesiLoaded!==id){PN.sesi=id;await pnLoad()}
   var hs=hasilSesi(id),kkm=+s.kkm||S.kkm,kls={};
-  roster(s).forEach(function(u){var k=u.kelas||'-';(kls[k]=kls[k]||[]).push(u)});
+  roster(s).forEach(function(u){var k=(window.rgGrup?rgGrup(u):u.kelas)||'-';(kls[k]=kls[k]||[]).push(u)});
   var wb=XLSX.utils.book_new(),ring=[];
   Object.keys(kls).sort().forEach(function(k){
    var rows=kls[k].map(function(u,i){var h=hs[u.id];return {No:i+1,Nama:u.nama,Kelas:k,Status:h?'Selesai':'Belum mengerjakan',Nilai:h?h.score:'','Soal benar':h?h.benar:'','Jumlah soal':h?h.total:'','Keluar halaman':h?(h.pindah||0):'',Keterangan:h?(h.pend?'Nilai sementara, '+h.pend+' uraian belum dinilai':(h.score>=kkm?'Tuntas':'Belum tuntas')):''}});

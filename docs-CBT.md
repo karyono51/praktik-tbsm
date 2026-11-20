@@ -166,6 +166,8 @@ Kolom: No, NIS, Nama, Username, Email, Rombel, Kelas, Sekolah, Status. Hanya sis
 - Penyimpanan: kolom kelas di sesi berisi `ALL`, satu tingkat (`XI`), atau beberapa dipisah koma (`X,XI`). Sesi lama tidak perlu diubah.
 - Yang berlaku: siswa dari tingkat yang tidak dipilih ditolak saat mulai; daftar Pantau, Hasil, kartu peserta, dan berita acara hanya memuat tingkat yang dipilih; soal diambil dari pool gabungan tingkat terpilih (soal tanpa kelas ikut), dan tiap siswa tetap hanya mendapat soal untuk tingkatnya sendiri.
 - Pantau menampilkan ringkasan **Per kelas** bila pesertanya lebih dari satu kelas.
+- **Per rombel** (mis. X TSM-1 dan X TSM-2 dalam satu tingkat X): di formulir sesi, bagian Daftar peserta memuat **Pilih per rombel** dari menu Administrasi Akademik (Kelas). Centang rombel yang ikut (boleh dari tingkat berbeda), lalu **Pakai rombel terpilih**. Daftar peserta menjadi anggota rombel itu (siswa nonaktif dilewati) dan dibekukan, jadi yang bisa mulai hanya siswa di daftar. Atur kolom Kelas sesi agar tingkat rombel tercakup, karena pilihan rombel mengikuti kelas dan sekolah sesi. Siswa tanpa rombel memakai tingkatnya.
+- Nama rombel dipakai di Pantau (ringkasan Per rombel), kartu peserta, rekap per kelas, dan kartu ruang. Rombel dibaca dari data Akademik di perangkat guru; bila belum termuat atau kosong, semuanya kembali memakai tingkat.
 - Satu kelas yang disebar ke beberapa ruang: lihat `docs-RUANG.md` (kapasitas ruang dan cara bagi otomatis).
 - Perubahan fungsi server: deploy ulang `akun-admin` (hasil `node tools/gabung-cbt.mjs`).
 - Uji: `node tools/uji-multikelas.mjs` dan bagian "Sesi untuk beberapa kelas" di `node tools/uji-cbt.mjs`.

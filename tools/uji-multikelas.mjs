@@ -79,5 +79,42 @@ console.log('Penyimpanan dan pemeriksaan ruang');
   ok('rgRoster semua kelas memuat semuanya', run("rgRoster({kelas:'ALL',sekolah:'MEDINA'})").length === 9);
 }
 
+console.log('Rombel');
+{
+  const mkU = (rom, tk, n, sek = 'MEDINA') => Array.from({ length: n }, (_, i) => ({ id: rom + '#' + String(i + 1).padStart(2, '0'), nama: 'Nama ' + String(i + 1).padStart(2, '0'), kelas: tk, sekolah: sek, aktif: true, peran: ['siswa'] }));
+  const t1 = mkU('X TSM-1', 'X', 36), t2 = mkU('X TSM-2', 'X', 36), u1 = mkU('XI TSM-1', 'XI', 10), tanpa = mkU('XII', 'XII', 2), nonaktif = mkU('X TSM-3', 'X', 2).map((u) => ({ ...u, aktif: false }));
+  siswa.length = 0; [...t2, ...u1, ...tanpa, ...t1, ...nonaktif].forEach((u) => siswa.push(u));   // sengaja acak urutannya
+  ctx.AKD = { loaded: true, loading: false, D: { kelas: [
+    { id: 'k1', nama: 'X TSM-1', tingkat: 'X', sekolah: 'MEDINA', aktif: true, anggota: t1.map((u) => u.id) },
+    { id: 'k2', nama: 'X TSM-2', tingkat: 'X', sekolah: 'MEDINA', aktif: true, anggota: t2.map((u) => u.id) },
+    { id: 'k3', nama: 'X TSM-3', tingkat: 'X', sekolah: 'MEDINA', aktif: true, anggota: nonaktif.map((u) => u.id) },
+    { id: 'k4', nama: 'XI TSM-1', tingkat: 'XI', sekolah: 'MEDINA', aktif: true, anggota: u1.map((u) => u.id) },
+    { id: 'k5', nama: 'X Lama', tingkat: 'X', sekolah: 'MEDINA', aktif: false, anggota: [] },
+    { id: 'k6', nama: 'X DF-1', tingkat: 'X', sekolah: 'DF', aktif: true, anggota: [] }] } };
+  ctx.akKelasAll = () => ctx.AKD.D.kelas;
+  run('rgPetaReset')();
+  ok('rgGrup: nama rombel, atau tingkat bila belum punya rombel', run("rgGrup(S.users.filter(function(u){return u.id==='X TSM-1#01'})[0])") === 'X TSM-1' && run("rgGrup(S.users.filter(function(u){return u.id==='XII#01'})[0])") === 'XII');
+  const urut = run("rgUrut(S.users)").map((u) => u.id);
+  ok('rgUrut: tingkat X dulu, lalu per rombel, lalu nama; rombel tidak bercampur', urut[0] === 'X TSM-1#01' && urut[35] === 'X TSM-1#36' && urut[36] === 'X TSM-2#01' && urut.indexOf('XI TSM-1#01') > urut.indexOf('X TSM-2#36') && urut.at(-1).startsWith('XII#'), urut.slice(0, 3).join() + ' ... ' + urut.slice(-2).join());
+  ok('rgRombelList: sesuai tingkat, sekolah, dan aktif', run("rgRombelList({kelas:'X',sekolah:'MEDINA'})").map((k) => k.id).join() === 'k1,k2,k3' && run("rgRombelList({kelas:'X,XI',sekolah:'MEDINA'})").map((k) => k.id).join() === 'k1,k2,k3,k4' && run("rgRombelList({kelas:'ALL',sekolah:'DF'})").map((k) => k.id).join() === 'k6,k1,k2,k3,k4'.split(',').filter((x) => x === 'k6').join());
+  ctx.__f = { rmb: ['k1', 'k2', 'k3'] };
+  const dr = run('rgDariRombel(__f)');
+  ok('rgDariRombel: gabungan anggota rombel terpilih, siswa nonaktif dilewati, urut rombel', dr.length === 72 && dr[0].id === 'X TSM-1#01' && dr[36].id === 'X TSM-2#01', dr.length);
+  ctx.__f = { rmb: ['k1', 'k1'] };
+  ok('rombel dipilih dobel tidak menggandakan siswa', run('rgDariRombel(__f)').length === 36);
+  const ros = dr;
+  let h = run('rgBagi')(ros, R(40, 40), 'rata');
+  ok('2 rombel (36 + 36) di 2 ruang: satu rombel utuh per ruang', jml(h) === '36,36' && run('rgKomp')({ sis: h.per[0] }) === 'X TSM-1 36' && run('rgKomp')({ sis: h.per[1] }) === 'X TSM-2 36', run('rgKomp')({ sis: h.per[0] }));
+  h = run('rgBagi')(ros, R(24, 24, 24), 'rata');
+  ok('72 siswa di 3 ruang x 24: satu rombel disebar ke dua ruang, urut', jml(h) === '24,24,24' && run('rgKomp')({ sis: h.per[1] }) === 'X TSM-1 12 · X TSM-2 12' && run('rgKomp')({ sis: h.per[2] }) === 'X TSM-2 24', [0, 1, 2].map((i) => run('rgKomp')({ sis: h.per[i] })).join(' | '));
+  h = run('rgBagi')(mkU('X TSM-1', 'X', 36), R(12, 12, 12), 'rata');
+  ok('satu rombel 36 siswa disebar ke 3 ruang x 12', jml(h) === '12,12,12' && !h.sisa.length);
+  h = run('rgBagi')(ros, R(36, 36), 'campur');
+  ok('mode campur: tiap ruang berisi dua rombel', run('rgKomp')({ sis: h.per[0] }) === 'X TSM-1 18 · X TSM-2 18', run('rgKomp')({ sis: h.per[0] }));
+  ctx.AKD.D.kelas = [];
+  run('rgPetaReset')();
+  ok('tanpa data rombel: kembali memakai tingkat', run("rgGrup(S.users.filter(function(u){return u.id==='X TSM-1#01'})[0])") === 'X');
+}
+
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);

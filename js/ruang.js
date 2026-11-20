@@ -10,21 +10,47 @@ function ts(v){return v?new Date(v).getTime()||0:0}
 
 window.rgList=function(s){return s&&Array.isArray(s.ruang)?s.ruang.filter(function(r){return r&&Array.isArray(r.sis)}):[]};
 window.rgOf=function(s,uid){var l=rgList(s);for(var i=0;i<l.length;i++)if(l[i].sis.indexOf(uid)>-1)return l[i];return null};
+/* Rombel (dari menu Administrasi Akademik): peta id siswa -> nama rombel aktif, disimpan 2 detik agar daftar panjang tetap cepat.
+   Siswa tanpa rombel memakai tingkatnya (kolom kelas akun). */
+var RG_PETA=null,RG_TS=0;
+window.rgPeta=function(){
+ var now=Date.now();if(RG_PETA&&now-RG_TS<2000)return RG_PETA;
+ var m={};
+ try{if(window.AKD&&AKD.D&&Array.isArray(AKD.D.kelas))AKD.D.kelas.forEach(function(k){if(k.aktif===false)return;(k.anggota||[]).forEach(function(id){if(!m[id])m[id]=String(k.nama||'')})})}catch(x){}
+ RG_PETA=m;RG_TS=now;return m;
+};
+window.rgPetaReset=function(){RG_PETA=null};
+window.rgGrup=function(u){return (u&&(rgPeta()[u.id]||u.kelas))||''};
+window.rgUrut=function(list){
+ var m=rgPeta(),T=['X','XI','XII'];
+ function tk(u){var i=T.indexOf(u.kelas);return i<0?9:i}
+ return list.slice().sort(function(a,b){return tk(a)-tk(b)||String(m[a.id]||a.kelas||'').localeCompare(String(m[b.id]||b.kelas||''),'id',{numeric:true})||String(a.nama).localeCompare(String(b.nama),'id')});
+};
+/* rombel aktif yang boleh dipilih untuk sesi: sesuai tingkat dan sekolah sesi */
+window.rgRombelList=function(f){
+ var sk=String(f.sekolah||'').toUpperCase();
+ try{return (window.akKelasAll?akKelasAll():[]).filter(function(k){return k.aktif!==false&&bsKlsCocok(f,k.tingkat)&&(!sk||!k.sekolah||String(k.sekolah).toUpperCase()===sk)})}catch(x){return []}
+};
+window.rgDariRombel=function(f){
+ var ok={};(f.rmb||[]).forEach(function(id){ok[id]=1});
+ var ang={};(window.AKD&&AKD.D?AKD.D.kelas:[]).forEach(function(k){if(ok[k.id])(k.anggota||[]).forEach(function(id){ang[id]=1})});
+ return rgUrut(S.users.filter(function(u){return ang[u.id]&&hasRole(u,'siswa')&&u.aktif!==false}));
+};
 /* siswa terdaftar untuk sesi (kelas dan sekolah) */
 window.rgRoster=function(s){
  if(Array.isArray(s.pes)){   /* daftar tetap: persis siswa di daftar, urut kelas lalu nama */
   var ps={};s.pes.forEach(function(x){if(x)ps[x]=1});
-  return S.users.filter(function(u){return ps[u.id]}).sort(function(a,b){return String(a.kelas||'').localeCompare(String(b.kelas||''),'id')||String(a.nama).localeCompare(String(b.nama),'id')});
+  return rgUrut(S.users.filter(function(u){return ps[u.id]}));
  }
  return rgDinamis(s);
 };
 window.rgDinamis=function(s){
- return S.users.filter(function(u){
+ return rgUrut(S.users.filter(function(u){
   if(!hasRole(u,'siswa')||u.aktif===false)return false;
   if(!bsKlsCocok(s,u.kelas))return false;
   var sk=String(s.sekolah||'').toUpperCase(),uk=String(u.sekolah||'').toUpperCase();
   return !(sk&&uk&&uk!=='ALL'&&sk!==uk);
- }).sort(function(a,b){return String(a.kelas||'').localeCompare(String(b.kelas||''),'id')||String(a.nama).localeCompare(String(b.nama),'id')});
+ }));
 };
 /* nomor peserta dari daftar tetap: awalan + urutan, celah ('') dijaga agar nomor tidak bergeser */
 window.rgNomor=function(s,uid){
@@ -89,11 +115,11 @@ window.rgBagi=function(ros,R,mode){
  for(;at<n;at++)sisa.push(ros[at].id);
  return {per:per,sisa:sisa};
 };
-/* komposisi kelas isi satu ruang, mis. "XI 20 · XII 10" */
+/* komposisi rombel (atau kelas bila belum ada rombel) isi satu ruang, mis. "XI TSM 1 20 · XI TSM 2 10" */
 window.rgKomp=function(r){
  var c={},o=[];
- r.sis.forEach(function(id){var u=S.users.filter(function(x){return x.id===id})[0],k=(u&&u.kelas)||'-';c[k]=(c[k]||0)+1});
- Object.keys(c).sort(function(a,b){return String(a).localeCompare(String(b),'id')}).forEach(function(k){o.push(k+' '+c[k])});
+ r.sis.forEach(function(id){var u=S.users.filter(function(x){return x.id===id})[0],k=(u&&rgGrup(u))||'-';c[k]=(c[k]||0)+1});
+ Object.keys(c).sort(function(a,b){return String(a).localeCompare(String(b),'id',{numeric:true})}).forEach(function(k){o.push(k+' '+c[k])});
  return o.join(' · ');
 };
 window.rgBelum=function(f){
@@ -147,18 +173,28 @@ function nomorBox(f){
  }
  return h;
 }
+function rombelBox(f){
+ if(window.AKD&&!AKD.loaded&&!AKD.loading&&window.akLoad&&!f.rmbMuat){f.rmbMuat=1;try{akLoad().then(function(){repaint()})}catch(x){}}
+ var L=rgRombelList(f),sel=f.rmb=f.rmb||[],h='<div class="card" style="background:var(--bg)"><b>Pilih per rombel</b>';
+ if(!L.length)return h+'<p class="note">Belum ada rombel untuk kelas dan sekolah sesi ini. Buat rombel di Administrasi Akademik (Kelas), atau pakai daftar peserta dari kelas di atas.</p></div>';
+ var pet=rgPeta();
+ h+='<p class="note">Centang rombel yang ikut sesi ini (bisa lebih dari satu, dari tingkat berbeda). Daftar peserta menjadi anggota rombel terpilih.</p>';
+ h+=L.map(function(k){var n=(k.anggota||[]).filter(function(id){var u=S.users.filter(function(x){return x.id===id})[0];return u&&hasRole(u,'siswa')&&u.aktif!==false}).length;return '<label class="bs-ck"><input type="checkbox" data-rgf="rmb" data-k="'+e(k.id)+'"'+(sel.indexOf(k.id)>-1?' checked':'')+'> '+e(k.nama)+' <small class="muted">'+e(k.tingkat)+' · '+n+' siswa</small></label>'}).join('');
+ h+='<div class="row"><button type="button" class="btn small primary" data-rg="rmbpakai"'+(sel.length?'':' disabled')+'>Pakai rombel terpilih ('+sel.length+')</button></div></div>';
+ return h;
+}
 function pesInner(f){
  var tetap=Array.isArray(f.pes),din=rgDinamis(f),h='';
  if(!tetap){
   return '<p class="note">Daftar peserta dihitung dari kelas dan sekolah setiap kali dibuka: <b class="mono">'+din.length+'</b> siswa saat ini. Siswa yang pindah kelas atau akunnya diubah setelah ujian dijadwalkan mengubah daftar hadir dan rekap. Bekukan daftar agar tetap.</p>'+
-   '<div class="row"><button type="button" class="btn small primary" data-rg="beku">Bekukan daftar sekarang</button></div>';
+   '<div class="row"><button type="button" class="btn small primary" data-rg="beku">Bekukan daftar sekarang</button></div>'+rombelBox(f);
  }
  var ada={};f.pes.forEach(function(x){ada[x]=1});var dd={};din.forEach(function(u){dd[u.id]=1});
  var baru=din.filter(function(u){return !ada[u.id]}).length,hilang=f.pes.filter(function(x){return x&&!dd[x]}).length;
  h+='<p class="note">Daftar tetap: <b class="mono">'+pesN(f)+'</b> siswa, dibekukan '+(f.pesTs?bsWaktu(f.pesTs):'')+'. Dibanding kelas sekarang: '+baru+' siswa baru di kelas, '+hilang+' tidak lagi cocok dengan kelas/sekolah. Hanya siswa di daftar yang bisa mulai ujian.</p>';
  h+='<div class="row"><button type="button" class="btn small" data-rg="pesman">'+(f.pesMan?'Tutup kelola daftar':'Tambah atau keluarkan siswa')+'</button><button type="button" class="btn small" data-rg="segar">Perbarui dari kelas</button><button type="button" class="btn small danger" data-rg="lepas">Lepas pembekuan</button></div>';
  if(f.pesMan)h+='<div id="pes-man">'+pesMan(f)+'</div>';
- return h+nomorBox(f);
+ return h+rombelBox(f)+nomorBox(f);
 }
 function pesMan(f){
  var q=String(f.pesQ||'').toLowerCase().trim(),ada={};f.pes.forEach(function(x){ada[x]=1});
@@ -183,11 +219,19 @@ document.addEventListener('click',async function(ev){
  if(a==='beku'){f.pes=rgDinamis(f).map(function(u){return u.id});f.pesTs=Date.now();repaint();toast('Daftar dibekukan: '+f.pes.length+' siswa. Simpan sesi untuk menyimpannya.')}
  else if(a==='segar'){
   if(!(await uiConfirm('Ganti daftar tetap dengan daftar kelas saat ini? Nomor peserta ikut dihitung ulang. Siswa susulan yang ditambah manual hilang, dan siswa yang sudah ditempatkan di ruang tapi tidak lagi di daftar dikeluarkan dari ruang.',{ok:'Perbarui'})))return;
-  f.pes=rgDinamis(f).map(function(u){return u.id});f.pesTs=Date.now();var ok={};f.pes.forEach(function(x){ok[x]=1});R.forEach(function(r){r.sis=r.sis.filter(function(x){return ok[x]})});repaint();
+  f.pes=(f.rmb&&f.rmb.length?rgDariRombel(f):rgDinamis(f)).map(function(u){return u.id});f.pesTs=Date.now();var ok={};f.pes.forEach(function(x){ok[x]=1});R.forEach(function(r){r.sis=r.sis.filter(function(x){return ok[x]})});repaint();
  }else if(a==='lepas'){
   if(!(await uiConfirm('Lepas pembekuan? Daftar peserta kembali dihitung dari kelas dan sekolah.',{ok:'Lepas'})))return;
   f.pes=null;f.pesTs=0;f.pesMan=false;repaint();
  }else if(a==='pesman'){f.pesMan=!f.pesMan;repaint()}
+ else if(a==='rmbpakai'){
+  var dl=rgDariRombel(f);if(!dl.length){toast('Rombel terpilih belum punya siswa aktif');return}
+  var terisi=R.some(function(r){return r.sis.length});
+  if(terisi&&!(await uiConfirm('Daftar peserta diganti dengan anggota rombel terpilih ('+dl.length+' siswa). Siswa yang tidak ada di daftar baru dikeluarkan dari ruang. Lanjutkan?',{ok:'Ganti daftar'})))return;
+  f.pes=dl.map(function(u){return u.id});f.pesTs=Date.now();
+  var okp={};f.pes.forEach(function(x){okp[x]=1});R.forEach(function(r){r.sis=r.sis.filter(function(x){return okp[x]})});
+  repaint();toast('Daftar peserta: '+f.pes.length+' siswa dari '+f.rmb.length+' rombel. Simpan sesi untuk menyimpannya.');
+ }
  else if(a==='add'){R.push(baru(f));repaint()}
  else if(a==='del'){
   var r=R[i];if(!r)return;
@@ -225,6 +269,7 @@ function ubah(ev){
   if(k==='nomor-p')f.nomor.p=t.value.replace(/[^A-Za-z0-9\-\/.]/g,'').slice(0,16);else if(k==='nomor-d')f.nomor.d=Math.max(2,Math.min(5,+t.value||3));else f.nomor.a=Math.max(0,+t.value||1);
   var ctn=document.getElementById('nomor-ct');if(ctn)ctn.innerHTML='Contoh nomor pertama: <b class="mono">'+e(rgNomor({nomor:f.nomor,pes:[1]},1))+'</b>. Nomor mengikuti urutan di daftar tetap.';return;
  }
+ else if(k==='rmb'){var kid=t.dataset.k,rx=f.rmb=f.rmb||[],ix=rx.indexOf(kid);if(t.checked&&ix<0)rx.push(kid);else if(!t.checked&&ix>-1)rx.splice(ix,1);if(ev.type==='change')repaint();return}
  else if(k==='pes'){
   var u2=t.dataset.u,in2=f.pes.indexOf(u2)>-1;
   if(t.checked&&!in2)f.pes.push(u2);

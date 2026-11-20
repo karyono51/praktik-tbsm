@@ -8,7 +8,7 @@
    - **Isi ruang satu per satu sampai penuh**: ruang pertama diisi sampai kapasitas, lalu ruang berikutnya. Ruang tanpa batas menampung sisanya.
    - **Bergilir, tiap ruang campuran kelas**: siswa dibagikan bergilir sehingga tiap ruang berisi campuran kelas (ruang yang penuh dilewati).
    Bila kapasitas seluruh ruang kurang, siswa yang belum muat tetap berstatus belum ditempatkan dan aplikasi memberi tahu jumlahnya. **Tempatkan manual** memindahkan siswa satu per satu (ada pencarian).
-   Tiap kartu ruang menampilkan jumlah siswa dari kapasitas dan komposisi kelasnya (misalnya XI 20 · XII 10). Sesi tidak bisa disimpan bila ada ruang yang melebihi kapasitas.
+   Siswa diurut per tingkat, lalu per rombel, lalu nama, sehingga satu rombel (mis. X TSM-1) menempati ruang-ruang berdekatan; satu rombel boleh disebar ke beberapa ruang. Tiap kartu ruang menampilkan jumlah siswa dari kapasitas dan komposisi rombelnya (misalnya X TSM-1 12 · X TSM-2 12). Bila data rombel belum ada, komposisi memakai tingkat. Sesi tidak bisa disimpan bila ada ruang yang melebihi kapasitas.
 4. Simpan. Aplikasi mengingatkan bila ada siswa yang belum ditempatkan.
 
 ## Aturan yang dijalankan server
