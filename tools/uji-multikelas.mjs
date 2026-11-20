@@ -96,12 +96,33 @@ console.log('Rombel');
   ok('rgGrup: nama rombel, atau tingkat bila belum punya rombel', run("rgGrup(S.users.filter(function(u){return u.id==='X TSM-1#01'})[0])") === 'X TSM-1' && run("rgGrup(S.users.filter(function(u){return u.id==='XII#01'})[0])") === 'XII');
   const urut = run("rgUrut(S.users)").map((u) => u.id);
   ok('rgUrut: tingkat X dulu, lalu per rombel, lalu nama; rombel tidak bercampur', urut[0] === 'X TSM-1#01' && urut[35] === 'X TSM-1#36' && urut[36] === 'X TSM-2#01' && urut.indexOf('XI TSM-1#01') > urut.indexOf('X TSM-2#36') && urut.at(-1).startsWith('XII#'), urut.slice(0, 3).join() + ' ... ' + urut.slice(-2).join());
-  ok('rgRombelList: sesuai tingkat, sekolah, dan aktif', run("rgRombelList({kelas:'X',sekolah:'MEDINA'})").map((k) => k.id).join() === 'k1,k2,k3' && run("rgRombelList({kelas:'X,XI',sekolah:'MEDINA'})").map((k) => k.id).join() === 'k1,k2,k3,k4' && run("rgRombelList({kelas:'ALL',sekolah:'DF'})").map((k) => k.id).join() === 'k6,k1,k2,k3,k4'.split(',').filter((x) => x === 'k6').join());
+  const rl = (f) => run('rgRombelList(' + JSON.stringify(f) + ')').map((k) => k.id).join();
+  ok('rgRombelList: satu tingkat, sesuai sekolah, hanya rombel aktif', rl({ kelas: 'X', sekolah: 'MEDINA' }) === 'k1,k2,k3' && rl({ kelas: 'XI', sekolah: 'MEDINA' }) === 'k4' && rl({ kelas: 'X', sekolah: 'DF' }) === 'k6');
+  ok('rgRombelList: semua kelas atau beberapa tingkat tidak memilih rombel (satu tingkat saja)', rl({ kelas: 'ALL', sekolah: 'MEDINA' }) === '' && rl({ kelas: 'X,XI', sekolah: 'MEDINA' }) === '');
   ctx.__f = { rmb: ['k1', 'k2', 'k3'] };
   const dr = run('rgDariRombel(__f)');
   ok('rgDariRombel: gabungan anggota rombel terpilih, siswa nonaktif dilewati, urut rombel', dr.length === 72 && dr[0].id === 'X TSM-1#01' && dr[36].id === 'X TSM-2#01', dr.length);
   ctx.__f = { rmb: ['k1', 'k1'] };
   ok('rombel dipilih dobel tidak menggandakan siswa', run('rgDariRombel(__f)').length === 36);
+  /* pilih rombel di bagian Kelas peserta: daftar peserta mengikuti rombel */
+  {
+    ctx.__g = { kelas: 'X', sekolah: 'MEDINA', rmb: ['k1', 'k4'], ruang: [{ id: 'r1', sis: ['X TSM-1#01', 'X TSM-2#01'] }] };
+    run('rgSinkronRombel(__g)');
+    ok('rgSinkronRombel: rombel di luar tingkat dibuang dari pilihan saat dirender, daftar = anggota rombel', run('rgRombel(__g)') && ctx.__g.rmb.join() === 'k1' && ctx.__g.pes.length === 36 && ctx.__g.pesRmb === 1, JSON.stringify(ctx.__g.rmb));
+    run('rgSinkronRombel(__g)');
+    ok('siswa rombel yang tidak dipilih keluar dari ruang', ctx.__g.ruang[0].sis.join() === 'X TSM-1#01', ctx.__g.ruang[0].sis.join());
+    ctx.__g.rmb = ['k1', 'k2']; run('rgSinkronRombel(__g)');
+    ok('dua rombel satu tingkat: 72 siswa', ctx.__g.pes.length === 72);
+    ctx.__g.rmb = []; run('rgSinkronRombel(__g)');
+    ok('semua centang dilepas: daftar tetap dari rombel dilepas, kembali dihitung dari tingkat', ctx.__g.pes === null && !ctx.__g.pesRmb);
+    ctx.__g.pes = ['manual']; ctx.__g.pesRmb = 0; ctx.__g.rmb = []; run('rgSinkronRombel(__g)');
+    ok('daftar tetap buatan manual tidak disentuh bila tak ada rombel', ctx.__g.pes.join() === 'manual');
+    ctx.__g = { kelas: 'XI', rmb: ['k1'], pes: ['a'], pesRmb: 1, ruang: [{ id: 'r1', sis: ['a'] }] }; run('rgGantiTingkat(__g)');
+    ok('ganti tingkat: rombel, daftar dari rombel, dan penempatan ruang dilepas', ctx.__g.rmb.length === 0 && ctx.__g.pes === null && ctx.__g.ruang[0].sis.length === 0);
+    ok('rgRombel: pesan pilih tingkat bila semua kelas', /Pilih satu tingkat/.test(run("rgRombel({kelas:'ALL',sekolah:'MEDINA'})")));
+    ok('rgRombel: daftar rombel tingkat terpilih tanpa rombel tingkat lain', (() => { const h = run("rgRombel({kelas:'X',sekolah:'MEDINA',rmb:[]})"); return /X TSM-1/.test(h) && /X TSM-2/.test(h) && !/XI TSM-1/.test(h) && !/X Lama/.test(h); })());
+  }
+  ok('payload sesi menyimpan rmb hanya bila daftar tetap; form memakai radio satu tingkat', /rmb:\(Array\.isArray\(o\.pes\)&&o\.rmb/.test(bank) && /type="radio" name="sf-kls"/.test(bank));
   const ros = dr;
   let h = run('rgBagi')(ros, R(40, 40), 'rata');
   ok('2 rombel (36 + 36) di 2 ruang: satu rombel utuh per ruang', jml(h) === '36,36' && run('rgKomp')({ sis: h.per[0] }) === 'X TSM-1 36' && run('rgKomp')({ sis: h.per[1] }) === 'X TSM-2 36', run('rgKomp')({ sis: h.per[0] }));

@@ -49,7 +49,7 @@ function bsPack(k,o){
    o.payload=JSON.stringify({q:o.q,opts:o.opts,rows:o.rows?o.rows.map(function(r){return [r[0]]}):undefined,lab:o.lab,ks:1,qi:o.qi||undefined,oi:o.oi||undefined,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined,dari:o.dari||undefined});
   }else o.payload=JSON.stringify({q:o.q,opts:o.opts,kunci:o.kunci,rows:o.rows,lab:o.lab,bahas:o.bahas,qi:o.qi||undefined,oi:o.oi||undefined,rub:o.rub,kj:o.kj,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined,dari:o.dari||undefined});
  }
- else if(k==='sesi')o.payload=JSON.stringify({ids:o.ids||[],jns:(o.jns&&o.pilih!=='manual')?o.jns:undefined,jumlahUr:(typeof o.jumlahUr==='number'&&!o.jns&&o.pilih!=='manual')?o.jumlahUr:undefined,pilih:o.pilih||'otomatis',mapelF:o.mapelF||[],tampil:!!o.tampil,sekolah:o.sekolah||'',tok:o.tok?1:0,tokR:o.tokR?1:0,tokH:bsAman()?undefined:(o.tokH||undefined),tokS:bsAman()?undefined:(o.tokS||undefined),batas:o.batas||0,aksi:o.aksi||'peringatan',layar:!!o.layar,exambro:!!o.exambro,seb:!!o.seb,ruang:(o.ruang&&o.ruang.length)?o.ruang:undefined,pes:Array.isArray(o.pes)?o.pes:undefined,pesTs:Array.isArray(o.pes)?(o.pesTs||0):undefined,nomor:(Array.isArray(o.pes)&&o.nomor)?o.nomor:undefined});
+ else if(k==='sesi')o.payload=JSON.stringify({ids:o.ids||[],jns:(o.jns&&o.pilih!=='manual')?o.jns:undefined,jumlahUr:(typeof o.jumlahUr==='number'&&!o.jns&&o.pilih!=='manual')?o.jumlahUr:undefined,pilih:o.pilih||'otomatis',mapelF:o.mapelF||[],tampil:!!o.tampil,sekolah:o.sekolah||'',tok:o.tok?1:0,tokR:o.tokR?1:0,tokH:bsAman()?undefined:(o.tokH||undefined),tokS:bsAman()?undefined:(o.tokS||undefined),batas:o.batas||0,aksi:o.aksi||'peringatan',layar:!!o.layar,exambro:!!o.exambro,seb:!!o.seb,ruang:(o.ruang&&o.ruang.length)?o.ruang:undefined,pes:Array.isArray(o.pes)?o.pes:undefined,pesTs:Array.isArray(o.pes)?(o.pesTs||0):undefined,rmb:(Array.isArray(o.pes)&&o.rmb&&o.rmb.length)?o.rmb:undefined,nomor:(Array.isArray(o.pes)&&o.nomor)?o.nomor:undefined});
  else o.payload=JSON.stringify({ans:o.ans,order:o.order,oo:o.oo,pindah:o.pindah||0,pts:o.pts});
 }
 function bsQueueGet(){try{return JSON.parse(localStorage.getItem(BSQ)||'[]')}catch(e){return []}}
@@ -808,7 +808,7 @@ function bsViewSesi(){
  if(!ss.length)h+='<p class="muted">Belum ada sesi ujian.</p>';
  h+=ss.map(function(s){
   var st=bsSesiStatus(s),n=BS.D.hasil.filter(function(x){return x.sesiId===s.id}).length,jml=bsJmlTxt(s)+((s.pilih!=='manual'&&s.mapelF&&s.mapelF.length)?' ('+s.mapelF.join(', ')+')':'');
-  return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">'+schLabelModul(s.sekolah)+' · Kelas '+esc(bsKlsLabel(s))+' · '+jml+' · '+(s.durasi||0)+' menit · KKM '+(s.kkm||S.kkm)+'</p><p class="note">'+(s.mulai?'Mulai '+bsWaktu(s.mulai):'Tanpa jadwal mulai')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+' · '+n+' pengumpulan'+(s.acak!==false?' · diacak':'')+(s.tampil?' · pembahasan ditampilkan':'')+'</p>'+
+  return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">'+schLabelModul(s.sekolah)+' · Kelas '+esc(bsKlsLabel(s))+(s.rmb&&s.rmb.length?' ('+s.rmb.length+' rombel)':'')+' · '+jml+' · '+(s.durasi||0)+' menit · KKM '+(s.kkm||S.kkm)+'</p><p class="note">'+(s.mulai?'Mulai '+bsWaktu(s.mulai):'Tanpa jadwal mulai')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+' · '+n+' pengumpulan'+(s.acak!==false?' · diacak':'')+(s.tampil?' · pembahasan ditampilkan':'')+'</p>'+
    '<div class="row"><button type="button" class="btn small" data-bs="sesiubah" data-q="'+s.id+'">Ubah</button><button type="button" class="btn small" data-bs="sesiaktif" data-q="'+s.id+'">'+(s.aktif===false?'Aktifkan':'Nonaktifkan')+'</button><button type="button" class="btn small" data-bs="sesihasil" data-q="'+s.id+'">Lihat hasil</button><button type="button" class="btn small" data-bs="sesigandakan" data-q="'+s.id+'">Gandakan</button><button type="button" class="btn small danger" data-bs="sesihapus" data-q="'+s.id+'">Hapus</button></div></div>';
  }).join('');
  return h;
@@ -821,14 +821,14 @@ function bsGeserKerja(ts,n){
  return d.getTime();
 }
 function bsNewSesi(s){
- return s?{id:s.id,judul:s.judul,kelas:s.kelas||'ALL',durasi:s.durasi||60,jumlah:s.jumlah||20,jns:bsJnsForm(s),pilih:s.pilih||'otomatis',mapelF:(s.mapelF||[]).slice(),ids:(s.ids||[]).slice(),acak:s.acak!==false,tampil:!!s.tampil,kkm:s.kkm||S.kkm,mulai:s.mulai||0,selesai:s.selesai||0,aktif:s.aktif!==false,sekolah:s.sekolah||'',q:'',tok:!!s.tok,tokR:!!s.tokR,tokP:BS.tk[s.id]||s.tokP||'',batas:s.batas||0,aksi:s.aksi||'peringatan',layar:!!s.layar,exambro:!!s.exambro,seb:!!s.seb,ruang:(s.ruang||[]).map(function(r){return Object.assign({},r,{sis:(r.sis||[]).slice()})}),pes:Array.isArray(s.pes)?s.pes.slice():null,pesTs:s.pesTs||0,nomor:s.nomor?Object.assign({},s.nomor):null}:
-  {id:'',judul:'',kelas:'ALL',durasi:60,jumlah:20,jns:null,pilih:'otomatis',mapelF:[],ids:[],acak:true,tampil:false,kkm:S.kkm,mulai:0,selesai:0,aktif:true,sekolah:schKode()||'',q:'',tok:false,tokR:bsAman(),tokP:'',batas:0,aksi:'peringatan',layar:false,exambro:false,seb:false,ruang:[],pes:null,pesTs:0,nomor:null};
+ return s?{id:s.id,judul:s.judul,kelas:s.kelas||'ALL',durasi:s.durasi||60,jumlah:s.jumlah||20,jns:bsJnsForm(s),pilih:s.pilih||'otomatis',mapelF:(s.mapelF||[]).slice(),ids:(s.ids||[]).slice(),acak:s.acak!==false,tampil:!!s.tampil,kkm:s.kkm||S.kkm,mulai:s.mulai||0,selesai:s.selesai||0,aktif:s.aktif!==false,sekolah:s.sekolah||'',q:'',tok:!!s.tok,tokR:!!s.tokR,tokP:BS.tk[s.id]||s.tokP||'',batas:s.batas||0,aksi:s.aksi||'peringatan',layar:!!s.layar,exambro:!!s.exambro,seb:!!s.seb,ruang:(s.ruang||[]).map(function(r){return Object.assign({},r,{sis:(r.sis||[]).slice()})}),pes:Array.isArray(s.pes)?s.pes.slice():null,pesTs:s.pesTs||0,rmb:Array.isArray(s.rmb)?s.rmb.slice():[],pesRmb:(Array.isArray(s.rmb)&&s.rmb.length)?1:0,nomor:s.nomor?Object.assign({},s.nomor):null}:
+  {id:'',judul:'',kelas:'ALL',durasi:60,jumlah:20,jns:null,pilih:'otomatis',mapelF:[],ids:[],acak:true,tampil:false,kkm:S.kkm,mulai:0,selesai:0,aktif:true,sekolah:schKode()||'',q:'',tok:false,tokR:bsAman(),tokP:'',batas:0,aksi:'peringatan',layar:false,exambro:false,seb:false,ruang:[],pes:null,pesTs:0,rmb:[],nomor:null};
 }
 function bsSfRead(){
  var f=BS.sf;if(!f||!document.getElementById('sf-judul'))return;
  function v(id){var e=document.getElementById(id);return e?e.value:''}
  function c(id){var e=document.getElementById(id);return !!(e&&e.checked)}
- f.judul=v('sf-judul');if(document.querySelector('.sf-kls'))f.kelas=bsKlsNilai(Array.prototype.filter.call(document.querySelectorAll('.sf-kls:checked'),function(e){return e.value!=='ALL'}).map(function(e){return e.value}));if(document.getElementById('sf-sekolah'))f.sekolah=v('sf-sekolah');f.durasi=+v('sf-durasi')||0;f.pilih=v('sf-pilih')||f.pilih;f.kkm=+v('sf-kkm')||f.kkm;
+ f.judul=v('sf-judul');var rk=document.querySelector('.sf-kls:checked');if(rk)f.kelas=rk.value==='ALL'?'ALL':bsKlsNilai([rk.value]);if(document.getElementById('sf-sekolah'))f.sekolah=v('sf-sekolah');f.durasi=+v('sf-durasi')||0;f.pilih=v('sf-pilih')||f.pilih;f.kkm=+v('sf-kkm')||f.kkm;
  if(document.getElementById('sf-jumlah'))f.jumlah=+v('sf-jumlah')||0;
  if(document.getElementById('sf-jm')){
   if(v('sf-jm')==='jenis'){
@@ -956,7 +956,8 @@ function bsViewSesiForm(){
  var f=BS.sf,mp=bsMapelList(),oto=f.pilih!=='manual';
  var h='<div class="row"><button type="button" class="btn small" data-bs="sesibatal">Batal</button><h2>'+(f.id?'Ubah sesi':'Sesi ujian baru')+'</h2></div><div class="card">';
  h+='<label class="f">Judul sesi<input id="sf-judul" value="'+esc(f.judul)+'" placeholder="Contoh: Simulasi TKA 1"></label>';
- h+='<div class="f"><span class="label">Kelas peserta</span><div class="chips">'+(function(){var cur=bsKls(f);return [['ALL','Semua kelas']].concat(BS_TINGKAT.map(function(t){return [t,'Kelas '+t]})).map(function(k){var on=k[0]==='ALL'?!cur.length:cur.indexOf(k[0])>-1;return '<label class=\"bs-ck\" style=\"margin-right:10px\"><input type=\"checkbox\" class=\"sf-kls\" value=\"'+k[0]+'\"'+(on?' checked':'')+'> '+k[1]+'</label>'}).join('')})()+'</div><small class=\"muted\">Centang lebih dari satu kelas bila satu sesi dipakai beberapa tingkat sekaligus.</small></div>';
+h+='<div class="f"><span class="label">Kelas peserta</span><div class="chips">'+(function(){var cur=bsKls(f);return [['ALL','Semua kelas']].concat(BS_TINGKAT.map(function(t){return [t,'Kelas '+t]})).map(function(k){var on=k[0]==='ALL'?!cur.length:(cur.length===1&&cur[0]===k[0]);return '<label class="bs-ck" style="margin-right:10px"><input type="radio" name="sf-kls" class="sf-kls" value="'+k[0]+'"'+(on?' checked':'')+'> '+k[1]+'</label>'}).join('')})()+'</div><small class="muted">'+(bsKls(f).length>1?'Sesi ini memakai '+esc(bsKlsLabel(f))+' sekaligus. Pilih satu tingkat untuk mengubahnya; satu sesi untuk satu tingkat.':'Satu sesi untuk satu tingkat. Bila tingkat itu terdiri dari beberapa rombel, pilih rombel yang ikut di bawah.')+'</small></div>';
+ h+='<div id="rmb-box">'+(window.rgRombel?rgRombel(f):'')+'</div>';
  h+='<div class="two"><label class="f">Durasi (menit)<input id="sf-durasi" type="number" inputmode="numeric" min="1" max="300" value="'+f.durasi+'"></label></div>';
  h+='<label class="f">Sekolah<select id="sf-sekolah">'+schOptModul(f.sekolah)+'</select></label>';
  h+='<label class="f">Cara memilih soal<select id="sf-pilih"><option value="otomatis"'+(oto?' selected':'')+'>Otomatis (acak per siswa)</option><option value="manual"'+(oto?'':' selected')+'>Pilih soal sendiri</option></select></label>';
@@ -1014,7 +1015,7 @@ async function bsSfSave(){
   if(bl&&!(await uiConfirm(bl+' siswa belum ditempatkan di ruang dan tidak bisa mulai ujian. Tetap simpan?',{ok:'Tetap simpan'})))return;
  }
  var ex=BS.D.sesi.filter(function(x){return x.id===f.id})[0];
- var o=Object.assign(ex||{},{id:f.id||uid(),ts:ex?ex.ts:Date.now(),judul:String(f.judul).trim().slice(0,160),kelas:f.kelas,durasi:f.durasi,jumlah:f.pilih==='manual'?f.ids.length:bsGrup(f)?bsGrup(f).reduce(function(a,g){return a+g.n},0):Math.max(1,f.jumlah||1),jns:(f.pilih!=='manual'&&bsGrup(f))?f.jns:undefined,jumlahUr:undefined,acak:f.acak,mulai:f.mulai||0,selesai:f.selesai||0,aktif:f.aktif,kkm:Math.min(100,Math.max(0,f.kkm||0)),oleh:ex?ex.oleh:S.user.nama.slice(0,64),ids:f.ids,pilih:f.pilih,mapelF:f.mapelF,tampil:f.tampil,sekolah:schNorm(f.sekolah)==='ALL'?'':schNorm(f.sekolah),tok:!!f.tok,tokR:!!f.tok&&!!f.tokR&&bsAman(),batas:f.batas||0,aksi:f.aksi||'peringatan',layar:!!f.layar,exambro:!!f.exambro,seb:!!f.seb,ruang:window.rgPak?rgPak(f.ruang):[],pes:Array.isArray(f.pes)?f.pes:undefined,pesTs:Array.isArray(f.pes)?(f.pesTs||Date.now()):undefined,nomor:(Array.isArray(f.pes)&&f.nomor)?{p:String(f.nomor.p||'').slice(0,16),d:Math.max(2,Math.min(5,+f.nomor.d||3)),a:Math.max(0,+f.nomor.a||1)}:undefined});
+ var o=Object.assign(ex||{},{id:f.id||uid(),ts:ex?ex.ts:Date.now(),judul:String(f.judul).trim().slice(0,160),kelas:f.kelas,durasi:f.durasi,jumlah:f.pilih==='manual'?f.ids.length:bsGrup(f)?bsGrup(f).reduce(function(a,g){return a+g.n},0):Math.max(1,f.jumlah||1),jns:(f.pilih!=='manual'&&bsGrup(f))?f.jns:undefined,jumlahUr:undefined,acak:f.acak,mulai:f.mulai||0,selesai:f.selesai||0,aktif:f.aktif,kkm:Math.min(100,Math.max(0,f.kkm||0)),oleh:ex?ex.oleh:S.user.nama.slice(0,64),ids:f.ids,pilih:f.pilih,mapelF:f.mapelF,tampil:f.tampil,sekolah:schNorm(f.sekolah)==='ALL'?'':schNorm(f.sekolah),tok:!!f.tok,tokR:!!f.tok&&!!f.tokR&&bsAman(),batas:f.batas||0,aksi:f.aksi||'peringatan',layar:!!f.layar,exambro:!!f.exambro,seb:!!f.seb,ruang:window.rgPak?rgPak(f.ruang):[],pes:Array.isArray(f.pes)?f.pes:undefined,pesTs:Array.isArray(f.pes)?(f.pesTs||Date.now()):undefined,rmb:(Array.isArray(f.pes)&&f.rmb&&f.rmb.length&&bsKls(f).length===1)?f.rmb.slice():undefined,nomor:(Array.isArray(f.pes)&&f.nomor)?{p:String(f.nomor.p||'').slice(0,16),d:Math.max(2,Math.min(5,+f.nomor.d||3)),a:Math.max(0,+f.nomor.a||1)}:undefined});
  if(o.tok){
   if(!f.tokP)f.tokP=bsTokenBaru();
   o.tokP=f.tokP;
@@ -1212,11 +1213,10 @@ document.addEventListener('change',function(e){
  }
  if(t.id==='bl-mapel'||t.id==='bl-tipe'){BS.lat[t.id==='bl-mapel'?'mapel':'tipe']=t.value;render();return}
  if(t.classList&&t.classList.contains('sf-kls')&&BS.sf){
-  var ka=document.querySelector('.sf-kls[value="ALL"]'),kl=document.querySelectorAll('.sf-kls');
-  if(t.value==='ALL'){Array.prototype.forEach.call(kl,function(x){x.checked=x.value==='ALL'})}
-  else if(ka)ka.checked=false;
-  if(ka&&!document.querySelector('.sf-kls:checked'))ka.checked=true;
-  bsSfRead();render();return;
+  var k0=bsKlsNilai(bsKls(BS.sf));
+  bsSfRead();
+  if(window.rgGantiTingkat&&bsKlsNilai(bsKls(BS.sf))!==k0)rgGantiTingkat(BS.sf);
+  render();return;
  }
  if(t.id==='sf-pilih'||t.id==='sf-jm'){bsSfRead();render();return}
  if((t.id==='sf-mf'||t.id==='sf-tf')&&BS.sf){BS.sf[t.id==='sf-mf'?'mf':'tf']=t.value;bsSfManualRefresh();return}
