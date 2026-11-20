@@ -4,7 +4,7 @@
 - **Pengenalan SEB**: UserAgent SEB (`SEB/` di Windows dan macOS, `SEB_iOS` di iPad/iPhone) atau objek `SafeExamBrowser` dikenali. Di SEB layar penuh tidak diwajibkan (SEB sudah mode kios) dan tampilan ujian memakai mode terkunci seperti Exambro. Penanda dapat diubah di `js/config.js` (`SEB_UA`).
 - **Sesi ujian, kotak "Wajib Safe Exam Browser (SEB)"**: siswa hanya bisa memulai dari SEB. Di luar SEB tampil pesan, dan server juga menolak (mode CBT aman).
 - **Verifikasi Config Key di server** (jauh lebih kuat dari UserAgent): SEB menghitung hash `SHA-256(alamat halaman + Config Key)`; klien mengirimnya saat mulai, server mencocokkan dengan Config Key sekolah. Siswa tidak bisa memalsukannya tanpa Config Key.
-- Kotak "Wajib Exambro" lama tetap jalan, dan kini juga menerima SEB.
+- Kotak "Wajib Exambro" sudah dihapus dari form sesi. Menyimpan ulang sesi lama otomatis mematikan syarat Exambro-nya.
 
 ## Langkah pasang
 1. **Buat file konfigurasi**: `node tools/buat-seb.mjs https://ALAMAT-APLIKASI --keluar=SANDI --nama=Ujian-TBSM`

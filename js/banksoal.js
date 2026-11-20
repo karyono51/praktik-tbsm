@@ -820,7 +820,7 @@ function bsSfRead(){
   }else f.jns=null;
  }
  f.acak=c('sf-acak');f.tampil=c('sf-tampil');f.aktif=c('sf-aktif');
- if(document.getElementById('sf-tok')){f.tok=c('sf-tok');if(document.getElementById('sf-tokr'))f.tokR=c('sf-tokr');f.tokP=v('sf-tokp').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12);f.batas=Math.max(0,Math.min(50,+v('sf-batas')||0));f.aksi=v('sf-aksi')||'peringatan';f.layar=c('sf-layar');f.exambro=c('sf-exambro');f.seb=c('sf-seb')}
+ if(document.getElementById('sf-tok')){f.tok=c('sf-tok');if(document.getElementById('sf-tokr'))f.tokR=c('sf-tokr');f.tokP=v('sf-tokp').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12);f.batas=Math.max(0,Math.min(50,+v('sf-batas')||0));f.aksi=v('sf-aksi')||'peringatan';f.layar=c('sf-layar');f.exambro=false;f.seb=c('sf-seb')}
  f.mulai=v('sf-mulai')?new Date(v('sf-mulai')).getTime():0;f.selesai=v('sf-selesai')?new Date(v('sf-selesai')).getTime():0;
 }
 function bsTokenBaru(){var A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',t='',b=new Uint32Array(6);try{crypto.getRandomValues(b)}catch(e){for(var i=0;i<6;i++)b[i]=Math.floor(Math.random()*4294967296)}for(var j=0;j<6;j++)t+=A[b[j]%A.length];return t}
@@ -966,7 +966,6 @@ function bsViewSesiForm(){
  h+='</div>';
  h+='<div class="two"><label class="f">Batas keluar halaman<input id="sf-batas" type="number" inputmode="numeric" min="0" max="50" value="'+(f.batas||0)+'"></label><label class="f">Bila melewati batas<select id="sf-aksi">'+[['peringatan','Beri peringatan saja'],['kunci','Kunci layar, guru yang membuka'],['kirim','Kirim jawaban otomatis']].map(function(a){return '<option value="'+a[0]+'"'+(f.aksi===a[0]?' selected':'')+'>'+a[1]+'</option>'}).join('')+'</select></label></div>';
  h+='<label class="bs-ck"><input id="sf-layar" type="checkbox"'+(f.layar?' checked':'')+'> Wajib layar penuh (keluar dari layar penuh dihitung pelanggaran)</label>';
- h+='<label class="bs-ck"><input id="sf-exambro" type="checkbox"'+(f.exambro?' checked':'')+'> Wajib Exambro (hanya bisa dimulai dari aplikasi Exambro)</label>';
  h+='<label class="bs-ck"><input id="sf-seb" type="checkbox"'+(f.seb?' checked':'')+'> Wajib Safe Exam Browser (SEB): hanya bisa dimulai dari SEB dengan file konfigurasi sekolah</label>';
  h+='</div>';
  h+='<label class="bs-ck"><input id="sf-aktif" type="checkbox"'+(f.aktif?' checked':'')+'> Sesi aktif (terlihat oleh siswa)</label>';
