@@ -160,3 +160,12 @@ Kolom: No, NIS, Nama, Username, Email, Rombel, Kelas, Sekolah, Status. Hanya sis
 - **Per kelas**: bila peserta sesi lebih dari satu kelas, ringkasan selesai, mengerjakan, belum, terkunci, habis, dan tidak aktif per kelas.
 - **Cadangan Excel**: tombol "Cadangan Excel" di Pantau mengunduh status dan nilai semua peserta, catatan SEB ditolak, dan info sesi. Unduhan **otomatis sekali per sesi** bila Pantau sedang terbuka saat sesi berakhir (dalam 24 jam) atau semua peserta sudah selesai. Tanda sudah dicadangkan disimpan di perangkat; tombol manual selalu bisa dipakai lagi. Data yang gagal dimuat tidak pernah dicadangkan.
 - Uji: `node tools/uji-pantau.mjs`, `node tools/uji-cbt.mjs`.
+
+## Satu sesi untuk beberapa kelas
+- Di formulir sesi, bagian **Kelas peserta** berisi kotak centang **Semua kelas**, **Kelas X**, **Kelas XI**, dan **Kelas XII**. Centang lebih dari satu tingkat bila satu sesi dipakai beberapa tingkat sekaligus (mis. X dan XI). Mencentang ketiganya sama dengan Semua kelas.
+- Penyimpanan: kolom kelas di sesi berisi `ALL`, satu tingkat (`XI`), atau beberapa dipisah koma (`X,XI`). Sesi lama tidak perlu diubah.
+- Yang berlaku: siswa dari tingkat yang tidak dipilih ditolak saat mulai; daftar Pantau, Hasil, kartu peserta, dan berita acara hanya memuat tingkat yang dipilih; soal diambil dari pool gabungan tingkat terpilih (soal tanpa kelas ikut), dan tiap siswa tetap hanya mendapat soal untuk tingkatnya sendiri.
+- Pantau menampilkan ringkasan **Per kelas** bila pesertanya lebih dari satu kelas.
+- Satu kelas yang disebar ke beberapa ruang: lihat `docs-RUANG.md` (kapasitas ruang dan cara bagi otomatis).
+- Perubahan fungsi server: deploy ulang `akun-admin` (hasil `node tools/gabung-cbt.mjs`).
+- Uji: `node tools/uji-multikelas.mjs` dan bagian "Sesi untuk beberapa kelas" di `node tools/uji-cbt.mjs`.

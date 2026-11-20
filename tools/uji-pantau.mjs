@@ -22,6 +22,8 @@ const ctx = {
   autoNilai: async () => {}, cbtFn: async () => ({ rows: [], now: NOW }),
 };
 ctx.window = ctx; ctx.globalThis = ctx; ctx.addEventListener = () => {}; vm.createContext(ctx);
+/* pembantu kelas sesi dipakai apa adanya dari banksoal.js */
+vm.runInContext(fs.readFileSync(path.join(root, 'js/banksoal.js'), 'utf8').match(/var BS_TINGKAT[\s\S]*?function bsSfKls\(f\)\{return bsKls\(f\)\}/)[0], ctx);
 try { vm.runInContext(fs.readFileSync(path.join(root, 'js/cbt-staf.js'), 'utf8'), ctx, { filename: 'cbt-staf.js' }); } catch (e) { ok('memuat cbt-staf.js', false, e.message); }
 const U = ctx._ujiPantau; ok('kait uji tersedia', !!U);
 if (!U) process.exit(1);

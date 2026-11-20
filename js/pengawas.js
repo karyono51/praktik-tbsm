@@ -85,7 +85,7 @@ function viewRuang(){
  var l=pilihSesi();
  if(typeof BS!=='undefined'&&!BS.loaded&&!BS.loading&&typeof bsLoad==='function')setTimeout(function(){try{bsLoad()}catch(e){}},0);
  if(RU.sesi&&!RU.d&&!RU.busy&&!RU.muat){RU.muat=true;setTimeout(function(){RU.muat=false;ruMuat()},0)}
- var sel=l.length?'<label class="f">Sesi ujian<select id="ru-sesi">'+l.map(function(x){var st=bsSesiStatus(x);return '<option value="'+esc(x.id)+'"'+(x.id===RU.sesi?' selected':'')+'>'+esc(x.judul)+' · '+(x.kelas==='ALL'||!x.kelas?'semua kelas':x.kelas)+' · '+st.t+'</option>'}).join('')+'</select></label>':'';
+ var sel=l.length?'<label class="f">Sesi ujian<select id="ru-sesi">'+l.map(function(x){var st=bsSesiStatus(x);return '<option value="'+esc(x.id)+'"'+(x.id===RU.sesi?' selected':'')+'>'+esc(x.judul)+' · '+(bsKls(x).length?'kelas '+bsKlsLabel(x):'semua kelas')+' · '+st.t+'</option>'}).join('')+'</select></label>':'';
  return '<div class="row sb"><h2>Ruang ujian</h2><span class="pill ok">Proktor</span></div>'+
   '<section class="card"><p class="note">Merilis token dan memantau peserta. Jawaban, kunci, dan nilai tidak ditampilkan di sini. Semua aksi tercatat di log audit.</p>'+sel+'</section><div id="ru-body">'+ruBody()+'</div>';
 }

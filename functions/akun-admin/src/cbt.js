@@ -362,11 +362,18 @@ async function whoami(callerId) {
   if (akun.aktif === false) throw new Fail('Akun nonaktif.', 403);
   return memSet(memo.user, callerId, { id: callerId, staff, proktor, admin, akun }, 3000);
 }
+/* Kelas sesi: 'ALL', satu tingkat ('XI'), atau beberapa dipisah koma ('X,XI'). [] = semua kelas. */
+function kelasList(s) {
+  const k = Array.isArray(s && s.kelas) ? s.kelas.join(',') : String((s && s.kelas) || '').trim();
+  if (!k || k === 'ALL') return [];
+  return [...new Set(k.split(',').map((x) => x.trim()).filter(Boolean))];
+}
+function kelasCocok(s, kelas) { const l = kelasList(s); return !l.length || l.includes(String(kelas || '')); }
 function sesiBoleh(s, akun, now) {
   if (s.aktif === false) throw new Fail('Sesi ujian tidak aktif.', 403);
   if (s.mulai && now < s.mulai) throw new Fail('Sesi belum dibuka.', 403);
   if (s.selesai && now > s.selesai) throw new Fail('Sesi sudah ditutup.', 403);
-  if (s.kelas && s.kelas !== 'ALL' && s.kelas !== akun.kelas) throw new Fail('Sesi ini bukan untuk kelasmu.', 403);
+  if (!kelasCocok(s, akun.kelas)) throw new Fail('Sesi ini bukan untuk kelasmu.', 403);
   const sk = String(s.sekolah || '').toUpperCase(), ak = String(akun.sekolah || '').toUpperCase();
   if (sk && ak && ak !== 'ALL' && sk !== ak) throw new Fail('Sesi ini bukan untuk sekolahmu.', 403);
 }
@@ -754,9 +761,9 @@ async function rosterSesi(s) {
     const r0 = docs.map((a) => ({ id: a.$id, nama: String(a.nama || ''), kelas: a.kelas || '' })).sort((x, y) => x.nama.localeCompare(y.nama, 'id'));
     return memSet(memo.ros, k, r0, 200);
   }
-  const key = String(s.kelas || 'ALL') + '|' + String(s.sekolah || ''), c = memGet(memo.ros, key, 30000); if (c) return c;
+  const kl = kelasList(s), key = (kl.join(',') || 'ALL') + '|' + String(s.sekolah || ''), c = memGet(memo.ros, key, 30000); if (c) return c;
   const sk = String(s.sekolah || '').toUpperCase();
-  const all = await listDocs('akun', s.kelas && s.kelas !== 'ALL' ? [Q.equal('kelas', [s.kelas])] : []);
+  const all = await listDocs('akun', kl.length ? [Q.equal('kelas', kl)] : []);
   const ros = all.filter((a) => a.aktif !== false && /(^|[,\s])siswa([,\s]|$)/.test(String(a.peran || '')) && (!sk || !a.sekolah || String(a.sekolah).toUpperCase() === 'ALL' || String(a.sekolah).toUpperCase() === sk))
     .map((a) => ({ id: a.$id, nama: String(a.nama || ''), kelas: a.kelas || '' })).sort((x, y) => x.nama.localeCompare(y.nama, 'id'));
   return memSet(memo.ros, key, ros, 200);

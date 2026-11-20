@@ -442,6 +442,30 @@ console.log('\nSEB: penolakan dicatat untuk pengawas');
 }
 
 console.log('\nDaftar aksi fungsi (akun-admin hanya meneruskan aksi di CBT_AKSI)');
+console.log('\nSesi untuk beberapa kelas');
+{
+  siapkan();
+  for (const [id, d] of col('akun')) if (/^A\d+$/.test(id)) d.peran = 'siswa';
+  col('akun').get('A5').kelas = 'XII-C';   // 58 siswa XI-A (A0-A58 tanpa A5), 1 XI-B (A59), 1 XII-C (A5)
+  const mk = (kelas) => { col('soal_sesi').set('SM', { $id: 'SM', aktif: true, payload: JSON.stringify({ judul: 'Multi', durasi: 30, jumlah: 3, kelas, sekolah: 'MEDINA', pilih: 'manual', ids: ['q1', 'q2', 'q3'], acak: false }) }); mod._uji.semuaReset(); };
+  const mulai = async (u, dv) => call(u, { action: 'mulai', sesiId: 'SM', dev: 'dev_' + dv.padEnd(12, 'x') });
+  mk('XI-A,XI-B');
+  let r = await mulai('u0', 'a1'); cek('dua kelas: siswa kelas pertama boleh', r.status === 200, r.body && r.body.error);
+  r = await mulai('u59', 'a2'); cek('dua kelas: siswa kelas kedua boleh', r.status === 200, r.body && r.body.error);
+  r = await mulai('u5', 'a3'); cek('dua kelas: siswa kelas ketiga ditolak', r.status === 403 && /kelas/i.test(r.body.error), r.body && r.body.error);
+  mk('XI-B, XII-C');
+  r = await mulai('u1', 'a4'); cek('spasi sesudah koma dimaafkan; kelas yang tidak dipilih ditolak', r.status === 403 && /kelas/i.test(r.body.error), r.body && r.body.error);
+  r = await mulai('u5', 'a5'); cek('kelas ketiga kini boleh', r.status === 200, r.body && r.body.error);
+  mk('XI-A'); col('soal_run').clear(); mod._uji.semuaReset();   // bersihkan ujian berjalan dari langkah sebelumnya
+  r = await mulai('u59', 'a6'); cek('satu kelas tetap bekerja seperti semula', r.status === 403 && /kelas/i.test(r.body.error), r.body && r.body.error);
+  mk('ALL');
+  r = await mulai('u2', 'a7'); cek('ALL tetap membuka semua kelas', r.status === 200, r.body && r.body.error);
+  mk('XI-A,XI-B'); mod._uji.semuaReset();
+  r = await call('g1', { action: 'pantau', sesiId: 'SM' });
+  const kls = {}; (r.body.peserta || []).forEach((x) => { kls[x.kelas] = (kls[x.kelas] || 0) + 1; });
+  cek('pantau memuat siswa kedua kelas saja (58 XI-A + 1 XI-B)', r.status === 200 && kls['XI-A'] === 58 && kls['XI-B'] === 1 && !kls['XII-C'], JSON.stringify(kls));
+}
+
 {
   const fs = await import('node:fs'), src = fs.readFileSync(path.join(root, 'functions/cbt/src/main.js'), 'utf8');
   const sw = src.slice(src.indexOf('switch (body.action)'), src.indexOf('switch (body.action)') + 3000);

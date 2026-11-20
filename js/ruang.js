@@ -1,5 +1,5 @@
 /* Ruang dan gelombang ujian (guru/admin).
-   Data ada di payload sesi: ruang: [{id, nama, gel, pk (id akun proktor), m, s (jadwal ruang, kosong = jadwal sesi), sis: [id akun siswa]}].
+   Data ada di payload sesi: ruang: [{id, nama, gel, pk (id akun proktor), kap (kapasitas, kosong = tanpa batas), m, s (jadwal ruang, kosong = jadwal sesi), sis: [id akun siswa]}].
    Yang dipakai: formulir sesi (bagian "Ruang dan gelombang"), Pantau, kartu peserta, dan daftar hadir per ruang.
    Penegakan (siswa harus punya ruang, jadwal per gelombang, proktor hanya untuk ruangnya) dikerjakan fungsi server cbt. */
 (function(){
@@ -21,7 +21,7 @@ window.rgRoster=function(s){
 window.rgDinamis=function(s){
  return S.users.filter(function(u){
   if(!hasRole(u,'siswa')||u.aktif===false)return false;
-  if(s.kelas&&s.kelas!=='ALL'&&u.kelas!==s.kelas)return false;
+  if(!bsKlsCocok(s,u.kelas))return false;
   var sk=String(s.sekolah||'').toUpperCase(),uk=String(u.sekolah||'').toUpperCase();
   return !(sk&&uk&&uk!=='ALL'&&sk!==uk);
  }).sort(function(a,b){return String(a.kelas||'').localeCompare(String(b.kelas||''),'id')||String(a.nama).localeCompare(String(b.nama),'id')});
@@ -42,7 +42,7 @@ window.rgJadwal=function(s,r){
  return (m?bsWaktu(m):'Sesuai jadwal guru')+(x?' sampai '+bsWaktu(x):'');
 };
 window.rgPak=function(l){
- return (l||[]).map(function(r){var o={id:r.id,nama:String(r.nama||'').slice(0,40),sis:r.sis.slice()};if(r.gel)o.gel=String(r.gel).slice(0,12);if(r.pk)o.pk=r.pk;if(r.m)o.m=r.m;if(r.s)o.s=r.s;return o});
+ return (l||[]).map(function(r){var o={id:r.id,nama:String(r.nama||'').slice(0,40),sis:r.sis.slice()};if(r.gel)o.gel=String(r.gel).slice(0,12);if(r.pk)o.pk=r.pk;if(+r.kap>0)o.kap=Math.min(999,Math.floor(+r.kap));if(r.m)o.m=r.m;if(r.s)o.s=r.s;return o});
 };
 /* pemeriksaan saat sesi disimpan: pesan galat, atau '' bila aman */
 window.rgCek=function(f){
@@ -52,9 +52,49 @@ window.rgCek=function(f){
   if(!n)return 'Ruang '+(i+1)+' belum diberi nama';
   if(nm[n])return 'Nama ruang "'+l[i].nama+'" dipakai dua kali';nm[n]=1;
   if(l[i].m&&l[i].s&&l[i].s<=l[i].m)return 'Ruang "'+l[i].nama+'": waktu tutup harus setelah waktu buka';
+  if(+l[i].kap>0&&l[i].sis.length>+l[i].kap)return 'Ruang "'+l[i].nama+'" berisi '+l[i].sis.length+' siswa, melebihi kapasitas '+l[i].kap;
  }
  if(JSON.stringify(rgPak(l)).length+JSON.stringify(f.ids||[]).length+JSON.stringify(f.pes||[]).length>17000)return 'Penempatan terlalu besar untuk satu sesi. Bagi siswa ke beberapa sesi (misalnya per kelas)';
  return '';
+};
+/* Membagi siswa (sudah terurut kelas lalu nama) ke ruang sesuai kapasitas.
+   mode 'rata'  : jumlah per ruang dibuat serata mungkin tanpa melewati kapasitas; siswa diisi berurutan sehingga satu kelas utuh berada di ruang-ruang yang berdekatan.
+   mode 'penuh' : ruang diisi satu per satu sampai kapasitas (ruang tanpa batas menampung sisanya).
+   mode 'campur': bergilir, tiap ruang berisi campuran kelas (ruang penuh dilewati).
+   Hasil: {per: [[id siswa] untuk tiap ruang, urut seperti R], sisa: [id siswa yang tidak muat]} */
+window.rgBagi=function(ros,R,mode){
+ var n=ros.length,m=R.length,cap=R.map(function(r){return +r.kap>0?Math.floor(+r.kap):Infinity}),per=R.map(function(){return []}),sisa=[],i,k;
+ if(!m)return {per:per,sisa:ros.map(function(u){return u.id})};
+ if(mode==='campur'){
+  var p=0;
+  ros.forEach(function(u){
+   for(k=0;k<m;k++){var j=(p+k)%m;if(per[j].length<cap[j]){per[j].push(u.id);p=(j+1)%m;return}}
+   sisa.push(u.id);
+  });
+  return {per:per,sisa:sisa};
+ }
+ var cnt=R.map(function(){return 0}),left=n;
+ if(mode==='penuh'){
+  for(i=0;i<m&&left>0;i++){cnt[i]=Math.min(cap[i],left);left-=cnt[i]}
+ }else{
+  while(left>0){
+   var open=[];for(i=0;i<m;i++)if(cnt[i]<cap[i])open.push(i);
+   if(!open.length)break;
+   var give=Math.max(1,Math.floor(left/open.length));
+   for(k=0;k<open.length&&left>0;k++){var a=Math.min(give,cap[open[k]]-cnt[open[k]],left);cnt[open[k]]+=a;left-=a}
+  }
+ }
+ var at=0;
+ for(i=0;i<m;i++){for(k=0;k<cnt[i];k++)per[i].push(ros[at++].id)}
+ for(;at<n;at++)sisa.push(ros[at].id);
+ return {per:per,sisa:sisa};
+};
+/* komposisi kelas isi satu ruang, mis. "XI 20 · XII 10" */
+window.rgKomp=function(r){
+ var c={},o=[];
+ r.sis.forEach(function(id){var u=S.users.filter(function(x){return x.id===id})[0],k=(u&&u.kelas)||'-';c[k]=(c[k]||0)+1});
+ Object.keys(c).sort(function(a,b){return String(a).localeCompare(String(b),'id')}).forEach(function(k){o.push(k+' '+c[k])});
+ return o.join(' · ');
 };
 window.rgBelum=function(f){
  var ass={};(f.ruang||[]).forEach(function(r){r.sis.forEach(function(x){ass[x]=1})});
@@ -65,17 +105,19 @@ window.rgBelum=function(f){
 function inner(f){
  var R=f.ruang=f.ruang||[],ros=rgRoster(f),pk=S.users.filter(function(u){return hasRole(u,'proktor')&&u.aktif!==false});
  var belum=rgBelum(f),h='';
- h+='<p class="note">Bagi siswa ke ruang. Tiap ruang bisa punya proktor sendiri dan jadwal sendiri (gelombang). Bila ada ruang, hanya siswa yang ditempatkan yang bisa mulai, dan proktor hanya mengawasi ruangnya. Tanpa ruang, sesi berjalan seperti biasa.</p>';
+ h+='<p class="note">Bagi siswa ke ruang. Tiap ruang bisa punya kapasitas, proktor sendiri, dan jadwal sendiri (gelombang). Satu kelas boleh disebar ke beberapa ruang. Bila ada ruang, hanya siswa yang ditempatkan yang bisa mulai, dan proktor hanya mengawasi ruangnya. Tanpa ruang, sesi berjalan seperti biasa.</p>';
  R.forEach(function(r,i){
   h+='<div class="card"><div class="row sb"><b>Ruang '+(i+1)+'</b><button type="button" class="btn small danger" data-rg="del" data-i="'+i+'">Hapus</button></div>'+
    '<div class="two"><label class="f">Nama ruang<input data-rgf="nama" data-i="'+i+'" value="'+e(r.nama)+'" maxlength="40" placeholder="Lab TSM 1"></label>'+
    '<label class="f">Gelombang<input data-rgf="gel" data-i="'+i+'" value="'+e(r.gel||'')+'" maxlength="12" placeholder="1"></label></div>'+
    '<label class="f">Proktor<select data-rgf="pk" data-i="'+i+'"><option value="">Belum ditentukan</option>'+pk.map(function(u){return '<option value="'+e(u.id)+'"'+(u.id===r.pk?' selected':'')+'>'+e(u.nama)+'</option>'}).join('')+'</select></label>'+
+   '<label class="f">Kapasitas (0 = tanpa batas)<input type="number" inputmode="numeric" min="0" max="999" data-rgf="kap" data-i="'+i+'" value="'+(+r.kap>0?+r.kap:0)+'"></label>'+
    '<div class="two"><label class="f">Dibuka (kosong = jadwal sesi)<input type="datetime-local" data-rgf="m" data-i="'+i+'" value="'+bsDtv(r.m)+'"></label>'+
    '<label class="f">Ditutup<input type="datetime-local" data-rgf="s" data-i="'+i+'" value="'+bsDtv(r.s)+'"></label></div>'+
-   '<p class="note"><b class="mono">'+r.sis.length+'</b> siswa</p></div>';
+   '<p class="note"><b class="mono">'+r.sis.length+'</b>'+(+r.kap>0?' dari '+(+r.kap):'')+' siswa'+(r.sis.length?' · '+e(rgKomp(r)):'')+'</p>'+(+r.kap>0&&r.sis.length>+r.kap?'<p class="note" style="color:var(--bad,#c0392b)">Melebihi kapasitas '+(r.sis.length-r.kap)+' siswa. Pindahkan sebelum menyimpan.</p>':'')+'</div>';
  });
  if(!pk.length&&R.length)h+='<p class="note">Belum ada akun berperan Proktor. Buat di menu Akun, lalu beri label proktor di Appwrite (docs-PENGAWAS.md).</p>';
+ h+='<label class="f">Cara bagi otomatis<select data-rgf="mode"><option value="rata"'+((f.rgMode||'rata')==='rata'?' selected':'')+'>Rata sesuai kapasitas, kelas berurutan</option><option value="penuh"'+(f.rgMode==='penuh'?' selected':'')+'>Isi ruang satu per satu sampai penuh</option><option value="campur"'+(f.rgMode==='campur'?' selected':'')+'>Bergilir, tiap ruang campuran kelas</option></select></label>';
  h+='<div class="row"><button type="button" class="btn small" data-rg="add">Tambah ruang</button>'+
   '<button type="button" class="btn small primary" data-rg="auto"'+(R.length?'':' disabled')+'>Bagi otomatis</button>'+
   '<button type="button" class="btn small" data-rg="man"'+(R.length?'':' disabled')+'>'+(f.rgMan?'Tutup penempatan manual':'Tempatkan manual')+'</button>'+
@@ -155,9 +197,9 @@ document.addEventListener('click',async function(ev){
   var ros=rgRoster(f);if(!R.length||!ros.length){toast('Belum ada ruang atau siswa');return}
   var ada=R.some(function(r){return r.sis.length});
   if(ada&&!(await uiConfirm('Penempatan yang sudah ada diganti. Lanjutkan?',{ok:'Bagi ulang'})))return;
-  R.forEach(function(r){r.sis=[]});
-  ros.forEach(function(u,k){R[k%R.length].sis.push(u.id)});   /* bergilir: tiap ruang berisi campuran kelas */
-  repaint();toast('Siswa dibagi rata ke '+R.length+' ruang');
+  var hb=rgBagi(ros,R,f.rgMode||'rata');
+  R.forEach(function(r,k){r.sis=hb.per[k]});
+  repaint();toast(hb.sisa.length?hb.sisa.length+' siswa belum muat. Tambah kapasitas atau ruang.':'Siswa dibagi ke '+R.length+' ruang');
  }else if(a==='man'){f.rgMan=!f.rgMan;repaint()}
  else if(a==='clear'){
   if(!(await uiConfirm('Kosongkan penempatan semua siswa? Ruang tetap ada.',{ok:'Kosongkan',danger:true})))return;
@@ -170,6 +212,8 @@ function ubah(ev){
  var k=t.dataset.rgf,R=f.ruang=f.ruang||[],r=R[+t.dataset.i];
  if(k==='nama'&&r)r.nama=t.value;
  else if(k==='gel'&&r)r.gel=t.value.trim();
+ else if(k==='kap'&&r){r.kap=Math.max(0,Math.min(999,parseInt(t.value,10)||0));if(ev.type==='change')repaint();return}
+ else if(k==='mode'){f.rgMode=t.value;return}
  else if(k==='pk'&&r)r.pk=t.value;
  else if(k==='m'&&r)r.m=ts(t.value);
  else if(k==='s'&&r)r.s=ts(t.value);

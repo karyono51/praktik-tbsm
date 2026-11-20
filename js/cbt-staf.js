@@ -26,13 +26,13 @@
  function sesiById(id){return BS.D.sesi.filter(function(s){return s.id===id})[0]}
  function selSesi(act,cur,all){
   var L=sesiList();
-  return '<label class="f">Sesi ujian<select data-bs="'+act+'">'+(all?'<option value="ALL"'+(cur==='ALL'?' selected':'')+'>Semua sesi dibuka</option>':'')+L.map(function(s){return '<option value="'+s.id+'"'+(s.id===cur?' selected':'')+'>'+esc(s.judul)+' · Kelas '+(s.kelas==='ALL'?'semua':s.kelas)+'</option>'}).join('')+'</select></label>';
+  return '<label class="f">Sesi ujian<select data-bs="'+act+'">'+(all?'<option value="ALL"'+(cur==='ALL'?' selected':'')+'>Semua sesi dibuka</option>':'')+L.map(function(s){return '<option value="'+s.id+'"'+(s.id===cur?' selected':'')+'>'+esc(s.judul)+' · Kelas '+bsKlsLabel(s)+'</option>'}).join('')+'</select></label>';
  }
  function roster(s){
   if(Array.isArray(s.pes)&&window.rgRoster)return rgRoster(s);
   return S.users.filter(function(u){
    if(!hasRole(u,'siswa')||u.aktif===false)return false;
-   if(s.kelas&&s.kelas!=='ALL'&&u.kelas!==s.kelas)return false;
+   if(!bsKlsCocok(s,u.kelas))return false;
    var sk=String(s.sekolah||'').toUpperCase(),uk=String(u.sekolah||'').toUpperCase();
    if(sk&&uk&&uk!=='ALL'&&sk!==uk)return false;
    return true;
@@ -116,7 +116,7 @@
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Status dan nilai');
   var sb=(PN.seb[s.id]||{}).rows||[];
   if(sb.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(sb.map(function(x,i){return {No:i+1,Nama:x.nama||'',Kelas:x.kelas||'',Alasan:SEB_ALASAN[x.why]||x.why,Percobaan:x.n,Terakhir:new Date(x.last).toLocaleString('id-ID')}})),'SEB ditolak');
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{Sesi:s.judul,Kelas:s.kelas==='ALL'||!s.kelas?'Semua':s.kelas,Peserta:ros.length,Selesai:done,KKM:kkm,Dibuat:new Date().toLocaleString('id-ID'),Jenis:auto?'Otomatis (sesi berakhir)':'Manual'}]),'Info');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet([{Sesi:s.judul,Kelas:bsKlsLabel(s,true),Peserta:ros.length,Selesai:done,KKM:kkm,Dibuat:new Date().toLocaleString('id-ID'),Jenis:auto?'Otomatis (sesi berakhir)':'Manual'}]),'Info');
   var d=new Date(),hm=('0'+d.getHours()).slice(-2)+('0'+d.getMinutes()).slice(-2);
   XLSX.writeFile(wb,'cadangan-'+String(s.judul).replace(/[^\w-]+/g,'_').slice(0,40)+'-'+ymd(Date.now())+'-'+hm+'.xlsx');
   try{localStorage.setItem(cadKey(s.id),String(Date.now()))}catch(e){}
@@ -152,7 +152,7 @@
   return h+on.map(function(s){
    var runs=by[s.id]||{},hs=hasilSesi(s.id),c={belum:0,on:0,done:0,lock:0,habis:0},ros=roster(s);
    ros.forEach(function(u){var k=statusRow(u,s,runs,hs).k;c[k]=(c[k]||0)+1});
-   return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill ok">Kelas '+(s.kelas==='ALL'||!s.kelas?'semua':esc(s.kelas))+'</span></div><p class="note">'+ros.length+' peserta'+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+'</p><p class="note">Belum <b class="mono">'+c.belum+'</b> · Mengerjakan <b class="mono">'+c.on+'</b> · Selesai <b class="mono">'+c.done+'</b> · Terkunci <b class="mono">'+c.lock+'</b> · Habis <b class="mono">'+c.habis+'</b></p><button type="button" class="btn small primary" data-bs="pn-bukasesi" data-v="'+s.id+'">Pantau sesi ini</button></div>';
+   return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill ok">Kelas '+esc(bsKlsLabel(s))+'</span></div><p class="note">'+ros.length+' peserta'+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+'</p><p class="note">Belum <b class="mono">'+c.belum+'</b> · Mengerjakan <b class="mono">'+c.on+'</b> · Selesai <b class="mono">'+c.done+'</b> · Terkunci <b class="mono">'+c.lock+'</b> · Habis <b class="mono">'+c.habis+'</b></p><button type="button" class="btn small primary" data-bs="pn-bukasesi" data-v="'+s.id+'">Pantau sesi ini</button></div>';
   }).join('');
  }
  function pnBody(){
@@ -471,7 +471,7 @@ function sesiAktif(){return BS.tab==='pantau'&&PN.sesi&&PN.sesi!=='ALL'?PN.sesi:
    var ruangBaris=G.semua?'':'<tr><td>Ruang</td><td>'+teks(g?rgLabel(g):'Belum ditempatkan')+'</td><td>Proktor</td><td>'+teks(pkn||'-')+'</td></tr>';
    var tgl=(g&&g.m)||s.mulai||Date.now();
    return '<div'+(gi?' style="break-before:page;page-break-before:always"':'')+'>'+kop+'<h2 style="text-align:center;margin:6px 0">DAFTAR HADIR DAN BERITA ACARA UJIAN</h2>'+
-   '<table style="margin-bottom:6px"><tbody><tr><td style="width:22%">Sesi ujian</td><td>'+teks(s.judul)+'</td><td style="width:18%">Kelas</td><td style="width:14%">'+teks(s.kelas==='ALL'?'Semua':s.kelas)+'</td></tr>'+
+   '<table style="margin-bottom:6px"><tbody><tr><td style="width:22%">Sesi ujian</td><td>'+teks(s.judul)+'</td><td style="width:18%">Kelas</td><td style="width:14%">'+teks(bsKlsLabel(s,true))+'</td></tr>'+
    '<tr><td>Hari dan tanggal</td><td>'+teks(new Date(tgl).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+'</td><td>Durasi</td><td>'+(s.durasi||0)+' menit</td></tr>'+ruangBaris+'</tbody></table>'+
    '<table><thead><tr><th>No</th>'+(s.nomor?'<th>No. peserta</th>':'')+'<th>Nama</th><th>Kelas</th><th>Kehadiran</th><th>Mulai</th><th>Selesai</th><th>Nilai</th><th>Keluar halaman</th><th>Paraf</th></tr></thead><tbody>'+rows+'</tbody></table>'+
    '<p style="margin-top:8px">Peserta terdaftar'+(Array.isArray(s.pes)?' (daftar tetap)':'')+': <b>'+G.ros.length+'</b> · Hadir: <b>'+hadir+'</b> · Tidak hadir: <b>'+(G.ros.length-hadir)+'</b></p>'+
