@@ -6,6 +6,8 @@
 - **Verifikasi Config Key di server** (jauh lebih kuat dari UserAgent): SEB menghitung hash `SHA-256(alamat halaman + Config Key)`; klien mengirimnya saat mulai, server mencocokkan dengan Config Key sekolah. Siswa tidak bisa memalsukannya tanpa Config Key.
 - Kotak "Wajib Exambro" sudah dihapus dari form sesi. Menyimpan ulang sesi lama otomatis mematikan syarat Exambro-nya.
 
+- **Keluar SEB otomatis**: setelah jawaban ujian terkirim, layar hasil memuat tombol "Selesai dan keluar dari SEB". Tombol membuka alamat keluar (`?s=medina&selesai=1` atau `?s=df&selesai=1`), sama dengan `quitURL` di file .seb, sehingga SEB menutup diri tanpa kata sandi keluar. Tombol hanya muncul di SEB, untuk hasil ujian (bukan latihan) yang baru dikirim, dan meminta konfirmasi. Bila SEB tidak menutup sendiri, pengawas memakai kata sandi keluar. Alamat dapat ditimpa lewat `SEB_KELUAR` di `js/config.js`. Syarat: file .seb dibuat dengan `buat-seb.mjs` (quitURL terisi dan `allowQuit` aktif); jika file diubah di Config Tool, jangan hapus quitURL.
+
 ## Langkah pasang
 1. **Buat file konfigurasi**: `node tools/buat-seb.mjs https://ALAMAT-APLIKASI --keluar=SANDI --nama=Ujian-TBSM`
 2. Buka `Ujian-TBSM.seb` di **SEB Config Tool**, periksa (mis. URL filter, tombol reload), lalu **Simpan**. Config Key tampil di tab *Exam*. Salin (64 karakter heksadesimal).

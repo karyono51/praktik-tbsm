@@ -375,6 +375,24 @@
  };
  window.addEventListener('online',function(){var p=pendGet();if(p&&S.user&&bsAman()&&!CBT.kirimBusy)kirimPend(p)});
 
+ /* ---------- Keluar SEB otomatis: alamat keluar sama dengan quitURL di file .seb (tools/buat-seb.mjs), SEB menutup diri tanpa sandi ---------- */
+ function sebKeluarUrl(){
+  var c=window.APP_CONFIG&&APP_CONFIG.SEB_KELUAR;if(c)return String(c);
+  var k=(typeof schParam==='function'&&schParam())||(typeof schTersimpan==='function'&&schTersimpan())||'',pr=(k&&window.SCH_LIST&&SCH_LIST[k]&&SCH_LIST[k].param)||'';
+  return location.origin+location.pathname+(pr?'?s='+pr+'&selesai=1':'?selesai=1');
+ }
+ window.cbtSebKeluarUrl=sebKeluarUrl;
+ var viewResult1=bsViewResult;
+ bsViewResult=function(){
+  var v=viewResult1.apply(this,arguments);
+  try{
+   if(!isSeb()||isStaff())return v;
+   var h0=BS.D.hasil.filter(function(x){return x.id===BS.res})[0];
+   if(!h0||h0.mode!=='ujian'||Jam.now()-h0.ts>30*60*1000)return v;
+   return '<div class="card center"><b>Jawaban sudah terkirim</b><p class="note">Bila sudah selesai, keluar dari SEB. Bila SEB tidak menutup sendiri, minta pengawas memasukkan kata sandi keluar.</p><button type="button" class="btn primary" data-bs="keluarseb">Selesai dan keluar dari SEB</button></div>'+v;
+  }catch(e){return v}
+ };
+
  /* ---------- Pembahasan soal sendiri: kunci diminta dari server ---------- */
  function needKc(h0){return (h0.order||[]).some(function(id){var q=bsSoalById(id);return q&&!bsHasKey(q)})}
  var viewResult0=bsViewResult;
@@ -396,6 +414,7 @@
  document.addEventListener('click',function(e){
   var b=e.target.closest&&e.target.closest('[data-bs]');if(!b||b.tagName==='SELECT')return;
   var a=b.dataset.bs,r=BS.run;
+  if(a==='keluarseb'){e.stopImmediatePropagation();uiConfirm('Keluar dari SEB sekarang? Nilai dan jawabanmu sudah tersimpan.',{ok:'Keluar'}).then(function(ok){if(ok)location.href=sebKeluarUrl()});return}
   if(a==='daftar'&&r){CBT.nav=true;render();return}
   if(a==='daftartutup'){CBT.nav=false;render();return}
   if(a==='exgoto'&&r){CBT.nav=false;r.cur=+b.dataset.v;bsRunSave();render();window.scrollTo(0,0);return}
