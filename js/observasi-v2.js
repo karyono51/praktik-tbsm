@@ -131,7 +131,54 @@ function ob2Detail(r){
 var _obsDetailView2=obsDetailView;
 obsDetailView=function(){var r=OB.view;return r&&obsPay(r).v===2?ob2Detail(r):_obsDetailView2()};
 var _obsPdf2=obsPdf;
-obsPdf=function(id){var r=(S.observasi||[]).find(function(x){return x.id===id});if(r&&obsPay(r).v===2){toast('PDF Observasi v2 belum tersedia. Buka Lihat lalu pakai Cetak.');return}return _obsPdf2(id)};
+function ob2Pdf(r){
+ var p=obsPay(r),m=ob2Mod(p.mod);
+ if(!m){toast('LKPD v2 ('+(p.mod||'-')+') tidak ditemukan di aplikasi ini');return}
+ if(!needP())return;
+ var O=m.v2.obs,h=ob2Hitung(p.nilai,O),D=obsDef('siswa'),doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),
+  n2=function(x){return String(Math.round(x*100)/100).replace('.',',')};
+ kop(doc,D.pdf);
+ doc.autoTable({startY:45,theme:'plain',styles:{fontSize:10,cellPadding:1.2},columnStyles:{0:{cellWidth:50,fontStyle:'bold'}},body:[['Siswa',r.guru],['LKPD',m.id+' · '+m.title],['Kelas',r.kelas],['Tempat praktik',p.jenis||'-'],['Tanggal observasi',obsTgl(r.tanggal)],['Jam ke-',p.jam||'-'],['Materi',p.materi||'-'],['Guru pengamat',r.pengamat||'-']]});
+ doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9,cellPadding:1.8},headStyles:TH,head:[['No','Aspek','Bobot','Skor','Nilai','Deskriptor dan catatan']],
+  body:O.aspek.map(function(a,i){var v=+p.nilai[a.id]||0;return [i+1,a.n,a.b+'%',v||'-',v?n2(v/4*a.b):'-',(v?a.d[v]:'')+(p.cat[a.id]?' Catatan: '+p.cat[a.id]:'')]}),
+  columnStyles:{0:{cellWidth:9,halign:'center'},2:{cellWidth:13,halign:'center'},3:{cellWidth:11,halign:'center'},4:{cellWidth:13,halign:'center'}}});
+ doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9,cellPadding:1.8},headStyles:TH,head:[['Indikator kompeten','Bukti','Status']],
+  body:O.indikator.map(function(x,i){return [x.t,x.bukti,+p.nilai['i'+i]===1?'Tercapai':'Belum']}),columnStyles:{2:{cellWidth:22,halign:'center'}}});
+ var y=doc.lastAutoTable.finalY+7,H=doc.internal.pageSize.getHeight();
+ if(y>H-45){doc.addPage();y=22}
+ doc.setFontSize(10.5).setTextColor(0).setFont('helvetica','bold').text('Nilai '+(+r.skor||0)+'   Kategori: '+r.kategori+'   Keputusan: '+(h.stop?'Praktik dihentikan (K3)':h.kompeten?'Kompeten':'Belum kompeten'),14,y);
+ doc.setFont('helvetica','normal');y+=8;
+ [['Kekuatan yang teramati',p.kekuatan],['Hal yang perlu ditingkatkan',p.perbaikan],['Rekomendasi tindak lanjut',p.tindak]].forEach(function(t){
+  var lines=doc.splitTextToSize(t[1]||'-',180);
+  if(y+6+lines.length*4.6>H-20){doc.addPage();y=22}
+  doc.setFontSize(10).setFont('helvetica','bold').text(t[0],14,y);doc.setFont('helvetica','normal').text(lines,14,y+5);y+=9+lines.length*4.6;
+ });
+ ttd(doc,y+4,[[D.pengamat,r.pengamat||''],[D.diamati,r.guru]]);
+ foot(doc);doc.save('Observasi_praktik_v2_'+slug(r.guru||'nama')+'_'+r.tanggal+'.pdf');
+}
+obsPdf=function(id){var r=(S.observasi||[]).find(function(x){return x.id===id});if(r&&obsPay(r).v===2){ob2Pdf(r);return}return _obsPdf2(id)};
+
+/* Excel: lembar lama hanya memuat catatan formulir lama; catatan v2 masuk lembar sendiri per LKPD v2 (kolom mengikuti rubrik LKPD tsb). */
+var _obsXls2=obsXls;
+obsXls=function(){
+ if(OB.tipe!=='siswa')return _obsXls2();
+ var semua=obsVisible('siswa'),v2=semua.filter(function(r){return obsPay(r).v===2});
+ if(!v2.length)return _obsXls2();
+ if(!needX())return;
+ var sheets=[],grup={};
+ v2.slice().sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))||a.ts-b.ts}).forEach(function(r){var id=obsPay(r).mod||'-';(grup[id]=grup[id]||[]).push(r)});
+ Object.keys(grup).forEach(function(id){
+  var m=ob2Mod(id),O=m&&m.v2.obs;if(!O)return;
+  var head=['No','Tanggal','Siswa','LKPD','Kelas','Tempat praktik','Guru pengamat'].concat(O.aspek.map(function(a){return a.n+' ('+a.b+'%)'})).concat(['Indikator tercapai','Nilai','Kategori','Keputusan','Kekuatan','Perlu ditingkatkan','Tindak lanjut']);
+  var aoa=[head].concat(grup[id].map(function(r,i){var p=obsPay(r),h=ob2Hitung(p.nilai,O);
+   return [i+1,r.tanggal,r.guru,r.mapel,r.kelas,p.jenis||'',r.pengamat||''].concat(O.aspek.map(function(a){return p.nilai[a.id]||''})).concat([h.kom+'/'+h.nKom,r.skor,r.kategori,h.stop?'Praktik dihentikan (K3)':h.kompeten?'Kompeten':'Belum kompeten',p.kekuatan||'',p.perbaikan||'',p.tindak||''])}));
+  sheets.push(['Obs v2 '+id.slice(0,22),aoa,head.map(function(x,i){return i===2||i===3?24:i>6&&i<7+O.aspek.length?14:i>=7+O.aspek.length+4?36:14})]);
+ });
+ var vis=obsVisible,real=book,n1=semua.length-v2.length;
+ obsVisible=function(t){var L=vis.apply(this,arguments);return t==='siswa'?L.filter(function(r){return obsPay(r).v!==2}):L};
+ book=function(pairs,name){var out=n1?pairs.concat(sheets):sheets;return real(out,n1?name:'Rekap_Observasi_LKPD_Praktik_v2')};
+ try{_obsXls2()}finally{obsVisible=vis;book=real}
+};
 
 /* ---------- Peristiwa ---------- */
 function ob2Sync(){

@@ -121,7 +121,7 @@ function lk2CekHtml(m,i,d){
 }
 function lk2Kerja(m,d){
  var V=m.v2,g=lk2Gate(m,d),c=lk2Calc(m,d);
- if(!g.ok&&!isStaff())return '<section class="card"><h2>Lembar Kerja terkunci</h2><p>Jawab semua pertanyaan gerbang masuk di tab Materi dulu ('+g.n+' dari '+g.total+' terjawab).</p><button type="button" class="btn primary" data-act="lk-tab" data-v="materi">Ke gerbang masuk</button></section>';
+ if(!g.ok&&!isStaff()&&!LK2.cetak)return '<section class="card"><h2>Lembar Kerja terkunci</h2><p>Jawab semua pertanyaan gerbang masuk di tab Materi dulu ('+g.n+' dari '+g.total+' terjawab).</p><button type="button" class="btn primary" data-act="lk-tab" data-v="materi">Ke gerbang masuk</button></section>';
  var h='<section class="card"><h2>Identitas praktik</h2><div class="formgrid">'+[['school','Sekolah',typeof schNama==='function'?schNama():''],['student','Nama siswa',S.user.nama],['class','Kelas',S.user.kelas||'X'],['group','Kelompok',''],['date','Tanggal',ymd(Date.now())],['teacher','Guru/instruktur',''],['meter','Alat ukur yang dipakai (ketelitian)','']].map(function(x){return '<label class="f">'+x[1]+'<input data-lk-field="'+x[0]+'" value="'+lkEsc(d[x[0]]||x[2])+'" '+(['student','class'].indexOf(x[0])>-1?'readonly':'')+'></label>'}).join('')+'</div></section>';
  V.pertemuan.forEach(function(p){
   h+='<section class="card lk2-p"><div class="row sb"><h2>Pertemuan '+p.n+'</h2><span class="pill">Target '+p.menit+' menit</span></div><p class="note">'+lkEsc(p.judul)+'</p>';
@@ -152,7 +152,7 @@ function lk2View(m){
  var body=LK.tab==='materi'?lk2Materi(m,d):LK.tab==='kerja'?lk2Kerja(m,d):lk2Eval(m,d);
  return (LK.preview&&staff?'<div class="row"><button class="btn small" data-act="lk-preview-exit">Keluar pratinjau</button></div>':'')+
   '<div class="row sb"><div><span class="pill">Fase '+lkEsc(m.fase)+' · Kelas '+lkEsc(m.kelas)+'</span><h2>'+lkEsc(m.title)+'</h2><p class="note">'+lkEsc(m.unit)+' · '+m.v2.jp+' JP ('+m.duration+' menit, '+m.v2.pertemuan.length+' pertemuan)</p></div><span class="pill">LKPD '+lkEsc(m.id)+' · v2</span></div>'+
-  nav+body+(LK.preview&&staff?'':'<div class="lk-actions"><div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div><div class="row"><button class="btn" data-act="lk-save">Simpan draf</button><button class="btn primary" data-act="lk-submit">Kirim LKPD</button><button class="btn" data-act="lk-print">Cetak</button></div></div>');
+  nav+body+(LK.preview&&staff?'':'<div class="lk-actions"><div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div><div class="row"><button class="btn" data-act="lk-save">Simpan draf</button><button class="btn primary" data-act="lk-submit">Kirim LKPD</button><button class="btn" data-act="lk-print">Cetak</button></div><div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small" data-act="lk2-backup">Cadangkan draf (berkas)</button><label class="btn small" style="cursor:pointer">Pulihkan draf<input type="file" accept="application/json,.json" data-lk2-restore hidden></label></div><p class="note">Draf tersimpan di perangkat ini. Untuk LKPD beberapa pertemuan, cadangkan draf ke berkas setelah tiap pertemuan.</p></div>');
 }
 var _viewLKPD2=viewLKPD;
 viewLKPD=function(){
@@ -225,3 +225,53 @@ document.addEventListener('click',function(e){
  var m=(LKPD_MODULES||[]).find(function(x){return x.id===b.dataset.v});
  if(lk2Is(m)){e.stopImmediatePropagation();e.preventDefault();toast('LKPD v2 belum bisa diedit lewat Editor lama. Editor v2 menyusul.')}
 },true);
+
+/* ---------- Cetak: Lembar Kerja tetap tercetak walau gerbang belum selesai ---------- */
+document.addEventListener('click',function(e){
+ if(!e.target.closest||!e.target.closest('[data-act="lk-print"]'))return;
+ LK2.cetak=true;setTimeout(function(){LK2.cetak=false},0);
+},true);
+
+/* ---------- Cadangan dan pemulihan draf (draf LKPD hanya ada di perangkat) ---------- */
+function lk2DrafBersih(x){
+ var out={};if(!x||typeof x!=='object'||Array.isArray(x))return out;
+ Object.keys(x).forEach(function(k){
+  if(!/^[A-Za-z0-9_]{1,60}$/.test(k))return;
+  var v=x[k],t=typeof v;
+  if(t==='string')out[k]=v.slice(0,8000);
+  else if(t==='number'||t==='boolean')out[k]=v;
+  else if(v&&t==='object'&&JSON.stringify(v).length<20000)out[k]=v;
+ });
+ return out;
+}
+LK2.bersih=lk2DrafBersih;
+document.addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-act="lk2-backup"]');if(!b)return;
+ var m=lk2Cur();if(!lk2Is(m))return;
+ var d=lk2DrafBersih(Object.assign({},lkDraft(),lkRead()));delete d.v2;
+ var pk={app:'tbsm-lkpd-draf',mod:m.id,uid:S.user.id,nama:S.user.nama||'',ts:Date.now(),data:d};
+ var a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([JSON.stringify(pk)],{type:'application/json'}));
+ a.download=m.id+'_draf_'+String(S.user.nama||'siswa').replace(/[^A-Za-z0-9]+/g,'-')+'_'+ymd(Date.now())+'.json';
+ document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},800);
+ toast('Draf dicadangkan ke berkas');
+});
+document.addEventListener('change',function(e){
+ var t=e.target;if(!t.matches||!t.matches('[data-lk2-restore]'))return;
+ var f=t.files&&t.files[0];t.value='';if(!f)return;
+ if(f.size>2000000){toast('Berkas terlalu besar untuk draf LKPD');return}
+ var r=new FileReader();
+ r.onload=function(){
+  var pk,m=lk2Cur();try{pk=JSON.parse(r.result)}catch(x){toast('Berkas bukan draf LKPD');return}
+  if(!pk||pk.app!=='tbsm-lkpd-draf'||!pk.data||typeof pk.data!=='object'){toast('Berkas bukan draf LKPD');return}
+  if(!lk2Is(m)||pk.mod!==m.id){toast('Draf ini untuk LKPD '+lk2Txt(pk.mod)+', bukan LKPD yang sedang dibuka');return}
+  if(pk.uid!==S.user.id){toast('Draf ini milik akun lain');return}
+  uiConfirm('Ganti isian draf di perangkat ini dengan draf cadangan?',{ok:'Pulihkan'}).then(function(ok){
+   if(!ok)return;
+   try{localStorage.setItem(lkKey(),JSON.stringify(lk2DrafBersih(pk.data)))}catch(x){toast('Gagal menyimpan draf di perangkat');return}
+   render();toast('Draf dipulihkan');
+  });
+ };
+ r.readAsText(f);
+});
+

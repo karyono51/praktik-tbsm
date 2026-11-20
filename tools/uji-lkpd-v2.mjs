@@ -17,7 +17,7 @@ const sama = (a, b, m) => ok(JSON.stringify(a) === JSON.stringify(b), m + ' (dap
 const listeners = [];
 const el = () => ({ style: {}, dataset: {}, classList: { toggle() {}, contains() { return false } }, appendChild() {}, setAttribute() {}, querySelector() { return null }, querySelectorAll() { return [] }, closest() { return null } });
 const ctx = vm.createContext({
-  console, Math, JSON, Object, Array, Date, String, Number, isFinite, parseInt, setInterval() {}, clearInterval() {}, localStorage: { getItem() { return null }, setItem() {}, removeItem() {} },
+  console, Math, JSON, Object, Array, Date, String, Number, isFinite, parseInt, setTimeout, setInterval() {}, clearInterval() {}, localStorage: { getItem() { return null }, setItem() {}, removeItem() {} },
   navigator: { onLine: true }, window: { scrollTo() {} },
   document: { createElement: el, head: el(), body: el(), addEventListener(t, f, c) { listeners.push({ t, f, c }) }, querySelectorAll() { return [] }, getElementById() { return null }, querySelector() { return null } },
 });
@@ -227,9 +227,50 @@ ok(!/Detail observasi v2/.test(G('viewObservasi()')) && /Detail observasi/.test(
 // ubah catatan v2 membawa d.v2
 const dd = G(`obsDraftDari(S.observasi[0])`);
 ok(dd.v2 === 'LKPD-X-07' && dd.nilai.k3 === 4, 'Ubah catatan v2 memulihkan modul dan skor');
-// PDF v2 tidak merusak
+// PDF v2: jsPDF palsu merekam isi
+run(`
+var __pdf={rows:[],texts:[],saved:'',heads:[]};
+window.jspdf={jsPDF:function(){var d={internal:{pageSize:{getHeight:function(){return 297}}},lastAutoTable:{finalY:60},
+ autoTable:function(o){__pdf.heads.push(o.head?o.head[0].join('|'):'');(o.body||[]).forEach(function(r){__pdf.rows.push(r.join('|'))});d.lastAutoTable={finalY:d.lastAutoTable.finalY+20}},
+ setFontSize:function(){return d},setTextColor:function(){return d},setFont:function(){return d},text:function(t){__pdf.texts.push(String(t));return d},
+ splitTextToSize:function(t){return [String(t)]},addPage:function(){},save:function(n){__pdf.saved=n}};return d}};
+window.jspdf.jsPDF.API={autoTable:function(){}};
+function needP(){return true}function needX(){return true}function kop(){}function ttd(){}function foot(){}var TH={};function slug(x){return String(x).toLowerCase().replace(/[^a-z0-9]+/g,'.')}
+function schObsList(l){return l}var __book=null;function book(pairs,name){__book={pairs:pairs,name:name}}
+`, 'stub-pdf-xls');
 G(`toasts.length=0;obsPdf(S.observasi[0].id)`);
-ok(G('toasts').some((t) => /belum tersedia/.test(t)), 'PDF catatan v2 memberi pesan jelas (belum tersedia)');
+const pdf = G('__pdf');
+ok(/^Observasi_praktik_v2_/.test(pdf.saved) && pdf.heads.some((x) => /Aspek\|Bobot\|Skor/.test(x)) && pdf.rows.some((x) => /Persiapan dan K3/.test(x)) && pdf.texts.some((x) => /Keputusan: Kompeten/.test(x)), 'PDF Observasi v2: nama berkas, tabel aspek, indikator, dan keputusan');
+ok(pdf.rows.filter((x) => /Tercapai/.test(x)).length === 8, 'PDF Observasi v2 memuat 8 indikator tercapai');
+G(`__pdf.saved='';__pdf.rows.length=0;obsPdf(S.observasi[1].id)`);
+ok(G('__pdf').texts.some((x) => /Praktik dihentikan \(K3\)/.test(x)), 'PDF siswa K3 = 1 menandai praktik dihentikan');
+G(`__pdf.saved='';obsPdf(S.observasi[2].id)`);
+ok(/^Observasi_praktik_/.test(G('__pdf.saved')) && !/_v2_/.test(G('__pdf.saved')), 'PDF catatan lama tetap lewat jalur lama (bukan jalur v2)', G('__pdf.saved'));
+
+// Excel: lembar lama tanpa catatan v2, lembar v2 terpisah dengan kolom aspek
+G(`OB.tipe='siswa';__book=null;obsXls()`);
+const bk = G('__book');
+ok(bk && bk.pairs.length === 2 && bk.pairs[1][0] === 'Obs v2 LKPD-X-07', 'Excel: satu lembar lama + satu lembar v2 per LKPD', JSON.stringify(bk && bk.pairs.map((x) => x[0])));
+ok(bk.pairs[0][1].length === 2, 'Excel: lembar lama hanya memuat catatan formulir lama (tanpa baris v2)');
+ok(bk.pairs[1][1].length === 3 && bk.pairs[1][1][0].length === 7 + 6 + 7 && bk.pairs[1][1][1][bk.pairs[1][1][0].indexOf('Nilai')] === 100, 'Excel v2: 2 siswa, kolom 6 aspek, nilai tercatat');
+ok(G(`typeof obsVisible('siswa')`) === 'object' && G(`obsVisible('siswa').length`) === 3 && G(`book.name`) !== 'x', 'Excel: pengganti sementara obsVisible/book dikembalikan');
+G(`S.observasi=S.observasi.filter(function(r){return r.id==='lama'});__book=null;obsXls()`);
+ok(G('__book.pairs.length') === 1 && G('__book.pairs[0][0]') === 'Rekap Observasi LKPD Praktik', 'Excel: tanpa catatan v2 perilaku lama tidak berubah');
+G(`S.observasi=[];__book=null;`);
+
+/* ---------- Cetak dan cadangan draf ---------- */
+G(`STAFF=false;LK.preview=false;LK.tab='kerja';DRAFT={}`);
+ok(/Lembar Kerja terkunci/.test(G('viewLKPD()')), 'tanpa cetak, siswa belum lulus gerbang melihat kunci');
+const cap = listeners.filter((l) => l.t === 'click' && l.c === true);
+cap.forEach((l) => l.f({ target: { closest: (q) => (/lk-print/.test(q) ? {} : null) } }));
+ok(!/Lembar Kerja terkunci/.test(G('viewLKPD()')) && /data-lk-field="t_F1_0_u1"/.test(G('viewLKPD()')), 'saat mencetak, Lembar Kerja tidak terkunci dan tabel tercetak');
+await new Promise((r) => setTimeout(r, 20));
+ok(/Lembar Kerja terkunci/.test(G('viewLKPD()')), 'penanda cetak dilepas setelah klik selesai');
+const kerjaBtn = G('viewLKPD()');
+G(`DRAFT=${JSON.stringify(penuh)}`);
+ok(/data-act="lk2-backup"/.test(G('viewLKPD()')) && /data-lk2-restore/.test(G('viewLKPD()')), 'tombol Cadangkan draf dan Pulihkan draf tampil di modul v2');
+const bersih = G(`LK2.bersih({ok1:'a','bad key':'x','__proto__x':1,n:3,b:true,long:'${'z'.repeat(9000)}',o:{a:1},fn:1})`);
+ok(bersih.ok1 === 'a' && !('bad key' in bersih) && bersih.n === 3 && bersih.b === true && bersih.long.length === 8000 && bersih.o.a === 1, 'pembersih draf: kunci dan ukuran dibatasi');
 
 console.log(`\nUji LKPD v2: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);
