@@ -240,7 +240,7 @@ function bsioProcess(rows){
   var b=bsioBuild(r,tipe);if(b.err)return bad(b.err);
   var f=b.f,ex=id?ownIds[id]:null;
   f.kelas=kelas;f.tujuan=tuj;
-  if(tipe==='uraian'){if(tuj==='latihan')return bad('Soal uraian hanya untuk Ujian');f.tujuan='ujian'}
+  if(tipe==='uraian'&&!bsioTxt(r.tujuan))f.tujuan='ujian'
   var code=bsioTxt(r.gs).slice(0,60);
   if(code){
    var g=gsDari(code,f.mapel),gi=GR[g],mem=BS.D.soal.filter(function(d){return d.gs===g&&!BS_IDX[d.id]&&(d.st||d.si)})[0],memSi=BS.D.soal.filter(function(d){return d.gs===g&&!BS_IDX[d.id]&&d.si})[0];

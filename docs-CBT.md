@@ -145,3 +145,11 @@ Kolom: No, NIS, Nama, Username, Email, Rombel, Kelas, Sekolah, Status. Hanya sis
 - Label peran pada kartu akun memakai semua peran akun (mis. "Admin + Guru"); sebelumnya akun dengan lebih dari satu peran menampilkan "undefined".
 - **Pilihan peran** pada formulir akun ditata rata dua kolom berupa kotak yang bisa diketuk; peran yang dipilih diberi warna hijau (sebelumnya tersusun tidak rata dan memotong baris).
 - **CBT Online**: kartu **Rata-rata** di ringkasan atas (Sesi, Dibuka, Selesai) disembunyikan. Rata-rata di tab Hasil dan Analisis tidak berubah.
+
+---
+
+# Pembaruan: Atur latihan (filter jenis dan uraian)
+- **Jenis soal** di Atur latihan kini: Semua, **PG** (gabungan PG, PG kompleks, PG kategori), dan **Uraian**. Draf lama bernilai kompleks/kategori otomatis dibaca sebagai PG.
+- **Uraian di latihan**: siswa mengisi kotak jawaban, ketuk *Periksa jawaban*, lalu kotak terkunci dan tampil kunci jawaban dan rubrik untuk penilaian mandiri. Uraian latihan **tidak dihitung** dalam nilai (total soal hanya objektif) dan dicatat sebagai "soal uraian latihan (tidak dinilai)".
+- **Peruntukan uraian** kini bisa dipilih guru (Latihan / Ujian / Latihan dan ujian). Default tetap Ujian, dan soal uraian lama tetap Ujian, jadi tidak bocor ke latihan sebelum guru mengubahnya. Impor Excel: kolom peruntukan dihormati, kosong = Ujian.
+- Mode aman: kunci uraian ada di `soal_kunci`, jadi di latihan siswa hanya melihat rubrik/pesan "Kunci tidak ditampilkan".
