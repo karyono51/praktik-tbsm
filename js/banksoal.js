@@ -49,7 +49,7 @@ function bsPack(k,o){
    o.payload=JSON.stringify({q:o.q,opts:o.opts,rows:o.rows?o.rows.map(function(r){return [r[0]]}):undefined,lab:o.lab,ks:1,qi:o.qi||undefined,oi:o.oi||undefined,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined,dari:o.dari||undefined});
   }else o.payload=JSON.stringify({q:o.q,opts:o.opts,kunci:o.kunci,rows:o.rows,lab:o.lab,bahas:o.bahas,qi:o.qi||undefined,oi:o.oi||undefined,rub:o.rub,kj:o.kj,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined,dari:o.dari||undefined});
  }
- else if(k==='sesi')o.payload=JSON.stringify({ids:o.ids||[],jns:(o.jns&&o.pilih!=='manual')?o.jns:undefined,jumlahUr:(typeof o.jumlahUr==='number'&&!o.jns&&o.pilih!=='manual')?o.jumlahUr:undefined,pilih:o.pilih||'otomatis',mapelF:o.mapelF||[],tampil:!!o.tampil,sekolah:o.sekolah||'',tok:o.tok?1:0,tokR:o.tokR?1:0,tokH:bsAman()?undefined:(o.tokH||undefined),tokS:bsAman()?undefined:(o.tokS||undefined),batas:o.batas||0,aksi:o.aksi||'peringatan',layar:!!o.layar,exambro:!!o.exambro,ruang:(o.ruang&&o.ruang.length)?o.ruang:undefined,pes:Array.isArray(o.pes)?o.pes:undefined,pesTs:Array.isArray(o.pes)?(o.pesTs||0):undefined,nomor:(Array.isArray(o.pes)&&o.nomor)?o.nomor:undefined});
+ else if(k==='sesi')o.payload=JSON.stringify({ids:o.ids||[],jns:(o.jns&&o.pilih!=='manual')?o.jns:undefined,jumlahUr:(typeof o.jumlahUr==='number'&&!o.jns&&o.pilih!=='manual')?o.jumlahUr:undefined,pilih:o.pilih||'otomatis',mapelF:o.mapelF||[],tampil:!!o.tampil,sekolah:o.sekolah||'',tok:o.tok?1:0,tokR:o.tokR?1:0,tokH:bsAman()?undefined:(o.tokH||undefined),tokS:bsAman()?undefined:(o.tokS||undefined),batas:o.batas||0,aksi:o.aksi||'peringatan',layar:!!o.layar,exambro:!!o.exambro,seb:!!o.seb,ruang:(o.ruang&&o.ruang.length)?o.ruang:undefined,pes:Array.isArray(o.pes)?o.pes:undefined,pesTs:Array.isArray(o.pes)?(o.pesTs||0):undefined,nomor:(Array.isArray(o.pes)&&o.nomor)?o.nomor:undefined});
  else o.payload=JSON.stringify({ans:o.ans,order:o.order,oo:o.oo,pindah:o.pindah||0,pts:o.pts});
 }
 function bsQueueGet(){try{return JSON.parse(localStorage.getItem(BSQ)||'[]')}catch(e){return []}}
@@ -804,8 +804,8 @@ function bsGeserKerja(ts,n){
  return d.getTime();
 }
 function bsNewSesi(s){
- return s?{id:s.id,judul:s.judul,kelas:s.kelas||'ALL',durasi:s.durasi||60,jumlah:s.jumlah||20,jns:bsJnsForm(s),pilih:s.pilih||'otomatis',mapelF:(s.mapelF||[]).slice(),ids:(s.ids||[]).slice(),acak:s.acak!==false,tampil:!!s.tampil,kkm:s.kkm||S.kkm,mulai:s.mulai||0,selesai:s.selesai||0,aktif:s.aktif!==false,sekolah:s.sekolah||'',q:'',tok:!!s.tok,tokR:!!s.tokR,tokP:BS.tk[s.id]||s.tokP||'',batas:s.batas||0,aksi:s.aksi||'peringatan',layar:!!s.layar,exambro:!!s.exambro,ruang:(s.ruang||[]).map(function(r){return Object.assign({},r,{sis:(r.sis||[]).slice()})}),pes:Array.isArray(s.pes)?s.pes.slice():null,pesTs:s.pesTs||0,nomor:s.nomor?Object.assign({},s.nomor):null}:
-  {id:'',judul:'',kelas:'ALL',durasi:60,jumlah:20,jns:null,pilih:'otomatis',mapelF:[],ids:[],acak:true,tampil:false,kkm:S.kkm,mulai:0,selesai:0,aktif:true,sekolah:schKode()||'',q:'',tok:false,tokR:bsAman(),tokP:'',batas:0,aksi:'peringatan',layar:false,exambro:false,ruang:[],pes:null,pesTs:0,nomor:null};
+ return s?{id:s.id,judul:s.judul,kelas:s.kelas||'ALL',durasi:s.durasi||60,jumlah:s.jumlah||20,jns:bsJnsForm(s),pilih:s.pilih||'otomatis',mapelF:(s.mapelF||[]).slice(),ids:(s.ids||[]).slice(),acak:s.acak!==false,tampil:!!s.tampil,kkm:s.kkm||S.kkm,mulai:s.mulai||0,selesai:s.selesai||0,aktif:s.aktif!==false,sekolah:s.sekolah||'',q:'',tok:!!s.tok,tokR:!!s.tokR,tokP:BS.tk[s.id]||s.tokP||'',batas:s.batas||0,aksi:s.aksi||'peringatan',layar:!!s.layar,exambro:!!s.exambro,seb:!!s.seb,ruang:(s.ruang||[]).map(function(r){return Object.assign({},r,{sis:(r.sis||[]).slice()})}),pes:Array.isArray(s.pes)?s.pes.slice():null,pesTs:s.pesTs||0,nomor:s.nomor?Object.assign({},s.nomor):null}:
+  {id:'',judul:'',kelas:'ALL',durasi:60,jumlah:20,jns:null,pilih:'otomatis',mapelF:[],ids:[],acak:true,tampil:false,kkm:S.kkm,mulai:0,selesai:0,aktif:true,sekolah:schKode()||'',q:'',tok:false,tokR:bsAman(),tokP:'',batas:0,aksi:'peringatan',layar:false,exambro:false,seb:false,ruang:[],pes:null,pesTs:0,nomor:null};
 }
 function bsSfRead(){
  var f=BS.sf;if(!f||!document.getElementById('sf-judul'))return;
@@ -820,7 +820,7 @@ function bsSfRead(){
   }else f.jns=null;
  }
  f.acak=c('sf-acak');f.tampil=c('sf-tampil');f.aktif=c('sf-aktif');
- if(document.getElementById('sf-tok')){f.tok=c('sf-tok');if(document.getElementById('sf-tokr'))f.tokR=c('sf-tokr');f.tokP=v('sf-tokp').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12);f.batas=Math.max(0,Math.min(50,+v('sf-batas')||0));f.aksi=v('sf-aksi')||'peringatan';f.layar=c('sf-layar');f.exambro=c('sf-exambro')}
+ if(document.getElementById('sf-tok')){f.tok=c('sf-tok');if(document.getElementById('sf-tokr'))f.tokR=c('sf-tokr');f.tokP=v('sf-tokp').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12);f.batas=Math.max(0,Math.min(50,+v('sf-batas')||0));f.aksi=v('sf-aksi')||'peringatan';f.layar=c('sf-layar');f.exambro=c('sf-exambro');f.seb=c('sf-seb')}
  f.mulai=v('sf-mulai')?new Date(v('sf-mulai')).getTime():0;f.selesai=v('sf-selesai')?new Date(v('sf-selesai')).getTime():0;
 }
 function bsTokenBaru(){var A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',t='',b=new Uint32Array(6);try{crypto.getRandomValues(b)}catch(e){for(var i=0;i<6;i++)b[i]=Math.floor(Math.random()*4294967296)}for(var j=0;j<6;j++)t+=A[b[j]%A.length];return t}
@@ -967,6 +967,7 @@ function bsViewSesiForm(){
  h+='<div class="two"><label class="f">Batas keluar halaman<input id="sf-batas" type="number" inputmode="numeric" min="0" max="50" value="'+(f.batas||0)+'"></label><label class="f">Bila melewati batas<select id="sf-aksi">'+[['peringatan','Beri peringatan saja'],['kunci','Kunci layar, guru yang membuka'],['kirim','Kirim jawaban otomatis']].map(function(a){return '<option value="'+a[0]+'"'+(f.aksi===a[0]?' selected':'')+'>'+a[1]+'</option>'}).join('')+'</select></label></div>';
  h+='<label class="bs-ck"><input id="sf-layar" type="checkbox"'+(f.layar?' checked':'')+'> Wajib layar penuh (keluar dari layar penuh dihitung pelanggaran)</label>';
  h+='<label class="bs-ck"><input id="sf-exambro" type="checkbox"'+(f.exambro?' checked':'')+'> Wajib Exambro (hanya bisa dimulai dari aplikasi Exambro)</label>';
+ h+='<label class="bs-ck"><input id="sf-seb" type="checkbox"'+(f.seb?' checked':'')+'> Wajib Safe Exam Browser (SEB): hanya bisa dimulai dari SEB dengan file konfigurasi sekolah</label>';
  h+='</div>';
  h+='<label class="bs-ck"><input id="sf-aktif" type="checkbox"'+(f.aktif?' checked':'')+'> Sesi aktif (terlihat oleh siswa)</label>';
  h+='<button type="button" class="btn primary" data-bs="sesisimpan">Simpan sesi</button></div>';
@@ -996,7 +997,7 @@ async function bsSfSave(){
   if(bl&&!(await uiConfirm(bl+' siswa belum ditempatkan di ruang dan tidak bisa mulai ujian. Tetap simpan?',{ok:'Tetap simpan'})))return;
  }
  var ex=BS.D.sesi.filter(function(x){return x.id===f.id})[0];
- var o=Object.assign(ex||{},{id:f.id||uid(),ts:ex?ex.ts:Date.now(),judul:String(f.judul).trim().slice(0,160),kelas:f.kelas,durasi:f.durasi,jumlah:f.pilih==='manual'?f.ids.length:bsGrup(f)?bsGrup(f).reduce(function(a,g){return a+g.n},0):Math.max(1,f.jumlah||1),jns:(f.pilih!=='manual'&&bsGrup(f))?f.jns:undefined,jumlahUr:undefined,acak:f.acak,mulai:f.mulai||0,selesai:f.selesai||0,aktif:f.aktif,kkm:Math.min(100,Math.max(0,f.kkm||0)),oleh:ex?ex.oleh:S.user.nama.slice(0,64),ids:f.ids,pilih:f.pilih,mapelF:f.mapelF,tampil:f.tampil,sekolah:schNorm(f.sekolah)==='ALL'?'':schNorm(f.sekolah),tok:!!f.tok,tokR:!!f.tok&&!!f.tokR&&bsAman(),batas:f.batas||0,aksi:f.aksi||'peringatan',layar:!!f.layar,exambro:!!f.exambro,ruang:window.rgPak?rgPak(f.ruang):[],pes:Array.isArray(f.pes)?f.pes:undefined,pesTs:Array.isArray(f.pes)?(f.pesTs||Date.now()):undefined,nomor:(Array.isArray(f.pes)&&f.nomor)?{p:String(f.nomor.p||'').slice(0,16),d:Math.max(2,Math.min(5,+f.nomor.d||3)),a:Math.max(0,+f.nomor.a||1)}:undefined});
+ var o=Object.assign(ex||{},{id:f.id||uid(),ts:ex?ex.ts:Date.now(),judul:String(f.judul).trim().slice(0,160),kelas:f.kelas,durasi:f.durasi,jumlah:f.pilih==='manual'?f.ids.length:bsGrup(f)?bsGrup(f).reduce(function(a,g){return a+g.n},0):Math.max(1,f.jumlah||1),jns:(f.pilih!=='manual'&&bsGrup(f))?f.jns:undefined,jumlahUr:undefined,acak:f.acak,mulai:f.mulai||0,selesai:f.selesai||0,aktif:f.aktif,kkm:Math.min(100,Math.max(0,f.kkm||0)),oleh:ex?ex.oleh:S.user.nama.slice(0,64),ids:f.ids,pilih:f.pilih,mapelF:f.mapelF,tampil:f.tampil,sekolah:schNorm(f.sekolah)==='ALL'?'':schNorm(f.sekolah),tok:!!f.tok,tokR:!!f.tok&&!!f.tokR&&bsAman(),batas:f.batas||0,aksi:f.aksi||'peringatan',layar:!!f.layar,exambro:!!f.exambro,seb:!!f.seb,ruang:window.rgPak?rgPak(f.ruang):[],pes:Array.isArray(f.pes)?f.pes:undefined,pesTs:Array.isArray(f.pes)?(f.pesTs||Date.now()):undefined,nomor:(Array.isArray(f.pes)&&f.nomor)?{p:String(f.nomor.p||'').slice(0,16),d:Math.max(2,Math.min(5,+f.nomor.d||3)),a:Math.max(0,+f.nomor.a||1)}:undefined});
  if(o.tok){
   if(!f.tokP)f.tokP=bsTokenBaru();
   o.tokP=f.tokP;

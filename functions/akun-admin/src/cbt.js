@@ -48,6 +48,18 @@ class Fail extends Error { constructor(msg, status) { super(msg); this.status = 
    (termasuk membaca seluruh bank soal). Isi cache hanya di memori fungsi, tidak pernah dikirim ke siswa, dan kedaluwarsa singkat. */
 const TTL_USER = 60000, TTL_SOAL = 60000, TTL_SESI = 10000;   // sesi dan token sengaja singkat: perubahan guru berlaku dalam 10 detik
 const BUDGET_MS = Number(process.env.CBT_BUDGET_MS) || 18000, PAR = 4;     // satu panggilan massal berhenti sebelum batas waktu fungsi (disarankan 30 dtk)
+/* Safe Exam Browser. SEB_UA: penanda UserAgent. SEB_CONFIG_KEYS: Config Key (hex) hasil SEB Config Tool, dipisah koma; bila diisi, server memverifikasi hash dari SEB (SHA-256 dari alamat halaman + Config Key). SEB_BEK: Browser Exam Key, opsional. */
+const SEB_UA = String(process.env.SEB_UA || 'SEB/,SEB_IOS').toUpperCase().split(',').map((t) => t.trim()).filter(Boolean);
+const SEB_CK = String(process.env.SEB_CONFIG_KEYS || '').toLowerCase().split(',').map((t) => t.trim()).filter((t) => /^[0-9a-f]{64}$/.test(t));
+const SEB_BEK = String(process.env.SEB_BEK || '').toLowerCase().split(',').map((t) => t.trim()).filter((t) => /^[0-9a-f]{64}$/.test(t));
+function cekSeb(body) {
+  const ua = String(body.ua || '').toUpperCase(), url = String(body.sebUrl || '').slice(0, 2000);
+  if (!SEB_UA.some((t) => ua.includes(t))) return false;
+  const ok = (keys, h) => { h = String(h || '').toLowerCase(); return keys.some((k) => crypto.createHash('sha256').update(url + k).digest('hex') === h); };
+  if (SEB_CK.length && !ok(SEB_CK, body.sebCk)) return false;
+  if (SEB_BEK.length && !ok(SEB_BEK, body.sebBek)) return false;
+  return true;
+}
 const EXAMBRO_UA = String(process.env.EXAMBRO_UA || 'TBSM-EXAM,VERSION/4.0').toUpperCase().split(',').map((t) => t.trim()).filter(Boolean);   // dipisah koma; samakan dengan EXAMBRO_UA di js/config.js
 const MAX_SALAH = 10, JENDELA_SALAH = 5 * 60000;
 const memo = { user: new Map(), soal: new Map(), sesi: new Map(), tok: new Map(), ros: new Map(), pool: null, salah: new Map(), idx: new Map() };
@@ -399,6 +411,7 @@ async function mulai(me, body) {
   const s = parse(sd), now = Date.now(), sid = me.akun.$id, rid = runId(sesiId, sid);
   /* Wajib Exambro: UserAgent dikirim klien; bisa dipalsukan, jadi ini penghalang, bukan jaminan. */
   if (s.exambro && !EXAMBRO_UA.some((t) => String(body.ua || '').toUpperCase().includes(t))) throw new Fail('Sesi ini wajib dikerjakan lewat aplikasi Exambro.', 403);
+  if (s.seb && !cekSeb(body)) throw new Fail('Sesi ini wajib dikerjakan lewat Safe Exam Browser (SEB) dengan konfigurasi sekolah.', 403);
   const ex = await tryGet('soal_run', rid);
   if (ex) {
     if (ex.done) throw new Fail('Kamu sudah mengerjakan sesi ini.', 409);

@@ -8,6 +8,8 @@ window.APP_CONFIG={
   CBT_AMAN:true,
   /* Penanda UserAgent Exambro, dipisah koma; salah satu cocok = dianggap Exambro. Exambro Ex tidak menambah kata khusus, hanya UserAgent WebView Android ("Version/4.0"). Samakan dengan EXAMBRO_UA di fungsi server. */
   EXAMBRO_UA:'TBSM-EXAM,Version/4.0',
+  /* Safe Exam Browser (SEB): UserAgent SEB memuat 'SEB/' (Windows, macOS) atau 'SEB_iOS' (iPad/iPhone). Di SEB layar penuh tidak diwajibkan karena SEB sudah mode kios. */
+  SEB_UA:'SEB/,SEB_iOS',
   FN_CBT:'akun-admin'   /* ID fungsi yang melayani aksi CBT: 'akun-admin' (paket gratis) atau 'cbt' */
   /* CBT_DENYUT: selang simpan jawaban ke server dalam ms (bawaan 15000) */
 };

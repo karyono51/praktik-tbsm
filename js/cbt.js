@@ -13,7 +13,11 @@
 
  /* ---------- Layar penuh ---------- */
  /* Exambro: UserAgent memuat kata EXAMBRO_UA (config.js). Di sana layar penuh wajib dilewati karena WebView sering tak mendukungnya. */
- function isExambro(){var k=(window.APP_CONFIG&&APP_CONFIG.EXAMBRO_UA)||'TBSM-EXAM',u=String(navigator.userAgent||'').toUpperCase();return String(k).split(',').some(function(t){t=t.trim().toUpperCase();return t&&u.indexOf(t)>=0})}
+ function isSeb(){var u=String(navigator.userAgent||'').toUpperCase(),k=(window.APP_CONFIG&&APP_CONFIG.SEB_UA)||'SEB/,SEB_IOS';return !!window.SafeExamBrowser||String(k).split(',').some(function(t){t=t.trim().toUpperCase();return t&&u.indexOf(t)>=0})}
+ window.cbtIsSeb=isSeb;
+ /* Kunci SEB (Config Key) untuk dikirim ke server: hash dari alamat halaman + kunci konfigurasi, dihitung oleh SEB sendiri. */
+ async function sebKeys(){try{var sb=window.SafeExamBrowser;if(!sb||!sb.security)return {};if(sb.security.updateKeys)await new Promise(function(ok){var t=setTimeout(ok,2500);try{sb.security.updateKeys(function(){clearTimeout(t);ok()})}catch(e){clearTimeout(t);ok()}});return {sebUrl:String(location.href).split('#')[0],sebCk:String(sb.security.configKey||''),sebBek:String(sb.security.browserExamKey||'')}}catch(e){return {}}}
+ function isExambro(){if(isSeb())return true;var k=(window.APP_CONFIG&&APP_CONFIG.EXAMBRO_UA)||'TBSM-EXAM',u=String(navigator.userAgent||'').toUpperCase();return String(k).split(',').some(function(t){t=t.trim().toUpperCase();return t&&u.indexOf(t)>=0})}
  window.cbtIsExambro=isExambro;
  function fsSupported(){var d=document.documentElement;return !!(d.requestFullscreen||d.webkitRequestFullscreen)}
  function isFs(){return !!(document.fullscreenElement||document.webkitFullscreenElement)}
@@ -75,6 +79,7 @@
   CBT.mulai=true;
   try{
    if(window.bsRunLain){var lain=await bsRunLain(s);if(lain){toast('Kamu masih mengerjakan ujian "'+lain+'" (mungkin di perangkat lain). Selesaikan dahulu.');return}}
+   if(s.seb&&!isSeb()){toast('Sesi ini wajib dikerjakan lewat Safe Exam Browser (SEB). Buka alamat ujian dari SEB dengan file konfigurasi dari sekolah.');return}
    if(s.exambro&&!isExambro()){toast('Sesi ini wajib dikerjakan lewat aplikasi Exambro. Buka alamat ujian dari Exambro.');return}
    var token='';
    if(s.tok){
@@ -96,7 +101,7 @@
    }
    BS.starting=true;toast('Menyiapkan ujian…');
    try{
-    var rs=await cbtFn({action:'mulai',sesiId:s.id,token:token,ua:String(navigator.userAgent||'').slice(0,400)});
+    var rs=await cbtFn(Object.assign({action:'mulai',sesiId:s.id,token:token,ua:String(navigator.userAgent||'').slice(0,400)},s.seb?await sebKeys():{}));
     if(BS.run)return;
     var r={mode:'ujian',sesiId:s.id,sesiJudul:rs.sesiJudul,start:rs.start,dur:rs.dur,ids:rs.ids,oo:rs.oo||{},ans:rs.ans||{},cur:rs.cur||0,chk:rs.chk||{},pindah:rs.pindah||0,rg:rs.rg||{},sid:S.user.id,tampil:!!rs.tampil,kkm:rs.kkm,
      rid:rs.rid,srv:1,ext:rs.ext||0,stop:!!rs.stop,pb:rs.pb||0,batas:rs.batas||0,aksi:rs.aksi||'peringatan',layar:!!rs.layar};
