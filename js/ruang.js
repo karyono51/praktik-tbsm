@@ -147,7 +147,7 @@ function inner(f){
  h+='<label class="f">Cara bagi otomatis<select data-rgf="mode"><option value="rata"'+((f.rgMode||'rata')==='rata'?' selected':'')+'>Rata, rombel berurutan</option><option value="penuh"'+(f.rgMode==='penuh'?' selected':'')+'>Isi satu per satu sampai penuh</option><option value="campur"'+(f.rgMode==='campur'?' selected':'')+'>Bergilir, rombel dicampur</option></select></label>';
  h+='<div class="btn-grid"><button type="button" class="btn small" data-rg="add">Tambah ruang</button>'+
   '<button type="button" class="btn small primary" data-rg="auto"'+(R.length?'':' disabled')+'>Bagi otomatis</button>'+
-  '<button type="button" class="btn small" data-rg="man"'+(R.length?'':' disabled')+'>'+(f.rgMan?'Tutup manual':'Tempatkan manual')+'</button>'+
+  '<button type="button" class="btn small" data-rg="man"'+(R.length?'':' disabled')+'>'+(f.rgMan?'Tutup manual':'Atur manual')+'</button>'+
   '<button type="button" class="btn small" data-rg="clear"'+(R.length?'':' disabled')+'>Kosongkan</button></div>';
  if(R.length)h+='<p class="note">Siswa terdaftar <b class="mono">'+ros.length+'</b> · belum ditempatkan <b class="mono" style="'+(belum?'color:var(--bad,#c0392b)':'')+'">'+belum+'</b>'+(belum?' (tidak bisa mulai ujian)':'')+'</p>';
  if(f.rgMan&&R.length)h+='<div id="rg-man">'+man(f)+'</div>';
