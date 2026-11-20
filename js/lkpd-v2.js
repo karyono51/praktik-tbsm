@@ -13,6 +13,7 @@ var LK2={};
 '.lk2-p{border-left:4px solid var(--accent)}.lk2-st{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start}'+
 '.lk2-saksi{display:inline-block;margin-left:6px;font-size:11px;padding:1px 6px;border-radius:8px;border:1px solid var(--warn,#b8860b);color:var(--warn,#b8860b)}'+
 '.lk2-t input,.lk2-t select{min-width:64px;width:100%}.lk2-t td,.lk2-t th{padding:4px}.lk2-cek{border-top:1px solid var(--line,#ddd);padding:10px 0;display:grid;gap:6px}'+
+'.lk2-dt{border:1px solid var(--line,#ddd);border-radius:12px;margin:8px 0;background:var(--surface,#fff)}.lk2-dt>summary{cursor:pointer;list-style:none;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}.lk2-dt>summary::-webkit-details-marker{display:none}.lk2-dt>summary::after{content:"\\25B8";flex:none;transition:transform .15s}.lk2-dt[open]>summary::after{transform:rotate(90deg)}.lk2-ttl{display:grid;gap:2px}.lk2-ttl small{color:var(--muted,#666);font-size:12.5px;line-height:1.3}.lk2-bd{padding:0 14px 12px;font-size:14px}.lk2-bd ul{margin:6px 0}.lk2-grp{margin:12px 0 4px;font-size:14px}'+
 '.lk2-ok{color:var(--ok,#1b7f3b);font-weight:600}.lk2-no{color:var(--bad,#b3261e);font-weight:600}.lk2-key{font-size:12.5px}';
 document.head.appendChild(st)})();
 
@@ -24,6 +25,9 @@ function lk2Num(s){if(typeof s==='number')return s;var t=String(s==null?'':s).tr
 function lk2Fmt(n){if(typeof n!=='number'||!isFinite(n))return '';return String(Math.round(n*1000)/1000).replace('.',',')}
 function lk2K(tid,r,k){return 't_'+tid+'_'+r+'_'+k}
 function lk2Txt(x){return String(x==null?'':x).trim()}
+/* Bagian lipat. Status buka/tutup diingat selama sesi; saat mencetak semua dibuka. */
+function lk2Det(id,ttl,sub,body){var op=LK2.cetak||(LK2.open&&LK2.open[id]);return '<details class="lk2-dt" data-lk2d="'+id+'"'+(op?' open':'')+'><summary><span class="lk2-ttl"><b>'+ttl+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span></summary><div class="lk2-bd">'+body+'</div></details>'}
+document.addEventListener('toggle',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.lk2d){LK2.open=LK2.open||{};LK2.open[t.dataset.lk2d]=t.open}},true);
 
 /* ---------- Tabel data: rata-rata dan selisih otomatis ---------- */
 function lk2Calc(m,d){
@@ -82,17 +86,29 @@ lkSubmit=function(){
 
 /* ---------- Tampilan siswa ---------- */
 function lk2Chk(d,key,label){return '<label class="lk-check"><input type="checkbox" data-lk-check="'+key+'" '+(d[key]?'checked':'')+'><span>'+label+'</span></label>'}
+function lk2Rencana(m){
+ var V=m.v2,tot=V.pertemuan.reduce(function(t,p){return t+p.menit},0),jp=V.pertemuan.reduce(function(t,p){return t+p.jp},0);
+ return '<section class="card"><h2>Rencana pertemuan</h2><p class="note">'+V.pertemuan.length+' pertemuan · '+jp+' JP · '+tot+' menit. Ketuk satu pertemuan untuk melihat kegiatannya.</p>'+V.pertemuan.map(function(p){
+  var ls=[];p.kegiatan.forEach(function(k){V.langkah.forEach(function(l){if(l.k===k)ls.push('<li>'+lkEsc(String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,''))+(l.saksi?' <span class="lk2-saksi">saksi guru</span>':'')+'</li>')})});
+  var isi=p.kegiatan.length?'<p class="note">'+p.kegiatan.map(function(k){return 'Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])}).join('; ')+'</p><ul class="plain">'+ls.join('')+'</ul>':'<p class="note">'+(p.n===1?'Jawab gerbang masuk dan centang butir K3 di tab ini, lalu periksa alat.':'Penilaian kinerja oleh guru, refleksi, remedial atau pengayaan.')+'</p>';
+  return lk2Det('p'+p.n,'Pertemuan '+p.n,p.jp+' JP · '+p.menit+' menit · '+lkEsc(p.judul),isi);
+ }).join('')+'</section>';
+}
+function lk2K3(m,d){
+ var V=m.v2,g=V.k3grup||[{judul:'',i:m.safety.map(function(x,i){return i})}];
+ return '<section class="card"><h2>Keselamatan dan Kesehatan Kerja (K3)</h2><p class="note">Centang setiap butir yang sudah kamu penuhi sebelum mulai praktik. Guru memberi paraf pada butir APD saat memeriksa (terlihat di Detail setelah dikirim).</p>'+
+  g.map(function(x){return (x.judul?'<h3 class="lk2-grp">'+lkEsc(x.judul)+'</h3>':'')+'<div class="lk-checks">'+x.i.map(function(i){return lk2Chk(d,'safe'+i,lkEsc(m.safety[i]))}).join('')+'</div>'}).join('')+'</section>';
+}
 function lk2Materi(m,d){
- var V=m.v2,g=lk2Gate(m,d),h='<section class="card"><h2>Tujuan pembelajaran</h2><ul class="plain">'+m.objectives.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul>'+
-  '<h3>Rencana pertemuan</h3><div class="tablewrap"><table><thead><tr><th>Pertemuan</th><th>JP</th><th>Menit</th><th>Kegiatan</th></tr></thead><tbody>'+
-  V.pertemuan.map(function(p){return '<tr><td data-label="Pertemuan">'+p.n+'</td><td data-label="JP">'+p.jp+'</td><td data-label="Menit">'+p.menit+'</td><td data-label="Kegiatan">'+lkEsc(p.judul)+'</td></tr>'}).join('')+'</tbody></table></div></section>'+
+ var V=m.v2,g=lk2Gate(m,d);
+ return '<section class="card"><h2>Tujuan pembelajaran</h2><ul class="plain">'+m.objectives.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul></section>'+
+  lk2Rencana(m)+
   '<section class="card"><h2>Memahami</h2>'+m.theory.map(function(x){return '<p><b>'+lkEsc(x[0])+'</b><br>'+lkEsc(x[1])+'</p>'}).join('')+'</section>'+
   '<section class="card" id="lk2-gate"><h2>Gerbang masuk praktik</h2><p class="note">Jawab semua pertanyaan agar Lembar Kerja terbuka. Guru memeriksa jawabanmu; syarat lulus minimal '+V.gate.min+' dari '+g.total+' benar.</p>'+
   V.gate.qs.map(function(x,i){return '<label class="f">'+(i+1)+'. '+lkEsc(x.q)+'<textarea data-lk-field="gate'+i+'" rows="2">'+lkEsc(d['gate'+i]||'')+'</textarea></label>'}).join('')+
   '<p class="note">Terjawab '+g.n+' dari '+g.total+(g.ok?'. Lembar Kerja terbuka.':'.')+'</p></section>'+
-  '<section class="card"><h2>Alat dan bahan</h2><ul class="plain">'+m.tools.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul>'+
-  '<h2>K3 dan APD</h2><p class="note">Centang bila sudah siap. Paraf guru pada daftar APD diberikan di Detail setelah dikirim.</p><div class="lk-checks">'+m.safety.map(function(x,i){return lk2Chk(d,'safe'+i,lkEsc(x))}).join('')+'</div></section>';
- return h;
+  '<section class="card"><h2>Alat dan bahan</h2><ul class="plain">'+m.tools.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul></section>'+
+  lk2K3(m,d);
 }
 function lk2StepHtml(m,i,d){
  var s=m.steps[i],V=m.v2.langkah[i],t=String(s[0]).replace(/^Kegiatan \d+ · /,'');
@@ -140,10 +156,18 @@ function lk2Kerja(m,d){
  return h;
 }
 function lk2Eval(m,d){
- var A=m.v2.obs.aspek;
+ var O=m.v2.obs,nm=['','Kurang','Cukup','Baik','Sangat baik'],
+  asp=O.aspek.map(function(a,i){
+   var lv=[4,3,2,1].map(function(s){return '<li><b>Skor '+s+'</b> ('+nm[s]+'): '+lkEsc(a.d[s])+'</li>'}).join('');
+   return lk2Det('a'+a.id,(i+1)+'. '+lkEsc(a.n),'Bobot '+a.b+'%'+(a.stop?' · aspek penghenti':''),(a.ket?'<p>'+lkEsc(a.ket)+'</p>':'')+'<ul class="plain">'+lv+'</ul>'+(a.stop?'<p class="note"><b>Penting:</b> skor 1 pada aspek ini menghentikan praktik dan keputusan menjadi Belum kompeten.</p>':''));
+  }).join(''),
+  pg=(O.panduan||[]).map(function(x,i){return lk2Det('g'+i,lkEsc(x.k),'',(x.lihat?'<p><b>Yang diamati:</b> '+lkEsc(x.lihat)+'</p>':'')+(x.salah?'<p><b>Kesalahan umum:</b> '+lkEsc(x.salah)+'</p>':''))}).join('');
  return '<section class="card"><h2>Latihan membaca skala (F4)</h2><p class="note">Hitung dari soal, lalu isi angkanya. Dinilai otomatis dengan toleransi pembulatan kecil.</p>'+lkqQuizHtml(m,d)+'</section>'+
-  '<section class="card"><h2>Penilaian kinerja oleh guru</h2><p class="note">Guru menilai kinerjamu saat praktik dengan rubrik berikut (skor 1–4 per aspek). Nilai = jumlah (skor ÷ 4 × bobot). Ketuntasan mengikuti KKTP sekolah.</p><div class="tablewrap"><table><thead><tr><th>Aspek</th><th>Bobot</th></tr></thead><tbody>'+
-  A.map(function(a){return '<tr><td data-label="Aspek">'+lkEsc(a.n)+'</td><td data-label="Bobot">'+a.b+'%</td></tr>'}).join('')+'</tbody></table></div><div class="note">Nilai otomatis di aplikasi hanya perkiraan awal dari kelengkapan pengisian. Nilai akhir ditentukan guru lewat Observasi LKPD Praktik v2 dan nilai koreksi.</div></section>';
+  '<section class="card"><h2>Penilaian kinerja oleh guru</h2><p class="note">Guru menilai selama praktik (Pertemuan 2–5) dan menyaksikan langkah bertanda saksi guru. Tiap aspek diberi skor 1–4. Ketuk aspek untuk melihat poin yang dinilai dan arti tiap skor.</p>'+asp+
+  '<p class="note"><b>Cara hitung:</b> nilai = jumlah dari (skor ÷ 4 × bobot), maksimum 100. Contoh: skor 3 pada Prosedur kerja (30%) memberi 3 ÷ 4 × 30 = 22,5.</p></section>'+
+  '<section class="card"><h2>Syarat kompeten</h2><p class="note">Kompeten bila semua indikator di bawah tercapai, semua aspek sudah dinilai, dan skor Persiapan dan K3 bukan 1. Ketuntasan nilai mengikuti KKTP sekolah.</p><ul class="plain">'+O.indikator.map(function(x){return '<li><b>'+lkEsc(x.t)+'</b><br><small class="note">Bukti: '+lkEsc(x.bukti)+'</small></li>'}).join('')+'</ul></section>'+
+  (pg?'<section class="card"><h2>Yang diamati dan kesalahan umum</h2><p class="note">Pelajari sebelum praktik agar kesalahan umum bisa dihindari.</p>'+pg+'</section>':'')+
+  '<section class="card"><div class="note">Nilai otomatis di aplikasi hanya perkiraan awal dari kelengkapan pengisian. Nilai akhir ditentukan guru lewat Observasi LKPD Praktik v2 dan nilai koreksi.</div></section>';
 }
 function lk2View(m){
  var d=lkDraft(),staff=isStaff(),tabs=[['materi','Materi &amp; Prosedur'],['kerja','Lembar Kerja'],['evaluasi','Evaluasi'],['riwayat',staff?'Rekap LKPD':'Riwayat']];

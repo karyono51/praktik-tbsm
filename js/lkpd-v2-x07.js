@@ -25,10 +25,11 @@
    ['Pertanyaan pemantik','Mengapa mekanik tidak cukup mengukur komponen mesin dengan penggaris? Apa akibatnya bila celah klep atau diameter piston salah baca 0,05 mm? Alat ukur apa yang pernah kamu lihat di bengkel, dan untuk mengukur apa?'],
    ['Jangka sorong','Hasil = skala utama + (nomor garis nonius yang tepat berimpit × ketelitian). Ketelitian umum 0,05 mm atau 0,02 mm. Mengukur diameter luar, diameter dalam (rahang atas), dan kedalaman (batang kedalaman).'],
    ['Mikrometer','Satu putaran bidal = 0,5 mm, 50 bagian, tiap bagian 0,01 mm. Baca selubung (tambah 0,5 mm bila garis setengah milimeter terlihat), lalu bidal × 0,01. Selalu pakai pemutar gelitik.'],
-   ['Dial gauge','Mengukur selisih atau perubahan posisi, misalnya keolengan poros atau cakram. Pasang kuat, beri pratekan sampai jarum bergerak sedikit, putar bezel ke nol, lalu amati selisih bacaan.']
+   ['Dial gauge','Mengukur selisih atau perubahan posisi, misalnya keolengan poros atau cakram. Pasang kuat, beri pratekan sampai jarum bergerak sedikit, putar bezel ke nol, lalu amati selisih bacaan.'],
+   ['Keselamatan dan kesehatan kerja (K3) pada praktik alat ukur','Bahaya: alat jatuh dan rusak, tepi benda kerja tajam, magnet dial gauge menjepit jari, oli licin, serpihan saat dibersihkan dengan udara bertekanan. Pengendalian: meja stabil beralas kain; sarung tangan hanya saat memegang benda tajam atau berminyak (dilepas saat membaca skala); kacamata bila memakai udara bertekanan; oli segera dilap; majun dan limbah oli ke wadah limbah.']
   ],
   tools:['Jangka sorong','Mikrometer luar','Dial gauge + dudukan magnet','Blok V, benda kerja (baut, pin piston, ring, cakram), majun, oli tipis, kotak alat'],
-  safety:['APD: wearpack','APD: sepatu safety','APD: sarung tangan (benda tajam atau berminyak)','APD: kacamata pelindung (bila memakai udara bertekanan)','Bahaya dan pengendalian sudah dibaca (alat jatuh, tepi tajam, magnet dial gauge, oli licin)','Tidak mengukur benda panas, tidak memakai alat ukur untuk memukul atau mencongkel, tanpa perhiasan logam','Prosedur darurat (APAR, P3K, titik kumpul, kontak guru) sudah dicatat'],
+  safety:['Pakaian praktik (wearpack) lengkap dan dikancing; lengan baju tidak menjuntai','Sepatu tertutup (sepatu safety) terpasang','Sarung tangan hanya dipakai saat memegang benda tajam atau berminyak; dilepas saat membaca skala','Kacamata pelindung dipakai bila membersihkan dengan udara bertekanan','Meja kerja rata dan stabil, beralas kain; alat dan benda kerja tidak di tepi meja','Dudukan magnet dial gauge dijauhkan dari jari dan telepon seluler','Cincin, gelang, dan jam tangan dilepas; rambut panjang diikat','Tidak mengukur benda panas; alat ukur tidak dipakai memukul, mencongkel, atau dijatuhkan','Oli tumpah segera dilap; majun dan limbah oli dibuang ke wadah limbah yang disediakan','Letak APAR, kotak P3K, jalur keluar, dan titik kumpul bengkel sudah diketahui; nama guru pembimbing dicatat'],
   steps:langkah.map(function(x){return ['Kegiatan '+x.k+' · '+x.t,0,x.p]}),
   checks:[
    ['Posisi nol jangka sorong','Rahang rapat; catat penyimpangan nol'],
@@ -66,6 +67,7 @@
    kegiatan:kegiatan,
    langkah:langkah.map(function(x,i){return {i:i,k:x.k,saksi:!!x.saksi}}),
    apd:[0,1,2,3],
+   k3grup:[{judul:'Alat pelindung diri (APD)',i:[0,1,2,3]},{judul:'Persiapan diri dan area kerja',i:[4,5,6]},{judul:'Larangan saat praktik',i:[7]},{judul:'Kebersihan dan keadaan darurat',i:[8,9]}],
    cekK:[1,1,2,2,3,3,4],
    gate:{min:4,qs:[
     {q:'Sebutkan dua pengukuran jangka sorong selain diameter luar.',kunci:'Diameter dalam dan kedalaman.'},
@@ -99,12 +101,12 @@
    obs:{
     judul:'Observasi LKPD-X-07 Alat Ukur',
     aspek:[
-     {id:'k3',n:'Persiapan dan K3',b:20,d:{4:'APD lengkap, area aman, alat diperiksa tanpa diingatkan',3:'Lengkap, diingatkan 1 kali',2:'APD kurang atau area belum aman, diingatkan lebih dari 1 kali',1:'Mengabaikan K3 (praktik dihentikan)'},stop:1},
-     {id:'prosedur',n:'Prosedur kerja',b:30,d:{4:'Semua langkah urut, nol alat diperiksa, tanpa bantuan',3:'Urut dengan 1–2 koreksi kecil',2:'Beberapa langkah terbalik atau terlewat',1:'Tidak mengikuti prosedur, berisiko merusak'}},
-     {id:'hasil',n:'Hasil kerja dan data',b:25,d:{4:'Data akurat, bacaan benar semua, keputusan sesuai standar',3:'Data akurat, 1 catatan perbaikan',2:'Data tidak lengkap atau keputusan kurang tepat',1:'Data salah atau tidak ada'}},
-     {id:'waktu',n:'Waktu dan efisiensi',b:10,d:{4:'Dalam waktu standar',3:'Hingga 125%',2:'Hingga 150%',1:'Lebih dari 150%'}},
-     {id:'5r',n:'5R dan limbah',b:5,d:{4:'Area bersih, alat kembali, limbah terpisah',3:'Satu hal terlewat',2:'Dua hal terlewat',1:'Area dibiarkan kotor'}},
-     {id:'sikap',n:'Sikap dan kerja sama',b:10,d:{4:'Aktif, jujur, membantu teman',3:'Aktif, sesekali diingatkan',2:'Pasif',1:'Mengganggu kegiatan'}}
+     {id:'k3',ket:'Yang dinilai: APD terpasang benar, meja dan area siap, alat diperiksa sebelum dipakai, larangan K3 dipatuhi, letak APAR dan P3K diketahui.',n:'Persiapan dan K3',b:20,d:{4:'APD lengkap, area aman, alat diperiksa tanpa diingatkan',3:'Lengkap, diingatkan 1 kali',2:'APD kurang atau area belum aman, diingatkan lebih dari 1 kali',1:'Mengabaikan K3 (praktik dihentikan)'},stop:1},
+     {id:'prosedur',ket:'Yang dinilai: urutan langkah (periksa nol dulu, ukur 3 kali, baca, catat), cara memegang alat, tidak memaksa atau menjatuhkan alat.',n:'Prosedur kerja',b:30,d:{4:'Semua langkah urut, nol alat diperiksa, tanpa bantuan',3:'Urut dengan 1–2 koreksi kecil',2:'Beberapa langkah terbalik atau terlewat',1:'Tidak mengikuti prosedur, berisiko merusak'}},
+     {id:'hasil',ket:'Yang dinilai: bacaan benar (latihan skala dan tabel F1–F3), rata-rata dan keolengan terhitung, keputusan Sesuai atau Tidak sesuai berdasarkan standar dari guru, foto bukti ada dan jelas.',n:'Hasil kerja dan data',b:25,d:{4:'Data akurat, bacaan benar semua, keputusan sesuai standar',3:'Data akurat, 1 catatan perbaikan',2:'Data tidak lengkap atau keputusan kurang tepat',1:'Data salah atau tidak ada'}},
+     {id:'waktu',ket:'Acuan waktu standar: target menit tiap pertemuan pada Rencana pertemuan. Isi waktu aktualmu di Lembar Kerja.',n:'Waktu dan efisiensi',b:10,d:{4:'Dalam waktu standar',3:'Hingga 125%',2:'Hingga 150%',1:'Lebih dari 150%'}},
+     {id:'5r',ket:'Yang dinilai: meja bersih, alat dibersihkan lalu diolesi oli tipis dan kembali ke kotak, majun dan limbah oli dipisah.',n:'5R dan limbah',b:5,d:{4:'Area bersih, alat kembali, limbah terpisah',3:'Satu hal terlewat',2:'Dua hal terlewat',1:'Area dibiarkan kotor'}},
+     {id:'sikap',ket:'Yang dinilai: jujur mencatat hasil sendiri (tidak menyalin data teman), aktif, membantu teman, mengikuti arahan guru.',n:'Sikap dan kerja sama',b:10,d:{4:'Aktif, jujur, membantu teman',3:'Aktif, sesekali diingatkan',2:'Pasif',1:'Mengganggu kegiatan'}}
     ],
     indikator:[
      {t:'Menyebut bagian, fungsi, ketelitian',bukti:'Gerbang masuk'},

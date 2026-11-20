@@ -272,5 +272,37 @@ ok(/data-act="lk2-backup"/.test(G('viewLKPD()')) && /data-lk2-restore/.test(G('v
 const bersih = G(`LK2.bersih({ok1:'a','bad key':'x','__proto__x':1,n:3,b:true,long:'${'z'.repeat(9000)}',o:{a:1},fn:1})`);
 ok(bersih.ok1 === 'a' && !('bad key' in bersih) && bersih.n === 3 && bersih.b === true && bersih.long.length === 8000 && bersih.o.a === 1, 'pembersih draf: kunci dan ukuran dibatasi');
 
+/* ---------- Tampilan: pertemuan lipat, K3, rincian penilaian ---------- */
+G(`STAFF=false;LK.preview=false;LK.detail=null;LK.editor=null;LKPD_MODULES[0].status='published';LKPD_MODULES[0].active=true;LK.tab='materi';DRAFT={};LK2.open={};LK2.cetak=false`);
+let mt = G('viewLKPD()');
+ok((mt.match(/<details class="lk2-dt" data-lk2d="p\d"/g) || []).length === 6 && !/data-lk2d="p1" open/.test(mt), 'Rencana pertemuan: 6 bagian lipat, tertutup secara bawaan');
+ok(/Pertemuan 1<\/b><small>3 JP · 135 menit/.test(mt) && !/<table[^>]*>[^]*Pertemuan<\/th>/.test(mt), 'ringkasan pertemuan berisi JP dan menit; tabel lama diganti');
+ok(/Ketuk satu pertemuan/.test(mt) && /6 pertemuan · 18 JP · 810 menit/.test(mt), 'keterangan total pertemuan tampil');
+ok(/Kegiatan 1 · jangka sorong/i.test(mt) || /Kegiatan 1/.test(mt), 'isi pertemuan memuat kegiatan');
+ok(/saksi guru/.test(mt), 'langkah bertanda saksi guru terlihat di rencana pertemuan');
+G(`LK2.open={p2:true}`);
+ok(/data-lk2d="p2" open/.test(G('viewLKPD()')) && !/data-lk2d="p3" open/.test(G('viewLKPD()')), 'status buka satu pertemuan diingat saat render ulang');
+G(`LK2.open={};LK2.cetak=true`);
+ok((G('viewLKPD()').match(/data-lk2d="p\d" open/g) || []).length === 6, 'saat mencetak semua bagian lipat terbuka');
+G(`LK2.cetak=false`);
+ok(/Keselamatan dan Kesehatan Kerja \(K3\)/.test(mt) && !/K3 dan APD<\/h2>/.test(mt), 'judul K3 memakai istilah lengkap');
+sama(G('LKPD_MODULES[0].safety.length'), 10, '10 butir K3 sesuai praktik alat ukur');
+sama(G('LKPD_MODULES[0].v2.k3grup.map(function(g){return g.i.length})'), [4, 4 - 1, 1, 2], 'butir K3 dikelompokkan: APD, persiapan, larangan, kebersihan dan darurat');
+sama(G('LKPD_MODULES[0].v2.k3grup.reduce(function(t,g){return t.concat(g.i)},[]).sort(function(a,b){return a-b}).join()'), '0,1,2,3,4,5,6,7,8,9', 'setiap butir K3 masuk tepat satu kelompok');
+ok(/Alat pelindung diri \(APD\)/.test(mt) && /data-lk-check="safe9"/.test(mt) && /Sarung tangan hanya dipakai saat memegang benda tajam/.test(mt), 'kelompok APD dan butir terakhir tampil; sarung tangan dilepas saat membaca skala');
+sama(G('LKPD_MODULES[0].v2.apd'), [0, 1, 2, 3], 'paraf guru hanya pada 4 butir APD');
+ok(/K3\) pada praktik alat ukur/.test(mt) || /Keselamatan dan kesehatan kerja \(K3\) pada praktik alat ukur/.test(mt), 'topik teori K3 ada di Memahami');
+G(`LK.tab='evaluasi'`);
+const ev = G('viewLKPD()');
+ok((ev.match(/data-lk2d="a[a-z0-9]+"/g) || []).length === 6, 'penilaian kinerja: 6 aspek lipat');
+ok(/Bobot 20% · aspek penghenti/.test(ev) && /Bobot 30%/.test(ev) && /Bobot 25%/.test(ev) && /Bobot 10%/.test(ev) && /Bobot 5%/.test(ev), 'bobot dan penanda aspek penghenti tampil');
+ok(/Skor 4<\/b> \(Sangat baik\)/.test(ev) && /Skor 1<\/b> \(Kurang\)/.test(ev), 'arti skor 4 sampai 1 tampil pada tiap aspek');
+ok(/Yang dinilai: APD terpasang benar/.test(ev) && /Yang dinilai: jujur mencatat/.test(ev) && /target menit tiap pertemuan/.test(ev), 'poin yang dinilai tiap aspek tampil');
+ok(/Syarat kompeten/.test(ev) && (ev.match(/Bukti: /g) || []).length === 8, 'syarat kompeten: 8 indikator beserta buktinya');
+ok(/Yang diamati dan kesalahan umum/.test(ev) && /Kesalahan umum:/.test(ev) && /3 ÷ 4 × 30 = 22,5/.test(ev), 'panduan diamati dan contoh hitung nilai tampil');
+G(`LK2.open={ak3:true}`);
+ok(/data-lk2d="ak3" open/.test(G('viewLKPD()')), 'aspek yang dibuka tetap terbuka setelah render ulang');
+G(`LK2.open={};LK.tab='materi'`);
+
 console.log(`\nUji LKPD v2: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);

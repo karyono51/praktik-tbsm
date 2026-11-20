@@ -28,6 +28,12 @@ Modul v2 dimuat sebagai Draft. Guru menerbitkan lewat tombol Terbitkan di daftar
 - **Observasi v2 PDF:** per catatan (aspek berbobot, indikator, keputusan, tanda tangan).
 - **Observasi v2 Excel:** tombol Excel lama kini menulis catatan v2 pada lembar terpisah per LKPD (kolom mengikuti rubrik), dan lembar lama tidak lagi tercampur baris v2.
 
+## Penyesuaian tampilan (hasil uji di ponsel)
+- **Rencana pertemuan:** tabel diganti daftar lipat. Tiap pertemuan tertutup bawaan, ringkasannya "N JP · M menit", isinya kegiatan dan langkah (termasuk penanda saksi guru). Status buka/tutup diingat selama sesi; saat mencetak semua terbuka.
+- **K3:** judul "Keselamatan dan Kesehatan Kerja (K3)"; 10 butir dalam 4 kelompok (APD; persiapan diri dan area kerja; larangan saat praktik; kebersihan dan keadaan darurat). Paraf guru tetap hanya pada 4 butir APD. Topik teori K3 ditambahkan di Memahami.
+- **Penilaian kinerja:** tiap aspek lipat dengan bobot, poin yang dinilai (`ket`), arti skor 4 sampai 1, dan penanda aspek penghenti; ditambah Syarat kompeten (8 indikator + bukti), Yang diamati dan kesalahan umum, serta contoh hitung nilai.
+- Butir K3, kelompok (`v2.k3grup`), dan keterangan aspek (`ket`) ada di `lkpd-v2-x07.js` dan dapat disesuaikan dengan kondisi bengkel.
+
 ## Batas yang diketahui
 - Draf belum sinkron ke server (hanya cadangan manual lewat berkas); foto bukti memakai alur foto yang ada.
 - Editor v2 belum ada; perubahan isi modul v2 dilakukan di berkas data.
