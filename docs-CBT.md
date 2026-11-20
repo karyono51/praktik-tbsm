@@ -153,3 +153,4 @@ Kolom: No, NIS, Nama, Username, Email, Rombel, Kelas, Sekolah, Status. Hanya sis
 - **Uraian di latihan**: siswa mengisi kotak jawaban, ketuk *Periksa jawaban*, lalu kotak terkunci dan tampil kunci jawaban dan rubrik untuk penilaian mandiri. Uraian latihan **tidak dihitung** dalam nilai (total soal hanya objektif) dan dicatat sebagai "soal uraian latihan (tidak dinilai)".
 - **Peruntukan uraian** kini bisa dipilih guru (Latihan / Ujian / Latihan dan ujian). Default tetap Ujian, dan soal uraian lama tetap Ujian, jadi tidak bocor ke latihan sebelum guru mengubahnya. Impor Excel: kolom peruntukan dihormati, kosong = Ujian.
 - Mode aman: kunci uraian ada di `soal_kunci`, jadi di latihan siswa hanya melihat rubrik/pesan "Kunci tidak ditampilkan".
+- **Jumlah soal latihan**: pilihan 5, 10, 20, 30 (tombol "Semua" dihapus).
