@@ -48,7 +48,7 @@ function lkListView(){
   if(staff&&Array.isArray(m.fotoWajib)&&m.fotoWajib.length)tags+='<span class="pill warn">Foto wajib '+m.fotoWajib.length+' item</span>';
   return '<article class="card job '+cls+'"><div class="row sb"><h3 class="grow">'+lkEsc(m.title)+'</h3>'+(staff?'<span class="pill '+(pub?'ok':'warn')+'">'+(pub?'Tampil':'Tersembunyi')+'</span>':'')+'</div>'+
    '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(m.duration)+' menit</span><span>'+m.steps.length+' langkah, '+m.quiz.length+' soal</span></div>'+
-   (m.skkni?'<div><span class="pill plain mono" title="Kode unit SKKNI">SKKNI '+lkEsc(m.skkni)+'</span></div>':'')+
+   (m.skkni?'<details class="lk-elnote"><summary class="note">Kode SKKNI</summary><div class="note mono">'+lkEsc(m.skkni)+'</div></details>':'')+
    '<div class="lkm-tags">'+tags+'</div><div class="row sb" style="flex-wrap:wrap;gap:8px">'+st+'</div>'+acts+'</article>';
  });
  var cards=typeof lkElGroup==='function'?lkElGroup(mods,cardsArr):cardsArr.join('');
