@@ -73,3 +73,12 @@ Urutan tab: Materi, Lembar Kerja, Evaluasi.
 - Editor v2 belum ada; perubahan isi modul v2 dilakukan di berkas data.
 - Kunci gerbang dan kunci soal isian ikut di data modul (terbaca di sisi klien, sama seperti kunci soal lain).
 - Belum diuji dengan Appwrite dan peramban sungguhan; uji di lingkungan uji dulu.
+
+## Format cetak PDF (Ctrl+P / Cetak)
+- **Nama berkas:** judul halaman diganti sementara saat mencetak menjadi `LKPD <id LKPD> <judul LKPD> <nama sekolah>`, mis. `LKPD X-07 Penggunaan dan Perawatan Alat Ukur (Jangka Sorong, Mikrometer, Dial Gauge) SMKS Medina Bandung`. Id LKPD = id modul tanpa awalan `LKPD-`; karakter terlarang pada nama berkas (`/ \ : * ? " < > |`) dibuang. Setelah dialog cetak ditutup, judul halaman dipulihkan. Sekolah dari sekolah aktif (`SEK.nama`).
+- **Tabel hanya untuk bagian tertentu:** Rencana pertemuan (Pertemuan, JP, Menit, Kegiatan), tabel data F1 sampai F3, hasil pemeriksaan lama (bila ada), dan tanda tangan. Bagian lain berupa daftar dan kotak.
+- **Dibuang dari cetakan:** tombol, status "Terjawab n dari 5", ajakan "ketuk", dan kalimat khusus aplikasi ("dihitung otomatis", "agar Lembar Kerja terbuka"). Catatan tabel diganti petunjuk hitung manual.
+- **Kotak pilihan:** PG tercetak sebagai lingkaran, PG kompleks sebagai persegi, soal kategori sebagai baris pernyataan dengan pilihan Benar/Salah rata kanan, status pemeriksaan sebagai kotak centang. Jawaban yang sudah dipilih tercetak terisi.
+- **Nomor halaman** "Halaman X dari Y" di kanan bawah (Chrome 131 ke atas; peramban lama mengabaikannya).
+- Uji: `node tools/uji-cetak-pdf.mjs` (nama berkas). Tata letak diperiksa dengan Chromium.
+

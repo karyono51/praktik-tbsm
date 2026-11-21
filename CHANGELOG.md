@@ -148,3 +148,7 @@ Satu stimulus (teks atau gambar) untuk beberapa soal, di Bank soal dan kuis Edit
 
 ## Pra-unduh soal
 Siswa menyiapkan gambar soal sesi sebelum token dirilis. Berkas baru: `js/pra-unduh.js`, uji `tools/uji-pra.mjs`. Tidak ada perubahan Appwrite atau fungsi. Panduan di `docs-PRA-UNDUH.md`.
+
+## Format cetak PDF LKPD v2 dan gerbang PG
+Nama berkas PDF `LKPD <id> <judul> <sekolah>`, tabel hanya untuk rencana pertemuan, F1 sampai F3, dan tanda tangan, soal PG/kompleks/kategori dan status tercetak sebagai kotak pilihan, unsur khusus aplikasi dibuang, nomor halaman. Gerbang masuk LKPD-X-07 berbentuk 5 soal PG (HOTS, bentuk TKA). Kolom `peran` akun jadi 64 karakter (`tools/perbesar-peran.mjs`). Rincian di `docs-LKPD-V2.md` dan `docs-PERAN-GANDA.md`.
+
