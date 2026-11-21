@@ -130,6 +130,7 @@ document.addEventListener('change',function(e){
 /* ---- Tampilan LKPD: spanduk mode dan pembahasan latihan ---- */
 function lkmFilter(h,c){
  if(c.mode!=='ujian')return h;
+ var m2=lkmCur();if(m2&&typeof lk2Is==='function'&&lk2Is(m2))return lk2ModeFilter(h,c);
  try{
   if(LK.tab==='materi'){
    if(c.hideTeori)h=h.replace(/<h3>Teori ringkas<\/h3>[\s\S]*?(?=<div class="note">Gunakan manual)/,'<p class="note">Teori ringkas tidak ditampilkan pada mode Ujian.</p>');
@@ -162,6 +163,7 @@ viewLKPD=function(){
 };
 function lkmKeyBlock(m){
  var d=lkDraft(),on=LKM.reveal[m.id],h='<section class="card" data-lkm="1"><h2>Pembahasan latihan</h2>';
+ if(typeof lk2Is==='function'&&lk2Is(m))return lk2KeyBlock(m,d,on);
  if(!on)return h+'<p class="note">Jawab soal di atas, lalu periksa jawabanmu dan baca pembahasannya.</p><button type="button" class="btn small primary" data-act="lkm-reveal">Periksa jawaban</button></section>';
  var ok=0,rows=m.quiz.map(function(q,i){
   var a=d['q'+i],good=a===q.a;if(good)ok++;

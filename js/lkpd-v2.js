@@ -198,6 +198,38 @@ viewLKPD=function(){
  return lk2View(m);
 };
 
+
+/* ---------- Pengaturan mode Latihan/Ujian untuk LKPD v2 ----------
+   Pengaturan (Kelola LKPD > Pengaturan) memakai tiga sakelar untuk mode Ujian; di v2 artinya:
+   - Teori ringkas  -> kartu "Memahami" disembunyikan
+   - Penjelasan langkah -> isi tiap pertemuan di Rencana pertemuan dan "Poin kritis" di Lembar Kerja disembunyikan
+   - Petunjuk komponen -> keterangan dan acuan di bawah nama komponen pemeriksaan disembunyikan
+   Dipanggil dari lkmFilter (lkpd-mode.js) hanya untuk tampilan siswa/pratinjau. */
+function lk2ModeFilter(h,c){
+ if(c.mode!=='ujian')return h;
+ try{
+  if(LK.tab==='materi'){
+   if(c.hideTeori)h=h.replace(/<section class="card"><h2>Memahami<\/h2>[\s\S]*?<\/section>/,'<section class="card"><h2>Memahami</h2><p class="note">Teori ringkas tidak ditampilkan pada mode Ujian.</p></section>');
+   if(c.hideLangkah)h=h.replace(/(<details class="lk2-dt" data-lk2d="p\d+"[^>]*><summary>[\s\S]*?<\/summary>)<div class="lk2-bd">[\s\S]*?<\/div>/g,'$1<div class="lk2-bd"><p class="note">Rincian langkah tidak ditampilkan pada mode Ujian.</p></div>');
+  }else if(LK.tab==='kerja'){
+   if(c.hideLangkah)h=h.replace(/<small>Poin kritis:[\s\S]*?<\/small>/g,'');
+   if(c.hidePetunjuk)h=h.replace(/(<div class="lk2-cek"><b>[^<]*<\/b>)<small class="note">[\s\S]*?<\/small>/g,'$1').replace(/<small class="lk-acuan">[\s\S]*?<\/small>/g,'');
+  }
+ }catch(e){}
+ return h;
+}
+/* Pembahasan mode Latihan untuk soal v2 (termasuk isian angka dan PG kompleks/kategori); pembaca jawaban memakai fungsi soal bersama. */
+function lk2KeyBlock(m,d,on){
+ var h='<section class="card" data-lkm="1"><h2>Pembahasan latihan</h2>';
+ if(!on)return h+'<p class="note">Jawab soal di atas, lalu periksa jawabanmu dan baca pembahasannya.</p><button type="button" class="btn small primary" data-act="lkm-reveal">Periksa jawaban</button></section>';
+ var ok=0,rows=m.quiz.map(function(q,i){
+  var a=d['q'+i],ans=lkqAnswered(q,a),good=ans&&lkqPoint(q,a)>=1;if(good)ok++;
+  return '<div class="qbox"><b>'+(i+1)+'. '+lkEsc(q.q)+'</b><div><span class="pill '+(!ans?'warn':good?'ok':'bad')+'">'+(!ans?'Belum dijawab':good?'Benar':'Kurang tepat')+'</span></div>'+
+   (good?'':'<p>Kunci: <b>'+lkEsc(lkqKeyText(q))+'</b></p>')+(q.e?'<p class="note">'+lkEsc(q.e)+'</p>':'')+'</div>';
+ }).join('');
+ return h+'<p><b>Benar '+ok+' dari '+m.quiz.length+'</b></p>'+rows+'<button type="button" class="btn small" data-act="lkm-reveal">Sembunyikan pembahasan</button></section>';
+}
+
 /* ---------- Detail guru: verifikasi gerbang, saksi langkah, paraf APD ---------- */
 function lk2Detail(z,p,m){
  var V=m.v2,vf=(p.v2&&p.v2.verif)||{},staff=isStaff(),calc=lk2Calc(m,p),h='',

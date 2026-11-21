@@ -331,5 +331,23 @@ ok(/C memakai ketelitian/.test(M.v2.gate.qs[1].e), 'pembahasan soal 2 menjelaska
 ok(M.v2.tabel.filter((t) => t.id === 'F1' || t.id === 'F2').every((t) => /penyimpangan nol/.test(t.cat || '')), 'tabel F1 dan F2 memuat catatan koreksi nol');
 ok(G(`LK.module='${M.id}';LK.tab='evaluasi';viewLKPD()`).indexOf('Latihan membaca skala (F4)') < 0, 'judul latihan tanpa label F4');
 
+/* ---------- Pengaturan mode Ujian/Latihan pada v2 ---------- */
+G(`STAFF=false;LK.preview=false;LK.module='${M.id}';DRAFT=${JSON.stringify(penuh)}`);
+const cU = (o) => JSON.stringify(Object.assign({ mode: 'ujian', hideTeori: false, hideLangkah: false, hidePetunjuk: false }, o));
+G(`LK.tab='materi'`); const mat = G('viewLKPD()');
+ok(/<h2>Memahami<\/h2>/.test(mat) && /Rencana pertemuan/.test(mat), 'v2 materi: teori dan rencana ada sebelum disaring');
+const fMat = G(`lk2ModeFilter(viewLKPD(),${cU({ hideTeori: true, hideLangkah: true })})`);
+ok(/Teori ringkas tidak ditampilkan/.test(fMat) && !new RegExp(M.theory[0][0]).test(fMat.slice(fMat.indexOf('<h2>Memahami'), fMat.indexOf('Gerbang masuk praktik'))), 'ujian: teori v2 disembunyikan');
+ok(/Rincian langkah tidak ditampilkan/.test(fMat) && /Pertemuan 1/.test(fMat), 'ujian: isi pertemuan disembunyikan, judul pertemuan tetap');
+ok(/Gerbang masuk praktik/.test(fMat), 'ujian: gerbang masuk tetap tampil');
+G(`LK.tab='kerja'`); const ker = G('viewLKPD()');
+const fKer = G(`lk2ModeFilter(viewLKPD(),${cU({ hideLangkah: true, hidePetunjuk: true })})`);
+ok(/Poin kritis/.test(ker) && !/Poin kritis/.test(fKer), 'ujian: poin kritis langkah disembunyikan');
+ok(/Rahang rapat/.test(ker) && !/Rahang rapat/.test(fKer) && /data-lk-field="actual0"/.test(fKer) && /Posisi nol jangka sorong/.test(fKer), 'ujian: petunjuk komponen disembunyikan, nama komponen dan kolom isian tetap');
+ok(G(`lk2ModeFilter('X',{mode:'latihan',hideTeori:true})`) === 'X', 'latihan: tidak ada yang disaring');
+ok(/Periksa jawaban/.test(G(`lk2KeyBlock(LKPD_MODULES[0],{},false)`)), 'latihan v2: tombol periksa jawaban');
+const kb = G(`lk2KeyBlock(LKPD_MODULES[0],${JSON.stringify(penuh)},true)`);
+ok(/Benar \d+ dari 8/.test(kb) && !/NaN|undefined/.test(kb), 'latihan v2: pembahasan memakai soal isian tanpa galat');
+
 console.log(`\nUji LKPD v2: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);
