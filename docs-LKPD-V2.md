@@ -7,7 +7,7 @@ Tambahan aditif: LKPD dan observasi lama tidak diubah. Pilot: LKPD-X-07 (Penggun
 - `js/lkpd-v2.js`: mesin v2.
 - `js/lkpd-v2-soal.js`: tipe soal isian angka (`t:'isian'`, `kunci`, `tol`).
 - `js/observasi-v2.js`: Observasi LKPD Praktik v2 (rubrik diambil dari `m.v2.obs` tiap LKPD).
-- `tools/uji-lkpd-v2.mjs`: uji tanpa peramban (`node tools/uji-lkpd-v2.mjs`, 166 uji).
+- `tools/uji-lkpd-v2.mjs`: uji tanpa peramban (`node tools/uji-lkpd-v2.mjs`, 171 uji).
 
 ## 2. Alur siswa
 Urutan tab: Materi, Lembar Kerja, Evaluasi.
@@ -53,7 +53,8 @@ Urutan tab: Materi, Lembar Kerja, Evaluasi.
 - **Nilai akhir = jumlah(nilai aspek x bobot / 100)**, dibulatkan. Kategori: 91-100 Sangat Kompeten, 75-90 Kompeten, 61-74 Cukup Kompeten, di bawah 61 Belum Kompeten. Aspek penghenti (K3) berskala 1 = praktik dihentikan dan kategori Belum Kompeten. Keputusan Kompeten tetap mensyaratkan semua indikator tercentang, semua aspek terisi, dan K3 tidak berskala 1.
 - **Bar bawah** (menempel di layar): `N / 6 terisi`, nilai sementara atau akhir, tombol **Belum diisi** (gulir ke aspek pertama yang belum lengkap dan menyorotnya) dan **Simpan**. Simpan ditolak bila ada aspek yang skala atau nilainya belum valid.
 - **Penyimpanan:** `payload.nilai[id aspek]` = nilai 0-100, `payload.nilai['l_'+id aspek]` = skala 1-4, indikator tetap `i0..iN`. Tanpa perubahan skema Appwrite; `skor` = nilai akhir 0-100.
-- **Catatan format lama** (skor 1-4 per aspek tanpa kunci `l_`) tetap dapat dilihat, dicetak, dan diekspor dengan hitungan lama (jumlah(skor / 4 x bobot), kategori Sangat Baik/Baik/Cukup/Kurang). Bila diubah, aspeknya diisi ulang dengan skala dan nilai (indikator ikut terbawa).
+- **Indikator kompeten** memakai skala 1-4 + nilai yang sama (bukan lagi kotak centang). Indikator tercapai bila berskala 3 atau 4. Kompeten bila semua indikator tercapai, semua aspek terisi, dan K3 tidak berskala 1. Indikator tidak memengaruhi nilai akhir. Bar bawah menghitung aspek dan indikator (mis. `0 / 14 terisi`), dan Simpan menunggu semuanya valid. Disimpan sebagai `payload.nilai['l_i'+n]` (skala) dan `payload.nilai['i'+n]` (nilai), penanda `payload.nilai._fi=2`.
+- **Catatan format lama** (skor 1-4 per aspek tanpa kunci `l_`) tetap dapat dilihat, dicetak, dan diekspor dengan hitungan lama (jumlah(skor / 4 x bobot), kategori Sangat Baik/Baik/Cukup/Kurang). Catatan rilis sebelumnya yang indikatornya kotak centang juga tetap terbaca. Bila diubah, aspek (format skor lama) dan indikator diisi ulang dengan skala dan nilai.
 - Penyimpanan: koleksi `observasi`, `tipe='siswa'`, `payload.v=2` (tanpa perubahan skema Appwrite).
 - **PDF:** per catatan (aspek berbobot, indikator, keputusan, tanda tangan). Format baru memuat kolom Skor (skala), Nilai, dan Berbobot.
 - **Excel:** tombol Excel lama menulis catatan v2 pada lembar terpisah per LKPD (kolom mengikuti rubrik; kolom terakhir Format penilaian membedakan skala + nilai dengan skor 1-4 lama); lembar lama tidak lagi tercampur baris v2.

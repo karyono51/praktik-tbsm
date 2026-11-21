@@ -6,6 +6,8 @@
    nilai di payload.nilai[id aspek]; indikator kompeten sebagai i0..iN (1 = tercapai), sehingga pemilihan banyak siswa, simpan, ubah,
    dan sinkronisasi memakai alur formulir lama. Nilai akhir = jumlah(nilai aspek × bobot ÷ 100). Kompeten bila semua indikator tercentang,
    semua aspek terisi, dan aspek ber-stop tidak berskala 1.
+   Indikator kompeten ikut berskala 1-4 + nilai (kunci l_i<n> dan i<n>, penanda format payload.nilai._fi=2); tercapai bila skala 3 atau 4.
+   Indikator format lama (kotak centang, i<n>=1) tetap terbaca. Indikator tidak memengaruhi nilai akhir, hanya keputusan Kompeten.
    Catatan format lama (payload.nilai[id aspek] = skor 1-4 tanpa kunci l_) tetap terbaca di detail, PDF, dan Excel dengan hitungan lama:
    nilai = jumlah(skor ÷ 4 × bobot). Bila diubah, aspeknya diisi ulang dengan skala dan nilai.
    Formulir lama dan datanya tidak diubah; PDF dan Excel untuk catatan v2 belum tersedia (gunakan Cetak). */
@@ -27,14 +29,18 @@ function ob2Ket(l){var L=OB2_LVL[l];return L?L.k+': '+L.ket:'Pilih 1-4 sesuai kr
 /* Format baru bila ada kunci l_<id aspek> (skala). Tanpa kunci itu = format lama (skor 1-4 per aspek). */
 function ob2Baru(nl){return Object.keys(nl||{}).some(function(k){return k.indexOf('l_')===0})}
 function ob2Hitung(nl,O){
- nl=nl||{};var baru=ob2Baru(nl),done=0,sum=0;
+ nl=nl||{};var baru=ob2Baru(nl),fi=nl._fi===2,done=0,sum=0,doneI=0,kom=0;
  O.aspek.forEach(function(a){
   if(baru){var l=+nl['l_'+a.id],v=nl[a.id];if(ob2Valid(l,v)){done++;sum+=v*a.b/100}}
   else{var v2=+nl[a.id];if(v2>=1&&v2<=4){done++;sum+=v2/4*a.b}}
  });
- var kom=O.indikator.filter(function(x,i){return +nl['i'+i]===1}).length,
-  stop=O.aspek.some(function(a){return a.stop&&+nl[baru?'l_'+a.id:a.id]===1}),lengkap=done===O.aspek.length;
- return {done:done,n:O.aspek.length,nilai:Math.round(sum),kom:kom,nKom:O.indikator.length,stop:stop,lengkap:lengkap,baru:baru,kompeten:lengkap&&kom===O.indikator.length&&!stop};
+ /* Indikator: format baru (fi) berskala 1-4 + nilai, tercapai bila skala 3-4; format lama = kotak centang (1 = tercapai). */
+ O.indikator.forEach(function(x,i){
+  if(fi){var l=+nl['l_i'+i];if(ob2Valid(l,nl['i'+i])){doneI++;if(l>=3)kom++}}
+  else if(+nl['i'+i]===1)kom++;
+ });
+ var nI=O.indikator.length,stop=O.aspek.some(function(a){return a.stop&&+nl[baru?'l_'+a.id:a.id]===1}),lengkap=done===O.aspek.length&&(!fi||doneI===nI);
+ return {done:done,n:O.aspek.length,doneI:fi?doneI:0,fi:fi,tDone:done+(fi?doneI:0),tN:O.aspek.length+(fi?nI:0),nilai:Math.round(sum),kom:kom,nKom:nI,stop:stop,lengkap:lengkap,baru:baru,kompeten:lengkap&&kom===nI&&!stop};
 }
 function ob2KatNilai(n){n=+n||0;return n>=91?'Sangat Kompeten':n>=75?'Kompeten':n>=61?'Cukup Kompeten':'Belum Kompeten'}
 function ob2Kat(h){return h.baru?(h.stop?'Belum Kompeten':ob2KatNilai(h.nilai)):(h.stop?'Kurang':obsKat(h.nilai/25))}
@@ -47,12 +53,12 @@ function ob2Chips(d,O){
  var R=obsRoster(d);
  return '<div class="obs-chips" role="group" aria-label="Pilih siswa yang dinilai">'+d.pilih.map(function(k){
   var s=R[k]||{nama:'?'},h=ob2Hitung(k===d.cur?d.nilai:(d.per[k]||{}).nilai,O);
-  return '<button type="button" class="obs-chip" data-act="ob-pick" data-v="'+esc(k)+'" data-full="'+(h.lengkap?1:0)+'" aria-pressed="'+(k===d.cur)+'">'+esc(String(s.nama).split(/\s+/).slice(0,2).join(' '))+' <small class="cn">'+h.done+'/'+h.n+'</small></button>';
+  return '<button type="button" class="obs-chip" data-act="ob-pick" data-v="'+esc(k)+'" data-full="'+(h.lengkap?1:0)+'" aria-pressed="'+(k===d.cur)+'">'+esc(String(s.nama).split(/\s+/).slice(0,2).join(' '))+' <small class="cn">'+h.tDone+'/'+h.tN+'</small></button>';
  }).join('')+'</div>';
 }
 function ob2SumHtml(d,O){
  var h=ob2Hitung(d.nilai,O);
- return '<div class="row sb"><span class="note">Aspek terisi</span><b class="mono">'+h.done+' / '+h.n+'</b></div>'+
+ return '<div class="row sb"><span class="note">Aspek terisi</span><b class="mono">'+h.done+' / '+h.n+'</b></div>'+(h.fi?'<div class="row sb"><span class="note">Indikator terisi</span><b class="mono">'+h.doneI+' / '+h.nKom+'</b></div>':'')+
   '<div class="row sb"><span class="note">Nilai · kategori</span><b class="mono">'+(h.done?h.nilai+' · '+esc(ob2Kat(h)):'-')+'</b></div>'+
   '<div class="row sb"><span class="note">Indikator kompeten</span><b class="mono">'+h.kom+' / '+h.nKom+'</b></div>'+
   '<div class="row sb"><span class="note">Keputusan</span><b class="mono">'+(h.stop?'Praktik dihentikan (K3)':h.kompeten?'Kompeten':h.lengkap?'Belum kompeten':'-')+'</b></div>';
@@ -68,15 +74,23 @@ function ob2AspekHtml(a,n,d){
   '<details class="ob2-krit"><summary>Kriteria skala</summary>'+[4,3,2,1].map(function(s){return '<p class="note"><b>'+s+' · '+OB2_LVL[s].k+' ('+OB2_LVL[s].ket+')</b>: '+esc(a.d[s])+'</p>'}).join('')+'</details>'+
   '<input class="obs-cat" data-id="'+esc(a.id)+'" maxlength="300" placeholder="Keterangan (opsional)" value="'+esc(d.cat[a.id]||'')+'"></div>';
 }
-function ob2BarTxt(h){return h.done?'Nilai '+h.nilai+(h.lengkap?' · '+ob2Kat(h):' (sementara)'):'Nilai -'}
+function ob2IndHtml(x,i,d){
+ var id='i'+i,l=+d.nilai['l_'+id]||0,v=d.nilai[id],L=OB2_LVL[l],bad=!!l&&v!==undefined&&!ob2Valid(l,v);
+ return '<div class="item obu-item ob2-item" id="ob2i-'+id+'" data-a="'+id+'" data-s="'+(l||'')+'"><div class="t" style="display:block"><b>'+(i+1)+'. '+esc(x.t)+'</b><div class="note" style="font-style:italic;margin-top:3px">Bukti: '+esc(x.bukti)+'</div></div>'+
+  '<div class="seg rate" role="group" aria-label="Skala indikator '+(i+1)+'">'+[1,2,3,4].map(function(s){return '<button type="button" data-act="ob2-rate" data-id="'+id+'" data-v="'+s+'" aria-pressed="'+(l===s)+'" title="'+OB2_LVL[s].k+'">'+s+'</button>'}).join('')+'</div>'+
+  '<div class="note obu-ket ob2-ket'+(bad?' bad':'')+'">'+esc(ob2Ket(l))+'</div>'+
+  '<input class="obu-nil ob2-nil" type="number" inputmode="numeric" step="1" data-id="'+id+'" '+(l?'min="'+L.min+'" max="'+L.max+'" placeholder="Nilai '+L.min+'-'+L.max+'"':'placeholder="Nilai" disabled')+' value="'+(v===undefined?'':esc(v))+'" aria-invalid="'+bad+'"></div>';
+}
+function ob2BarTxt(h){return h.tDone?'Nilai '+h.nilai+(h.lengkap?' · '+ob2Kat(h):' (sementara)'):'Nilai -'}
 function ob2BarHtml(h){
- return '<div class="obu-bar" role="region" aria-label="Ringkasan dan simpan"><div class="obu-bar-in"><div class="obu-stat"><b class="mono"><span id="ob2prog2">'+h.done+'</span> / '+h.n+' terisi</b><span class="note" id="ob2nilai2">'+esc(ob2BarTxt(h))+'</span></div>'+
+ return '<div class="obu-bar" role="region" aria-label="Ringkasan dan simpan"><div class="obu-bar-in"><div class="obu-stat"><b class="mono"><span id="ob2prog2">'+h.tDone+'</span> / '+h.tN+' terisi</b><span class="note" id="ob2nilai2">'+esc(ob2BarTxt(h))+'</span></div>'+
   '<div class="obu-bar-btns"><button type="button" class="btn" id="ob2next" data-act="ob2-next"'+(h.lengkap?' hidden':'')+'>Belum diisi</button><button type="button" class="btn primary" data-act="ob-save">Simpan</button></div></div></div>';
 }
 /* Gulir ke aspek pertama yang belum lengkap (skala dan nilai) dan beri sorotan singkat. Mengembalikan aspek itu, atau null bila lengkap. */
 function ob2KeBelum(){
  var d=OB&&OB.d,m=d&&ob2Mod(d.v2);if(!m)return null;
- var ms=m.v2.obs.aspek.filter(function(a){return !ob2Valid(+d.nilai['l_'+a.id],d.nilai[a.id])})[0];
+ var O2=m.v2.obs,cand=O2.aspek.map(function(a){return a.id}).concat(d.nilai._fi===2?O2.indikator.map(function(x,i){return 'i'+i}):[]),
+  ms=cand.filter(function(id){return !ob2Valid(+d.nilai['l_'+id],d.nilai[id])}).map(function(id){return {id:id}})[0];
  if(!ms)return null;
  var el=document.getElementById('ob2i-'+ms.id);if(!el)return ms;
  var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -95,7 +109,9 @@ function ob2StuHtml(d){
  var O=m.v2.obs,R=obsRoster(d),cs=R[d.cur]||{nama:'-',kelas:''},idx=d.pilih.indexOf(d.cur),multi=d.pilih.length>1;
  var guide='<details class="card"><summary><b>Yang diamati dan kesalahan umum</b></summary>'+O.panduan.map(function(g){return '<p><b>'+esc(g.k)+'</b><br>Yang diamati: '+esc(g.lihat)+'<br>Kesalahan umum: '+esc(g.salah)+'</p>'}).join('')+'</details>';
  var aspek=O.aspek.map(function(a,n){return ob2AspekHtml(a,n,d)}).join('');
- var ind='<div class="card ob2-card"><b>Indikator kompeten</b><p class="note">Centang bila terbukti. Kompeten bila semua tercentang dan K3 tidak bernilai 1.</p>'+
+ var ind=d.nilai._fi===2?
+  '<h3 class="obs-group">Indikator kompeten</h3><p class="note">Nilai tiap indikator dengan skala 1-4 yang sama. Indikator tercapai bila berskala 3 (Kompeten) atau 4 (Sangat Kompeten). Kompeten bila semua indikator tercapai dan K3 tidak berskala 1.</p>'+O.indikator.map(function(x,i){return ob2IndHtml(x,i,d)}).join(''):
+  '<div class="card ob2-card"><b>Indikator kompeten</b><p class="note">Centang bila terbukti. Kompeten bila semua tercentang dan K3 tidak bernilai 1.</p>'+
   O.indikator.map(function(x,i){return '<label class="ob2-ind"><input type="checkbox" data-ob2i="i'+i+'" '+(+d.nilai['i'+i]===1?'checked':'')+'><span>'+esc(x.t)+'<small>Bukti: '+esc(x.bukti)+'</small></span></label>'}).join('')+'</div>';
  return sel+ob2Chips(d,O)+
   '<div class="card"><div class="row sb"><b>Menilai: '+esc(cs.nama)+'</b><span class="pill plain mono">'+esc(cs.kelas||'-')+'</span></div><p class="note">Siswa '+(idx+1)+' dari '+d.pilih.length+'.</p>'+
@@ -116,21 +132,25 @@ obsStuHtml=function(d){
 var _obsDoneOf2=obsDoneOf;
 obsDoneOf=function(d,k){
  if(!d.v2)return _obsDoneOf2(d,k);
- var m=ob2Mod(d.v2);return m?ob2Hitung(k===d.cur?d.nilai:(d.per[k]||{}).nilai,m.v2.obs).done:0;
+ var m=ob2Mod(d.v2);return m?ob2Hitung(k===d.cur?d.nilai:(d.per[k]||{}).nilai,m.v2.obs).tDone:0;
 };
 var _obsAnyDone2=obsAnyDone;
 obsAnyDone=function(d){
  if(!d.v2)return _obsAnyDone2(d);
  var m=ob2Mod(d.v2);if(!m||d.tipe!=='siswa')return false;
- obsFlush(d);return Object.keys(d.per||{}).some(function(k){return ob2Hitung(d.per[k].nilai,m.v2.obs).done>0});
+ obsFlush(d);return Object.keys(d.per||{}).some(function(k){return ob2Hitung(d.per[k].nilai,m.v2.obs).tDone>0});
 };
+/* Siswa baru dinilai dengan indikator berskala (penanda _fi=2). */
+var _obsLoad2=obsLoad;
+obsLoad=function(d,k){_obsLoad2(d,k);if(d&&d.v2&&d.nilai&&!Object.keys(d.nilai).length)d.nilai._fi=2};
 var _obsDraftDari2=obsDraftDari;
 obsDraftDari=function(r){
  var d=_obsDraftDari2(r),p=obsPay(r);
  if(d.tipe==='siswa'&&p.v===2){
   d.v2=p.mod||'';
-  /* Catatan format lama (skor 1-4): aspek diisi ulang dengan skala dan nilai; indikator tetap dibawa. */
-  if(!ob2Baru(p.nilai)){var keep={};Object.keys(p.nilai).forEach(function(k){if(/^i\d+$/.test(k))keep[k]=p.nilai[k]});d.nilai=keep;d.lama2=true}
+  /* Catatan format lama: aspek skor 1-4 dan/atau indikator kotak centang diisi ulang dengan skala dan nilai. */
+  var nl=p.nilai,baru=ob2Baru(nl);
+  if(!(baru&&nl._fi===2)){var keep={};Object.keys(nl).forEach(function(k){if(baru&&!/^i\d+$/.test(k))keep[k]=nl[k]});keep._fi=2;d.nilai=keep;d.lama2=true}
  }
  return d;
 };
@@ -145,7 +165,7 @@ obsSaveSiswa=function(){
  if(!d.tanggal){toast('Isi tanggal observasi');return}
  var R=obsRoster(d),i,k;
  for(i=0;i<d.pilih.length;i++){k=d.pilih[i];var hh=ob2Hitung((d.per[k]||{}).nilai,O);
-  if(!hh.lengkap){obsLoad(d,k);obsStuRefresh(true);toast('Lengkapi skor '+hh.n+' aspek '+((R[k]||{}).nama||'siswa')+' ('+hh.done+' dari '+hh.n+'): pilih skala 1-4 dan isi nilai sesuai rentang');setTimeout(ob2KeBelum,60);return}}
+  if(!hh.lengkap){obsLoad(d,k);obsStuRefresh(true);toast('Lengkapi skor '+hh.n+' aspek'+(hh.fi?' dan '+hh.nKom+' indikator':'')+' '+((R[k]||{}).nama||'siswa')+' ('+hh.tDone+' dari '+hh.tN+'): pilih skala 1-4 dan isi nilai sesuai rentang');setTimeout(ob2KeBelum,60);return}}
  var sesi=d.sesi||uid(),n=0,jml=d.pilih.length,mapel=String(d.mapel||'').trim()||m.title;
  S.observasi=S.observasi||[];
  d.pilih.forEach(function(k){
@@ -172,7 +192,7 @@ function ob2Detail(r){
   '<div class="row sb"><span class="note">Keputusan</span><b class="mono">'+(h.stop?'Praktik dihentikan (K3)':h.kompeten?'Kompeten':'Belum kompeten')+'</b></div></div>'+
   '<h3 class="obs-group">Aspek penilaian</h3>'+O.aspek.map(function(a,i){var v=+p.nilai[a.id]||0,l=h.baru?(+p.nilai['l_'+a.id]||0):v,ada=h.baru?!!l:!!v;
    return '<div class="card" style="gap:4px"><div class="row sb"><span>'+(i+1)+'. '+esc(a.n)+' ('+a.b+'%)</span><span class="pill plain mono">'+(ada?(h.baru?l+' · '+OB2_LVL[l].k+' · '+v:v):'-')+'</span></div>'+(ada&&a.d[l]?'<div class="note">'+esc(a.d[l])+'</div>':'')+(p.cat[a.id]?'<div class="note">Catatan: '+esc(p.cat[a.id])+'</div>':'')+'</div>'}).join('')+
-  '<h3 class="obs-group">Indikator kompeten ('+h.kom+'/'+h.nKom+')</h3>'+O.indikator.map(function(x,i){return '<div class="card" style="gap:4px"><div class="row sb"><span>'+esc(x.t)+'</span><span class="pill '+(+p.nilai['i'+i]===1?'ok':'plain')+'">'+(+p.nilai['i'+i]===1?'Tercapai':'Belum')+'</span></div><div class="note">Bukti: '+esc(x.bukti)+'</div></div>'}).join('')+
+  '<h3 class="obs-group">Indikator kompeten ('+h.kom+'/'+h.nKom+')</h3>'+O.indikator.map(function(x,i){var il=h.fi?(+p.nilai['l_i'+i]||0):0,okI=h.fi?il>=3:+p.nilai['i'+i]===1;return '<div class="card" style="gap:4px"><div class="row sb"><span>'+esc(x.t)+'</span><span class="pill '+(okI?'ok':'plain')+'">'+(h.fi?(il?il+' · '+OB2_LVL[il].k+' · '+p.nilai['i'+i]+' · '+(okI?'Tercapai':'Belum'):'-'):(okI?'Tercapai':'Belum'))+'</span></div><div class="note">Bukti: '+esc(x.bukti)+'</div></div>'}).join('')+
   tx('Kekuatan yang teramati',p.kekuatan)+tx('Hal yang perlu ditingkatkan',p.perbaikan)+tx('Rekomendasi tindak lanjut',p.tindak)+
   '<div class="row" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn primary" data-act="ob2-print">Cetak</button>'+(obsBoleh(r)?'<button type="button" class="btn" data-act="ob-edit" data-v="'+esc(r.id)+'">Ubah</button>':'')+'</div>';
 }
@@ -192,8 +212,11 @@ function ob2Pdf(r){
    if(h.baru){var l=+p.nilai['l_'+a.id]||0,nv=p.nilai[a.id],ok=ob2Valid(l,nv);return [i+1,a.n,a.b+'%',l?l+' '+OB2_LVL[l].k:'-',ok?nv:'-',ok?n2(nv*a.b/100):'-',(l?a.d[l]:'')+(p.cat[a.id]?' Catatan: '+p.cat[a.id]:'')]}
    var v=+p.nilai[a.id]||0;return [i+1,a.n,a.b+'%',v||'-',v?n2(v/4*a.b):'-',(v?a.d[v]:'')+(p.cat[a.id]?' Catatan: '+p.cat[a.id]:'')]}),
   columnStyles:h.baru?{0:{cellWidth:9,halign:'center'},2:{cellWidth:13,halign:'center'},3:{cellWidth:24,halign:'center'},4:{cellWidth:12,halign:'center'},5:{cellWidth:16,halign:'center'}}:{0:{cellWidth:9,halign:'center'},2:{cellWidth:13,halign:'center'},3:{cellWidth:11,halign:'center'},4:{cellWidth:13,halign:'center'}}});
- doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9,cellPadding:1.8},headStyles:TH,head:[['Indikator kompeten','Bukti','Status']],
-  body:O.indikator.map(function(x,i){return [x.t,x.bukti,+p.nilai['i'+i]===1?'Tercapai':'Belum']}),columnStyles:{2:{cellWidth:22,halign:'center'}}});
+ doc.autoTable({startY:doc.lastAutoTable.finalY+4,theme:'grid',styles:{fontSize:9,cellPadding:1.8},headStyles:TH,head:[h.fi?['Indikator kompeten','Bukti','Skor','Nilai','Status']:['Indikator kompeten','Bukti','Status']],
+  body:O.indikator.map(function(x,i){
+   if(h.fi){var il=+p.nilai['l_i'+i]||0,iv=p.nilai['i'+i],okv=ob2Valid(il,iv);return [x.t,x.bukti,il?il+' '+OB2_LVL[il].k:'-',okv?iv:'-',il>=3&&okv?'Tercapai':'Belum']}
+   return [x.t,x.bukti,+p.nilai['i'+i]===1?'Tercapai':'Belum']}),
+  columnStyles:h.fi?{2:{cellWidth:26,halign:'center'},3:{cellWidth:13,halign:'center'},4:{cellWidth:22,halign:'center'}}:{2:{cellWidth:22,halign:'center'}}});
  var y=doc.lastAutoTable.finalY+7,H=doc.internal.pageSize.getHeight();
  if(y>H-45){doc.addPage();y=22}
  doc.setFontSize(10.5).setTextColor(0).setFont('helvetica','bold').text('Nilai '+(+r.skor||0)+'   Kategori: '+r.kategori+'   Keputusan: '+(h.stop?'Praktik dihentikan (K3)':h.kompeten?'Kompeten':'Belum kompeten'),14,y);
@@ -236,9 +259,9 @@ function ob2Sync(){
  var el=document.getElementById('ob2sum');if(el)el.innerHTML=ob2SumHtml(d,m.v2.obs);
  var c=document.querySelector('.obs-chip[aria-pressed="true"]'),h=ob2Hitung(d.nilai,m.v2.obs);
  var pg=document.getElementById('ob2prog2'),nl2=document.getElementById('ob2nilai2'),nx=document.getElementById('ob2next');
- if(pg)pg.textContent=h.done;if(nl2)nl2.textContent=ob2BarTxt(h);
+ if(pg){pg.textContent=h.tDone;if(pg.nextSibling)pg.nextSibling.textContent=' / '+h.tN+' terisi'}if(nl2)nl2.textContent=ob2BarTxt(h);
  if(nx){if(h.lengkap)nx.setAttribute('hidden','');else nx.removeAttribute('hidden')}
- if(c){var cn=c.querySelector('.cn');if(cn)cn.textContent=h.done+'/'+h.n;c.dataset.full=h.lengkap?'1':'0'}
+ if(c){var cn=c.querySelector('.cn');if(cn)cn.textContent=h.tDone+'/'+h.tN;c.dataset.full=h.lengkap?'1':'0'}
 }
 document.addEventListener('click',function(e){
  var b=e.target.closest('[data-act^="ob2-"]');if(!b||!OB)return;var a=b.dataset.act,d=OB.d;
@@ -290,6 +313,6 @@ document.addEventListener('click',function(e){
  e.stopImmediatePropagation();
  var d=OB.d,m=ob2Mod(d.v2);if(!m)return;
  obsFlush(d);var src=d.nilai,cnt=0;
- d.pilih.forEach(function(k){if(k===d.cur)return;var pp=d.per[k]||(d.per[k]={nilai:{},cat:{},kekuatan:'',perbaikan:'',tindak:''});if(!ob2Hitung(pp.nilai,m.v2.obs).done){pp.nilai=Object.assign({},src);cnt++}});
+ d.pilih.forEach(function(k){if(k===d.cur)return;var pp=d.per[k]||(d.per[k]={nilai:{},cat:{},kekuatan:'',perbaikan:'',tindak:''});if(!ob2Hitung(pp.nilai,m.v2.obs).tDone){pp.nilai=Object.assign({},src);cnt++}});
  obsStuRefresh();toast(cnt?'Skor disalin ke '+cnt+' siswa. Periksa dan ubah per siswa.':'Semua siswa lain sudah punya skor');
 },true);

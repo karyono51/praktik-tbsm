@@ -221,7 +221,7 @@ G(`document.dispatchLike=function(){}`);
 // pilih v2 lewat state langsung (jalur klik bergantung DOM)
 G(`OB.d.v2='LKPD-X-07';OB.d.per={};OB.d.nilai={};OB.d.cat={};OB.d.cur='';obsEnsure(OB.d)`);
 html = G('obsStuHtml(OB.d)');
-ok(/Yang diamati dan kesalahan umum/.test(html) && (html.match(/data-act="ob2-rate"/g) || []).length === 24 && (html.match(/data-ob2i=/g) || []).length === 8, 'formulir v2: panduan, 6 aspek x 4 deskriptor, 8 indikator');
+ok(/Yang diamati dan kesalahan umum/.test(html) && (html.match(/data-act="ob2-rate"/g) || []).length === 56 && (html.match(/data-ob2i=/g) || []).length === 0 && /Skala indikator 8/.test(html), 'formulir v2: panduan, (6 aspek + 8 indikator) x tombol skala 1-4');
 ok(/Pakai formulir lama/.test(html), 'formulir v2 menyediakan kembali ke formulir lama');
 // simpan tanpa lengkap
 G(`OB.d.mapel='';OB.d.tanggal='2026-11-20';OB.d.kelas='X';OB.d.jenis='Bengkel sekolah';toasts.length=0;S.observasi=[];obsSaveSiswa()`);
@@ -244,7 +244,7 @@ G(`S.observasi.push({id:'lama',tipe:'siswa',guru:'Lama',mapel:'X',kelas:'X',tang
 ok(!/Detail observasi v2/.test(G('viewObservasi()')) && /Detail observasi/.test(G('viewObservasi()')), 'catatan formulir lama tetap memakai detail lama');
 // ubah catatan v2 membawa d.v2
 const dd = G(`obsDraftDari(S.observasi[0])`);
-ok(dd.v2 === 'LKPD-X-07' && dd.lama2 === true && dd.nilai.k3 === undefined && dd.nilai.i0 === 1, 'Ubah catatan v2 format lama: modul dan indikator dipulihkan, aspek diisi ulang (skala + nilai)');
+ok(dd.v2 === 'LKPD-X-07' && dd.lama2 === true && dd.nilai.k3 === undefined && dd.nilai.i0 === undefined && dd.nilai._fi === 2, 'Ubah catatan v2 format lama: modul dipulihkan, aspek dan indikator diisi ulang (skala + nilai)');
 // PDF v2: jsPDF palsu merekam isi
 run(`
 var __pdf={rows:[],texts:[],saved:'',heads:[]};
@@ -277,7 +277,7 @@ ok(G('__book.pairs.length') === 1 && G('__book.pairs[0][0]') === 'Rekap Observas
 G(`S.observasi=[];__book=null;`);
 
 /* ---------- Format baru: skala 1-4 + nilai berentang (seperti Observasi UKK) ---------- */
-const L = (o) => { const r = {}; for (const [id, [l, v]] of Object.entries(o)) { r['l_' + id] = l; r[id] = v; } for (let i = 0; i < 8; i++) r['i' + i] = 1; return r; };
+const L = (o, il = 3, iv = 80) => { const r = { _fi: 2 }; for (const [id, [l, v]] of Object.entries(o)) { r['l_' + id] = l; r[id] = v; } for (let i = 0; i < 8; i++) { r['l_i' + i] = il; r['i' + i] = iv; } return r; };
 const baru4 = L({ k3: [4, 100], prosedur: [4, 100], hasil: [4, 100], waktu: [4, 100], '5r': [4, 100], sikap: [4, 100] });
 h = hit(baru4);
 ok(h.baru === true && h.nilai === 100 && h.kompeten && h.lengkap, 'format baru: semua skala 4 nilai 100 = 100, kompeten');
@@ -300,10 +300,10 @@ sama([G(`obsKatCls('Sangat Kompeten')`), G(`obsKatCls('Kompeten')`), G(`obsKatCl
 // tampilan
 G(`OB.tipe='siswa';OB.d=obsBaru('siswa');OB.d.pilih=['s1'];OB.d.man=[];OB.mode='form';OB.d.v2='LKPD-X-07';OB.d.per={};OB.d.nilai={};OB.d.cat={};OB.d.cur='';obsEnsure(OB.d)`);
 html = G('obsStuHtml(OB.d)');
-ok((html.match(/data-act="ob2-rate"/g) || []).length === 24 && (html.match(/class="seg rate"/g) || []).length === 6, 'formulir baru: 6 aspek x tombol skala 1-4');
-ok((html.match(/class="obu-nil ob2-nil"[^>]*placeholder="Nilai" disabled/g) || []).length === 6, 'kolom nilai terkunci sampai skala dipilih');
+ok((html.match(/data-act="ob2-rate"/g) || []).length === 56 && (html.match(/class="seg rate"/g) || []).length === 14, 'formulir baru: 6 aspek + 8 indikator, masing-masing tombol skala 1-4');
+ok((html.match(/class="obu-nil ob2-nil"[^>]*placeholder="Nilai" disabled/g) || []).length === 14, 'kolom nilai terkunci sampai skala dipilih (aspek dan indikator)');
 ok(/Pilih 1-4 sesuai kriteria/.test(html) && /Kriteria skala/.test(html) && /Keterangan \(opsional\)/.test(html), 'keterangan skala, kriteria, dan keterangan opsional tampil');
-ok(/id="ob2prog2">0<\/span> \/ 6 terisi/.test(html) && /Belum diisi/.test(html) && /data-act="ob-save">Simpan/.test(html) && /Nilai -/.test(html), 'bar bawah: 0 / 6 terisi, Belum diisi, Simpan, Nilai -');
+ok(/id="ob2prog2">0<\/span> \/ 14 terisi/.test(html) && /Belum diisi/.test(html) && /data-act="ob-save">Simpan/.test(html) && /Nilai -/.test(html), 'bar bawah: 0 / 6 terisi, Belum diisi, Simpan, Nilai -');
 G(`OB.d.nilai={l_k3:3,k3:80}`);
 html = G('obsStuHtml(OB.d)');
 ok(/min="75" max="90" placeholder="Nilai 75-90"/.test(html) && /Kompeten: 75-90/.test(html) && /value="80"/.test(html) && /id="ob2prog2">1<\/span> \/ 6 terisi/.test(html) && /Lengkap, diingatkan 1 kali/.test(html), 'skala 3: rentang 75-90, nilai tersimpan, deskriptor skala tampil, terisi 1 / 6');
@@ -311,6 +311,19 @@ G(`OB.d.nilai={l_k3:3,k3:60}`);
 ok(/aria-invalid="true"/.test(G('obsStuHtml(OB.d)')) && /ob2-ket bad/.test(G('obsStuHtml(OB.d)')) && /id="ob2prog2">0<\/span>/.test(G('obsStuHtml(OB.d)')), 'nilai di luar rentang ditandai tidak valid dan tidak dihitung');
 G(`OB.d.nilai={l_k3:1,k3:40}`);
 ok(!/class="ob2-stop card" hidden/.test(G('obsStuHtml(OB.d)').split('data-a="prosedur"')[0]), 'peringatan K3 skala 1 tampil');
+
+// indikator berskala
+h = hit(L({ k3: [4, 100], prosedur: [4, 100], hasil: [4, 100], waktu: [4, 100], '5r': [4, 100], sikap: [4, 100] }, 2, 70));
+ok(h.fi === true && h.doneI === 8 && h.kom === 0 && h.kompeten === false && h.lengkap === true && h.tDone === 14 && h.nilai === 100, 'indikator skala 2 (nilai 70) terisi tetapi belum tercapai: tidak kompeten, nilai akhir tidak berubah');
+h = hit(L({ k3: [4, 100], prosedur: [4, 100], hasil: [4, 100], waktu: [4, 100], '5r': [4, 100], sikap: [4, 100] }, 4, 95));
+ok(h.kom === 8 && h.kompeten === true, 'indikator skala 4 tercapai semua = kompeten');
+h = hit(Object.assign({}, baru4, { i3: 70 }));
+ok(h.doneI === 7 && h.lengkap === false && h.tDone === 13, 'nilai indikator di luar rentang skala tidak dihitung dan menahan Simpan');
+h = hit(Object.assign({}, baru4, { l_i2: 1, i2: 50 }));
+ok(h.doneI === 8 && h.kom === 7 && h.kompeten === false, 'satu indikator berskala 1 = belum kompeten');
+const lamaInd = Object.assign({}, baru4, { _fi: undefined }); for (let i = 0; i < 8; i++) { delete lamaInd['l_i' + i]; lamaInd['i' + i] = 1; }
+h = hit(lamaInd);
+ok(h.fi === false && h.kom === 8 && h.lengkap === true, 'catatan rilis sebelumnya (indikator kotak centang) tetap terbaca');
 
 // simpan format baru dan baca lagi
 G(`S.observasi=[];OB.d.pilih=['s1','s2'];OB.d.per={};OB.d.cur='';OB.d.nilai={};OB.d.cat={};obsEnsure(OB.d);OB.d.mapel='';OB.d.tanggal='2026-11-21';OB.d.kelas='X';OB.d.jenis='Bengkel sekolah'`);
