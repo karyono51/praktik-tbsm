@@ -147,8 +147,8 @@ viewLKPD=function(){
  if(LK.detail||LK.editor||['materi','kerja','evaluasi'].indexOf(LK.tab)<0)return h;
  var m=lkmCur();if(!m)return h;
  var c=lkmCfg(m),lock=lkmLock(m),t;
- if(c.mode==='latihan')t='<b>Mode Latihan</b> · boleh diulang tanpa batas, nilai tidak masuk rekap'+(c.showKey?', pembahasan bisa dilihat di tab Evaluasi.':'.');
- else t='<b>Mode Ujian</b> · nilai masuk rekap dan dikoreksi guru'+(c.maxTry?'. Kesempatan mengirim '+c.maxTry+' kali'+(isStaff()?'':' (terpakai '+lkmUsed(m)+')'):'')+(c.tutup?'. Ditutup '+lkEsc(lkmFmt(c.tutup)):'')+'.';
+ if(c.mode==='latihan')t='<b>Mode Latihan</b> Boleh diulang tanpa batas, nilai tidak masuk rekap'+(c.showKey?', pembahasan bisa dilihat di tab Evaluasi.':'.');
+ else t='<b>Mode Ujian</b> Nilai masuk rekap dan dikoreksi guru'+(c.maxTry?'. Kesempatan mengirim '+c.maxTry+' kali'+(isStaff()?'':' (terpakai '+lkmUsed(m)+')'):'')+(c.tutup?'. Ditutup '+lkEsc(lkmFmt(c.tutup)):'')+'.';
  if(lock)t+=' <b>'+lkEsc(lock)+'.</b>';
  var siswaView=!isStaff()||LK.preview;
  if(siswaView)h=lkmFilter(h,c);

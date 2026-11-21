@@ -452,3 +452,20 @@ fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);out
  .tablewrap .lk2-t td.lk2-rl::before{display:none}
  .tablewrap .lk2-t td.lk2-calc .lk2-hit{display:flex;align-items:center;min-height:42px;padding:0 12px;border-radius:11px;background:var(--accent-soft);color:var(--ink);font-weight:700}
 }
+
+/* LKPD v2: bilah aksi ringkas (progres dan cadangan dilipat) */
+.lk2-more{border-top:1px solid var(--line);padding-top:4px}
+.lk2-more>summary{cursor:pointer;list-style:none;font-size:13px;font-weight:600;color:var(--muted);padding:6px 2px;display:flex;justify-content:space-between;align-items:center}
+.lk2-more>summary::-webkit-details-marker{display:none}
+.lk2-more>summary::after{content:"\25B4";transition:transform .15s}
+.lk2-more[open]>summary::after{transform:rotate(180deg)}
+.lk2-more .lk-progress{margin:4px 0 8px}
+.lk2-bk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.lk2-bk .btn{white-space:normal;text-align:center;font-size:13px;line-height:1.25;display:flex;align-items:center;justify-content:center;min-height:40px}
+.lk2-more .note{margin:8px 0 2px;font-size:12px}
+
+/* LKPD v2: rapatkan judul bagian dan isian pemeriksaan di ponsel */
+.lk2-p h4{margin:16px 0 6px}
+.lk2-cek .formgrid{gap:8px 10px}
+@media(max-width:560px){.lk2-cek .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.lk2-cek .formgrid>label:nth-child(n+3){grid-column:1/-1}}
