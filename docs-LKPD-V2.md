@@ -39,3 +39,11 @@ Modul v2 dimuat sebagai Draft. Guru menerbitkan lewat tombol Terbitkan di daftar
 - Editor v2 belum ada; perubahan isi modul v2 dilakukan di berkas data.
 - Kunci gerbang dan kunci soal isian ikut di data modul (terbaca di sisi klien, sama seperti kunci soal lain).
 - Belum diuji dengan Appwrite dan peramban sungguhan; uji di lingkungan uji dulu.
+
+## Gerbang masuk bentuk PG (HOTS, bentuk soal TKA)
+- Gerbang LKPD-X-07 kini 5 soal: 3 PG (5 pilihan, 1 kunci), 1 PG kompleks (kunci minimal 2), 1 PG kategori (Benar/Salah). Semua soal tunggal berstimulus dan berlevel Aplikasi atau Penalaran (`lvl`). Format soal sama dengan `m.quiz`: `{t:'pg'|'kompleks'|'kategori', q, o, a, e}` atau `rows` untuk kategori.
+- Jawaban gerbang PG disimpan di `q100` sampai `q104` (indeks 100 ke atas) agar tidak bertabrakan dengan soal F4 (`q0` sampai `q7`). Dibaca pembaca jawaban dan dinilai fungsi soal yang ada (`lkpd-soal.js`). Soal gerbang isian lama (`q` + `kunci` teks, `gate<i>`) tetap didukung.
+- Benar bila semua pilihan tepat (kompleks dan kategori tidak ada nilai sebagian). Lembar Kerja terbuka bila kelima soal terjawab; kelulusan memakai `gate.min` (4 dari 5).
+- Detail guru: jawaban siswa, kunci, pembahasan, dan level tampil; kotak Jawaban benar terisi otomatis dari penilaian sebelum guru menyimpan verifikasi, dan dapat diubah.
+- Catatan: draf yang dikerjakan dengan gerbang isian lama tidak terbaca sebagai jawaban PG; siswa perlu menjawab ulang gerbang.
+- Uji: `node tools/uji-lkpd-v2.mjs` (124 uji).

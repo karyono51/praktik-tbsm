@@ -43,17 +43,11 @@ function lkProgress(){return '<span>orig</span>'}
 var SUBMITTED=0;function lkSubmit(){SUBMITTED++}
 function viewLKPD(){return 'ORIG-VIEW'}
 function lkDetailBody(){return 'ORIG-DETAIL'}
-function lkqType(q){return q&&q.t==='kompleks'?'kompleks':q&&q.t==='kategori'?'kategori':'pg'}
-function lkqAnswered(q,a){return typeof a==='number'}
-function lkqPoint(q,a){return a===q.a?1:0}
-function lkqValid(q){return !!(q&&q.q&&Array.isArray(q.o))}
-function lkqAnsText(q,a){return 'orig'}function lkqKeyText(q){return 'orig'}
-function lkqVerdict(q,a){return typeof a==='number'?['ok','Benar']:['warn','Belum dijawab']}
-function lkqRender(q,i,d){return '<div>pg</div>'}
 function lkqQuizHtml(m,d){return m.quiz.map(function(q,i){return lkqRender(q,i,d)}).join('')}
-function lkqDetail(q,i,a){return '<p>'+(i+1)+'. '+lkqVerdict(q,a)[1]+'</p>'}
 var LKPD_MODULES=[];
 `, 'stub-lkpd');
+/* Fungsi soal asli (lkpd-soal.js, sebelum bagian pemasangan) dimuat apa adanya agar PG, kompleks, dan kategori dinilai seperti di aplikasi. */
+run(src('lkpd-soal.js').split('/* ---------- Pemasangan ke mesin LKPD ---------- */')[0], 'lkpd-soal-inti.js');
 run(src('lkpd-v2-x07.js'), 'lkpd-v2-x07.js');
 run(`LKPD_MODULES=JSON.parse(JSON.stringify(LKPD_EXTRA_MODULES));`, 'jalur-modul');
 run(src('lkpd-v2.js'), 'lkpd-v2.js');
@@ -86,8 +80,27 @@ const pct = G(`lk2TabelPct(LKPD_MODULES[0],${JSON.stringify(d1)})`);
 ok(pct > 0 && pct < 1, 'tabel terisi sebagian = antara 0 dan 1');
 
 /* ---------- Gerbang ---------- */
-sama(G(`lk2Gate(LKPD_MODULES[0],{gate0:'Diameter dalam',gate1:'ab'}).n`), 1, 'gerbang: jawaban <3 huruf tidak dihitung');
-ok(G(`lk2Gate(LKPD_MODULES[0],{gate0:'aaa',gate1:'aaa',gate2:'aaa',gate3:'aaa',gate4:'aaa'}).ok`) === true, 'gerbang terbuka bila 5 terjawab');
+const GQ = M.v2.gate.qs;
+const gKunci = { q100: 1, q101: 3, q102: [0, 2], q103: { 0: true, 1: false, 2: true, 3: false, 4: true }, q104: 2 };
+sama(GQ.map((q) => q.t), ['pg', 'pg', 'kompleks', 'kategori', 'pg'], 'gerbang: 5 soal bentuk TKA (PG, PG, kompleks, kategori, PG)');
+ok(GQ.every((q) => q.o ? q.o.length === 5 : q.rows.length >= 3 && q.rows.length <= 6), 'gerbang: PG dan kompleks 5 pilihan, kategori 3 sampai 6 pernyataan');
+ok(GQ.every((q) => ['Aplikasi', 'Penalaran'].includes(q.lvl)), 'gerbang: semua level HOTS (Aplikasi/Penalaran)');
+ok(GQ.every((q) => q.q.length > 90 && q.e), 'gerbang: tiap soal bersetimulus dan berpembahasan');
+ok(GQ.filter((q) => q.t === 'pg').every((q) => Number.isInteger(q.a) && q.a < 5) && GQ[2].a.length >= 2, 'gerbang: PG 1 kunci, kompleks minimal 2 kunci');
+sama(GQ.filter((q) => q.t === 'pg').map((q) => q.a), [1, 3, 2], 'gerbang: kunci PG tersebar (B, D, C)');
+ok(GQ.every((q) => G(`lkqValid(LKPD_MODULES[0].v2.gate.qs[${GQ.indexOf(q)}])`) === true), 'gerbang: lolos lkqValid');
+sama(G(`lk2Gate(LKPD_MODULES[0],{}).n`), 0, 'gerbang: kosong = 0 terjawab');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify(gKunci)})`), { n: 5, total: 5, ok: true, benar: 5 }, 'gerbang: semua kunci = 5 terjawab, 5 benar');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q100: 0 })}).benar`), 4, 'gerbang: satu PG salah = 4 benar');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q102: [0] })}).benar`), 4, 'gerbang: kompleks sebagian = tidak benar (semua kunci harus tepat)');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q102: [0, 1, 2] })}).benar`), 4, 'gerbang: kompleks dengan pilihan salah = tidak benar');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q103: { 0: true, 1: false, 2: true, 3: true, 4: true } })}).benar`), 4, 'gerbang: kategori satu pernyataan salah = tidak benar');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q103: { 0: true, 1: false } })})`).n, 4, 'gerbang: kategori belum lengkap = belum terjawab');
+sama(G(`lk2Gate(LKPD_MODULES[0],{q100:1,q101:3})`).ok, false, 'gerbang: 2 dari 5 terjawab = terkunci');
+sama(G(`lk2Gate(LKPD_MODULES[0],{q0:1,q1:3,q2:1,q3:1,q4:1}).n`), 0, 'gerbang: jawaban soal F4 (q0-q7) tidak bercampur dengan gerbang');
+/* soal gerbang lama (isian teks) tetap didukung */
+run(`var _lamaM={v2:{gate:{min:1,qs:[{q:'x',kunci:'y'},{q:'z',kunci:'w'}]}}};`, 'gerbang-lama');
+sama(G(`lk2Gate(_lamaM,{gate0:'Diameter dalam',gate1:'ab'}).n`), 1, 'gerbang lama: jawaban <3 huruf tidak dihitung');
 
 /* ---------- Soal isian ---------- */
 const Q = (id) => M.quiz.find((q) => q.id === id);
@@ -106,7 +119,7 @@ const penuh = {};
 M.steps.forEach((s, i) => (penuh['step' + i] = true));
 M.safety.forEach((s, i) => (penuh['safe' + i] = true));
 M.checks.forEach((c, i) => { penuh['row' + i] = true; penuh['actual' + i] = '1'; });
-M.v2.gate.qs.forEach((q, i) => (penuh['gate' + i] = 'jawaban lengkap'));
+Object.assign(penuh, gKunci);
 M.v2.analisis.forEach((q, i) => (penuh['ana' + i] = 'analisis yang cukup panjang'));
 M.v2.tabel.forEach((t) => t.baris.forEach((b, r) => t.kol.forEach((k) => { if (k.t !== 'rata' && k.t !== 'selisih') penuh[`t_${t.id}_${r}_${k.k}`] = k.t === 'status' ? 'Sesuai' : '1'; })));
 M.quiz.forEach((q, i) => (penuh['q' + i] = String(q.kunci).replace('.', ',')));
@@ -162,10 +175,15 @@ const payload = Object.assign({}, penuh, rd, { student: 'Budi', school: 'SMKS Me
 G(`STAFF=true`);
 const det = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(payload)})`);
 ok(/Gerbang masuk/.test(det) && /data-lk2v="g0"/.test(det) && /data-lk2v="s2"/.test(det) && /data-lk2v="a0"/.test(det) && /lk2-verif/.test(det), 'Detail guru memuat kotak verifikasi gerbang, saksi, dan APD');
-ok(/Kunci: Diameter dalam dan kedalaman/.test(det), 'kunci gerbang tampil untuk guru');
+ok(/Kunci: B\. rahang bawah, rahang atas, batang kedalaman/.test(det) && /Kunci: C\. dan |Kunci: A\./.test(det), 'kunci gerbang PG tampil untuk guru');
+ok(/Penalaran/.test(det) && /Aplikasi/.test(det), 'Detail guru menampilkan level soal gerbang');
+const detAuto = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, payload, { v2: { ver: 2 } }))})`);
+ok((detAuto.match(/data-lk2v="g\d" checked/g) || []).length === 5 && /5 dari 5 benar[^<]*\(syarat minimal 4\): <b>lulus/.test(detAuto), 'sebelum diverifikasi, kotak Jawaban benar terisi otomatis dari penilaian PG');
+const detSalah = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, payload, { q100: 0, q104: 0, v2: { ver: 2 } }))})`);
+ok(/3 dari 5 benar[^<]*\(syarat minimal 4\): <b>belum lulus/.test(detSalah), '3 dari 5 benar = belum lulus');
 G(`STAFF=false`);
 const detS = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, payload, { v2: Object.assign({}, rd.v2, { verif: { g: { 0: 1, 1: 1, 2: 1, 3: 1 }, s: { 2: 1 }, a: {}, ts: 1, by: 'Guru' } }) }))})`);
-ok(!/data-lk2v/.test(detS) && !/Kunci: Diameter/.test(detS), 'siswa tidak melihat kunci dan kotak verifikasi');
+ok(!/data-lk2v/.test(detS) && !/Kunci: B\./.test(detS), 'siswa tidak melihat kunci dan kotak verifikasi');
 ok(/4 dari 5 benar[^<]*\(syarat minimal 4\): <b>lulus/.test(detS), 'Detail menghitung gerbang 4/5 = lulus');
 
 /* ---------- Observasi v2 (memakai observasi.js asli) ---------- */

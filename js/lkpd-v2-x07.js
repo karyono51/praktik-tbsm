@@ -70,11 +70,21 @@
    k3grup:[{judul:'Alat pelindung diri (APD)',i:[0,1,2,3]},{judul:'Persiapan diri dan area kerja',i:[4,5,6]},{judul:'Larangan saat praktik',i:[7]},{judul:'Kebersihan dan keadaan darurat',i:[8,9]}],
    cekK:[1,1,2,2,3,3,4],
    gate:{min:4,qs:[
-    {q:'Sebutkan dua pengukuran jangka sorong selain diameter luar.',kunci:'Diameter dalam dan kedalaman.'},
-    {q:'Berapa ketelitian mikrometer dan berapa mm satu putaran bidalnya?',kunci:'0,01 mm; satu putaran bidal = 0,5 mm (50 bagian × 0,01 mm).'},
-    {q:'Apa yang harus dilakukan pada alat ukur sebelum mengukur?',kunci:'Bersihkan permukaan ukur dan periksa posisi nol (serta kondisi fisik alat).'},
-    {q:'Mengapa pemutar gelitik mikrometer harus dipakai?',kunci:'Agar tekanan ukur selalu sama, hasil konsisten, dan alat atau benda tidak rusak.'},
-    {q:'Sebutkan dua hal yang tidak boleh dilakukan pada alat ukur presisi.',kunci:'Terima dua dari: dijatuhkan, dipakai memukul atau mencongkel, digores, mengukur benda panas, disimpan kotor, mikrometer disimpan terkunci rapat.'}
+    {t:'pg',lvl:'Aplikasi',q:'Seorang siswa mengukur tiga hal pada satu piston: (1) diameter luar pin piston, (2) diameter dalam lubang bos pin, dan (3) kedalaman alur ring. Bagian jangka sorong yang dipakai secara berurutan adalah ...',
+     o:['rahang atas, rahang bawah, batang kedalaman','rahang bawah, rahang atas, batang kedalaman','rahang bawah, batang kedalaman, rahang atas','batang kedalaman, rahang atas, rahang bawah','rahang atas, batang kedalaman, rahang bawah'],a:1,
+     e:'Diameter luar: rahang bawah; diameter dalam: rahang atas; kedalaman: batang kedalaman.'},
+    {t:'pg',lvl:'Aplikasi',q:'Mikrometer luar berketelitian 0,01 mm menunjuk nol saat tertutup. Bidal lalu diputar membuka sebanyak 2 putaran penuh ditambah 30 bagian. Bukaan antara landasan dan poros ukur adalah ...',
+     o:['1,03 mm','2,30 mm','3,00 mm','1,30 mm','0,60 mm'],a:3,
+     e:'2 putaran × 0,5 mm = 1,00 mm; 30 bagian × 0,01 mm = 0,30 mm; jumlah 1,30 mm.'},
+    {t:'kompleks',lvl:'Penalaran',q:'Sebelum mengukur pin piston, rahang jangka sorong (ketelitian 0,05 mm) dirapatkan. Garis nol nonius bergeser sedikit ke kanan dari garis nol skala utama dan garis nonius ke-1 yang berimpit. Setelah itu pin terbaca 22,40 mm. Pilih semua pernyataan yang benar.',
+     o:['Penyimpangan nol bernilai +0,05 mm sehingga hasil ukur terbaca lebih besar dari ukuran sebenarnya.','Ukuran sebenarnya pin piston adalah 22,45 mm.','Ukuran sebenarnya pin piston adalah 22,35 mm.','Penyimpangan 0,05 mm tidak perlu dikoreksi karena akan hilang bila pin diukur tiga kali lalu dirata-rata.','Penyimpangan nol tidak perlu dicatat selama alat dipakai oleh orang yang sama.'],a:[0,2],
+     e:'Nol terbaca +0,05 mm: hasil benar = 22,40 − 0,05 = 22,35 mm. Rata-rata tidak menghilangkan kesalahan sistematis; penyimpangan nol selalu dicatat dan dikoreksi.'},
+    {t:'kategori',lvl:'Penalaran',q:'Dua siswa mengukur pin piston yang sama dengan mikrometer. Siswa A memutar bidal memakai pemutar gelitik sampai berbunyi klik dan memperoleh 21,98 mm. Siswa B memutar bidal kuat-kuat sampai tidak dapat berputar dan memperoleh 21,94 mm. Tentukan setiap pernyataan Benar atau Salah.',
+     rows:[['Pemutar gelitik membatasi tekanan ukur sehingga tekanan pada tiap pengukuran relatif sama.',true],['Hasil siswa B lebih akurat karena tekanan yang lebih kuat menghilangkan celah antara benda dan permukaan ukur.',false],['Selisih 0,04 mm antara hasil siswa A dan B dapat berasal dari perbedaan tekanan ukur.',true],['Pemutar gelitik hanya dipakai saat memeriksa nol; saat mengukur benda, bidal boleh diputar langsung.',false],['Memutar bidal dengan paksa dapat merusak ulir atau permukaan ukur dan menurunkan ketelitian alat.',true]],lab:['Benar','Salah'],
+     e:'Gelitik membatasi tekanan ukur. Tekanan berlebih mendeformasi benda dan alat sehingga hasil B lebih kecil dan kurang akurat. Gelitik dipakai setiap kali menutup poros, termasuk saat mengukur benda.'},
+    {t:'pg',lvl:'Penalaran',q:'Setelah praktik, sebuah mikrometer disimpan dengan poros dirapatkan lalu dikunci kuat pada landasan. Permukaan ukurnya digosok amplas agar mengilap, dan alat tidak diolesi apa pun. Dua minggu kemudian nol alat bergeser dan permukaan ukur berbintik karat. Perawatan yang benar adalah ...',
+     o:['permukaan ukur diamplas halus, lalu poros dikunci rapat agar tidak bergerak di dalam kotak','alat diolesi oli tebal sampai seluruh permukaan tertutup, lalu poros dirapatkan dan dikunci','alat dilap bersih, diolesi oli tipis, poros direnggangkan sedikit tanpa dikunci rapat, lalu disimpan di kotak','alat dibiarkan terbuka di meja kerja agar kering oleh udara tanpa diolesi apa pun','alat dicuci dengan air dan sabun, dikeringkan di dekat mesin yang panas, lalu dikunci rapat'],a:2,
+     e:'Lap bersih, oli tipis, poros direnggangkan (tidak dikunci rapat), simpan di kotak, tanpa amplas.'}
    ]},
    tabel:[
     {id:'F1',k:1,judul:'F1 · Jangka sorong (mm)',baris:['Diameter luar','Diameter dalam','Kedalaman'],labelBaris:'Jenis ukur',
