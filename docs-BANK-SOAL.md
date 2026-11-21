@@ -96,3 +96,11 @@ Berkas: `js/bank-kelompok.js` (dimuat setelah `akademik.js`, sebelum `bank-filte
 - Berlaku di: filter Mapel pada tab Bank soal (guru/admin, dengan jumlah soal per mapel), Atur latihan siswa (hanya mapel yang punya soal untuk kelas siswa, dengan jumlah soal), filter Mapel di Riwayat latihan, daftar saran mapel di form soal, dan chip "Batasi mata pelajaran" di sesi ujian.
 - Judul LKPD dikenali dari awalan `LKPD X-`, `LKPD XI-`, `LKPD XII-`; bukan mata pelajaran, jadi ditaruh di kelompok LKPD sendiri.
 - Mapel bawaan: Bahasa Indonesia (Umum), Matematika dan Bahasa Inggris (Kejuruan), Dasar TBSM (Dasar-Dasar Program Keahlian).
+
+## Tata Kelola Bank Soal (v59)
+Berkas: `js/bank-tata.js` (dimuat setelah `bank-pilihan.js`, sebelum `bank-filter.js`), uji: `node tools/uji-tata-bank.mjs`. Tidak ada perubahan koleksi atau atribut Appwrite.
+- Tombol **Tata Kelola Bank Soal** di tab Bank soal (Guru dan Admin) membuka panel, seperti Tata Kelola LKPD dan UKK.
+- **Pemeriksaan kelengkapan** seluruh bank: total, aktif, nonaktif, siap latihan, siap ujian, belum sesuai aturan bentuk soal, tanpa kunci, tanpa pembahasan, tanpa topik, dan kelompok soal mirip. Soal buatan guru yang bermasalah tampil (8 teratas, yang mendesak dulu) dengan tombol **Ubah**. Soal bawaan tidak diperiksa.
+- **Aksi massal** untuk soal yang tampil sesuai filter (tanpa filter = seluruh bank): Aktifkan semua, Nonaktifkan semua, dan Peruntukan Latihan, Ujian, atau Latihan dan ujian. Tiap aksi meminta konfirmasi dengan jumlah soal; soal yang nilainya sudah sama dilewati. Soal belum sesuai aturan yang diberi peruntukan Ujian tetap hanya dipakai untuk latihan.
+- Penyimpanan memakai jalur yang sama dengan tombol per soal (`bsPut` untuk soal sendiri, `bsOverride` untuk soal bawaan), jadi sinkron dan antrean offline tidak berubah.
+- Impor, Template, dan Ekspor Excel tetap di tombol Bank soal dan mengikuti filter yang sama.
