@@ -74,7 +74,7 @@
    apd:[0,1,2,3],
    k3grup:[{judul:'Alat pelindung diri (APD)',i:[0,1,2,3]},{judul:'Persiapan diri dan area kerja',i:[4,5,6]},{judul:'Larangan saat praktik',i:[7]},{judul:'Kebersihan dan keadaan darurat',i:[8,9]}],
    cekK:[1,1,2,2,3,3,4],
-   gate:{min:4,qs:[
+   gate:{qs:[
     {t:'pg',lvl:'Aplikasi',q:'Seorang siswa mengukur tiga hal pada satu piston: (1) diameter luar pin piston, (2) diameter dalam lubang bos pin, dan (3) kedalaman alur ring. Bagian jangka sorong yang dipakai secara berurutan adalah ...',
      o:['rahang atas, rahang bawah, batang kedalaman','rahang bawah, rahang atas, batang kedalaman','rahang bawah, batang kedalaman, rahang atas','batang kedalaman, rahang atas, rahang bawah','rahang atas, batang kedalaman, rahang bawah'],a:1,
      e:'Diameter luar: rahang bawah; diameter dalam: rahang atas; kedalaman: batang kedalaman.'},

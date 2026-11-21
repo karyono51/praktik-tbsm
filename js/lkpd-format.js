@@ -8,6 +8,8 @@
    Dipanggil oleh lkpd-cetak.js (window.lkfBangun). Bila gagal, lkpd-cetak.js memakai format lama. Nomor halaman memakai @page margin box
    (Chrome 131+, Edge, Android Chrome terbaru); peramban lama mencetak tanpa nomor halaman. */
 (function(){
+/* KKM gerbang masuk (minimal 75); memakai lk2KkmGerbang dari lkpd-v2.js bila sudah dimuat. */
+function kkG(){return typeof lk2KkmGerbang==='function'?lk2KkmGerbang():75}
 var HIJAU='#1b5e20';
 var CSS='@media print{'+
 '#lk-print,#lk-print *{-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
@@ -111,12 +113,12 @@ function waktu(d,n){return '<p class="lkf-wkt">Waktu aktual pertemuan '+n+': '+f
 /* ---------- v2 ---------- */
 function gerbang(m,d){
  var V=m.v2,qs=V.gate.qs,off=typeof LK2_GOFF!=='undefined'?LK2_GOFF:100;
- var h='<h2 class="lkf-h">Gerbang masuk praktik</h2><p>Kerjakan semua soal secara mandiri sebelum praktik. Guru memeriksa jawabanmu; syarat lulus minimal '+V.gate.min+' dari '+qs.length+' soal benar. Soal bentuk pilihan ganda kompleks dan benar/salah dinyatakan benar bila semua pilihannya tepat.</p>';
+ var h='<h2 class="lkf-h">Gerbang masuk praktik</h2><p>Kerjakan semua soal secara mandiri sebelum praktik. Soal dinilai seperti soal TKA: pilihan ganda benar bernilai 1; pilihan ganda kompleks dan benar/salah bernilai sebagian sesuai pilihan yang tepat. Lembar Kerja dibuka bila nilai gerbang minimal '+kkG()+'.</p>';
  qs.forEach(function(q,i){
   if(q.o||q.rows)h+=soal(q,i+1,d['q'+(off+i)],{tipe:1});
   else h+='<div class="lkf-q"><p><b>'+(i+1)+'. '+E(q.q)+'</b></p>'+garis(d['gate'+i])+'</div>';
  });
- return h+'<p>Skor gerbang: '+fill('',16)+' dari '+qs.length+' &nbsp; '+box(false)+' Lulus &nbsp; '+box(false)+' Belum lulus (ulangi setelah belajar lagi) &nbsp; Paraf guru: '+fill('',18)+'</p>';
+ return h+'<p>Nilai gerbang: '+fill('',12)+' (dari 100; KKM '+kkG()+') &nbsp; '+box(false)+' Lulus &nbsp; '+box(false)+' Belum lulus (ulangi setelah belajar lagi) &nbsp; Paraf guru: '+fill('',18)+'</p>';
 }
 function k3v2(m,d){
  var V=m.v2,g=V.k3grup||[{judul:'',i:m.safety.map(function(x,i){return i})}],apd=V.apd||[];
@@ -258,12 +260,12 @@ function kunciBangun(m){
  var S0=typeof SEK!=='undefined'?SEK:{nama:''},ju=String(m.title||'').replace(/\s*\([^)]*\)\s*$/,'');
  var h='<div class="lkf">'+footStyle(m,{},'Kunci gerbang masuk · LKPD '+(V.judulPendek||m.id)+' · '+S0.nama+' (khusus guru)')+kop()+
   '<p class="lkf-jdl">KUNCI DAN PEMBAHASAN GERBANG MASUK (UNTUK GURU)</p>'+
-  '<p>LKPD '+E(ju)+' · '+(m.kelas==='X'?'DDPK ':'')+'Kelas '+E(m.kelas)+' · Syarat lulus minimal '+V.gate.min+' dari '+qs.length+' soal benar. <b>Dokumen ini tidak dibagikan kepada siswa.</b></p>'+
+  '<p>LKPD '+E(ju)+' · '+(m.kelas==='X'?'DDPK ':'')+'Kelas '+E(m.kelas)+' · Syarat lulus: nilai gerbang minimal '+kkG()+' (acuan TKA). <b>Dokumen ini tidak dibagikan kepada siswa.</b></p>'+
   '<h2 class="lkf-h">Ketentuan soal</h2><ul class="lkf-ul">'+
   '<li><b>Bentuk soal</b> mengikuti tiga bentuk TKA SMK: pilihan ganda (5 pilihan, 1 kunci), pilihan ganda kompleks (5 pilihan, kunci lebih dari 1), dan pilihan ganda kategori (pernyataan Benar/Salah). Semuanya soal tunggal; stimulus (kasus, data ukur) ada di dalam soal.</li>'+
   '<li><b>Level kognitif:</b> soal HOTS berada pada level Aplikasi dan Penalaran. Sebaran soal gerbang: '+ur.map(function(x){return lv[x]+' '+E(x)}).join(', ')+'.</li>'+
   '<li><b>Pengecoh</b> dibuat dari kesalahan umum siswa, bukan jawaban yang jelas keliru.</li>'+
-  '<li><b>Penskoran gerbang:</b> tiap soal benar = 1; soal kompleks dan kategori benar bila semua pilihan tepat.</li></ul>'+
+  '<li><b>Penskoran gerbang (acuan TKA):</b> PG benar = 1, salah = 0; PG kompleks = (pilihan benar terpilih − pilihan salah terpilih) ÷ jumlah kunci, minimal 0; PG kategori = pernyataan tepat ÷ jumlah pernyataan. Nilai gerbang = jumlah poin ÷ jumlah soal × 100; lulus bila minimal '+kkG()+' (KKM). Gerbang adalah syarat kelayakan masuk praktik, bukan komponen nilai akhir.</li></ul>'+
   '<h2 class="lkf-h">Kunci</h2><table class="lkf-t"><thead><tr><th style="width:9mm">No</th><th style="width:22mm">Bentuk</th><th style="width:20mm">Level</th><th style="width:26mm">Kunci</th><th>Pembahasan</th></tr></thead><tbody>'+
   qs.map(function(q,i){return '<tr><td class="k">'+(i+1)+'</td><td>'+E(BENTUK[tipeSoal(q)]||tipeSoal(q))+'</td><td>'+E(q.lvl||'')+'</td><td><b>'+kunciSoal(q)+'</b></td><td>'+E(q.e||'')+'</td></tr>'}).join('')+'</tbody></table>';
  if(V.peta&&V.peta.length)h+='<h2 class="lkf-h">Peta ke soal lama</h2><table class="lkf-t"><thead><tr><th>Soal lama (isian)</th><th>Soal baru</th></tr></thead><tbody>'+V.peta.map(function(x,i){return '<tr><td>'+(i+1)+'. '+E(x[0])+'</td><td>'+E(x[1])+'</td></tr>'}).join('')+'</tbody></table>';

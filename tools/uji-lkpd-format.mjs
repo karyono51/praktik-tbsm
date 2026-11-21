@@ -85,11 +85,11 @@ const urut = ['Pertanyaan pemantik', 'Materi', 'Gerbang masuk praktik', 'Alat da
 let pos = -1, urutOk = true; urut.forEach((u) => { const i = T.indexOf(u, pos + 1); if (i < 0) { urutOk = false; console.log('  tidak ditemukan/berurutan: ' + u); } else pos = i; });
 ok(urutOk, 'urutan bagian sama dengan PDF acuan');
 /* gerbang masuk */
-ok(/syarat lulus minimal 4 dari 5 soal benar/.test(T), 'syarat lulus gerbang');
+ok(/Lembar Kerja dibuka bila nilai gerbang minimal 75/.test(T) && !/4 dari 5/.test(T), 'syarat lulus gerbang: nilai minimal 75 (acuan TKA), bukan 4 dari 5');
 ok(/1\. \(Pilihan ganda\)/.test(T) && /3\. \(Pilihan ganda kompleks: jawaban benar lebih dari satu\)/.test(T) && /4\. \(Pilihan ganda kategori: Benar\/Salah\)/.test(T), 'label bentuk soal');
 ok(/☐ A\. Penyimpangan nol/.test(T), 'PG kompleks memakai kotak centang');
 ok(/Pernyataan Benar Salah/.test(T) && /class="k">☐<\/td><td class="k">☐/.test(kosong), 'PG kategori berupa tabel Benar/Salah');
-ok(/Skor gerbang:\s*(.*)dari 5 ☐ Lulus ☐ Belum lulus \(ulangi setelah belajar lagi\) Paraf guru/.test(T), 'baris skor gerbang');
+ok(/Nilai gerbang:\s*(.*)\(dari 100; KKM 75\) ☐ Lulus ☐ Belum lulus \(ulangi setelah belajar lagi\) Paraf guru/.test(T), 'baris nilai gerbang');
 /* K3 */
 ok(/Alat pelindung diri/.test(T) && (T.match(/Paraf: /g) || []).length === M.v2.apd.length, 'paraf hanya pada butir APD (' + M.v2.apd.length + ')');
 ok(/Cek kondisi alat sebelum dipakai ☐ Jangka sorong: permukaan ukur bersih/.test(T), 'cek kondisi alat memakai kotak centang');
@@ -132,7 +132,7 @@ ok(/#lk-print table\.lkf-ban td\{background:#1b5e20!important/.test(css) && /pri
 /* ---------- Kunci dan pembahasan gerbang masuk ---------- */
 const KH = ctx.lkfKunci(M), KT = teks(KH);
 ok(/KUNCI DAN PEMBAHASAN GERBANG MASUK \(UNTUK GURU\)/.test(KT), 'kunci: judul');
-ok(/LKPD Penggunaan dan Perawatan Alat Ukur · DDPK Kelas X · Syarat lulus minimal 4 dari 5 soal benar\. Dokumen ini tidak dibagikan kepada siswa\./.test(KT), 'kunci: keterangan dan larangan dibagikan');
+ok(/LKPD Penggunaan dan Perawatan Alat Ukur · DDPK Kelas X · Syarat lulus: nilai gerbang minimal 75 \(acuan TKA\)\. Dokumen ini tidak dibagikan kepada siswa\./.test(KT), 'kunci: keterangan dan larangan dibagikan');
 ok(/Ketentuan soal/.test(KT) && /Sebaran soal gerbang: 3 Aplikasi, 2 Penalaran/.test(KT) && /Penskoran gerbang/.test(KT) && /Pengecoh dibuat/.test(KT), 'kunci: ketentuan soal dan sebaran level dihitung dari data');
 ok(/No Bentuk Level Kunci Pembahasan/.test(KT), 'kunci: kepala tabel');
 ok(/1 PG Aplikasi B /.test(KT) && /2 PG Aplikasi D /.test(KT) && /3 PG kompleks Penalaran A dan C /.test(KT) && /5 PG Aplikasi C /.test(KT), 'kunci: kunci PG dan PG kompleks sesuai data');

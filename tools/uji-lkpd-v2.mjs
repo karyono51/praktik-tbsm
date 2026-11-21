@@ -90,17 +90,39 @@ ok(GQ.filter((q) => q.t === 'pg').every((q) => Number.isInteger(q.a) && q.a < 5)
 sama(GQ.filter((q) => q.t === 'pg').map((q) => q.a), [1, 3, 2], 'gerbang: kunci PG tersebar (B, D, C)');
 ok(GQ.every((q) => G(`lkqValid(LKPD_MODULES[0].v2.gate.qs[${GQ.indexOf(q)}])`) === true), 'gerbang: lolos lkqValid');
 sama(G(`lk2Gate(LKPD_MODULES[0],{}).n`), 0, 'gerbang: kosong = 0 terjawab');
-sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify(gKunci)})`), { n: 5, total: 5, ok: true, benar: 5 }, 'gerbang: semua kunci = 5 terjawab, 5 benar');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify(gKunci)})`), { n: 5, total: 5, ok: true, benar: 5, auto: true, poin: 5, nilai: 100, kkm: 75, lulus: true }, 'gerbang: semua kunci = 5 terjawab, 5 benar, nilai 100, lulus');
+ok(M.v2.gate.min === undefined, 'gerbang: kriteria 4 dari 5 (gate.min) sudah dihapus dari data');
 sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q100: 0 })}).benar`), 4, 'gerbang: satu PG salah = 4 benar');
-sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q102: [0] })}).benar`), 4, 'gerbang: kompleks sebagian = tidak benar (semua kunci harus tepat)');
-sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q102: [0, 1, 2] })}).benar`), 4, 'gerbang: kompleks dengan pilihan salah = tidak benar');
-sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q103: { 0: true, 1: false, 2: true, 3: true, 4: true } })}).benar`), 4, 'gerbang: kategori satu pernyataan salah = tidak benar');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q102: [0] })}).benar`), 4, 'gerbang: kompleks sebagian = bukan benar penuh');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q102: [0] })}).nilai`), 90, 'gerbang TKA: kompleks 1 dari 2 kunci = poin 0,5 (nilai 90)');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q102: [0, 1, 2] })}).benar`), 4, 'gerbang: kompleks dengan pilihan salah = bukan benar penuh');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q102: [0, 1, 2] })}).nilai`), 90, 'gerbang TKA: kompleks 2 kunci terpilih + 1 pilihan salah = (2-1)/2 = poin 0,5 (nilai 90)');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q103: { 0: true, 1: false, 2: true, 3: true, 4: true } })}).benar`), 4, 'gerbang: kategori satu pernyataan salah = bukan benar penuh');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q103: { 0: true, 1: false, 2: true, 3: true, 4: true } })}).nilai`), 96, 'gerbang TKA: kategori 4 dari 5 pernyataan tepat = poin 0,8 (nilai 96)');
 sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q103: { 0: true, 1: false } })})`).n, 4, 'gerbang: kategori belum lengkap = belum terjawab');
-sama(G(`lk2Gate(LKPD_MODULES[0],{q100:1,q101:3})`).ok, false, 'gerbang: 2 dari 5 terjawab = terkunci');
+sama(G(`lk2Gate(LKPD_MODULES[0],{q100:1,q101:3})`).ok, false, 'gerbang: 2 dari 5 terjawab = belum semua terjawab');
+sama(G(`lk2Gate(LKPD_MODULES[0],{q100:1,q101:3})`).lulus, false, 'gerbang: 2 dari 5 terjawab (nilai 40) = terkunci');
+/* skenario nilai gerbang dengan acuan TKA dan KKM 75 */
+const gN = (o) => G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, ...o })})`);
+const kat4 = { 0: true, 1: false, 2: true, 3: true, 4: true }, kat3 = { 0: true, 1: false, 2: true, 3: true, 4: false };
+sama([gN({ q102: [1], q103: kat4 }).nilai, gN({ q102: [1], q103: kat4 }).lulus], [76, true], 'skenario: PG benar semua, kompleks 0, kategori 4/5 = 76 lulus (aturan lama 4 dari 5 menggagalkan)');
+sama([gN({ q102: [0], q103: kat3 }).nilai, gN({ q102: [0], q103: kat3 }).lulus], [82, true], 'skenario: PG benar semua, kompleks 1/2, kategori 3/5 = 82 lulus');
+sama([gN({ q102: [1], q103: kat3 }).nilai, gN({ q102: [1], q103: kat3 }).lulus], [72, false], 'skenario: PG benar semua, kompleks 0, kategori 3/5 = 72 belum lulus');
+sama([gN({ q101: 0, q103: kat4 }).nilai, gN({ q101: 0, q103: kat4 }).lulus], [76, true], 'skenario: 1 PG salah, kompleks penuh, kategori 4/5 = 76 lulus');
+sama([gN({ q101: 0, q102: [0], q103: gKunci.q103 }).nilai, gN({ q101: 0, q102: [0], q103: gKunci.q103 }).lulus], [70, false], 'skenario: 1 PG salah, kompleks 1/2, kategori penuh = 70 belum lulus');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ q100: 1, q101: 3, q102: [0, 2], q103: gKunci.q103 })})`).nilai, 80, 'soal belum dijawab bernilai 0 (4 soal benar = 80)');
+sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ q100: 1, q101: 3, q102: [0, 2], q103: gKunci.q103 })})`).lulus, true, 'nilai 80 meski satu soal belum dijawab = lulus (acuan TKA)');
+/* KKM gerbang tidak pernah di bawah 75 */
+G(`S.kkm=60`); sama(G(`lk2KkmGerbang()`), 75, 'KKM gerbang: S.kkm 60 tetap 75');
+G(`S.kkm=80`); sama(G(`lk2KkmGerbang()`), 80, 'KKM gerbang: S.kkm 80 dipakai');
+sama(gN({ q102: [1], q103: kat4 }).lulus, false, 'KKM 80: nilai 76 belum lulus');
+G(`S.kkm=75`);
 sama(G(`lk2Gate(LKPD_MODULES[0],{q0:1,q1:3,q2:1,q3:1,q4:1}).n`), 0, 'gerbang: jawaban soal F4 (q0-q7) tidak bercampur dengan gerbang');
 /* soal gerbang lama (isian teks) tetap didukung */
 run(`var _lamaM={v2:{gate:{min:1,qs:[{q:'x',kunci:'y'},{q:'z',kunci:'w'}]}}};`, 'gerbang-lama');
 sama(G(`lk2Gate(_lamaM,{gate0:'Diameter dalam',gate1:'ab'}).n`), 1, 'gerbang lama: jawaban <3 huruf tidak dihitung');
+sama(G(`lk2Gate(_lamaM,{gate0:'Diameter dalam',gate1:'abc'}).lulus`), true, 'gerbang lama (isian teks): lulus bila semua terjawab');
+sama(G(`lk2Gate(_lamaM,{gate0:'Diameter dalam',gate1:'ab'}).lulus`), false, 'gerbang lama: belum semua terjawab = terkunci');
 
 /* ---------- Soal isian ---------- */
 const Q = (id) => M.quiz.find((q) => q.id === id);
@@ -166,25 +188,32 @@ sama(G('SUBMITTED'), 0, 'kirim ditolak bila gerbang belum selesai');
 ok(G('toasts').some((t) => /gerbang/i.test(t)), 'pesan gerbang ditampilkan');
 G(`DRAFT=${JSON.stringify(penuh)}`);
 G('lkSubmit()');
-sama(G('SUBMITTED'), 1, 'kirim lanjut bila gerbang selesai');
+sama(G('SUBMITTED'), 1, 'kirim lanjut bila gerbang lulus');
+/* gerbang terjawab semua tetapi nilai di bawah KKM = kirim ditolak */
+G(`SUBMITTED=0;toasts.length=0;DRAFT=${JSON.stringify({ ...penuh, q100: 0, q101: 0 })}`);
+G('lkSubmit()');
+sama(G('SUBMITTED'), 0, 'kirim ditolak bila nilai gerbang 60 (< KKM 75) walau semua soal terjawab');
+ok(G('toasts').some((t) => /KKM 75/.test(t)), 'pesan menyebut KKM 75');
+G(`SUBMITTED=0;DRAFT=${JSON.stringify(penuh)}`);
+G('lkSubmit()');
 const rd = G('lkRead()');
-ok(rd.v2 && rd.v2.ver === 2 && rd.v2.gate === 5 && rd.v2.tabel === 100 && Math.abs(rd.v2.calc.F1[0].rata - 1) < 1e-9, 'payload memuat v2.calc, gerbang, dan kelengkapan tabel');
+ok(rd.v2 && rd.v2.ver === 2 && rd.v2.gate === 5 && rd.v2.gerbang && rd.v2.gerbang.nilai === 100 && rd.v2.gerbang.lulus === true && rd.v2.gerbang.kkm === 75 && rd.v2.tabel === 100 && Math.abs(rd.v2.calc.F1[0].rata - 1) < 1e-9, 'payload memuat v2.calc, gerbang, dan kelengkapan tabel');
 
 /* ---------- Detail dan verifikasi guru ---------- */
 const payload = Object.assign({}, penuh, rd, { student: 'Budi', school: 'SMKS Medina' });
 G(`STAFF=true`);
 const det = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(payload)})`);
-ok(/Gerbang masuk/.test(det) && /data-lk2v="g0"/.test(det) && /data-lk2v="s2"/.test(det) && /data-lk2v="a0"/.test(det) && /lk2-verif/.test(det), 'Detail guru memuat kotak verifikasi gerbang, saksi, dan APD');
+ok(/Gerbang masuk/.test(det) && !/data-lk2v="g0"/.test(det) && /data-lk2v="s2"/.test(det) && /data-lk2v="a0"/.test(det) && /lk2-verif/.test(det), 'Detail guru memuat verifikasi saksi dan APD (gerbang dinilai otomatis, tanpa kotak Jawaban benar)');
 ok(/Kunci: B\. rahang bawah, rahang atas, batang kedalaman/.test(det) && /Kunci: C\. dan |Kunci: A\./.test(det), 'kunci gerbang PG tampil untuk guru');
 ok(/Penalaran/.test(det) && /Aplikasi/.test(det), 'Detail guru menampilkan level soal gerbang');
 const detAuto = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, payload, { v2: { ver: 2 } }))})`);
-ok((detAuto.match(/data-lk2v="g\d" checked/g) || []).length === 5 && /5 dari 5 benar[^<]*\(syarat minimal 4\): <b>lulus/.test(detAuto), 'sebelum diverifikasi, kotak Jawaban benar terisi otomatis dari penilaian PG');
+ok(/Nilai gerbang \(acuan TKA\): <b>100<\/b> dari 100 · poin 5 dari 5 · KKM 75: <b>lulus/.test(detAuto) && /Poin: 1 dari 1/.test(detAuto), 'Detail menampilkan nilai gerbang otomatis 100 dan poin tiap soal');
 const detSalah = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, payload, { q100: 0, q104: 0, v2: { ver: 2 } }))})`);
-ok(/3 dari 5 benar[^<]*\(syarat minimal 4\): <b>belum lulus/.test(detSalah), '3 dari 5 benar = belum lulus');
+ok(/Nilai gerbang \(acuan TKA\): <b>60<\/b>[^<]*KKM 75: <b>belum lulus/.test(detSalah), '3 dari 5 benar = nilai 60 belum lulus');
 G(`STAFF=false`);
 const detS = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, payload, { v2: Object.assign({}, rd.v2, { verif: { g: { 0: 1, 1: 1, 2: 1, 3: 1 }, s: { 2: 1 }, a: {}, ts: 1, by: 'Guru' } }) }))})`);
 ok(!/data-lk2v/.test(detS) && !/Kunci: B\./.test(detS), 'siswa tidak melihat kunci dan kotak verifikasi');
-ok(/4 dari 5 benar[^<]*\(syarat minimal 4\): <b>lulus/.test(detS), 'Detail menghitung gerbang 4/5 = lulus');
+ok(/Nilai gerbang \(acuan TKA\): <b>100<\/b>[^<]*KKM 75: <b>lulus/.test(detS), 'siswa melihat nilai gerbang otomatis (lulus)');
 
 /* ---------- Observasi v2 (memakai observasi.js asli) ---------- */
 run(`

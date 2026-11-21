@@ -1,5 +1,8 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Gerbang masuk LKPD v2 dinilai otomatis dengan acuan TKA
+Nilai gerbang = jumlah poin soal TKA / jumlah soal x 100 (PG 1/0; PG kompleks dan PG kategori nilai sebagian). Lembar Kerja terbuka bila nilai gerbang >= KKM (minimal 75). Kriteria 4 dari 5 soal benar dihapus. Gerbang adalah syarat kelayakan masuk praktik, bukan komponen nilai akhir. Detail guru menampilkan poin per soal; payload menambah `v2.gerbang`. Rincian dan skenario di `docs-LKPD-V2.md` bagian 4A. Tidak ada perubahan Appwrite.
+
 ## Format cetak PDF LKPD sesuai acuan
 Cetak LKPD kini disusun dari data modul (`js/lkpd-format.js`) mengikuti format PDF LKPD SMKS Medina Bandung: banner pertemuan hijau, tabel isian, kotak centang, paraf, nomor halaman, untuk modul v2 dan semua versi lain. Rincian di `docs-LKPD-V2.md`. Tidak ada perubahan Appwrite.
 

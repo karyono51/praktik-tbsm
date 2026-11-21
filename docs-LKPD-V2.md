@@ -15,7 +15,7 @@ Urutan tab: Materi, Lembar Kerja, Evaluasi.
 ### Materi
 - **Rencana pertemuan:** daftar lipat. Tiap pertemuan tertutup bawaan, ringkasannya "N JP · M menit", isinya kegiatan dan langkah (termasuk penanda saksi guru). Status buka/tutup diingat selama sesi; saat mencetak semua terbuka. Waktu aktual per pertemuan diisi siswa di Lembar Kerja (isian menit).
 - **Memahami (teori):** termasuk topik teori K3, **Koreksi nol alat**, dan **Perawatan dan penyimpanan**, sehingga soal gerbang 3 dan 5 punya dasar di Materi.
-- **Gerbang masuk:** semua soal harus dijawab agar Lembar Kerja terbuka; guru menandai benar di Detail (syarat lulus `gate.min`, 4 dari 5). Bentuk soal di bagian 4.
+- **Gerbang masuk:** dinilai otomatis dengan acuan TKA dan menjadi syarat kelayakan masuk praktik. Lembar Kerja terbuka bila nilai gerbang minimal KKM (tidak pernah di bawah 75). Rumus dan skenario di bagian 4A.
 - **K3:** judul "Keselamatan dan Kesehatan Kerja (K3)"; 10 butir dalam 4 kelompok (APD; persiapan diri dan area kerja; larangan saat praktik; kebersihan dan keadaan darurat). Paraf guru hanya pada 4 butir APD.
 
 ### Lembar Kerja
@@ -35,9 +35,41 @@ Urutan tab: Materi, Lembar Kerja, Evaluasi.
 - Gerbang LKPD-X-07 terdiri dari 5 soal: 3 PG (5 pilihan, 1 kunci), 1 PG kompleks (kunci minimal 2), 1 PG kategori (Benar/Salah). Semua soal tunggal berstimulus dan berlevel Aplikasi atau Penalaran (`lvl`; saat ini 3 Aplikasi, 2 Penalaran).
 - Format soal sama dengan `m.quiz`: `{t:'pg'|'kompleks'|'kategori', q, o, a, e}` atau `rows` untuk kategori.
 - Jawaban gerbang PG disimpan di `q100` sampai `q104` (indeks 100 ke atas) agar tidak bertabrakan dengan soal F4 (`q0` sampai `q7`). Dibaca pembaca jawaban dan dinilai fungsi soal yang ada (`lkpd-soal.js`). Soal gerbang isian lama (`q` + `kunci` teks, `gate<i>`) tetap didukung.
-- Benar bila semua pilihan tepat (kompleks dan kategori tidak ada nilai sebagian). Lembar Kerja terbuka bila kelima soal terjawab.
+- Penilaian: lihat bagian 4A (acuan TKA, nilai sebagian untuk PG kompleks dan PG kategori). Kriteria lama "4 dari 5 soal benar" (`gate.min`) sudah dihapus.
 - Soal 5: panjang pilihan diseimbangkan (kunci C tidak lagi paling panjang). Pembahasan soal 2 menjelaskan semua pengecoh.
 - Catatan: draf yang dikerjakan dengan gerbang isian lama tidak terbaca sebagai jawaban PG; siswa perlu menjawab ulang gerbang.
+
+## 4A. Penilaian gerbang masuk (acuan TKA) dan KKM
+Gerbang adalah **syarat kelayakan masuk praktik, bukan komponen nilai akhir**. Nilai akhir tetap praktik x 85% + teori x 15%.
+
+| Bentuk soal | Poin per soal |
+|---|---|
+| PG | benar 1, salah 0 |
+| PG kompleks | (pilihan benar terpilih - pilihan salah terpilih) / jumlah kunci, minimal 0 |
+| PG kategori | pernyataan tepat / jumlah pernyataan |
+
+- **Nilai gerbang** = jumlah poin / jumlah soal x 100, dibulatkan. Soal yang belum dijawab bernilai 0.
+- **KKM gerbang** = `max(75, S.kkm)` (`lk2KkmGerbang`). KKM yang diatur admin di bawah 75 tidak dipakai; di atas 75 dipakai.
+- **Lembar Kerja terbuka** bila nilai gerbang >= KKM gerbang. Staf (guru/admin), pratinjau, dan cetak tidak terkunci. Kirim LKPD ditolak untuk siswa bila gerbang belum lulus.
+- **Gerbang lama** (soal isian teks, tanpa penilai otomatis): lulus bila semua soal terjawab.
+- **Payload**: `payload.v2.gerbang = {nilai, poin, kkm, lulus}`; `payload.v2.gate` tetap berisi jumlah soal terjawab (kompatibilitas).
+- **Detail guru**: tiap soal menampilkan jawaban, kunci, pembahasan, dan poin; ringkasan "Nilai gerbang (acuan TKA)". Kotak "Jawaban benar" dan `gate.min` dihapus.
+- **Cetak**: lembar siswa memuat baris "Nilai gerbang ___ (dari 100; KKM 75)"; Kunci memuat rumus penskoran.
+
+Contoh LKPD-X-07 (3 PG, 1 PG kompleks dengan 2 kunci, 1 PG kategori dengan 5 pernyataan):
+
+| Jawaban | Nilai | Aturan lama 4 dari 5 | KKM 75 |
+|---|---|---|---|
+| Semua benar | 100 | lulus | lulus |
+| 3 PG benar, kompleks 0, kategori 4/5 | 76 | gagal | lulus |
+| 3 PG benar, kompleks 1/2, kategori 3/5 | 82 | gagal | lulus |
+| 2 PG benar, kompleks penuh, kategori 4/5 | 76 | gagal | lulus |
+| 3 PG benar, kompleks 0, kategori 3/5 | 72 | gagal | gagal |
+| 2 PG benar, kompleks 1/2, kategori 5/5 | 70 | gagal | gagal |
+
+Dengan 5 soal bobot sama, nilai gerbang selalu bilangan genap dan nilai terendah yang lulus adalah 76.
+
+**Rencana (belum dikerjakan):** tab Evaluasi akan terbuka bila nilai Lembar Kerja memenuhi KKM yang ditetapkan guru (disebut 76). Nilai Lembar Kerja yang dipakai adalah nilai praktik otomatis (langkah 30, K3 20, pemeriksaan dan tabel 25, analisis 25). Batas ini terpisah dari KKM gerbang.
 
 ## 5. Observasi LKPD Praktik v2
 - **Penilaian aspek (skala 1-4 + nilai, sama dengan Observasi UKK):** untuk tiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** bulat sesuai rentang skala. Kolom nilai terkunci sampai skala dipilih, dan menolak angka di luar rentang (pesan merah "Nilai harus 75-90").
