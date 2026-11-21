@@ -1,57 +1,60 @@
 # LKPD v2 dan Observasi LKPD Praktik v2
 
-Tambahan aditif: LKPD dan observasi lama tidak diubah. Pilot: LKPD-X-07 (Penggunaan dan Perawatan Alat Ukur).
+Tambahan aditif: LKPD dan observasi lama tidak diubah. Pilot: LKPD-X-07 (Penggunaan dan Perawatan Alat Ukur). Modul v2 adalah modul LKPD yang punya objek `v2`; mesin v2 hanya aktif untuk modul itu.
 
-## Berkas
-- `js/lkpd-v2-x07.js`: data modul LKPD-X-07 (status awal Draft; angka standar dikosongkan untuk diisi guru dari manual servis).
-- `js/lkpd-v2.js`: mesin v2 (aktif hanya untuk modul yang punya objek `v2`).
+## 1. Berkas
+- `js/lkpd-v2-x07.js`: data modul LKPD-X-07 (status awal Draft; angka standar dikosongkan untuk diisi guru dari manual servis). Butir K3, kelompok K3 (`v2.k3grup`), dan keterangan aspek (`ket`) ada di sini dan dapat disesuaikan dengan kondisi bengkel.
+- `js/lkpd-v2.js`: mesin v2.
 - `js/lkpd-v2-soal.js`: tipe soal isian angka (`t:'isian'`, `kunci`, `tol`).
 - `js/observasi-v2.js`: Observasi LKPD Praktik v2 (rubrik diambil dari `m.v2.obs` tiap LKPD).
-- `tools/uji-lkpd-v2.mjs`: uji tanpa peramban (`node tools/uji-lkpd-v2.mjs`).
+- `tools/uji-lkpd-v2.mjs`: uji tanpa peramban (`node tools/uji-lkpd-v2.mjs`, 138 uji).
 
-## Cara kerja
-- **Pertemuan:** rencana per pertemuan (JP, menit) dan isian waktu aktual per pertemuan.
-- **Gerbang masuk:** semua pertanyaan harus dijawab agar Lembar Kerja terbuka; guru menandai benar di Detail (syarat `gate.min`).
-- **Tabel data:** rata-rata dan selisih dihitung otomatis; kelengkapan tabel ikut nilai.
+## 2. Alur siswa
+Urutan tab: Materi, Lembar Kerja, Evaluasi.
+
+### Materi
+- **Rencana pertemuan:** daftar lipat. Tiap pertemuan tertutup bawaan, ringkasannya "N JP · M menit", isinya kegiatan dan langkah (termasuk penanda saksi guru). Status buka/tutup diingat selama sesi; saat mencetak semua terbuka. Waktu aktual per pertemuan diisi siswa di Lembar Kerja (isian menit).
+- **Memahami (teori):** termasuk topik teori K3, **Koreksi nol alat**, dan **Perawatan dan penyimpanan**, sehingga soal gerbang 3 dan 5 punya dasar di Materi.
+- **Gerbang masuk:** semua soal harus dijawab agar Lembar Kerja terbuka; guru menandai benar di Detail (syarat lulus `gate.min`, 4 dari 5). Bentuk soal di bagian 4.
+- **K3:** judul "Keselamatan dan Kesehatan Kerja (K3)"; 10 butir dalam 4 kelompok (APD; persiapan diri dan area kerja; larangan saat praktik; kebersihan dan keadaan darurat). Paraf guru hanya pada 4 butir APD.
+
+### Lembar Kerja
+- **Langkah:** langkah bertanda saksi guru diverifikasi guru di Detail pengumpulan (`payload.v2.verif`), begitu juga paraf APD.
+- **Tabel data:** rata-rata dan selisih dihitung otomatis; kelengkapan tabel ikut nilai. Tabel F1 dan F2 memuat catatan koreksi nol (`cat` pada data tabel).
 - **Soal isian angka:** dinilai otomatis (koma atau titik, toleransi `tol`).
-- **Saksi guru dan paraf APD:** diverifikasi guru di Detail pengumpulan (`payload.v2.verif`).
+- **Latihan membaca skala:** tidak lagi berlabel F4; kunci data `q0` sampai `q7` tetap.
 - **Foto wajib:** memakai `m.fotoWajib` yang sudah ada.
-- **Nilai otomatis** hanya perkiraan awal; nilai kinerja resmi dari Observasi v2 dan nilai koreksi guru.
-- **Penyimpanan:** tanpa perubahan skema Appwrite. Observasi v2: koleksi `observasi`, `tipe='siswa'`, `payload.v=2`.
 
-## Penerbitan
-Modul v2 dimuat sebagai Draft. Guru menerbitkan lewat tombol Terbitkan di daftar LKPD. Tombol Edit dan Salin dinonaktifkan untuk modul v2 sampai Editor v2 tersedia.
+## 3. Penilaian
+- **Nilai otomatis** hanya perkiraan awal. Nilai akhir adalah nilai guru di Detail pengumpulan, yang menggantikan nilai otomatis.
+- **Nilai kinerja resmi** berasal dari Observasi v2 dan nilai koreksi guru.
+- **Penilaian kinerja oleh guru:** tiap aspek lipat berisi bobot, poin yang dinilai (`ket`), arti skor 4 sampai 1, dan penanda aspek penghenti. Ditambah **Syarat kompeten** (8 indikator + bukti), **Yang diamati dan kesalahan umum**, serta contoh hitung nilai.
+- **Detail guru:** jawaban siswa, kunci, pembahasan, dan level soal tampil; kotak Jawaban benar terisi otomatis dari penilaian sebelum guru menyimpan verifikasi, dan dapat diubah.
 
-## Ditambahkan pada pembaruan ini
-- **Cetak:** Lembar Kerja v2 tetap tercetak walau gerbang belum selesai (sebelumnya siswa mencetak halaman "terkunci").
+## 4. Soal gerbang masuk (bentuk PG, HOTS, bentuk soal TKA)
+- Gerbang LKPD-X-07 terdiri dari 5 soal: 3 PG (5 pilihan, 1 kunci), 1 PG kompleks (kunci minimal 2), 1 PG kategori (Benar/Salah). Semua soal tunggal berstimulus dan berlevel Aplikasi atau Penalaran (`lvl`; saat ini 3 Aplikasi, 2 Penalaran).
+- Format soal sama dengan `m.quiz`: `{t:'pg'|'kompleks'|'kategori', q, o, a, e}` atau `rows` untuk kategori.
+- Jawaban gerbang PG disimpan di `q100` sampai `q104` (indeks 100 ke atas) agar tidak bertabrakan dengan soal F4 (`q0` sampai `q7`). Dibaca pembaca jawaban dan dinilai fungsi soal yang ada (`lkpd-soal.js`). Soal gerbang isian lama (`q` + `kunci` teks, `gate<i>`) tetap didukung.
+- Benar bila semua pilihan tepat (kompleks dan kategori tidak ada nilai sebagian). Lembar Kerja terbuka bila kelima soal terjawab.
+- Soal 5: panjang pilihan diseimbangkan (kunci C tidak lagi paling panjang). Pembahasan soal 2 menjelaskan semua pengecoh.
+- Catatan: draf yang dikerjakan dengan gerbang isian lama tidak terbaca sebagai jawaban PG; siswa perlu menjawab ulang gerbang.
+
+## 5. Observasi LKPD Praktik v2
+- Penyimpanan: koleksi `observasi`, `tipe='siswa'`, `payload.v=2` (tanpa perubahan skema Appwrite).
+- **PDF:** per catatan (aspek berbobot, indikator, keputusan, tanda tangan).
+- **Excel:** tombol Excel lama menulis catatan v2 pada lembar terpisah per LKPD (kolom mengikuti rubrik); lembar lama tidak lagi tercampur baris v2.
+
+## 6. Cetak dan cadangan draf
+- **Cetak:** Lembar Kerja v2 tetap tercetak walau gerbang belum selesai (sebelumnya siswa mencetak halaman "terkunci"). Mata pelajaran di cetakan memakai nama master (Dasar-Dasar Teknik Otomotif (DDPK); Kompetensi Keahlian Teknik Sepeda Motor).
 - **Cadangan draf:** tombol Cadangkan draf (unduh berkas .json) dan Pulihkan draf di Lembar Kerja v2. Draf LKPD tersimpan di perangkat; cadangkan setelah tiap pertemuan. Berkas hanya bisa dipulihkan pada LKPD dan akun yang sama.
-- **Observasi v2 PDF:** per catatan (aspek berbobot, indikator, keputusan, tanda tangan).
-- **Observasi v2 Excel:** tombol Excel lama kini menulis catatan v2 pada lembar terpisah per LKPD (kolom mengikuti rubrik), dan lembar lama tidak lagi tercampur baris v2.
 
-## Penyesuaian tampilan (hasil uji di ponsel)
-- **Rencana pertemuan:** tabel diganti daftar lipat. Tiap pertemuan tertutup bawaan, ringkasannya "N JP · M menit", isinya kegiatan dan langkah (termasuk penanda saksi guru). Status buka/tutup diingat selama sesi; saat mencetak semua terbuka.
-- **K3:** judul "Keselamatan dan Kesehatan Kerja (K3)"; 10 butir dalam 4 kelompok (APD; persiapan diri dan area kerja; larangan saat praktik; kebersihan dan keadaan darurat). Paraf guru tetap hanya pada 4 butir APD. Topik teori K3 ditambahkan di Memahami.
-- **Penilaian kinerja:** tiap aspek lipat dengan bobot, poin yang dinilai (`ket`), arti skor 4 sampai 1, dan penanda aspek penghenti; ditambah Syarat kompeten (8 indikator + bukti), Yang diamati dan kesalahan umum, serta contoh hitung nilai.
-- Butir K3, kelompok (`v2.k3grup`), dan keterangan aspek (`ket`) ada di `lkpd-v2-x07.js` dan dapat disesuaikan dengan kondisi bengkel.
+## 7. Penerbitan dan penyimpanan
+- Modul v2 dimuat sebagai Draft. Guru menerbitkan lewat tombol Terbitkan di daftar LKPD. Tombol Edit dan Salin dinonaktifkan untuk modul v2 sampai Editor v2 tersedia.
+- Semua data siswa memakai kunci yang sama dengan mesin lama (`step<i>`, `safe<i>`, `actual<i>`, `q<i>`), jadi draf, foto bukti, nilai koreksi, rekap, dan sinkronisasi tidak berubah. Tanpa perubahan skema Appwrite.
+- Pengaturan mode Latihan/Ujian (Kelola LKPD > Pengaturan) berlaku untuk v2: Teori ringkas menyembunyikan kartu Memahami; Penjelasan langkah menyembunyikan isi tiap pertemuan dan "Poin kritis"; Petunjuk komponen menyembunyikan keterangan dan acuan komponen pemeriksaan (`lk2ModeFilter`).
 
-## Batas yang diketahui
+## 8. Batas yang diketahui
 - Draf belum sinkron ke server (hanya cadangan manual lewat berkas); foto bukti memakai alur foto yang ada.
 - Editor v2 belum ada; perubahan isi modul v2 dilakukan di berkas data.
 - Kunci gerbang dan kunci soal isian ikut di data modul (terbaca di sisi klien, sama seperti kunci soal lain).
 - Belum diuji dengan Appwrite dan peramban sungguhan; uji di lingkungan uji dulu.
-
-## Gerbang masuk bentuk PG (HOTS, bentuk soal TKA)
-- Gerbang LKPD-X-07 kini 5 soal: 3 PG (5 pilihan, 1 kunci), 1 PG kompleks (kunci minimal 2), 1 PG kategori (Benar/Salah). Semua soal tunggal berstimulus dan berlevel Aplikasi atau Penalaran (`lvl`). Format soal sama dengan `m.quiz`: `{t:'pg'|'kompleks'|'kategori', q, o, a, e}` atau `rows` untuk kategori.
-- Jawaban gerbang PG disimpan di `q100` sampai `q104` (indeks 100 ke atas) agar tidak bertabrakan dengan soal F4 (`q0` sampai `q7`). Dibaca pembaca jawaban dan dinilai fungsi soal yang ada (`lkpd-soal.js`). Soal gerbang isian lama (`q` + `kunci` teks, `gate<i>`) tetap didukung.
-- Benar bila semua pilihan tepat (kompleks dan kategori tidak ada nilai sebagian). Lembar Kerja terbuka bila kelima soal terjawab; kelulusan memakai `gate.min` (4 dari 5).
-- Detail guru: jawaban siswa, kunci, pembahasan, dan level tampil; kotak Jawaban benar terisi otomatis dari penilaian sebelum guru menyimpan verifikasi, dan dapat diubah.
-- Catatan: draf yang dikerjakan dengan gerbang isian lama tidak terbaca sebagai jawaban PG; siswa perlu menjawab ulang gerbang.
-- Uji: `node tools/uji-lkpd-v2.mjs` (124 uji).
-
-## Perbaikan hasil evaluasi LKPD-X-07
-- Materi ditambah **Koreksi nol alat** dan **Perawatan dan penyimpanan**, jadi soal gerbang 3 dan 5 punya dasar di Materi.
-- Soal gerbang 5: panjang pilihan diseimbangkan (kunci C tidak lagi paling panjang) dan level menjadi Aplikasi (3 Aplikasi, 2 Penalaran). Pembahasan soal 2 menjelaskan semua pengecoh.
-- Tabel F1 dan F2 memuat catatan koreksi nol (`cat` pada data tabel).
-- Judul "Latihan membaca skala" tidak lagi memakai label F4 (kunci data `q0`-`q7` tetap).
-- Cetak: mata pelajaran memakai nama master (Dasar-Dasar Teknik Otomotif (DDPK); Kompetensi Keahlian Teknik Sepeda Motor).
-- Catatan nilai: nilai akhir = nilai guru di Detail pengumpulan, menggantikan nilai otomatis.
