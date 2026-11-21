@@ -130,6 +130,11 @@ function v2Cetak(box){
  Array.prototype.forEach.call(box.querySelectorAll('details'),function(d){d.setAttribute('open','')});
 }
 function susun(m){
+ /* Format baru (lkpd-format.js): disusun dari data modul. Bila gagal, jatuh ke format lama di bawah. */
+ if(typeof window.lkfBangun==='function'){
+  try{var st=false;try{st=isStaff()}catch(e){}var d0=lkDraft();return window.lkfBangun(m,{d:(st||LK.preview)?{}:d0,pihak:pihak(d0),semester:semester(),mapel:mapel(m),akhir:akhir(d0)})}
+  catch(err){try{console.warn('Format cetak baru gagal, memakai format lama',err)}catch(x){}}
+ }
  var asal=LK.tab,h,d=lkDraft();
  try{h=bagian('materi')+bagian('kerja')+bagian('evaluasi')}finally{LK.tab=asal}
  var box=document.createElement('div');box.innerHTML=h;

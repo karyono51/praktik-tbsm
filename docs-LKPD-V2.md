@@ -82,3 +82,12 @@ Urutan tab: Materi, Lembar Kerja, Evaluasi.
 - **Nomor halaman** "Halaman X dari Y" di kanan bawah (Chrome 131 ke atas; peramban lama mengabaikannya).
 - Uji: `node tools/uji-cetak-pdf.mjs` (nama berkas). Tata letak diperiksa dengan Chromium.
 
+
+## Format cetak PDF LKPD (js/lkpd-format.js)
+Tombol Cetak menyusun lembar dari **data modul**, bukan dari tampilan layar, dengan format acuan PDF LKPD SMKS Medina Bandung. Uji: `node tools/uji-lkpd-format.mjs` (45 uji; `LKPD_HTML=/tmp/lkpd.html` menulis HTML cetak untuk diperiksa).
+- **Modul v2 (LKPD-X-07)**: kop sekolah, judul hijau, identitas dua kolom (alokasi waktu 6 pertemuan × 3 JP), Tujuan pembelajaran, tabel Rencana pertemuan, lalu satu banner hijau per pertemuan (`Pertemuan n · judul` dan `3 JP · target 135 menit`). Isi tiap pertemuan: pertanyaan pemantik, Materi, Gerbang masuk (PG, PG kompleks dengan kotak centang, PG kategori berupa tabel Benar/Salah, baris Skor gerbang dan Paraf guru), Alat dan bahan, K3 dan APD (paraf hanya pada butir APD), Cek kondisi alat, langkah dengan Poin kritis dan Paraf guru, tabel F1 sampai F3, Pemeriksaan dan bukti (Foto bukti hanya pada item foto wajib, Sesuai standar, Tidak sesuai, Catatan), Latihan membaca skala (Jawab dan Cara hitung), Analisis, Refleksi, Tindak lanjut, Penilaian kinerja oleh guru, baris Waktu aktual pertemuan, dan tanda tangan.
+- **Modul v1 dan LKPD buatan guru**: Tujuan, Materi, Alat dan bahan, Checklist K3, banner Prosedur praktik, Hasil pemeriksaan, Diagnosis dan analisis, Evaluasi pengetahuan, Bobot penilaian, dan tanda tangan.
+- Isian siswa dari draf tercetak pada garis isian dan kotak centang; cetakan guru, admin, dan pratinjau berupa lembar kosong. Isian di-escape.
+- Footer: `LKPD DDPK Kelas X · Alat Ukur · SMKS Medina Bandung` dan `Halaman N dari M` (margin box @page; peramban lama mencetak tanpa nomor halaman). Nama berkas PDF tetap `LKPD X-07 <judul> <nama sekolah>` dari `namaPdf` di `lkpd-cetak.js`.
+- Data tambahan pada `LKPD-X-07`: `v2.judulPendek`, `v2.cekAlat`, `v2.tindak`, dan `latihan` pada pertemuan 2 sampai 4 (id soal latihan). Modul v2 lain yang belum memilikinya tetap tercetak, tanpa bagian itu.
+- Bila generator gagal, `lkpd-cetak.js` memakai format lama (salinan tampilan layar yang dirapikan `v2Cetak`).
