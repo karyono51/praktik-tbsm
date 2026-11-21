@@ -46,7 +46,7 @@
         {
           "key": "peran",
           "type": "string",
-          "size": 16,
+          "size": 64,
           "required": true,
           "array": false
         },

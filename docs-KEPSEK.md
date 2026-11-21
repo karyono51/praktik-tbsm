@@ -15,4 +15,4 @@ Mengubah, menambah, atau menghapus data apa pun, mengelola akun, mengubah KKM, m
 
 ## Catatan keamanan
 Label `guru` di Appwrite juga memberi izin tulis di tingkat database. Pembatasan hanya-lihat dijalankan oleh aplikasi, jadi cocok untuk pengguna tepercaya. Untuk pembatasan di tingkat server, butuh label khusus `kepsek` dan izin koleksi baru lewat `tools/setup-appwrite.mjs`.
-Kolom peran maksimal 16 karakter, jadi gabungan seperti `admin,kepsek,guru,siswa` tidak muat. Pakai gabungan seperlunya.
+Kolom peran kini 64 karakter, cukup untuk semua gabungan. Instalasi lama yang kolomnya masih 16 karakter perlu menjalankan `node tools/perbesar-peran.mjs` (lihat docs-PERAN-GANDA.md).

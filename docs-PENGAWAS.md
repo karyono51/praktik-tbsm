@@ -16,7 +16,7 @@ Proktor tidak punya izin baca koleksi apa pun. Semua dilakukan lewat fungsi serv
 - Tidak boleh: melihat jawaban, kunci, nilai, soal; menilai, nilai ulang, hapus data.
 
 Cara membuat akun:
-1. Menu **Akun**, tambah akun, centang peran **Proktor** (boleh digabung dengan Siswa; kolom peran maksimal 16 karakter), isi sekolah.
+1. Menu **Akun**, tambah akun, centang peran **Proktor** (boleh digabung dengan Siswa; kolom peran 64 karakter; instalasi lama perlu `node tools/perbesar-peran.mjs`, lihat docs-PERAN-GANDA.md), isi sekolah.
 2. Appwrite Console > Auth > Users > akun tersebut > Labels: tambahkan `proktor`. **Jangan** beri label `guru`, karena itu memberi izin baca koleksi.
 3. Atur sandi lewat menu Akun. Proktor masuk ke menu **Ruang ujian**.
 
