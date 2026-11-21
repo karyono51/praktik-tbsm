@@ -48,7 +48,7 @@ function semester(){
  var t=new Date(),bln=t.getMonth()+1,y=t.getFullYear();
  return bln>=7?'Ganjil '+y+'/'+(y+1):'Genap '+(y-1)+'/'+y;
 }
-function mapel(m){return m.kelas==='X'?'DDPK':'Kompetensi Kejuruan TSM'}
+function mapel(m){return m.kelas==='X'?'Dasar-Dasar Teknik Otomotif (DDPK)':'Kompetensi Keahlian Teknik Sepeda Motor'}
 function baris(arr){return arr.map(function(x){return '<tr><td>'+x[0]+'</td><td class="lkc-k">:</td><td class="lkc-v">'+lkEsc(x[1])+'</td></tr>'}).join('')}
 /* Akun admin/guru yang mencetak menjadi Guru/instruktur; nama siswa dan tanggal dikosongkan (diisi tangan).
    Siswa yang mencetak: namanya jadi Nama siswa, tanggal dari isian lembar kerja. */

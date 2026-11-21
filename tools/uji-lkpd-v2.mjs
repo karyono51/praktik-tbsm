@@ -322,5 +322,14 @@ G(`LK2.open={ak3:true}`);
 ok(/data-lk2d="ak3" open/.test(G('viewLKPD()')), 'aspek yang dibuka tetap terbuka setelah render ulang');
 G(`LK2.open={};LK.tab='materi'`);
 
+/* ---------- Perbaikan evaluasi LKPD-X-07 ---------- */
+const TH = M.theory.map((x) => x[0]);
+ok(TH.includes('Koreksi nol alat') && TH.includes('Perawatan dan penyimpanan'), 'materi memuat koreksi nol dan perawatan (dasar soal gerbang 3 dan 5)');
+const q5 = M.v2.gate.qs[4];
+ok(q5.o[q5.a].length < Math.max(...q5.o.map((x) => x.length)), 'soal gerbang 5: kunci bukan pilihan terpanjang');
+ok(/C memakai ketelitian/.test(M.v2.gate.qs[1].e), 'pembahasan soal 2 menjelaskan pengecoh C');
+ok(M.v2.tabel.filter((t) => t.id === 'F1' || t.id === 'F2').every((t) => /penyimpangan nol/.test(t.cat || '')), 'tabel F1 dan F2 memuat catatan koreksi nol');
+ok(G(`LK.module='${M.id}';LK.tab='evaluasi';viewLKPD()`).indexOf('Latihan membaca skala (F4)') < 0, 'judul latihan tanpa label F4');
+
 console.log(`\nUji LKPD v2: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);

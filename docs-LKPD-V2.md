@@ -47,3 +47,11 @@ Modul v2 dimuat sebagai Draft. Guru menerbitkan lewat tombol Terbitkan di daftar
 - Detail guru: jawaban siswa, kunci, pembahasan, dan level tampil; kotak Jawaban benar terisi otomatis dari penilaian sebelum guru menyimpan verifikasi, dan dapat diubah.
 - Catatan: draf yang dikerjakan dengan gerbang isian lama tidak terbaca sebagai jawaban PG; siswa perlu menjawab ulang gerbang.
 - Uji: `node tools/uji-lkpd-v2.mjs` (124 uji).
+
+## Perbaikan hasil evaluasi LKPD-X-07
+- Materi ditambah **Koreksi nol alat** dan **Perawatan dan penyimpanan**, jadi soal gerbang 3 dan 5 punya dasar di Materi.
+- Soal gerbang 5: panjang pilihan diseimbangkan (kunci C tidak lagi paling panjang) dan level menjadi Aplikasi (3 Aplikasi, 2 Penalaran). Pembahasan soal 2 menjelaskan semua pengecoh.
+- Tabel F1 dan F2 memuat catatan koreksi nol (`cat` pada data tabel).
+- Judul "Latihan membaca skala" tidak lagi memakai label F4 (kunci data `q0`-`q7` tetap).
+- Cetak: mata pelajaran memakai nama master (Dasar-Dasar Teknik Otomotif (DDPK); Kompetensi Keahlian Teknik Sepeda Motor).
+- Catatan nilai: nilai akhir = nilai guru di Detail pengumpulan, menggantikan nilai otomatis.

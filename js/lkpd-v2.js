@@ -133,7 +133,7 @@ function lk2TabelHtml(m,t,d,c){
    return '<td data-label="'+lkEsc(k.l)+'">'+cell+'</td>'+(j===0&&t.labelBaris?'<td data-label="'+lkEsc(t.labelBaris)+'">'+lkEsc(lb)+'</td>':'');
   }).join('')+'</tr>';
  }).join('');
- return '<h4>'+lkEsc(t.judul)+'</h4><div class="tablewrap"><table class="lk2-t"><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div><p class="note">Kolom rata-rata dan selisih dihitung otomatis dari angka yang kamu isi.</p>';
+ return '<h4>'+lkEsc(t.judul)+'</h4><div class="tablewrap"><table class="lk2-t"><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div><p class="note">Kolom rata-rata dan selisih dihitung otomatis dari angka yang kamu isi.</p>'+(t.cat?'<p class="note">'+lkEsc(t.cat)+'</p>':'');
 }
 function lk2CekHtml(m,i,d){
  var x=m.checks[i];
@@ -170,12 +170,12 @@ function lk2Eval(m,d){
    return lk2Det('a'+a.id,(i+1)+'. '+lkEsc(a.n),'Bobot '+a.b+'%'+(a.stop?' · aspek penghenti':''),(a.ket?'<p>'+lkEsc(a.ket)+'</p>':'')+'<ul class="plain">'+lv+'</ul>'+(a.stop?'<p class="note"><b>Penting:</b> skor 1 pada aspek ini menghentikan praktik dan keputusan menjadi Belum kompeten.</p>':''));
   }).join(''),
   pg=(O.panduan||[]).map(function(x,i){return lk2Det('g'+i,lkEsc(x.k),'',(x.lihat?'<p><b>Yang diamati:</b> '+lkEsc(x.lihat)+'</p>':'')+(x.salah?'<p><b>Kesalahan umum:</b> '+lkEsc(x.salah)+'</p>':''))}).join('');
- return '<section class="card"><h2>Latihan membaca skala (F4)</h2><p class="note">Hitung dari soal, lalu isi angkanya. Dinilai otomatis dengan toleransi pembulatan kecil.</p>'+lkqQuizHtml(m,d)+'</section>'+
+ return '<section class="card"><h2>Latihan membaca skala</h2><p class="note">Hitung dari soal, lalu isi angkanya. Dinilai otomatis dengan toleransi pembulatan kecil.</p>'+lkqQuizHtml(m,d)+'</section>'+
   '<section class="card"><h2>Penilaian kinerja oleh guru</h2><p class="note">Guru menilai selama praktik (Pertemuan 2–5) dan menyaksikan langkah bertanda saksi guru. Tiap aspek diberi skor 1–4. Ketuk aspek untuk melihat poin yang dinilai dan arti tiap skor.</p>'+asp+
   '<p class="note"><b>Cara hitung:</b> nilai = jumlah dari (skor ÷ 4 × bobot), maksimum 100. Contoh: skor 3 pada Prosedur kerja (30%) memberi 3 ÷ 4 × 30 = 22,5.</p></section>'+
   '<section class="card"><h2>Syarat kompeten</h2><p class="note">Kompeten bila semua indikator di bawah tercapai, semua aspek sudah dinilai, dan skor Persiapan dan K3 bukan 1. Ketuntasan nilai mengikuti KKTP sekolah.</p><ul class="plain">'+O.indikator.map(function(x){return '<li><b>'+lkEsc(x.t)+'</b><br><small class="note">Bukti: '+lkEsc(x.bukti)+'</small></li>'}).join('')+'</ul></section>'+
   (pg?'<section class="card"><h2>Yang diamati dan kesalahan umum</h2><p class="note">Pelajari sebelum praktik agar kesalahan umum bisa dihindari.</p>'+pg+'</section>':'')+
-  '<section class="card"><div class="note">Nilai otomatis di aplikasi hanya perkiraan awal dari kelengkapan pengisian. Nilai akhir ditentukan guru lewat Observasi LKPD Praktik v2 dan nilai koreksi.</div></section>';
+  '<section class="card"><div class="note">Nilai otomatis di aplikasi hanya perkiraan awal dari kelengkapan pengisian. Nilai akhir ditentukan guru lewat Observasi LKPD Praktik v2 dan nilai guru yang diisi pada Detail pengumpulan (menggantikan nilai otomatis).</div></section>';
 }
 function lk2View(m){
  var d=lkDraft(),staff=isStaff(),tabs=[['materi','Materi &amp; Prosedur'],['kerja','Lembar Kerja'],['evaluasi','Evaluasi'],['riwayat',staff?'Rekap LKPD':'Riwayat']];
@@ -222,7 +222,7 @@ function lk2Detail(z,p,m){
  }).join('');
  h+='<h3>Hasil pemeriksaan dan foto bukti</h3><div class="tablewrap"><table><thead><tr><th>Komponen</th><th>Hasil aktual</th><th>Standar manual</th><th>Status</th><th>Catatan</th></tr></thead><tbody>'+m.checks.map(function(x,i){return '<tr><td data-label="Komponen">'+lkEsc(x[0])+(typeof ldDetailFoto==='function'?ldDetailFoto(z,i):'')+'</td><td data-label="Hasil aktual">'+lkEsc(p['actual'+i]||'-')+'</td><td data-label="Standar manual">'+lkEsc(p['standard'+i]||'-')+'</td><td data-label="Status">'+lkEsc(p['status'+i]||'Belum diperiksa')+'</td><td data-label="Catatan">'+lkEsc(p['note'+i]||'-')+'</td></tr>'}).join('')+'</tbody></table></div>';
  h+='<h3>Waktu per pertemuan</h3><p class="note">'+V.pertemuan.map(function(q){return 'P'+q.n+': '+lkEsc(p['mt'+q.n]||'-')+' / '+q.menit+' menit'}).join(' · ')+'</p>';
- h+='<h3>Latihan membaca skala (F4)</h3>'+m.quiz.map(function(q,i){return lkqDetail(q,i,p['q'+i])+(staff?'<small class="lk2-key">Kunci: '+lkEsc(lkqKeyText(q))+(q.e?' · '+lkEsc(q.e):'')+'</small>':'')}).join('');
+ h+='<h3>Latihan membaca skala</h3>'+m.quiz.map(function(q,i){return lkqDetail(q,i,p['q'+i])+(staff?'<small class="lk2-key">Kunci: '+lkEsc(lkqKeyText(q))+(q.e?' · '+lkEsc(q.e):'')+'</small>':'')}).join('');
  h+='<h3>Analisis dan refleksi</h3>'+V.analisis.map(function(q,i){return '<p><b>'+(i+1)+'. '+lkEsc(q)+'</b><br><span class="lk-text">'+lkEsc(p['ana'+i]||'-')+'</span></p>'}).join('')+V.refleksi.map(function(q,i){return '<p><b>R'+(i+1)+'. '+lkEsc(q)+'</b><br><span class="lk-text">'+lkEsc(p['ref'+i]||'-')+'</span></p>'}).join('');
  return h;
 }
