@@ -229,6 +229,8 @@ run(src('observasi-v2.js'), 'observasi-v2.js');
 const O = M.v2.obs;
 const hit = (nl) => G(`ob2Hitung(${JSON.stringify(nl)},LKPD_MODULES[0].v2.obs)`);
 const semua4 = { k3: 4, prosedur: 4, hasil: 4, waktu: 4, '5r': 4, sikap: 4 }; for (let i = 0; i < 8; i++) semua4['i' + i] = 1;
+/* Format baru (sama dengan Observasi UKK): tiap aspek dan tiap indikator berskala 1-4 (l_<id>) ditambah nilai bulat dalam rentang skala (91-100 untuk skala 4). */
+const nb = (l, v, ov) => { const o = { _fi: 2 }; O.aspek.forEach((a) => { o['l_' + a.id] = l; o[a.id] = v }); O.indikator.forEach((x, i) => { o['l_i' + i] = l; o['i' + i] = v }); return Object.assign(o, ov || {}) };
 let h = hit(semua4);
 sama([h.nilai, h.kompeten, h.stop, h.lengkap], [100, true, false, true], 'semua skor 4 + 8 indikator = 100, kompeten');
 h = hit(Object.assign({}, semua4, { k3: 3, prosedur: 3, hasil: 3, waktu: 3, '5r': 3, sikap: 3 }));
@@ -250,18 +252,18 @@ G(`document.dispatchLike=function(){}`);
 // pilih v2 lewat state langsung (jalur klik bergantung DOM)
 G(`OB.d.v2='LKPD-X-07';OB.d.per={};OB.d.nilai={};OB.d.cat={};OB.d.cur='';obsEnsure(OB.d)`);
 html = G('obsStuHtml(OB.d)');
-ok(/Yang diamati dan kesalahan umum/.test(html) && (html.match(/data-act="ob2-rate"/g) || []).length === 24 && (html.match(/data-ob2i=/g) || []).length === 8, 'formulir v2: panduan, 6 aspek x 4 deskriptor, 8 indikator');
+ok(/Yang diamati dan kesalahan umum/.test(html) && (html.match(/data-act="ob2-rate"/g) || []).length === (6 + 8) * 4 && (html.match(/class="obu-nil ob2-nil"/g) || []).length === 14 && !/data-ob2i=/.test(html) && /<span id="ob2prog2">0<\/span> \/ 14 terisi/.test(html), 'formulir v2: panduan, 6 aspek + 8 indikator masing-masing skala 1-4 + kolom nilai, bar 0 / 14 terisi');
 ok(/Pakai formulir lama/.test(html), 'formulir v2 menyediakan kembali ke formulir lama');
 // simpan tanpa lengkap
 G(`OB.d.mapel='';OB.d.tanggal='2026-11-20';OB.d.kelas='X';OB.d.jenis='Bengkel sekolah';toasts.length=0;S.observasi=[];obsSaveSiswa()`);
 ok(G('toasts').some((t) => /Lengkapi skor 6 aspek/.test(t)) && G('S.observasi.length') === 0, 'simpan ditolak bila aspek belum lengkap');
 // lengkapi dua siswa
-G(`OB.d.nilai=${JSON.stringify(semua4)};obsFlush(OB.d);obsLoad(OB.d,'s2');OB.d.nilai=Object.assign({},${JSON.stringify(semua4)},{k3:1});obsFlush(OB.d);obsSaveSiswa()`);
+G(`OB.d.nilai=${JSON.stringify(nb(4, 100))};obsFlush(OB.d);obsLoad(OB.d,'s2');OB.d.nilai=${JSON.stringify(nb(4, 100, { l_k3: 1, k3: 50 }))};obsFlush(OB.d);obsSaveSiswa()`);
 const rec = G('S.observasi');
 sama(rec.length, 2, 'dua siswa tersimpan sebagai dua catatan');
 const p1 = JSON.parse(rec[0].payload), p2 = JSON.parse(rec[1].payload);
 ok(p1.v === 2 && p1.mod === 'LKPD-X-07' && rec[0].skor === 100 && p1.hasil.kompeten === true && rec[0].tipe === 'siswa' && rec[0].mapel === M.title, 'catatan v2: penanda versi, modul, skor, kompeten, mapel otomatis dari judul modul');
-ok(p2.hasil.stop === true && p2.hasil.kompeten === false && rec[1].kategori === 'Kurang', 'siswa dengan K3 = 1 tersimpan sebagai dihentikan/tidak kompeten');
+ok(p2.hasil.stop === true && p2.hasil.kompeten === false && rec[1].kategori === 'Belum Kompeten', 'siswa dengan K3 skala 1 tersimpan sebagai dihentikan/tidak kompeten (Belum Kompeten)');
 // detail
 G(`OB.view=S.observasi[0];OB.mode='view'`);
 const dv = G('viewObservasi()');
@@ -273,7 +275,7 @@ G(`S.observasi.push({id:'lama',tipe:'siswa',guru:'Lama',mapel:'X',kelas:'X',tang
 ok(!/Detail observasi v2/.test(G('viewObservasi()')) && /Detail observasi/.test(G('viewObservasi()')), 'catatan formulir lama tetap memakai detail lama');
 // ubah catatan v2 membawa d.v2
 const dd = G(`obsDraftDari(S.observasi[0])`);
-ok(dd.v2 === 'LKPD-X-07' && dd.nilai.k3 === 4, 'Ubah catatan v2 memulihkan modul dan skor');
+ok(dd.v2 === 'LKPD-X-07' && dd.nilai.l_k3 === 4 && dd.nilai.k3 === 100 && dd.nilai._fi === 2, 'Ubah catatan v2 memulihkan modul, skala, dan nilai tiap aspek');
 // PDF v2: jsPDF palsu merekam isi
 run(`
 var __pdf={rows:[],texts:[],saved:'',heads:[]};
@@ -299,7 +301,7 @@ G(`OB.tipe='siswa';__book=null;obsXls()`);
 const bk = G('__book');
 ok(bk && bk.pairs.length === 2 && bk.pairs[1][0] === 'Obs v2 LKPD-X-07', 'Excel: satu lembar lama + satu lembar v2 per LKPD', JSON.stringify(bk && bk.pairs.map((x) => x[0])));
 ok(bk.pairs[0][1].length === 2, 'Excel: lembar lama hanya memuat catatan formulir lama (tanpa baris v2)');
-ok(bk.pairs[1][1].length === 3 && bk.pairs[1][1][0].length === 7 + 6 + 7 && bk.pairs[1][1][1][bk.pairs[1][1][0].indexOf('Nilai')] === 100, 'Excel v2: 2 siswa, kolom 6 aspek, nilai tercatat');
+ok(bk.pairs[1][1].length === 3 && bk.pairs[1][1][0].length === 7 + 6 + 8 && bk.pairs[1][1][1][bk.pairs[1][1][0].indexOf('Nilai')] === 100, 'Excel v2: 2 siswa, kolom 6 aspek, nilai tercatat');
 ok(G(`typeof obsVisible('siswa')`) === 'object' && G(`obsVisible('siswa').length`) === 3 && G(`book.name`) !== 'x', 'Excel: pengganti sementara obsVisible/book dikembalikan');
 G(`S.observasi=S.observasi.filter(function(r){return r.id==='lama'});__book=null;obsXls()`);
 ok(G('__book.pairs.length') === 1 && G('__book.pairs[0][0]') === 'Rekap Observasi LKPD Praktik', 'Excel: tanpa catatan v2 perilaku lama tidak berubah');

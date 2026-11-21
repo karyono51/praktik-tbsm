@@ -62,9 +62,9 @@
    ver:2,jenis:'jobsheet',jp:18,tp:'X.4.2',cp:'Peralatan dan Perlengkapan Tempat Kerja',
    pertemuan:[
     {n:1,jp:3,menit:135,judul:'Pemantik, materi, gerbang masuk, APD, cek alat',kegiatan:[]},
-    {n:2,jp:3,menit:135,judul:'Kegiatan 1 jangka sorong, latihan J1–J3',kegiatan:[1],latihan:['J1','J2','J3']},
-    {n:3,jp:3,menit:135,judul:'Kegiatan 2 mikrometer, latihan M1–M3',kegiatan:[2],latihan:['M1','M2','M3']},
-    {n:4,jp:3,menit:135,judul:'Kegiatan 3 dial gauge, latihan D1–D2',kegiatan:[3],latihan:['D1','D2']},
+    {n:2,jp:3,menit:135,judul:'Kegiatan 1 jangka sorong, latihan soal 1–4',kegiatan:[1],latihan:['J1','J2','J3','J4']},
+    {n:3,jp:3,menit:135,judul:'Kegiatan 2 mikrometer, latihan soal 5–8',kegiatan:[2],latihan:['M1','M2','M3','M4']},
+    {n:4,jp:3,menit:135,judul:'Kegiatan 3 dial gauge, latihan soal 9–10',kegiatan:[3],latihan:['D1','D2']},
     {n:5,jp:3,menit:135,judul:'Kegiatan 4 perawatan, analisis',kegiatan:[4]},
     {n:6,jp:3,menit:135,judul:'Penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[]}
    ],
@@ -128,9 +128,9 @@
     indikator:[
      {t:'Menyebut bagian, fungsi, ketelitian',bukti:'Gerbang masuk'},
      {t:'Memeriksa kondisi dan nol alat',bukti:'Foto nol, penyimpangan tercatat'},
-     {t:'Jangka sorong benar',bukti:'Tabel F1, J1–J3, disaksikan'},
-     {t:'Mikrometer benar',bukti:'Tabel F2, M1–M3, disaksikan'},
-     {t:'Dial gauge benar',bukti:'Tabel F3, D1–D2, disaksikan'},
+     {t:'Jangka sorong benar',bukti:'Tabel F1, latihan soal 1–4, disaksikan'},
+     {t:'Mikrometer benar',bukti:'Tabel F2, latihan soal 5–8, disaksikan'},
+     {t:'Dial gauge benar',bukti:'Tabel F3, latihan soal 9–10, disaksikan'},
      {t:'Mencatat dan membandingkan dengan standar',bukti:'Tabel F1–F3, analisis 1'},
      {t:'Merawat dan menyimpan alat',bukti:'Kegiatan 4 disaksikan'},
      {t:'K3, APD, dan limbah',bukti:'Daftar APD, kegiatan 4'}

@@ -21,6 +21,6 @@ var _lkqRender2=lkqRender;lkqRender=function(q,i,d){
  if(lkqType(q)!=='isian')return _lkqRender2(q,i,d);
  var a=d['q'+i];
  return '<div class="qbox lkq" data-t="isian"><b>'+(i+1)+'. '+lkEsc(q.q)+'</b><span class="lkq-hint">Isi angka hasil bacaan'+(q.u?' dalam '+lkEsc(q.u):'')+'. Koma atau titik boleh dipakai.</span>'+
-  '<label class="f"><input inputmode="decimal" autocomplete="off" data-lk-field="q'+i+'" value="'+lkEsc(typeof a==='string'?a:'')+'" aria-label="Jawaban '+lkEsc(q.id||i+1)+'"></label></div>';
+  '<label class="f"><input inputmode="decimal" autocomplete="off" data-lk-field="q'+i+'" value="'+lkEsc(typeof a==='string'?a:'')+'" aria-label="Jawaban '+(i+1)+'"></label></div>';
 };
 

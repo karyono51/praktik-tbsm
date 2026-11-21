@@ -35,7 +35,7 @@ var CSS='@media print{'+
 '#lk-print table.lkf-t th,#lk-print table.lkf-t td{border:1px solid #666!important;padding:3px 5px;vertical-align:top}'+
 '#lk-print table.lkf-t th{background:#e4efe4!important;text-align:center}#lk-print table.lkf-t tr{break-inside:avoid}'+
 '#lk-print table.lkf-t td.k{text-align:center}#lk-print table.lkf-t tbody tr.tinggi td{height:9mm}'+
-'#lk-print .lkf-q{margin:4px 0;break-inside:avoid}#lk-print .lkf-o{margin:0 0 0 10px}#lk-print .lkf-sel{font-weight:700}'+
+'#lk-print .lkf-q{margin:4px 0;break-inside:avoid}#lk-print .skg{margin:2px 0;padding:0;border:0;background:none}#lk-print .skg svg{width:80mm;max-width:100%;height:auto;margin:0}#lk-print .lkf-o{margin:0 0 0 10px}#lk-print .lkf-sel{font-weight:700}'+
 '#lk-print .lkf-st{margin:3px 0;break-inside:avoid}#lk-print .lkf-st small{display:block;color:#333!important}'+
 '#lk-print .lkf-cek{margin:4px 0;break-inside:avoid}#lk-print .lkf-row{display:flex;gap:14px;flex-wrap:wrap}'+
 '#lk-print .lkf-sg{display:block;border:1px solid #888!important;padding:3px 6px;margin:3px 0}'+
@@ -164,7 +164,7 @@ function latihan(m,d,ids,nama,pertama){
  ids.forEach(function(id){
   var i=-1;(m.quiz||[]).forEach(function(q,j){if(q.id===id)i=j});if(i<0)return;
   var q=m.quiz[i],tk=String(q.q).replace(new RegExp('^'+id+'\\s*·\\s*'),'');
-  h+='<div class="lkf-q"><p><b>'+E(id)+'</b> '+E(tk)+'</p><p>Jawab: '+fill(d['q'+i],34)+' '+E(q.u||'')+' &nbsp; Cara hitung: '+fill('',70)+'</p></div>';
+  h+='<div class="lkf-q"><p><b>'+(i+1)+'.</b> '+E(tk)+'</p>'+(typeof skgBox==='function'?skgBox(q):'')+'<p>Jawab: '+fill(d['q'+i],34)+' '+E(q.u||'')+' &nbsp; Cara hitung: '+fill('',70)+'</p></div>';
  });
  return h;
 }
@@ -272,8 +272,8 @@ function kunciBangun(m){
  var lat=(m.quiz||[]).filter(function(q){return q.id&&q.kunci!==undefined&&q.kunci!==null&&q.kunci!==''});
  if(lat.length){
   var satuan=lat[0].u||'';
-  h+='<h2 class="lkf-h">Kunci jawaban latihan (untuk guru)</h2><table class="lkf-t"><thead><tr>'+lat.map(function(q){return '<th>'+E(q.id)+'</th>'}).join('')+'</tr></thead><tbody><tr>'+lat.map(function(q){return '<td class="k">'+E(hitungKoma(q.kunci))+'</td>'}).join('')+'</tr></tbody></table>'+
-   '<p class="lkf-note lkf-small">'+(satuan?'Satuan: '+E(satuan)+'. ':'')+lat.filter(function(q){return q.e}).map(function(q){return E(q.id)+' = '+E(String(q.e).replace(/[.\s]+$/,''))}).join('; ')+'.</p>';
+  h+='<h2 class="lkf-h">Kunci jawaban latihan (untuk guru)</h2><table class="lkf-t"><thead><tr>'+lat.map(function(q){return '<th>'+(m.quiz.indexOf(q)+1)+'</th>'}).join('')+'</tr></thead><tbody><tr>'+lat.map(function(q){return '<td class="k">'+E(hitungKoma(q.kunci))+'</td>'}).join('')+'</tr></tbody></table>'+
+   '<p class="lkf-note lkf-small">'+(satuan?'Satuan: '+E(satuan)+'. ':'')+lat.filter(function(q){return q.e}).map(function(q){return (m.quiz.indexOf(q)+1)+' = '+E(String(q.e).replace(/[.\s]+$/,''))}).join('; ')+'.</p>';
  }
  return h+'</div>';
 }
