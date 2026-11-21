@@ -133,5 +133,20 @@ ok('LKPD biasa: editor tidak dikunci dan tanpa tombol isian', run("fn.indexOf('d
 ok('LKPD biasa: pemeriksaan alokasi tetap berlaku', run("dn.S.duration=700;lkeIssues(dn).some(function(x){return /^Alokasi/.test(x.msg)})"));
 ok('LKPD biasa: tidak menambah kolom v2 saat simpan', run("lkeBuild(dn).v2===undefined"));
 
+console.log('Foto soal gerbang v2');
+run("var dg=lkEditorDefaults(__x07);dg.src=__x07;var sg0=lkeInit(dg);dg.tab='soal';var hg=lkEditorForm(dg);");
+ok('salinan gerbang dibuat tanpa menandai editor berubah', run("Array.isArray(sg0.gate)&&sg0.gate.length===__x07.v2.gate.qs.length&&lkeDirty(dg)===false"));
+ok('tab Soal memuat bagian soal gerbang dengan tombol foto', run("hg.indexOf('Soal gerbang masuk')>-1&&hg.indexOf('data-lkv-a=\"g-img\" data-i=\"0\" data-w=\"q\"')>-1"));
+ok('pilihan gerbang PG punya tombol foto pilihan', run("hg.indexOf('foto pilihan A')>-1"));
+run("sg0.gate[0].qi='data:image/jpeg;base64,/9j/GQ1';lkgFit(sg0.gate[0])[1]='data:image/jpeg;base64,/9j/GO1';var mg=lkeBuild(dg);");
+ok('simpan: foto gerbang masuk ke v2.gate.qs, kunci tetap', run("mg.v2.gate.qs[0].qi.indexOf('GQ1')>-1&&mg.v2.gate.qs[0].oi[1].indexOf('GO1')>-1&&JSON.stringify(mg.v2.gate.qs[0].a)===JSON.stringify(__x07.v2.gate.qs[0].a)&&mg.v2.gate.qs.length===__x07.v2.gate.qs.length"));
+ok('simpan: soal gerbang tanpa foto tidak mendapat qi/oi', run("mg.v2.gate.qs.slice(1).every(function(q){return q.qi===undefined&&q.oi===undefined})"));
+ok('foto gerbang dihitung belum terunggah', run("lkgBelumTerunggah(mg)")===true);
+run("ldCall=async function(p){unggah.push(p);return {ok:true,fileId:'GATE'+String(unggah.length).padStart(8,'0')}};unggah.length=0;");
+await vm.runInContext("(async function(){globalThis.__ug=await lkgUploadModul(mg)})()", ctx);
+ok('unggah foto gerbang: 2 berkas, penanda jadi drive:', run("__ug===true&&unggah.length===2&&mg.v2.gate.qs[0].qi.indexOf('drive:')===0&&mg.v2.gate.qs[0].oi[1].indexOf('drive:')===0&&lkgBelumTerunggah(mg)===false"));
+ok('nama berkas gerbang memuat nomor soal', run("unggah.some(function(p){return /_g1_soal$/.test(p.nama)})"));
+ok('LKPD tanpa v2: tab Soal tanpa bagian gerbang', run("lkEditorForm(Object.assign(dn,{tab:'soal'})).indexOf('Soal gerbang masuk')<0"));
+
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);

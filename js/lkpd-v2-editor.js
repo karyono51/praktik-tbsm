@@ -207,3 +207,93 @@ document.addEventListener('click',function(e){
   return h;
  };
 })();
+
+/* ---------- LKPD v2: foto pada soal gerbang masuk (Materi) ---------- */
+/* Soal gerbang ada di m.v2.gate.qs. Editor ini hanya mengelola fotonya (qi untuk soal, oi untuk pilihan); teks dan kunci tidak diubah.
+   Salinan kerja ada di d.S.gate dan ditulis kembali ke m.v2.gate.qs saat menyimpan. Tampil di tab Soal, bagian "Soal gerbang masuk". */
+(function(){
+ var i0=lkeInit;
+ lkeInit=function(d){
+  var had=!!d.S,s=i0.apply(this,arguments);
+  if(!had&&lkvIs(d)&&!s.gate){
+   s.gate=lkeCp((d.src.v2.gate&&d.src.v2.gate.qs)||[]);
+   d.snap=JSON.stringify(s);
+   try{
+    var raw=JSON.parse(localStorage.getItem(LKE.DKEY)||'null'),k=d.id||'(baru)';
+    d.rec=(raw&&raw.k===k&&raw.S&&raw.S.gate&&JSON.stringify(raw.S)!==d.snap&&Date.now()-raw.ts<14*864e5)?raw:null;
+   }catch(e){}
+  }
+  return s;
+ };
+ var b0=lkeBuild;
+ lkeBuild=function(d){
+  var m=b0.apply(this,arguments);
+  if(m.v2&&m.v2.gate&&Array.isArray(d.S.gate)){
+   m.v2.gate.qs=d.S.gate.map(function(q){
+    var c=lkeCp(q);
+    if(!lkvRefOk(c.qi))delete c.qi;
+    if(Array.isArray(c.oi)){c.oi=c.oi.map(function(x){return lkvRefOk(x)?x:''});if(!c.oi.some(Boolean))delete c.oi}
+    return c;
+   });
+  }
+  return m;
+ };
+ var r0=lkgModRefs;
+ lkgModRefs=function(m){
+  var a=r0.apply(this,arguments);
+  ((m&&m.v2&&m.v2.gate&&m.v2.gate.qs)||[]).forEach(function(q){lkgRefs(q).forEach(function(r){if(a.indexOf(r)<0)a.push(r)})});
+  return a;
+ };
+ var u0=lkgUploadModul;
+ lkgUploadModul=async function(m){
+  var ubah=await u0.apply(this,arguments);
+  var qs=m&&m.v2&&m.v2.gate&&m.v2.gate.qs;
+  if(Array.isArray(qs)){
+   var base='LKPD_'+sgSlug(m.id,24);
+   for(var i=0;i<qs.length;i++){
+    var q=qs[i],nm=base+'_g'+(i+1);
+    if(q.qi&&q.qi.indexOf('drive:')!==0){q.qi=await sgUploadRef(q.qi,nm+'_soal');ubah=true}
+    if(Array.isArray(q.oi))for(var k=0;k<q.oi.length;k++){
+     if(q.oi[k]&&q.oi[k].indexOf('drive:')!==0){q.oi[k]=await sgUploadRef(q.oi[k],nm+'_'+String.fromCharCode(97+k));ubah=true}
+    }
+   }
+  }
+  return ubah;
+ };
+ var t0=lkeTabSoal;
+ lkeTabSoal=function(d){
+  var h=t0.apply(this,arguments);
+  if(!lkvIs(d)||d.json||!d.S.gate||!d.S.gate.length)return h;
+  return h+lkvGateHtml(d);
+ };
+})();
+function lkvGBox(q,i,w){
+ var ref=w==='q'?(q.qi||''):((Array.isArray(q.oi)&&q.oi[w])||''),lbl=w==='q'?'foto soal':'foto pilihan '+String.fromCharCode(65+w);
+ var h='<div class="sg-box">';
+ if(lkvRefOk(ref)&&typeof sgImg==='function')h+=sgImg(ref,'sg-th ld-zoom','Pratinjau '+lbl);
+ h+='<button type="button" class="btn small" data-lkv-a="g-img" data-i="'+i+'" data-w="'+w+'">'+(ref?'Ganti':'Tambah')+' '+lbl+'</button>';
+ if(ref)h+='<button type="button" class="btn small danger" data-lkv-a="g-img-del" data-i="'+i+'" data-w="'+w+'">Hapus</button>';
+ return h+'</div>';
+}
+function lkvGateHtml(d){
+ return '<section class="card"><div><h3>Soal gerbang masuk (tab Materi siswa)</h3><p class="note">Di sini hanya foto yang bisa ditambahkan. Teks dan kunci soal gerbang tidak diubah.</p></div><div class="lke-list">'+
+  d.S.gate.map(function(q,i){
+   var h='<div class="lke-item" style="grid-template-columns:26px 1fr"><span class="lke-n">'+(i+1)+'</span><div class="lke-f"><b>'+esc(q.q||'')+'</b>'+lkvGBox(q,i,'q');
+   if(Array.isArray(q.o)&&q.t!=='kategori')q.o.forEach(function(o,k){h+='<div class="note">'+String.fromCharCode(65+k)+'. '+esc(o||'')+'</div>'+lkvGBox(q,i,k)});
+   return h+'</div></div>';
+  }).join('')+'</div></section>';
+}
+document.addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-lkv-a^="g-img"]');if(!b)return;
+ var d=LK.editor;if(!d||!d.S||!d.S.gate||!isStaff())return;
+ e.stopPropagation();
+ var q=d.S.gate[+b.dataset.i],w=b.dataset.w==='q'?'q':+b.dataset.w;if(!q)return;
+ function set(v){if(w==='q')q.qi=v;else lkgFit(q)[w]=v}
+ if(b.dataset.lkvA==='g-img'){
+  if(typeof sgPilih!=='function'){toast('Pengolah gambar belum siap. Muat ulang aplikasi.');return}
+  sgPilih(function(data){
+   var id='tmp:'+uid();
+   sgPut(id,data).then(function(ok){if(LK.editor!==d)return;set(ok?id:data);lkeRe()});
+  });
+ }else{set('');lkeRe()}
+},true);
