@@ -469,3 +469,13 @@ fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);out
 .lk2-cek .formgrid{gap:8px 10px}
 @media(max-width:560px){.lk2-cek .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.lk2-cek .formgrid>label:nth-child(n+3){grid-column:1/-1}}
+
+/* Kunci hasil per pertemuan */
+.lk2-kb{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.lk2-kb .note{margin:0;font-size:12px}
+.lk2-kb .btn{white-space:normal}
+.lk2-kstat{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.lk2-krow{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.lk2-krow>div{min-width:0}.lk2-krow small{display:block;color:var(--muted);font-size:12px}
+.lk2-krow .btn{flex:0 0 auto}
+#lkm-panel .lk-check>span>small{display:block;color:var(--muted);font-size:12px;font-weight:400;margin-top:2px}

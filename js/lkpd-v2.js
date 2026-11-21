@@ -19,6 +19,13 @@ document.head.appendChild(st)})();
 
 /* ---------- Dasar ---------- */
 function lk2Cur(){return (typeof LKPD_MODULES!=='undefined'&&LKPD_MODULES||[]).find(function(x){return x.id===LK.module})}
+
+/* Bilah bawah: bila kunci per pertemuan aktif (lkpd-kunci.js) tombol kunci menggantikan cadangan berkas. */
+function lk2Kunci(m){return typeof lkkOn==='function'&&lkkOn(m)}
+function lk2BkBlock(m){
+ if(lk2Kunci(m))return lkkBlock(m)+'<p class="note">Draf juga tersimpan otomatis di perangkat ini.</p>';
+ return '<div class="lk2-bk"><button type="button" class="btn small" data-act="lk2-backup">Cadangkan draf (berkas)</button><label class="btn small" style="cursor:pointer">Pulihkan draf<input type="file" accept="application/json,.json" data-lk2-restore hidden></label></div><p class="note">Draf tersimpan di perangkat ini. Untuk LKPD beberapa pertemuan, cadangkan draf ke berkas setelah tiap pertemuan.</p>';
+}
 function lk2Is(m){return !!(m&&m.v2&&m.v2.ver===2)}
 /* Angka dengan koma desimal ("24,35") atau titik. Tidak valid → NaN. */
 function lk2Num(s){if(typeof s==='number')return s;var t=String(s==null?'':s).trim().replace(/\s/g,'').replace(',','.');return /^[-+]?(\d+\.?\d*|\.\d+)$/.test(t)?Number(t):NaN}
@@ -182,12 +189,12 @@ function lk2Eval(m,d){
 }
 function lk2View(m){
  var d=lkDraft(),staff=isStaff(),tabs=[['materi','Materi &amp; Prosedur'],['kerja','Lembar Kerja'],['evaluasi','Evaluasi'],['riwayat',staff?'Rekap LKPD':'Riwayat']];
- var nav=(staff?'<div class="chips"><button data-act="lk-tab" data-v="editor" aria-pressed="false">Editor Guru</button>'+(LK.preview?'<button data-act="lk-print">Cetak</button>'+(m.v2&&m.v2.gate?'<button data-act="lk-print-kunci">Cetak kunci</button>':''):'')+'</div>':'')+
+ var nav=(staff?'<div class="chips"><button data-act="lk-tab" data-v="editor" aria-pressed="false">Editor Guru</button>'+(LK.preview?'<button data-act="lk-print">Cetak</button>':'')+'</div>':'')+
   '<div class="chips">'+tabs.map(function(t){return '<button data-act="lk-tab" data-v="'+t[0]+'" aria-pressed="'+(LK.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>';
  var body=LK.tab==='materi'?lk2Materi(m,d):LK.tab==='kerja'?lk2Kerja(m,d):lk2Eval(m,d);
  return (LK.preview&&staff?'<div class="row"><button class="btn small" data-act="lk-preview-exit">Keluar pratinjau</button></div>':'')+
   '<div class="row sb"><div><span class="pill">Fase '+lkEsc(m.fase)+' · Kelas '+lkEsc(m.kelas)+'</span><h2>'+lkEsc(m.title)+'</h2><p class="note">'+lkEsc(m.unit)+' · '+m.v2.jp+' JP ('+m.duration+' menit, '+m.v2.pertemuan.length+' pertemuan)</p></div><span class="pill">'+lkEsc(/^LKPD/i.test(m.id)?m.id:'LKPD '+m.id)+' · v2</span></div>'+
-  nav+body+(LK.preview&&staff?'':'<div class="lk-actions"><div class="row"><button class="btn" data-act="lk-save">Simpan draf</button><button class="btn primary" data-act="lk-submit">Kirim LKPD</button><button class="btn" data-act="lk-print">Cetak</button>'+(staff&&m.v2&&m.v2.gate?'<button class="btn" data-act="lk-print-kunci">Cetak kunci</button>':'')+'</div><details class="lk2-more" data-lk2d="more"'+(LK2.open&&LK2.open.more?' open':'')+'><summary>Progres dan cadangan draf</summary><div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div><div class="lk2-bk"><button type="button" class="btn small" data-act="lk2-backup">Cadangkan draf (berkas)</button><label class="btn small" style="cursor:pointer">Pulihkan draf<input type="file" accept="application/json,.json" data-lk2-restore hidden></label></div><p class="note">Draf tersimpan di perangkat ini. Untuk LKPD beberapa pertemuan, cadangkan draf ke berkas setelah tiap pertemuan.</p></details></div>');
+  nav+body+(LK.preview&&staff?'':'<div class="lk-actions"><div class="row"><button class="btn" data-act="lk-save">Simpan draf</button><button class="btn primary" data-act="lk-submit">Kirim LKPD</button><button class="btn" data-act="lk-print">Cetak</button></div><details class="lk2-more" data-lk2d="more"'+(LK2.open&&LK2.open.more?' open':'')+'><summary>'+(lk2Kunci(m)?'Kunci pertemuan dan progres':'Progres dan cadangan draf')+'</summary><div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div>'+lk2BkBlock(m)+'</details></div>');
 }
 var _viewLKPD2=viewLKPD;
 viewLKPD=function(){
