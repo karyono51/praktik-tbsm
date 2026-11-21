@@ -3,6 +3,8 @@
 ## Format cetak PDF LKPD sesuai acuan
 Cetak LKPD kini disusun dari data modul (`js/lkpd-format.js`) mengikuti format PDF LKPD SMKS Medina Bandung: banner pertemuan hijau, tabel isian, kotak centang, paraf, nomor halaman, untuk modul v2 dan semua versi lain. Rincian di `docs-LKPD-V2.md`. Tidak ada perubahan Appwrite.
 
+Tombol **Cetak kunci** (Guru dan Admin) di samping Cetak mencetak Kunci dan Pembahasan Gerbang Masuk berformat PDF acuan; rincian di `docs-LKPD-V2.md`.
+
 Dipindahkan dari README.md tanpa mengubah isi, agar README fokus pada panduan. Bagian di sini disusun menurut urutan versi lama ke baru; fitur yang masih dipakai juga dijelaskan di berkas `docs-*.md` (lihat indeks di README).
 
 ## Rekap kompetensi, label Latihan, dan cek sinkronisasi (v40)

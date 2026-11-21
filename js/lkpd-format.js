@@ -11,7 +11,7 @@
 var HIJAU='#1b5e20';
 var CSS='@media print{'+
 '#lk-print,#lk-print *{-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
-'body.lk-printing #lk-print.lkf{font-family:Arial,Helvetica,sans-serif;font-size:10pt;line-height:1.35}'+
+'#lk-print .lkf{font-family:Arial,Helvetica,sans-serif;font-size:10pt;line-height:1.35}'+
 '#lk-print table.lkf-kop{width:100%;border-collapse:collapse;margin-bottom:8px}'+
 '#lk-print table.lkf-kop td{border:0!important;border-bottom:2.5px solid #000!important;padding:0 0 6px;vertical-align:middle;text-align:center}#lk-print table.lkf-kop td.lg{width:66px}'+
 '#lk-print table.lkf-kop img{width:60px;height:60px;object-fit:contain;border-radius:0!important}'+
@@ -235,15 +235,65 @@ function bangunV1(m,H){
 }
 
 /* ---------- Penutup halaman: nomor halaman dan identitas lembar ---------- */
-function footStyle(m,H){
+function footStyle(m,H,kiriTetap){
  var S0=typeof SEK!=='undefined'?SEK:{nama:''},ju=m.v2&&m.v2.judulPendek||m.id;
  var kiri='LKPD '+(m.kelas==='X'?'DDPK ':'')+'Kelas '+m.kelas+' · '+ju+' · '+S0.nama;
+ if(kiriTetap)kiri=kiriTetap;
  kiri=String(kiri).replace(/["\\\n\r<>]/g,' ');
  return '<style>@media print{@page{size:A4;margin:10mm 12mm 16mm;@bottom-left{content:"'+kiri+'";font:8pt Arial,sans-serif;color:#555}@bottom-right{content:"Halaman " counter(page) " dari " counter(pages);font:8pt Arial,sans-serif;color:#555}}}</style>';
 }
 /* H: {d, pihak, semester, mapel, akhir}. d kosong untuk cetakan guru/pratinjau. */
+/* ---------- Kunci dan pembahasan gerbang masuk (khusus guru) ---------- */
+function kunciSoal(q){
+ var t=tipeSoal(q);
+ if(t==='kategori'){var lab=q.lab||['Benar','Salah'];return q.rows.map(function(r,k){return (k+1)+' '+E(r[1]?lab[0]:lab[1])}).join('<br>')}
+ if(t==='kompleks'){var L=(q.a||[]).slice().sort(function(x,y){return x-y}).map(abc);return L.length>1?L.slice(0,-1).join(', ')+' dan '+L[L.length-1]:L[0]||''}
+ if(q.o)return abc(q.a);
+ return E(q.kunci!==undefined?q.kunci:q.a);
+}
+function hitungKoma(v){return String(v).replace('.',',')}
+function kunciBangun(m){
+ var V=m.v2,qs=V.gate.qs,BENTUK={pg:'PG',kompleks:'PG kompleks',kategori:'PG kategori'},lv={},ur=[];
+ qs.forEach(function(q){if(!lv[q.lvl]){lv[q.lvl]=0;ur.push(q.lvl)}lv[q.lvl]++});
+ var S0=typeof SEK!=='undefined'?SEK:{nama:''},ju=String(m.title||'').replace(/\s*\([^)]*\)\s*$/,'');
+ var h='<div class="lkf">'+footStyle(m,{},'Kunci gerbang masuk · LKPD '+(V.judulPendek||m.id)+' · '+S0.nama+' (khusus guru)')+kop()+
+  '<p class="lkf-jdl">KUNCI DAN PEMBAHASAN GERBANG MASUK (UNTUK GURU)</p>'+
+  '<p>LKPD '+E(ju)+' · '+(m.kelas==='X'?'DDPK ':'')+'Kelas '+E(m.kelas)+' · Syarat lulus minimal '+V.gate.min+' dari '+qs.length+' soal benar. <b>Dokumen ini tidak dibagikan kepada siswa.</b></p>'+
+  '<h2 class="lkf-h">Ketentuan soal</h2><ul class="lkf-ul">'+
+  '<li><b>Bentuk soal</b> mengikuti tiga bentuk TKA SMK: pilihan ganda (5 pilihan, 1 kunci), pilihan ganda kompleks (5 pilihan, kunci lebih dari 1), dan pilihan ganda kategori (pernyataan Benar/Salah). Semuanya soal tunggal; stimulus (kasus, data ukur) ada di dalam soal.</li>'+
+  '<li><b>Level kognitif:</b> soal HOTS berada pada level Aplikasi dan Penalaran. Sebaran soal gerbang: '+ur.map(function(x){return lv[x]+' '+E(x)}).join(', ')+'.</li>'+
+  '<li><b>Pengecoh</b> dibuat dari kesalahan umum siswa, bukan jawaban yang jelas keliru.</li>'+
+  '<li><b>Penskoran gerbang:</b> tiap soal benar = 1; soal kompleks dan kategori benar bila semua pilihan tepat.</li></ul>'+
+  '<h2 class="lkf-h">Kunci</h2><table class="lkf-t"><thead><tr><th style="width:9mm">No</th><th style="width:22mm">Bentuk</th><th style="width:20mm">Level</th><th style="width:26mm">Kunci</th><th>Pembahasan</th></tr></thead><tbody>'+
+  qs.map(function(q,i){return '<tr><td class="k">'+(i+1)+'</td><td>'+E(BENTUK[tipeSoal(q)]||tipeSoal(q))+'</td><td>'+E(q.lvl||'')+'</td><td><b>'+kunciSoal(q)+'</b></td><td>'+E(q.e||'')+'</td></tr>'}).join('')+'</tbody></table>';
+ if(V.peta&&V.peta.length)h+='<h2 class="lkf-h">Peta ke soal lama</h2><table class="lkf-t"><thead><tr><th>Soal lama (isian)</th><th>Soal baru</th></tr></thead><tbody>'+V.peta.map(function(x,i){return '<tr><td>'+(i+1)+'. '+E(x[0])+'</td><td>'+E(x[1])+'</td></tr>'}).join('')+'</tbody></table>';
+ var lat=(m.quiz||[]).filter(function(q){return q.id&&q.kunci!==undefined&&q.kunci!==null&&q.kunci!==''});
+ if(lat.length){
+  var satuan=lat[0].u||'';
+  h+='<h2 class="lkf-h">Kunci jawaban latihan (untuk guru)</h2><table class="lkf-t"><thead><tr>'+lat.map(function(q){return '<th>'+E(q.id)+'</th>'}).join('')+'</tr></thead><tbody><tr>'+lat.map(function(q){return '<td class="k">'+E(hitungKoma(q.kunci))+'</td>'}).join('')+'</tr></tbody></table>'+
+   '<p class="lkf-note lkf-small">'+(satuan?'Satuan: '+E(satuan)+'. ':'')+lat.filter(function(q){return q.e}).map(function(q){return E(q.id)+' = '+E(String(q.e).replace(/[.\s]+$/,''))}).join('; ')+'.</p>';
+ }
+ return h+'</div>';
+}
+window.lkfKunci=kunciBangun;
+document.addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-act="lk-print-kunci"]');if(!b)return;
+ e.stopPropagation();e.preventDefault();
+ try{
+  if(typeof isStaff!=='function'||!isStaff()){toast('Kunci hanya untuk guru dan admin');return}
+  var m=(typeof LKPD_MODULES!=='undefined'?LKPD_MODULES:[]).find(function(x){return x.id===LK.module});
+  if(!m||!m.v2||!m.v2.gate||!m.v2.gate.qs||!m.v2.gate.qs.length){toast('LKPD ini belum punya gerbang masuk');return}
+  var lama=document.getElementById('lk-print');if(lama)lama.remove();
+  var el=document.createElement('div');el.id='lk-print';el.innerHTML=kunciBangun(m);document.body.appendChild(el);
+  var t0=document.title,nm=window.LKC&&window.LKC.namaPdf?window.LKC.namaPdf(m):'LKPD '+m.id;
+  document.title='Kunci '+nm;document.body.classList.add('lk-printing');
+  var pulih=function(){document.body.classList.remove('lk-printing');document.title=t0;window.removeEventListener('afterprint',pulih)};
+  window.addEventListener('afterprint',pulih);
+  window.print();
+ }catch(err){try{document.body.classList.remove('lk-printing')}catch(x){}try{toast('Kunci gagal dicetak')}catch(x){}}
+},true);
 window.lkfBangun=function(m,H){
  H.d=H.d||{};
- return footStyle(m,H)+kop()+'<p class="lkf-jdl">LEMBAR KERJA PESERTA DIDIK (LKPD) PRAKTIK</p>'+identitas(m,H)+(m.v2&&m.v2.ver===2&&m.v2.pertemuan?bangunV2(m,H):bangunV1(m,H))+(H.akhir||'');
+ return '<div class="lkf">'+footStyle(m,H)+kop()+'<p class="lkf-jdl">LEMBAR KERJA PESERTA DIDIK (LKPD) PRAKTIK</p>'+identitas(m,H)+(m.v2&&m.v2.ver===2&&m.v2.pertemuan?bangunV2(m,H):bangunV1(m,H))+(H.akhir||'')+'</div>';
 };
 })();

@@ -67,6 +67,7 @@
     {n:6,jp:3,menit:135,judul:'Penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[]}
    ],
    kegiatan:kegiatan,judulPendek:'Alat Ukur',
+   peta:[['Dua pengukuran jangka sorong selain diameter luar','1 (bagian jangka sorong menurut jenis ukur)'],['Ketelitian mikrometer dan satu putaran bidal','2 (bukaan dari putaran dan bagian bidal)'],['Yang dilakukan pada alat sebelum mengukur','3 (periksa nol dan koreksi penyimpangan nol)'],['Alasan pemutar gelitik dipakai','4 (tekanan ukur dan akibat memaksa bidal)'],['Dua hal yang tidak boleh dilakukan pada alat presisi','5 (perawatan dan penyimpanan yang benar)']],
    cekAlat:['Jangka sorong: permukaan ukur bersih dan tidak tergores; rahang geser bergerak halus; nol tepat atau penyimpangan dicatat','Mikrometer: landasan dan poros bersih; bidal berputar halus; pemutar gelitik berbunyi klik; nol tepat atau penyimpangan dicatat','Dial gauge: poros ukur bergerak lancar dan kembali; jarum tidak macet; dudukan magnet menempel kuat'],
    tindak:{remedial:'Remedial (bila belum tuntas): ulangi latihan membaca skala dengan soal baru dari guru dan ulangi pengukuran pada alat yang belum tepat.',pengayaan:'Pengayaan (bila sudah tuntas): ukur keolengan cakram atau diameter dalam silinder dan putuskan setel, perbaiki, atau ganti berdasarkan batas servis.'},
    langkah:langkah.map(function(x,i){return {i:i,k:x.k,saksi:!!x.saksi}}),

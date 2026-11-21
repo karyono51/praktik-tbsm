@@ -129,8 +129,48 @@ ok(/Evaluasi pengetahuan 1\. Soal\?/.test(t1) && /✔ B\./.test(t1) && /Bobot pe
 ok(/@bottom-right\{content:"Halaman " counter\(page\) " dari " counter\(pages\)/.test(kosong) && /@bottom-left\{content:"LKPD DDPK Kelas X · Alat Ukur · SMKS Medina Bandung"/.test(kosong), 'footer: identitas lembar dan nomor halaman');
 const css = STYLES.filter((e) => e.tag === 'style').map((e) => e.textContent || '').join('');
 ok(/#lk-print table\.lkf-ban td\{background:#1b5e20!important/.test(css) && /print-color-adjust:exact/.test(css), 'banner hijau dicetak berwarna');
+/* ---------- Kunci dan pembahasan gerbang masuk ---------- */
+const KH = ctx.lkfKunci(M), KT = teks(KH);
+ok(/KUNCI DAN PEMBAHASAN GERBANG MASUK \(UNTUK GURU\)/.test(KT), 'kunci: judul');
+ok(/LKPD Penggunaan dan Perawatan Alat Ukur · DDPK Kelas X · Syarat lulus minimal 4 dari 5 soal benar\. Dokumen ini tidak dibagikan kepada siswa\./.test(KT), 'kunci: keterangan dan larangan dibagikan');
+ok(/Ketentuan soal/.test(KT) && /Sebaran soal gerbang: 3 Aplikasi, 2 Penalaran/.test(KT) && /Penskoran gerbang/.test(KT) && /Pengecoh dibuat/.test(KT), 'kunci: ketentuan soal dan sebaran level dihitung dari data');
+ok(/No Bentuk Level Kunci Pembahasan/.test(KT), 'kunci: kepala tabel');
+ok(/1 PG Aplikasi B /.test(KT) && /2 PG Aplikasi D /.test(KT) && /3 PG kompleks Penalaran A dan C /.test(KT) && /5 PG Aplikasi C /.test(KT), 'kunci: kunci PG dan PG kompleks sesuai data');
+ok(/4 PG kategori Penalaran 1 Benar 2 Salah 3 Benar 4 Salah 5 Benar/.test(KT), 'kunci: PG kategori per pernyataan');
+ok(/C memakai ketelitian 0,1 mm/.test(KT) && /Rata-rata tidak menghilangkan/.test(KT), 'kunci: pembahasan dari data modul');
+ok(/Peta ke soal lama/.test(KT) && /Soal lama \(isian\) Soal baru/.test(KT) && /5\. Dua hal yang tidak boleh dilakukan pada alat presisi 5 \(perawatan/.test(KT), 'kunci: peta ke soal lama');
+ok(/Kunci jawaban latihan \(untuk guru\) J1 J2 J3 M1 M2 M3 D1 D2 24,35 31,28 12,45 7,78 12,35 5,63 2,45 0,22/.test(KT), 'kunci: jawaban latihan J, M, D sama dengan PDF acuan');
+ok(/Satuan: mm\./.test(KT) && /D2 = 0,32 − 0,10/.test(KT) && /M1 = 7 \+ 0,5 \+ 28 × 0,01/.test(KT), 'kunci: rumus latihan dari data');
+ok(/@bottom-left\{content:"Kunci gerbang masuk · LKPD Alat Ukur · SMKS Medina Bandung \(khusus guru\)"/.test(KH) && /Halaman " counter\(page\) " dari " counter\(pages\)/.test(KH), 'kunci: footer khusus guru dan nomor halaman');
+ok(!/☐|☑|✔/.test(KT), 'kunci: tidak ada kotak isian siswa');
+/* tombol dan cetak: hanya staf, di samping Cetak */
+const v2js = src('lkpd-v2.js');
+ok((v2js.match(/data-act="lk-print-kunci"/g) || []).length === 2 && /data-act="lk-print">Cetak<\/button>'\+\(m\.v2&&m\.v2\.gate\?'<button data-act="lk-print-kunci">/.test(v2js), 'tombol Cetak kunci dipasang di samping Cetak (pratinjau dan baris aksi)');
+G(`STAFF=false;LK.module='LKPD-X-07';LK.tab='materi';LK.preview=false`);
+ok(G(`viewLKPD=viewLKPD;lk2View(LKPD_MODULES[0])`).indexOf('lk-print-kunci') < 0, 'siswa tidak melihat tombol Cetak kunci');
+G(`STAFF=true;LK.preview=true`);
+const vs = G(`lk2View(LKPD_MODULES[0])`);
+ok(/data-act="lk-print">Cetak<\/button><button data-act="lk-print-kunci">Cetak kunci<\/button>/.test(vs), 'guru: tombol Cetak kunci tepat di samping Cetak');
+G(`STAFF=true;LK.preview=false`);
+ok(/data-act="lk-print"[^>]*>Cetak<\/button><button class="btn" data-act="lk-print-kunci">Cetak kunci/.test(G(`lk2View(LKPD_MODULES[0])`)), 'guru (bukan pratinjau): tombol Cetak kunci di baris aksi');
+/* klik: siswa ditolak, guru mencetak dengan judul berkas "Kunci LKPD X-07 ..." dan pulih sesudah cetak */
+const log = { print: 0, toast: [] };
+run(`var _printed=0,_cls={},_elem=null;window.print=function(){_printed++};var _af=[];window.addEventListener=function(t,f){if(t==='afterprint')_af.push(f)};window.removeEventListener=function(){};
+document.body.classList.add=function(c){_cls[c]=1};document.body.classList.remove=function(c){delete _cls[c]};
+document.body.appendChild=function(e){_elem=e};document.getElementById=function(){return null};document.title='KBM Praktik TBSM';
+LKC={namaPdf:function(m){return 'LKPD X-07 '+m.title+' SMKS Medina Bandung'}};`, 'stub-cetak-kunci');
+const klik = () => { const f = listeners.filter((l) => l.t === 'click' && l.c === true); f.forEach((l) => l.f({ target: { closest: (sel) => /lk-print-kunci/.test(sel) ? { dataset: {} } : null }, stopPropagation() {}, preventDefault() {} })); };
+G(`STAFF=false;_printed=0`); klik();
+ok(G('_printed') === 0, 'siswa: klik Cetak kunci tidak mencetak');
+G(`STAFF=true;LK.module='LKPD-X-07'`); klik();
+ok(G('_printed') === 1 && G('_cls["lk-printing"]') === 1, 'guru: klik Cetak kunci mencetak');
+ok(G('document.title') === 'Kunci LKPD X-07 Penggunaan dan Perawatan Alat Ukur (Jangka Sorong, Mikrometer, Dial Gauge) SMKS Medina Bandung', 'nama berkas PDF kunci: ' + G('document.title'));
+ok(/KUNCI DAN PEMBAHASAN/.test(G('_elem.innerHTML')), 'isi yang dicetak adalah kunci');
+G('_af.forEach(function(f){f()})');
+ok(G('document.title') === 'KBM Praktik TBSM' && G('_cls["lk-printing"]') === undefined, 'judul dan kelas cetak dipulihkan setelah cetak');
 if (process.env.LKPD_HTML) {
   fs.writeFileSync(process.env.LKPD_HTML, '<!doctype html><meta charset="utf-8"><style>@page{size:A4;margin:10mm 12mm 14mm}body{margin:0}' + css.replace(/@media print\{/, '').replace(/\}$/, '') + '#lk-print{display:block}</style><div id="lk-print" class="lkf" style="font-family:Arial,sans-serif;font-size:10pt">' + bangun(M, process.env.LKPD_ISI ? draf : {}).replace(/<style>[\s\S]*?<\/style>/, '') + '</div>');
 }
+if (process.env.LKPD_KUNCI_HTML) fs.writeFileSync(process.env.LKPD_KUNCI_HTML, '<!doctype html><meta charset="utf-8"><style>@page{size:A4;margin:10mm 12mm 14mm}body{margin:0}' + css.replace(/@media print\{/, '').replace(/\}$/, '') + '#lk-print{display:block}</style><div id="lk-print">' + KH.replace(/<style>[\s\S]*?<\/style>/, '') + '</div>');
 console.log(`\nUji format cetak LKPD: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);
