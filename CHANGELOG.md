@@ -1,5 +1,8 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Latihan membaca skala: 10 soal, kode disembunyikan, bergambar
+Latihan membaca skala LKPD X-07 menjadi 10 soal (tambahan J4 jangka sorong 45,55 mm dan M4 mikrometer 9,41 mm). Kode soal (J1, M1, D1, dst.) tidak lagi tampil; `id` tetap ada di data. Tiap soal bergambar SVG yang digambar otomatis dari angka soal (parameter `q.g`): skala jangka sorong, mikrometer, dial gauge, dan keolengan. Berkas baru: `js/lkpd-skala-gambar.js`; gaya `.skg` di `css/app.css`. Tidak ada perubahan Appwrite.
+
 ## Gerbang masuk LKPD v2 dinilai otomatis dengan acuan TKA
 Nilai gerbang = jumlah poin soal TKA / jumlah soal x 100 (PG 1/0; PG kompleks dan PG kategori nilai sebagian). Lembar Kerja terbuka bila nilai gerbang >= KKM (minimal 75). Kriteria 4 dari 5 soal benar dihapus. Gerbang adalah syarat kelayakan masuk praktik, bukan komponen nilai akhir. Detail guru menampilkan poin per soal; payload menambah `v2.gerbang`. Rincian dan skenario di `docs-LKPD-V2.md` bagian 4A. Tidak ada perubahan Appwrite.
 

@@ -128,7 +128,7 @@ sama(G(`lk2Gate(_lamaM,{gate0:'Diameter dalam',gate1:'ab'}).lulus`), false, 'ger
 const Q = (id) => M.quiz.find((q) => q.id === id);
 const pt = (id, a) => G(`lkqPoint(LKPD_MODULES[0].quiz[${M.quiz.indexOf(Q(id))}],${JSON.stringify(a)})`);
 sama([pt('J1', '24,35'), pt('J1', '24.35'), pt('J1', ' 24,35 '), pt('J1', '24,36'), pt('J1', '24,3'), pt('J1', ''), pt('J1', 'x'), pt('D2', '0,22'), pt('D2', '0,2')], [1, 1, 1, 0, 0, 0, 0, 1, 0], 'isian: koma/titik benar, toleransi 0,005, salah/kosong = 0');
-sama(M.quiz.map((q) => q.kunci), [24.35, 31.28, 12.45, 7.78, 12.35, 5.63, 2.45, 0.22], 'kunci F4 sama dengan versi guru');
+sama(M.quiz.map((q) => q.kunci), [24.35, 31.28, 12.45, 45.55, 7.78, 12.35, 5.63, 9.41, 2.45, 0.22], 'kunci F4 sama dengan versi guru');
 ok(G(`lkqAnswered(LKPD_MODULES[0].quiz[0],'1')`) === true && G(`lkqAnswered(LKPD_MODULES[0].quiz[0],' ')`) === false, 'isian terjawab bila tidak kosong');
 ok(G(`lkqValid(LKPD_MODULES[0].quiz[0])`) === true, 'isian valid');
 ok(G(`lkqType({t:'isian'})`) === 'isian' && G(`lkqType({q:'x',o:['a','b'],a:0})`) === 'pg', 'tipe lama tetap dikenali');
@@ -146,11 +146,11 @@ M.v2.analisis.forEach((q, i) => (penuh['ana' + i] = 'analisis yang cukup panjang
 M.v2.tabel.forEach((t) => t.baris.forEach((b, r) => t.kol.forEach((k) => { if (k.t !== 'rata' && k.t !== 'selisih') penuh[`t_${t.id}_${r}_${k.k}`] = k.t === 'status' ? 'Sesuai' : '1'; })));
 M.quiz.forEach((q, i) => (penuh['q' + i] = String(q.kunci).replace('.', ',')));
 let sc = G(`lkScore(${JSON.stringify(penuh)})`);
-sama([sc.practice, sc.theory, sc.final, sc.answered], [100, 100, 100, 8], 'semua terisi benar = 100');
+sama([sc.practice, sc.theory, sc.final, sc.answered], [100, 100, 100, 10], 'semua terisi benar = 100');
 const kosong = G(`lkScore({})`);
 sama([kosong.practice, kosong.theory, kosong.final], [0, 0, 0], 'kosong = 0');
-const sebagian = Object.assign({}, penuh); M.quiz.slice(0, 4).forEach((q, i) => (sebagian['q' + i] = '99'));
-sama(G(`lkScore(${JSON.stringify(sebagian)})`).theory, 50, '4 dari 8 benar = teori 50');
+const sebagian = Object.assign({}, penuh); M.quiz.slice(0, 5).forEach((q, i) => (sebagian['q' + i] = '99'));
+sama(G(`lkScore(${JSON.stringify(sebagian)})`).theory, 50, '5 dari 10 benar = teori 50');
 
 /* ---------- Render ---------- */
 G(`LKPD_MODULES[0].status='published';LKPD_MODULES[0].active=true`);
@@ -376,7 +376,7 @@ ok(/Rahang rapat/.test(ker) && !/Rahang rapat/.test(fKer) && /data-lk-field="act
 ok(G(`lk2ModeFilter('X',{mode:'latihan',hideTeori:true})`) === 'X', 'latihan: tidak ada yang disaring');
 ok(/Periksa jawaban/.test(G(`lk2KeyBlock(LKPD_MODULES[0],{},false)`)), 'latihan v2: tombol periksa jawaban');
 const kb = G(`lk2KeyBlock(LKPD_MODULES[0],${JSON.stringify(penuh)},true)`);
-ok(/Benar \d+ dari 8/.test(kb) && !/NaN|undefined/.test(kb), 'latihan v2: pembahasan memakai soal isian tanpa galat');
+ok(/Benar \d+ dari 10/.test(kb) && !/NaN|undefined/.test(kb), 'latihan v2: pembahasan memakai soal isian tanpa galat');
 
 /* ---------- Kunci hasil per pertemuan (lkpd-kunci.js) ---------- */
 run(`function lkDraft(){return Object.assign({},DRAFT)}function lkKey(){return 'kunci-uji'}var LKM={edit:null,d:null};function uiOk(k,m,cb){return true}async function uiConfirm(){return true}`, 'stub-kunci');
