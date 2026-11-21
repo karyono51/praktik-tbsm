@@ -7,7 +7,7 @@ Tambahan aditif: LKPD dan observasi lama tidak diubah. Pilot: LKPD-X-07 (Penggun
 - `js/lkpd-v2.js`: mesin v2.
 - `js/lkpd-v2-soal.js`: tipe soal isian angka (`t:'isian'`, `kunci`, `tol`).
 - `js/observasi-v2.js`: Observasi LKPD Praktik v2 (rubrik diambil dari `m.v2.obs` tiap LKPD).
-- `tools/uji-lkpd-v2.mjs`: uji tanpa peramban (`node tools/uji-lkpd-v2.mjs`, 138 uji).
+- `tools/uji-lkpd-v2.mjs`: uji tanpa peramban (`node tools/uji-lkpd-v2.mjs`, 166 uji).
 
 ## 2. Alur siswa
 Urutan tab: Materi, Lembar Kerja, Evaluasi.
@@ -40,9 +40,23 @@ Urutan tab: Materi, Lembar Kerja, Evaluasi.
 - Catatan: draf yang dikerjakan dengan gerbang isian lama tidak terbaca sebagai jawaban PG; siswa perlu menjawab ulang gerbang.
 
 ## 5. Observasi LKPD Praktik v2
+- **Penilaian aspek (skala 1-4 + nilai, sama dengan Observasi UKK):** untuk tiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** bulat sesuai rentang skala. Kolom nilai terkunci sampai skala dipilih, dan menolak angka di luar rentang (pesan merah "Nilai harus 75-90").
+
+| Skala | Kesimpulan | Rentang nilai |
+|---|---|---|
+| 1 | Belum Kompeten | 0-60 (<61) |
+| 2 | Cukup Kompeten | 61-74 |
+| 3 | Kompeten | 75-90 |
+| 4 | Sangat Kompeten | 91-100 |
+
+- Deskriptor rubrik tiap skala (`d` di `m.v2.obs`) tampil di bawah tombol untuk skala yang dipilih, dan semua deskriptor ada di lipatan **Kriteria skala**. Kolom **Keterangan (opsional)** per aspek tetap ada.
+- **Nilai akhir = jumlah(nilai aspek x bobot / 100)**, dibulatkan. Kategori: 91-100 Sangat Kompeten, 75-90 Kompeten, 61-74 Cukup Kompeten, di bawah 61 Belum Kompeten. Aspek penghenti (K3) berskala 1 = praktik dihentikan dan kategori Belum Kompeten. Keputusan Kompeten tetap mensyaratkan semua indikator tercentang, semua aspek terisi, dan K3 tidak berskala 1.
+- **Bar bawah** (menempel di layar): `N / 6 terisi`, nilai sementara atau akhir, tombol **Belum diisi** (gulir ke aspek pertama yang belum lengkap dan menyorotnya) dan **Simpan**. Simpan ditolak bila ada aspek yang skala atau nilainya belum valid.
+- **Penyimpanan:** `payload.nilai[id aspek]` = nilai 0-100, `payload.nilai['l_'+id aspek]` = skala 1-4, indikator tetap `i0..iN`. Tanpa perubahan skema Appwrite; `skor` = nilai akhir 0-100.
+- **Catatan format lama** (skor 1-4 per aspek tanpa kunci `l_`) tetap dapat dilihat, dicetak, dan diekspor dengan hitungan lama (jumlah(skor / 4 x bobot), kategori Sangat Baik/Baik/Cukup/Kurang). Bila diubah, aspeknya diisi ulang dengan skala dan nilai (indikator ikut terbawa).
 - Penyimpanan: koleksi `observasi`, `tipe='siswa'`, `payload.v=2` (tanpa perubahan skema Appwrite).
-- **PDF:** per catatan (aspek berbobot, indikator, keputusan, tanda tangan).
-- **Excel:** tombol Excel lama menulis catatan v2 pada lembar terpisah per LKPD (kolom mengikuti rubrik); lembar lama tidak lagi tercampur baris v2.
+- **PDF:** per catatan (aspek berbobot, indikator, keputusan, tanda tangan). Format baru memuat kolom Skor (skala), Nilai, dan Berbobot.
+- **Excel:** tombol Excel lama menulis catatan v2 pada lembar terpisah per LKPD (kolom mengikuti rubrik; kolom terakhir Format penilaian membedakan skala + nilai dengan skor 1-4 lama); lembar lama tidak lagi tercampur baris v2.
 
 ## 6. Cetak dan cadangan draf
 - **Cetak:** Lembar Kerja v2 tetap tercetak walau gerbang belum selesai (sebelumnya siswa mencetak halaman "terkunci"). Mata pelajaran di cetakan memakai nama master (Dasar-Dasar Teknik Otomotif (DDPK); Kompetensi Keahlian Teknik Sepeda Motor).

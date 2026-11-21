@@ -244,7 +244,7 @@ G(`S.observasi.push({id:'lama',tipe:'siswa',guru:'Lama',mapel:'X',kelas:'X',tang
 ok(!/Detail observasi v2/.test(G('viewObservasi()')) && /Detail observasi/.test(G('viewObservasi()')), 'catatan formulir lama tetap memakai detail lama');
 // ubah catatan v2 membawa d.v2
 const dd = G(`obsDraftDari(S.observasi[0])`);
-ok(dd.v2 === 'LKPD-X-07' && dd.nilai.k3 === 4, 'Ubah catatan v2 memulihkan modul dan skor');
+ok(dd.v2 === 'LKPD-X-07' && dd.lama2 === true && dd.nilai.k3 === undefined && dd.nilai.i0 === 1, 'Ubah catatan v2 format lama: modul dan indikator dipulihkan, aspek diisi ulang (skala + nilai)');
 // PDF v2: jsPDF palsu merekam isi
 run(`
 var __pdf={rows:[],texts:[],saved:'',heads:[]};
@@ -270,11 +270,97 @@ G(`OB.tipe='siswa';__book=null;obsXls()`);
 const bk = G('__book');
 ok(bk && bk.pairs.length === 2 && bk.pairs[1][0] === 'Obs v2 LKPD-X-07', 'Excel: satu lembar lama + satu lembar v2 per LKPD', JSON.stringify(bk && bk.pairs.map((x) => x[0])));
 ok(bk.pairs[0][1].length === 2, 'Excel: lembar lama hanya memuat catatan formulir lama (tanpa baris v2)');
-ok(bk.pairs[1][1].length === 3 && bk.pairs[1][1][0].length === 7 + 6 + 7 && bk.pairs[1][1][1][bk.pairs[1][1][0].indexOf('Nilai')] === 100, 'Excel v2: 2 siswa, kolom 6 aspek, nilai tercatat');
+ok(bk.pairs[1][1].length === 3 && bk.pairs[1][1][0].length === 7 + 6 + 8 && bk.pairs[1][1][1][bk.pairs[1][1][0].indexOf('Nilai')] === 100, 'Excel v2: 2 siswa, kolom 6 aspek, nilai tercatat');
 ok(G(`typeof obsVisible('siswa')`) === 'object' && G(`obsVisible('siswa').length`) === 3 && G(`book.name`) !== 'x', 'Excel: pengganti sementara obsVisible/book dikembalikan');
 G(`S.observasi=S.observasi.filter(function(r){return r.id==='lama'});__book=null;obsXls()`);
 ok(G('__book.pairs.length') === 1 && G('__book.pairs[0][0]') === 'Rekap Observasi LKPD Praktik', 'Excel: tanpa catatan v2 perilaku lama tidak berubah');
 G(`S.observasi=[];__book=null;`);
+
+/* ---------- Format baru: skala 1-4 + nilai berentang (seperti Observasi UKK) ---------- */
+const L = (o) => { const r = {}; for (const [id, [l, v]] of Object.entries(o)) { r['l_' + id] = l; r[id] = v; } for (let i = 0; i < 8; i++) r['i' + i] = 1; return r; };
+const baru4 = L({ k3: [4, 100], prosedur: [4, 100], hasil: [4, 100], waktu: [4, 100], '5r': [4, 100], sikap: [4, 100] });
+h = hit(baru4);
+ok(h.baru === true && h.nilai === 100 && h.kompeten && h.lengkap, 'format baru: semua skala 4 nilai 100 = 100, kompeten');
+h = hit(L({ k3: [3, 80], prosedur: [4, 95], hasil: [2, 70], waktu: [1, 50], '5r': [3, 75], sikap: [4, 91] }));
+sama(h.nilai, Math.round(80 * .2 + 95 * .3 + 70 * .25 + 50 * .1 + 75 * .05 + 91 * .1), 'format baru: nilai akhir = jumlah(nilai x bobot / 100)');
+h = hit(Object.assign({}, baru4, { prosedur: 74 }));
+ok(h.done === 5 && h.lengkap === false, 'nilai di luar rentang skala (skala 4 nilai 74) tidak dihitung');
+h = hit(Object.assign({}, baru4, { hasil: 90.5, waktu: '95' }));
+ok(h.done === 4, 'nilai pecahan atau teks tidak dihitung');
+h = hit(Object.assign({}, baru4, { l_hasil: 1, hasil: 60 }));
+ok(h.done === 6 && h.nilai === Math.round(20 + 30 + 15 + 10 + 5 + 10), 'skala 1 menerima nilai 0-60');
+h = hit(Object.assign({}, baru4, { l_hasil: 1, hasil: 61 }));
+ok(h.done === 5, 'skala 1 menolak nilai 61');
+h = hit(Object.assign({}, baru4, { l_k3: 1, k3: 40 }));
+ok(h.stop === true && h.kompeten === false && h.done === 6, 'format baru: K3 berskala 1 = praktik dihentikan');
+sama([G(`ob2Kat({baru:true,stop:false,nilai:91})`), G(`ob2Kat({baru:true,stop:false,nilai:90})`), G(`ob2Kat({baru:true,stop:false,nilai:75})`), G(`ob2Kat({baru:true,stop:false,nilai:74})`), G(`ob2Kat({baru:true,stop:false,nilai:61})`), G(`ob2Kat({baru:true,stop:false,nilai:60})`), G(`ob2Kat({baru:true,stop:true,nilai:95})`)],
+  ['Sangat Kompeten', 'Kompeten', 'Kompeten', 'Cukup Kompeten', 'Cukup Kompeten', 'Belum Kompeten', 'Belum Kompeten'], 'kategori format baru mengikuti rentang UKK; K3 skala 1 = Belum Kompeten');
+sama([G(`obsKatCls('Sangat Kompeten')`), G(`obsKatCls('Kompeten')`), G(`obsKatCls('Cukup Kompeten')`), G(`obsKatCls('Belum Kompeten')`), G(`obsKatCls('Baik')`), G(`obsKatCls('Kurang')`)], ['ok', 'ok', 'warn', 'bad', 'ok', 'bad'], 'warna pill mengenali label baru dan lama');
+
+// tampilan
+G(`OB.tipe='siswa';OB.d=obsBaru('siswa');OB.d.pilih=['s1'];OB.d.man=[];OB.mode='form';OB.d.v2='LKPD-X-07';OB.d.per={};OB.d.nilai={};OB.d.cat={};OB.d.cur='';obsEnsure(OB.d)`);
+html = G('obsStuHtml(OB.d)');
+ok((html.match(/data-act="ob2-rate"/g) || []).length === 24 && (html.match(/class="seg rate"/g) || []).length === 6, 'formulir baru: 6 aspek x tombol skala 1-4');
+ok((html.match(/class="obu-nil ob2-nil"[^>]*placeholder="Nilai" disabled/g) || []).length === 6, 'kolom nilai terkunci sampai skala dipilih');
+ok(/Pilih 1-4 sesuai kriteria/.test(html) && /Kriteria skala/.test(html) && /Keterangan \(opsional\)/.test(html), 'keterangan skala, kriteria, dan keterangan opsional tampil');
+ok(/id="ob2prog2">0<\/span> \/ 6 terisi/.test(html) && /Belum diisi/.test(html) && /data-act="ob-save">Simpan/.test(html) && /Nilai -/.test(html), 'bar bawah: 0 / 6 terisi, Belum diisi, Simpan, Nilai -');
+G(`OB.d.nilai={l_k3:3,k3:80}`);
+html = G('obsStuHtml(OB.d)');
+ok(/min="75" max="90" placeholder="Nilai 75-90"/.test(html) && /Kompeten: 75-90/.test(html) && /value="80"/.test(html) && /id="ob2prog2">1<\/span> \/ 6 terisi/.test(html) && /Lengkap, diingatkan 1 kali/.test(html), 'skala 3: rentang 75-90, nilai tersimpan, deskriptor skala tampil, terisi 1 / 6');
+G(`OB.d.nilai={l_k3:3,k3:60}`);
+ok(/aria-invalid="true"/.test(G('obsStuHtml(OB.d)')) && /ob2-ket bad/.test(G('obsStuHtml(OB.d)')) && /id="ob2prog2">0<\/span>/.test(G('obsStuHtml(OB.d)')), 'nilai di luar rentang ditandai tidak valid dan tidak dihitung');
+G(`OB.d.nilai={l_k3:1,k3:40}`);
+ok(!/class="ob2-stop card" hidden/.test(G('obsStuHtml(OB.d)').split('data-a="prosedur"')[0]), 'peringatan K3 skala 1 tampil');
+
+// simpan format baru dan baca lagi
+G(`S.observasi=[];OB.d.pilih=['s1','s2'];OB.d.per={};OB.d.cur='';OB.d.nilai={};OB.d.cat={};obsEnsure(OB.d);OB.d.mapel='';OB.d.tanggal='2026-11-21';OB.d.kelas='X';OB.d.jenis='Bengkel sekolah'`);
+G(`OB.d.nilai=${JSON.stringify(baru4)};obsFlush(OB.d);obsLoad(OB.d,'s2');OB.d.nilai=${JSON.stringify(L({ k3: [3, 80], prosedur: [3, 80], hasil: [3, 80], waktu: [3, 80], '5r': [3, 80], sikap: [3, 80] }))};obsFlush(OB.d);toasts.length=0;obsSaveSiswa()`);
+const rb = G('S.observasi');
+const pb = JSON.parse(rb[0].payload), pb2 = JSON.parse(rb[1].payload);
+ok(rb.length === 2 && rb[0].skor === 100 && rb[0].kategori === 'Sangat Kompeten' && pb.nilai.l_k3 === 4 && pb.nilai.k3 === 100 && pb.hasil.nilai === 100, 'simpan format baru: skala dan nilai tersimpan, kategori Sangat Kompeten');
+ok(rb[1].skor === 80 && rb[1].kategori === 'Kompeten' && pb2.hasil.kompeten === true, 'siswa kedua: nilai 80 = Kompeten');
+G(`OB.d=null;OB.mode='list'`);
+const dd2 = G(`obsDraftDari(S.observasi[0])`);
+ok(dd2.v2 === 'LKPD-X-07' && !dd2.lama2 && dd2.nilai.l_k3 === 4 && dd2.nilai.k3 === 100, 'Ubah catatan format baru memulihkan skala dan nilai');
+// detail dan PDF format baru
+G(`OB.view=S.observasi[1];OB.mode='view'`);
+const dv2 = G('viewObservasi()');
+ok(/3 · Kompeten · 80/.test(dv2) && /Lengkap, diingatkan 1 kali/.test(dv2) && /Nilai 80/.test(dv2), 'Detail format baru: skala, nilai, dan deskriptor skala');
+G(`obsPdf(S.observasi[1].id)`);
+ok(G('__pdf').heads.some((x) => /No\|Aspek\|Bobot\|Skor\|Nilai\|Berbobot/.test(x)) && G('__pdf').rows.some((x) => /Persiapan dan K3\|20%\|3 Kompeten\|80\|16/.test(x)), 'PDF format baru: kolom skor, nilai, berbobot');
+G(`OB.tipe='siswa';__book=null;obsXls()`);
+const bk2 = G('__book'), hd2 = bk2.pairs[0][1][0];
+ok(hd2[hd2.length - 1] === 'Format penilaian' && /Skala 1-4/.test(bk2.pairs[0][1][1][hd2.length - 1]) && bk2.pairs[0][1][1][7] === 100, 'Excel format baru: nilai per aspek (0-100) dan kolom format penilaian');
+G(`S.observasi=[];__book=null;`);
+
+// handler klik skala dan input nilai (elemen tiruan)
+{
+ const mk = () => ({ attrs: {}, cls: new Set(), dataset: {}, hidden: false, textContent: '', disabled: false, value: '', min: '', max: '', placeholder: '', focus() { this.f = 1; }, setAttribute(k, v) { this.attrs[k] = v; }, classList: null });
+ const mkCls = (el) => { el.classList = { add: (c) => el.cls.add(c), remove: (c) => el.cls.delete(c), toggle: (c, on) => (on ? el.cls.add(c) : el.cls.delete(c)), contains: (c) => el.cls.has(c) }; return el; };
+ G(`OB.tipe='siswa';OB.d=obsBaru('siswa');OB.d.pilih=['s1'];OB.d.man=[];OB.mode='form';OB.d.v2='LKPD-X-07';OB.d.per={};OB.d.nilai={};OB.d.cat={};OB.d.cur='';obsEnsure(OB.d)`);
+ const ket = mkCls(mk()), inp = mkCls(mk()), ds = mkCls(mk()), stp = mkCls(mk()), b1 = mkCls(mk()), b3 = mkCls(mk());
+ b1.dataset = { act: 'ob2-rate', id: 'k3', v: '1' }; b3.dataset = { act: 'ob2-rate', id: 'k3', v: '3' };
+ const card = mkCls(mk()); card.dataset = { a: 'k3' };
+ card.querySelector = (q) => ({ '.ob2-ket': ket, '.ob2-nil': inp, '.ob2-desc': ds, '.ob2-stop': stp })[q] || null;
+ card.querySelectorAll = () => [b1, b3];
+ [b1, b3].forEach((b) => { b.closest = (q) => (/data-a/.test(q) ? card : b); });
+ const click = listeners.filter((l) => l.t === 'click' && l.c !== true);
+ const klik = (b) => click.forEach((l) => l.f({ target: { closest: (q) => (/ob2-/.test(q) ? b : null) } }));
+ klik(b1);
+ ok(G('OB.d.nilai.l_k3') === 1 && inp.disabled === false && inp.max === 60 && inp.min === 0 && /Belum Kompeten: <61/.test(ket.textContent) && stp.hidden === false && ds.hidden === false && card.dataset.s === 1, 'klik skala 1: rentang 0-60, peringatan K3 tampil, kolom nilai aktif');
+ klik(b3);
+ ok(G('OB.d.nilai.l_k3') === 3 && inp.min === 75 && inp.max === 90 && inp.placeholder === 'Nilai 75-90' && stp.hidden === true && b3.attrs['aria-pressed'] === 'true' && b1.attrs['aria-pressed'] === 'false', 'ganti ke skala 3: rentang 75-90, peringatan hilang, tombol terpilih berpindah');
+ const inputL = listeners.filter((l) => l.t === 'input');
+ const ketri = mkCls(mk()); const wrap = mkCls(mk()); wrap.querySelector = () => ketri;
+ const nil = mkCls(mk()); nil.classList.contains = (c) => c === 'ob2-nil'; nil.dataset = { id: 'k3' }; nil.closest = () => wrap;
+ const ketik = (v) => { nil.value = v; inputL.forEach((l) => l.f({ target: nil })); };
+ ketik('1'); ok(nil.attrs['aria-invalid'] === 'true' && /Nilai harus 75-90/.test(ketri.textContent) && G('OB.d.nilai.k3') === 1 && G('ob2Hitung(OB.d.nilai,LKPD_MODULES[0].v2.obs).done') === 0, 'ketik 1 pada skala 3: ditolak dengan pesan "Nilai harus 75-90"');
+ ketik('80'); ok(nil.attrs['aria-invalid'] === 'false' && !/harus/.test(ketri.textContent) && G('ob2Hitung(OB.d.nilai,LKPD_MODULES[0].v2.obs).done') === 1, 'ketik 80: valid dan terhitung');
+ ketik(''); ok(G('OB.d.nilai.k3') === undefined, 'kosongkan nilai menghapus isian');
+ klik(b1); ketik('50'); klik(b3);
+ ok(G('OB.d.nilai.k3') === undefined && inp.value === '', 'ganti skala ke rentang lain mengosongkan nilai yang tidak cocok');
+ G(`OB.d=null;OB.mode='list'`);
+}
 
 /* ---------- Cetak dan cadangan draf ---------- */
 G(`STAFF=false;LK.preview=false;LK.tab='kerja';DRAFT={}`);
