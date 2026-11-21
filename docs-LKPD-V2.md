@@ -126,3 +126,9 @@ Tombol Cetak menyusun lembar dari **data modul**, bukan dari tampilan layar, den
 
 ## Cetak Kunci dan Pembahasan Gerbang Masuk (khusus guru)
 Tombol **Cetak kunci** muncul tepat di samping **Cetak** (pratinjau guru dan baris aksi) hanya untuk Guru dan Admin pada LKPD v2 yang punya gerbang masuk. Siswa tidak melihat tombol dan klik dari akun siswa ditolak. Dokumen satu halaman, formatnya mengikuti PDF Kunci_LKPD_SMKS_Medina_Bandung: judul hijau, keterangan syarat lulus dan larangan dibagikan ke siswa, Ketentuan soal (sebaran level dihitung dari data), tabel Kunci (No, Bentuk, Level, Kunci, Pembahasan; kategori per pernyataan), Peta ke soal lama (`v2.peta`), dan Kunci jawaban latihan (id, `kunci`, rumus `e`). Footer `Kunci gerbang masuk · LKPD Alat Ukur · SMKS Medina Bandung (khusus guru)` dan nomor halaman. Nama berkas PDF: `Kunci LKPD X-07 <judul> <nama sekolah>`. Semua isi diambil dari data modul, jadi kunci dan pembahasan di PDF selalu sama dengan penilaian di aplikasi. Kode: `lkfKunci` di `js/lkpd-format.js`; uji: `node tools/uji-lkpd-format.mjs` (66 uji).
+
+## Foto pada Materi dan Soal evaluasi; Edit isi LKPD v2
+- Edit isi: Tujuan & teori, tombol **Tambah foto** di tiap topik teori; Soal, tombol foto soal pada semua jenis soal (termasuk **Isian angka**). Foto dikecilkan otomatis (sisi terpanjang 800 px) dan diunggah ke Google Drive saat sinkron.
+- Data: teori `[topik, uraian, foto]`; soal `qi` (foto soal), `oi` (foto pilihan, PG dan PG kompleks).
+- Yang dikunci di editor v2: jumlah dan urutan Langkah, butir K3, dan komponen Pemeriksaan (terhubung ke `v2.langkah`, `v2.k3grup`, `v2.obs`). Teksnya boleh diubah. Rencana pertemuan, tabel, dan soal gerbang tidak diubah editor ini dan dipertahankan saat menyimpan.
+- Uji: `node tools/uji-lkpd-foto.mjs`.

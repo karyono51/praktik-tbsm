@@ -131,7 +131,7 @@ function lk2Materi(m,d){
  var V=m.v2,g=lk2Gate(m,d);
  return '<section class="card"><h2>Tujuan pembelajaran</h2><ul class="plain">'+m.objectives.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul></section>'+
   lk2Rencana(m)+
-  '<section class="card"><h2>Memahami</h2>'+m.theory.map(function(x){return '<p><b>'+lkEsc(x[0])+'</b><br>'+lkEsc(x[1])+'</p>'}).join('')+'</section>'+
+  '<section class="card"><h2>Memahami</h2>'+m.theory.map(function(x){return '<p><b>'+lkEsc(x[0])+'</b><br>'+lkEsc(x[1])+'</p>'+(typeof lkvMateriImg==='function'?lkvMateriImg(x):'')}).join('')+'</section>'+
   '<section class="card" id="lk2-gate"><h2>Gerbang masuk praktik</h2><p class="note">'+(g.auto?'Jawab semua soal. Penilaian mengikuti soal TKA: pilihan ganda benar bernilai 1; PG kompleks dan PG kategori bernilai sebagian sesuai pilihan yang tepat. Lembar Kerja terbuka bila nilai gerbang minimal '+g.kkm+'.':'Jawab semua soal agar Lembar Kerja terbuka.')+'</p>'+
   V.gate.qs.map(function(x,i){if(lk2GPG(x))return lkqRender(x,LK2_GOFF+i,d).replace('<b>'+(LK2_GOFF+i+1)+'. ','<b>'+(i+1)+'. ');return '<label class="f">'+(i+1)+'. '+lkEsc(x.q)+'<textarea data-lk-field="gate'+i+'" rows="2">'+lkEsc(d['gate'+i]||'')+'</textarea></label>'}).join('')+
   '<p class="note">Terjawab '+g.n+' dari '+g.total+(g.auto?' · Nilai gerbang <b class="mono">'+g.nilai+'</b> (KKM '+g.kkm+'): '+(g.lulus?'lulus, Lembar Kerja terbuka.':'belum lulus, Lembar Kerja masih terkunci.'):(g.ok?'. Lembar Kerja terbuka.':'.'))+'</p></section>'+

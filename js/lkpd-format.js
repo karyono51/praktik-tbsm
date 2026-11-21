@@ -104,7 +104,7 @@ function tujuan(m){
 }
 function materi(m,skip){
  var n=0;
- return '<h2 class="lkf-h">Materi</h2>'+(m.theory||[]).filter(function(x){return !skip||!skip.test(x[0])}).map(function(x){n++;return '<p><b>'+n+'. '+E(x[0])+'</b><br>'+E(x[1])+'</p>'}).join('');
+ return '<h2 class="lkf-h">Materi</h2>'+(m.theory||[]).filter(function(x){return !skip||!skip.test(x[0])}).map(function(x){n++;return '<p><b>'+n+'. '+E(x[0])+'</b><br>'+E(x[1])+'</p>'+(typeof lkvMateriImg==='function'?lkvMateriImg(x):'')}).join('');
 }
 function alat(m){return '<h2 class="lkf-h">Alat dan bahan</h2><ul class="lkf-ul">'+(m.tools||[]).map(function(x){return '<li>'+E(x)+'</li>'}).join('')+'</ul>'}
 function k3Item(m,d,i,apd){return '<p class="lkf-o">'+box(!!d['safe'+i])+' '+E(m.safety[i])+(apd?' &nbsp; Paraf: '+fill('',16):'')+'</p>'}

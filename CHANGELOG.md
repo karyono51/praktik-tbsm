@@ -1,5 +1,13 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Foto pada Materi dan Soal evaluasi, Edit LKPD aman untuk v2
+- **Materi**: Edit LKPD, tab Tujuan & teori, tiap topik teori punya tombol **Tambah foto / Ganti / Hapus foto**. Foto tampil di Materi siswa (Memahami / Teori ringkas) dan di cetak. Penanda disimpan sebagai elemen ketiga baris teori `[topik, uraian, 'drive:<id>']`.
+- **Soal evaluasi**: tombol foto soal sudah ada untuk PG, PG kompleks, dan PG kategori. Soal **isian angka** (10 soal latihan membaca skala LKPD-X-07) kini punya editor sendiri (pertanyaan, foto, kunci, toleransi, satuan, pembahasan) dan fotonya tampil di soal siswa, detail guru, dan cetak. Tombol **+ Isian angka** tersedia di LKPD v2.
+- **Edit LKPD v2 diperbaiki**: sebelumnya "Edit isi" pada LKPD-X-07 menampilkan 21 masalah palsu (alokasi 810 menit, menit langkah 0, soal isian), soal isian berlabel `undefined` dan dipaksa menjadi PG, serta objek `v2` hilang bila disimpan. Kini objek `v2` dan kolom lain dipertahankan, pemeriksaan menit tidak berlaku untuk v2, dan jumlah/urutan langkah, butir K3, dan komponen pemeriksaan dikunci (teks tetap bisa diubah) karena terhubung ke indeks v2.
+- Foto diunggah ke Google Drive saat modul disinkronkan, lewat fungsi `foto-drive` yang sama dengan gambar soal; tidak ada perubahan Appwrite. Foto tidak ikut diekspor ke Excel.
+- Berkas baru: `js/lkpd-v2-editor.js` (dimuat setelah `lkpd-samakan.js`), `tools/uji-lkpd-foto.mjs` (59 uji). Perubahan kecil pada `lkpd.js`, `lkpd-v2.js`, `lkpd-format.js` (memanggil `lkvMateriImg`).
+- Belum tercakup: foto pada soal gerbang masuk v2 (`v2.gate.qs`), yang belum punya editor.
+
 ## Latihan membaca skala: 10 soal, kode disembunyikan, bergambar
 Latihan membaca skala LKPD X-07 menjadi 10 soal (tambahan J4 jangka sorong 45,55 mm dan M4 mikrometer 9,41 mm). Kode soal (J1, M1, D1, dst.) tidak lagi tampil; `id` tetap ada di data. Tiap soal bergambar SVG yang digambar otomatis dari angka soal (parameter `q.g`): skala jangka sorong, mikrometer, dial gauge, dan keolengan. Berkas baru: `js/lkpd-skala-gambar.js`; gaya `.skg` di `css/app.css`. Tidak ada perubahan Appwrite.
 
