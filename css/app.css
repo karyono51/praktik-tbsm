@@ -441,3 +441,14 @@ fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);out
 #rg-box .note,#pes-box .note,#rmb-box .note{margin:0}
 .btn-grid>.btn:only-child{grid-column:1/-1}
 .sf-seg .bs-ck{gap:8px;padding:10px;white-space:nowrap}
+
+/* LKPD v2: tabel data F1-F3 jadi kartu rapi di ponsel (judul baris, isian berpasangan, hasil hitung menonjol) */
+@media(max-width:640px){
+ .tablewrap .lk2-t tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 10px;padding:12px}
+ .tablewrap .lk2-t td{width:auto;min-width:0;grid-column:span 1;padding:4px 0;font-weight:400;color:inherit;border:0;margin:0}
+ .tablewrap .lk2-t td[data-w="full"],.tablewrap .lk2-t td.lk2-rl{grid-column:1/-1}
+ .tablewrap .lk2-t td::before{content:attr(data-label);display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:3px}
+ .tablewrap .lk2-t td.lk2-rl{font-size:16px;font-weight:700;color:var(--ink);padding:0 0 8px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+ .tablewrap .lk2-t td.lk2-rl::before{display:none}
+ .tablewrap .lk2-t td.lk2-calc .lk2-hit{display:flex;align-items:center;min-height:42px;padding:0 12px;border-radius:11px;background:var(--accent-soft);color:var(--ink);font-weight:700}
+}

@@ -24,7 +24,7 @@ function navGo(u){
 /* ---- Simpan dan pulihkan posisi halaman ---- */
 function navSave(){
  if(!S.user||V.mode!=='list')return;
- try{localStorage.setItem(NAVK,JSON.stringify({u:S.user.id,t:Date.now(),tab:S.tab,kelas:S.kelas,lm:LK.module,lt:LK.tab,lo:!!LK.open,kf:LK.kf||''}))}catch(e){}
+ try{localStorage.setItem(NAVK,JSON.stringify({u:S.user.id,t:Date.now(),tab:S.tab,kelas:S.kelas,lm:LK.module,lt:LK.tab,lo:!!LK.open,lp:!!(LK.open&&LK.preview),kf:LK.kf||''}))}catch(e){}
 }
 function navApply(u){
  var j;try{j=JSON.parse(localStorage.getItem(NAVK)||'null')}catch(e){j=null}
@@ -33,7 +33,7 @@ function navApply(u){
  if(kelasBoleh().indexOf(j.kelas)>-1)S.kelas=j.kelas;
  S.tab=j.tab;
  if(j.tab==='lkpd'){
-  if(j.lm)LK.module=j.lm;LK.kf=j.kf||'';LK.open=!!j.lo;
+  if(j.lm)LK.module=j.lm;LK.kf=j.kf||'';LK.open=!!j.lo;LK.preview=!!(j.lp&&j.lo&&isStaff());
   if(['materi','kerja','evaluasi','riwayat'].indexOf(j.lt)>-1)LK.tab=j.lt;
  }
 }

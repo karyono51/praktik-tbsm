@@ -76,7 +76,7 @@ lkScore=function(d){
 var _lkRead2=lkRead;
 lkRead=function(){
  var d=_lkRead2(),m=lk2Cur();
- if(lk2Is(m)){var c=lk2Calc(m,d),g=lk2Gate(m,d);d.v2={ver:2,calc:c,gate:g.n,tabel:Math.round(lk2TabelPct(m,d)*100)}}
+ if(lk2Is(m)){m.checks.forEach(function(x,i){d['row'+i]=lk2Txt(d['actual'+i])!==''&&!!d['status'+i]&&d['status'+i]!=='Belum diperiksa'});var c=lk2Calc(m,d),g=lk2Gate(m,d);d.v2={ver:2,calc:c,gate:g.n,tabel:Math.round(lk2TabelPct(m,d)*100)}}
  return d;
 };
 var _lkProgress2=lkProgress;
@@ -123,17 +123,20 @@ function lk2StepHtml(m,i,d){
  return '<label class="lk-step"><input type="checkbox" data-lk-check="step'+i+'" '+(d['step'+i]?'checked':'')+'><span><b>'+lkEsc(t)+'</b>'+(V.saksi?'<span class="lk2-saksi">saksi guru</span>':'')+'<small>Poin kritis: '+lkEsc(s[2])+'</small></span></label>';
 }
 function lk2TabelHtml(m,t,d,c){
- var head=t.kol.map(function(k,j){return '<th>'+lkEsc(k.l)+'</th>'+(j===0&&t.labelBaris?'<th>'+lkEsc(t.labelBaris)+'</th>':'')}).join('');
+ /* Sel pertama = label baris (bila ada), lalu kolom. data-w menandai lebar kartu di ponsel: full = satu baris, half = berdampingan. */
+ var ws=t.kol.map(function(k){return (k.t==='teks'||k.k==='nol')?'full':'half'}),run=[];
+ ws.forEach(function(w,j){if(w==='half')run.push(j);if(w==='full'||j===ws.length-1){if(run.length%2===1)ws[run[run.length-1]]='full';run=[]}});
+ var head=(t.labelBaris?'<th>'+lkEsc(t.labelBaris)+'</th>':'')+t.kol.map(function(k){return '<th>'+lkEsc(k.l)+'</th>'}).join('');
  var rows=t.baris.map(function(lb,r){
-  return '<tr>'+t.kol.map(function(k,j){
-   var key=lk2K(t.id,r,k.k),cell;
-   if(k.t==='rata'||k.t==='selisih')cell='<span class="mono" data-lk2-calc="'+t.id+'|'+r+'|'+k.k+'">'+lk2Fmt(c[t.id][r][k.k])+'</span>';
-   else if(k.t==='status')cell='<select data-lk-field="'+key+'" aria-label="'+lkEsc(k.l)+'">'+['','Sesuai','Tidak sesuai'].map(function(o){return '<option'+(d[key]===o?' selected':'')+'>'+o+'</option>'}).join('')+'</select>';
-   else cell='<input '+(k.t==='num'?'inputmode="decimal" ':'')+'data-lk-field="'+key+'" data-lk2-t="1" value="'+lkEsc(d[key]||'')+'" aria-label="'+lkEsc(k.l)+(t.baris.length>1?' baris '+(r+1):'')+'">';
-   return '<td data-label="'+lkEsc(k.l)+'">'+cell+'</td>'+(j===0&&t.labelBaris?'<td data-label="'+lkEsc(t.labelBaris)+'">'+lkEsc(lb)+'</td>':'');
+  return '<tr>'+(t.labelBaris?'<td class=\"lk2-rl\" data-label=\"'+lkEsc(t.labelBaris)+'\">'+lkEsc(lb)+'</td>':'')+t.kol.map(function(k,j){
+   var key=lk2K(t.id,r,k.k),cell,calc=(k.t==='rata'||k.t==='selisih');
+   if(calc)cell='<span class=\"mono lk2-hit\" data-lk2-calc=\"'+t.id+'|'+r+'|'+k.k+'\">'+lk2Fmt(c[t.id][r][k.k])+'</span>';
+   else if(k.t==='status')cell='<select data-lk-field=\"'+key+'\" aria-label=\"'+lkEsc(k.l)+'\">'+['','Sesuai','Tidak sesuai'].map(function(o){return '<option'+(d[key]===o?' selected':'')+'>'+o+'</option>'}).join('')+'</select>';
+   else cell='<input '+(k.t==='num'?'inputmode=\"decimal\" ':'')+'data-lk-field=\"'+key+'\" data-lk2-t=\"1\" value=\"'+lkEsc(d[key]||'')+'\" aria-label=\"'+lkEsc(k.l)+(t.baris.length>1?' baris '+(r+1):'')+'\">';
+   return '<td data-label=\"'+lkEsc(k.l)+'\" data-w=\"'+ws[j]+'\"'+(calc?' class=\"lk2-calc\"':'')+'>'+cell+'</td>';
   }).join('')+'</tr>';
  }).join('');
- return '<h4>'+lkEsc(t.judul)+'</h4><div class="tablewrap"><table class="lk2-t"><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div><p class="note">Kolom rata-rata dan selisih dihitung otomatis dari angka yang kamu isi.</p>'+(t.cat?'<p class="note">'+lkEsc(t.cat)+'</p>':'');
+ return '<h4>'+lkEsc(t.judul)+'</h4><div class=\"tablewrap\"><table class=\"lk2-t\"><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div><p class=\"note\">Kolom rata-rata dan selisih dihitung otomatis dari angka yang kamu isi.</p>'+(t.cat?'<p class=\"note\">'+lkEsc(t.cat)+'</p>':'');
 }
 function lk2CekHtml(m,i,d){
  var x=m.checks[i];
@@ -141,7 +144,7 @@ function lk2CekHtml(m,i,d){
   '<div class="formgrid"><label class="f">Hasil aktual<input data-lk-field="actual'+i+'" value="'+lkEsc(d['actual'+i]||'')+'"></label>'+
   '<label class="f">Standar manual<input data-lk-field="standard'+i+'" value="'+lkEsc(d['standard'+i]||'')+'">'+(x[2]?'<small class="lk-acuan">Acuan: '+lkEsc(x[2])+'</small>':'')+'</label>'+
   '<label class="f">Status<select data-lk-field="status'+i+'">'+['Belum diperiksa','Baik','Perlu tindakan','Tidak aman'].map(function(o){return '<option'+(d['status'+i]===o?' selected':'')+'>'+o+'</option>'}).join('')+'</select></label>'+
-  '<label class="f">Catatan<input data-lk-field="note'+i+'" value="'+lkEsc(d['note'+i]||'')+'"></label></div>'+lk2Chk(d,'row'+i,'Sudah terisi')+'</div>';
+  '<label class="f">Catatan<input data-lk-field="note'+i+'" value="'+lkEsc(d['note'+i]||'')+'"></label></div>'+'</div>';
 }
 function lk2Kerja(m,d){
  var V=m.v2,g=lk2Gate(m,d),c=lk2Calc(m,d);
