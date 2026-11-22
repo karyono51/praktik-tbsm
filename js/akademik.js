@@ -3,7 +3,7 @@
    dibaca dan ditulis admin saja). Mode lokal memakai localStorage. Data acuan ada di akademik-data.js. */
 var AKC={tahun:'akademik',kelas:'akademik',mapel:'akademik',tugas:'akademik',guru:'akademik_sdm'};
 var AKK='tbsm-akd',AKQ='tbsm-akd-queue';
-var AKD={D:{tahun:[],kelas:[],mapel:[],tugas:[],guru:[]},loaded:false,loading:false,err:[],seeded:false,form:null,mem:null,tg:null,tgf:{},q:'',fl:'ALL',tf:'ALL',sk:'',rep:null,open:{},busy:false};
+var AKD={D:{tahun:[],kelas:[],mapel:[],tugas:[],guru:[]},loaded:false,loading:false,err:[],seeded:false,form:null,mem:null,tg:null,tgf:{},q:'',fl:'ALL',tf:'ALL',sk:'',rep:null,open:{},gopen:{},memSel:null,busy:false};
 ICO.akdGuru='<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/>';
 ICO.akdKelas='<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M17.5 14v7"/>';
 ICO.akdSiswa='<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14.4c1.8.8 3 2.6 3 5.6"/>';
@@ -25,7 +25,8 @@ function akLoadLocal(){try{var j=JSON.parse(localStorage.getItem(AKK)||'null');i
 function akSaveLocal(){try{localStorage.setItem(AKK,JSON.stringify(AKD.D))}catch(e){}}
 function akClear(){
  try{localStorage.removeItem(AKK);localStorage.removeItem(AKQ)}catch(e){}
- AKD.D={tahun:[],kelas:[],mapel:[],tugas:[],guru:[]};AKD.loaded=false;AKD.seeded=false;AKD.form=null;AKD.mem=null;AKD.tg=null;AKD.rep=null;
+ AKD.D={tahun:[],kelas:[],mapel:[],tugas:[],guru:[]};AKD.loaded=false;AKD.seeded=false;AKD.form=null;AKD.mem=null;AKD.memSel=null;AKD.tg=null;AKD.tgf={};AKD.rep=null;
+ AKD.q='';AKD.fl='ALL';AKD.tf='ALL';AKD.sk='';AKD.gopen={};AKD.err=[];
 }
 var AKX=['id','r','d','bad','err','jenis','sekolah','nama','ts','oleh','payload'];
 function akParse(o){if(typeof o.payload==='string'){try{var x=JSON.parse(o.payload||'{}');for(var k in x)o[k]=x[k]}catch(e){}}return o}
@@ -164,6 +165,8 @@ function akSiswaAktif(){return S.users.filter(function(u){return hasRole(u,'sisw
 function akAnggotaPeta(){var m={};AKD.D.kelas.forEach(function(k){if(k.aktif===false)return;(k.anggota||[]).forEach(function(id){m[id]=k.id})});return m}
 function akLeaf(m){return !AKD.D.mapel.some(function(x){return x.induk===m.id&&x.aktif!==false})}
 function akMapelNamaMaster(){if(!AKD.loaded&&!AKD.D.mapel.length)akLoadLocal();return akAktif(AKD.D.mapel).filter(function(m){return !akBukanMapel(m)&&akProduktif(m)}).map(function(m){return m.nama})}
+/* kata kunci pendek (3 huruf atau kurang: ev, ban, rem, ems, ecu, cvt, k3) harus kata utuh agar tidak cocok dengan 'evaluasi' atau 'bank'; yang lebih panjang cocok pada awal kata (pendingin = pendinginan). t sudah dibungkus spasi */
+function akKataCocok(t,k){return k.length<=3?t.indexOf(' '+k+' ')>-1:t.indexOf(' '+k)>-1}
 function akNorm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()}
 
 /* ---------- Pemeriksaan tata kelola ---------- */
@@ -305,7 +308,7 @@ function akGuruCards(){
  return L.map(function(u){
   var p=akProfil(u.id),tg=akTugasGuruAktif(u.id),mp={};tg.forEach(function(t){var m=akById('mapel',t.mapelId);if(m)mp[m.nama]=1});
   var mk=Object.keys(mp),wali=AKD.D.kelas.filter(function(k){return k.waliId===u.id&&k.aktif!==false});
-  return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b>'+akPill(SCH_LIST[String(u.sekolah||'').toUpperCase()]?SCH_LIST[u.sekolah].pendek:(u.sekolah==='ALL'?'Semua sekolah':'Sekolah belum diatur'),SCH_LIST[String(u.sekolah||'').toUpperCase()]||u.sekolah==='ALL'?'':'warn')+'</div>'+
+  return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b>'+akPill(akSek(u.sekolah)?akSekLabel(u.sekolah):(String(u.sekolah||'').toUpperCase()==='ALL'?'Semua sekolah':'Sekolah belum diatur'),akSek(u.sekolah)||String(u.sekolah||'').toUpperCase()==='ALL'?'':'warn')+'</div>'+
    '<div class="note">'+esc(u.email||u.username||'')+(p&&p.nip?' · NIP '+esc(p.nip):'')+(p&&p.nuptk?' · NUPTK '+esc(p.nuptk):'')+'</div>'+
    '<div class="row">'+akPill(akJp(u.id)+' JP/minggu')+wali.map(function(k){return akPill('Wali '+k.nama,'ok')}).join('')+(p&&p.tugasTambahan?akPill(p.tugasTambahan):'')+'</div>'+
    (mk.length?'<div class="note">'+esc(mk.slice(0,4).join(', '))+(mk.length>4?' dan '+(mk.length-4)+' lainnya':'')+'</div>':'<div class="note">Belum ada tugas mengajar.</div>')+
@@ -323,7 +326,7 @@ function akTugasHtml(uid){
   h+='<div class="two">'+
    '<label class="f">Mata pelajaran<select data-aktg="mapelId"><option value="">Pilih…</option>'+mp.map(function(m){return '<option value="'+esc(m.id)+'"'+(f.mapelId===m.id?' selected':'')+'>'+esc(m.nama)+'</option>'}).join('')+'</select></label>'+
    '<label class="f">Rombel<select data-aktg="kelasId"><option value="">Pilih…</option>'+kl.map(function(k){return '<option value="'+esc(k.id)+'"'+(f.kelasId===k.id?' selected':'')+'>'+esc(k.nama)+' ('+akSekLabel(k.sekolah)+')</option>'}).join('')+'</select></label></div>'+
-   '<label class="f">JP per minggu<input data-aktg="jp" type="number" inputmode="numeric" min="0" max="40" value="'+esc(f.jp==null?'':f.jp)+'"></label>'+
+   '<label class="f">JP per minggu<input data-aktg="jp" type="number" inputmode="numeric" min="1" max="40" step="1" value="'+esc(f.jp==null?'':f.jp)+'"></label>'+
    '<div class="row">'+akBtn('tg-add',null,'Tambah tugas','primary')+'</div>';
  }
  return h+'</div>';
@@ -430,7 +433,7 @@ function akElemenLampir(kids,buka){
 function akMapelCard(m,child,kids,buka){
  var ed=akEdit(),tg=akTugasMapel(m.id),sk=(m.skkni||[]).filter(function(c){return AKD_SKKNI[c]}),mod=akModulTerkait(m);
  var pg={};tg.forEach(function(t){pg[akNamaUser(t.guruId)]=1});var pn=Object.keys(pg);
- return '<div class="card"'+(m.aktif===false?' style="opacity:.6"':'')+(child?' style="margin-left:14px;'+(m.aktif===false?'opacity:.6':'')+'"':'')+'><div class="row sb"><b>'+esc(m.nama)+'</b><span class="mono note">'+esc(m.kode||'')+'</span></div>'+
+ return '<div class="card"'+((child||m.aktif===false)?' style="'+(child?'margin-left:14px;':'')+(m.aktif===false?'opacity:.6':'')+'"':'')+'><div class="row sb"><b>'+esc(m.nama)+'</b><span class="mono note">'+esc(m.kode||'')+'</span></div>'+
   '<div class="row">'+akPill(m.kelompok==='umum'?'Umum':m.kelompok==='pilihan'?'Pilihan':'Kejuruan')+(m.komponen&&!child?akPill(m.komponen):'')+(m.fase?akPill('Fase '+m.fase):'')+((m.tingkat||[]).length?akPill('Kelas '+m.tingkat.join(', ')):akPill('Semua kelas'))+(m.jp?akPill(m.jp+' JP/minggu'):'')+(m.induk?akPill('Elemen CP','ok'):'')+(m.sekolah?akPill(akSekLabel(m.sekolah)):'')+(m.aktif===false?akPill('Arsip','warn'):'')+'</div>'+
   '<div class="note">Pengampu: '+(pn.length?esc(pn.slice(0,3).join(', '))+(pn.length>3?' dan '+(pn.length-3)+' lainnya':''):'belum ada')+(mod?' · '+mod+' LKPD terkait':'')+'</div>'+
   (m.induk&&typeof lkElDetail==='function'?lkElDetail(m.id):'')+
@@ -445,7 +448,7 @@ function akModulTerkait(m){
   if(m.induk&&typeof lkElModulOf==='function'){var n0=lkElModulOf(m.id).length;if(n0)return n0}
   var ks=(m.kata||[]).map(akNorm).filter(Boolean);if(!ks.length||typeof LKPD_MODULES==='undefined')return 0;
   var tk=m.tingkat||[];
-  return LKPD_MODULES.filter(function(x){if(tk.length&&tk.indexOf(x.kelas)<0)return false;var t=akNorm((x.title||'')+' '+(x.unit||''));return ks.some(function(k){return t.indexOf(k)>-1})}).length;
+  return LKPD_MODULES.filter(function(x){if(tk.length&&tk.indexOf(x.kelas)<0)return false;var t=' '+akNorm((x.title||'')+' '+(x.unit||''))+' ';return ks.some(function(k){return akKataCocok(t,k)})}).length;
  }catch(e){return 0}
 }
 function akMapelCards(){
@@ -542,17 +545,24 @@ function akBukaForm(k,o,judul){AKD.form={k:k,o:JSON.parse(JSON.stringify(o)),jud
 async function akSimpan(){
  var f=AKD.form;if(!f||!akEdit())return;
  var o=f.o,k=f.k;
- if(k==='kelas'){if(!String(o.nama||'').trim()){toast('Isi nama rombel');return}o.nama=o.nama.trim();o.sekolah=akSek(o.sekolah);o.anggota=o.anggota||[];o.aktif=o.aktif!==false}
+ if(k==='kelas'){if(!String(o.nama||'').trim()){toast('Isi nama rombel');return}o.nama=o.nama.trim();o.sekolah=akSek(o.sekolah);o.anggota=o.anggota||[];o.aktif=o.aktif!==false;
+  if(o.aktif&&AKD.D.kelas.some(function(x){return x.id!==o.id&&x.aktif!==false&&akNorm(x.nama)===akNorm(o.nama)&&akSek(x.sekolah)===o.sekolah&&(x.tahunId||'')===(o.tahunId||'')})){toast('Rombel dengan nama itu sudah ada pada sekolah dan tahun ajaran yang sama');return}}
  if(k==='mapel'){
   if(!String(o.nama||'').trim()){toast('Isi nama mata pelajaran');return}
   o.nama=o.nama.trim();o.sekolah=akSek(o.sekolah);o.tingkat=o.tingkat||[];
   if(o.skkniTeks!=null){o.skkni=o.skkniTeks.split(/[\s,;]+/).map(function(c){return c.replace(/\D/g,'')}).filter(function(c){return c&&AKD_SKKNI[('00'+c).slice(-3)]}).map(function(c){return ('00'+c).slice(-3)});delete o.skkniTeks}
   if(o.kataTeks!=null){o.kata=o.kataTeks.split(',').map(function(c){return c.trim()}).filter(Boolean);delete o.kataTeks}
   o.jp=o.jp===''||o.jp==null?'':+o.jp;o.aktif=o.aktif!==false;
+  o.kode=String(o.kode||'').trim();
+  if(o.jp!==''&&(!Number.isInteger(o.jp)||o.jp<1||o.jp>40)){toast('JP per minggu harus bilangan bulat 1 sampai 40, atau kosongkan');return}
+  if(o.kode&&AKD.D.mapel.some(function(x){return x.id!==o.id&&String(x.kode||'').trim().toLowerCase()===o.kode.toLowerCase()})){toast('Kode '+o.kode+' sudah dipakai mata pelajaran lain');return}
+  if(o.induk&&(o.induk===o.id||AKD.D.mapel.some(function(x){return x.induk===o.id}))){toast('Mapel yang sudah punya elemen CP tidak bisa dijadikan elemen CP');return}
  }
  if(k==='tahun'){
-  if(!/^\d{4}\/\d{4}$/.test(String(o.nama||'').trim())){toast('Tulis tahun ajaran seperti 2026/2027');return}
+  var ym=/^(\d{4})\/(\d{4})$/.exec(String(o.nama||'').trim());
+  if(!ym||+ym[2]!==+ym[1]+1){toast('Tulis tahun ajaran seperti 2026/2027 (tahun kedua satu lebih besar)');return}
   o.nama=o.nama.trim();
+  if(o.mulai&&o.selesai&&o.selesai<o.mulai){toast('Tanggal selesai lebih awal dari tanggal mulai');return}
   if(AKD.D.tahun.some(function(t){return t.id!==o.id&&t.nama===o.nama&&t.semester===o.semester})){toast('Tahun ajaran dan semester itu sudah ada');return}
  }
  var ok=await akPut(k,o);
@@ -640,7 +650,7 @@ document.addEventListener('click',async function(e){
   S.users.forEach(function(u){if(hasRole(u,'siswa')&&u.aktif!==false&&u.kelas===kk.tingkat&&(!kk.sekolah||!SCH_LIST[String(u.sekolah||'').toUpperCase()]||String(u.sekolah).toUpperCase()===kk.sekolah)&&(!pet[u.id]||pet[u.id]===kk.id)&&cur.indexOf(u.id)<0)cur.push(u.id)});
   AKD.memSel=cur;render();
  }
- else if(a==='ang-simpan'){var k2=akById('kelas',id);if(!k2)return;k2.anggota=(AKD.memSel||k2.anggota||[]).slice();await akPut('kelas',k2);AKD.mem=null;AKD.memSel=null;toast('Anggota tersimpan');render()}
+ else if(a==='ang-simpan'){var k2=akById('kelas',id);if(!k2)return;var pet2=akAnggotaPeta();k2.anggota=(AKD.memSel||k2.anggota||[]).filter(function(uid,ix,arr){return arr.indexOf(uid)===ix&&(!pet2[uid]||pet2[uid]===k2.id)});await akPut('kelas',k2);AKD.mem=null;AKD.memSel=null;toast('Anggota tersimpan');render()}
 });
 
 /* ---------- Ekspor ---------- */
@@ -650,7 +660,7 @@ function akEkspor(){
  sh('Guru',akGuruListAll().map(function(u){var p=akProfil(u.id)||{};return {Nama:u.nama,Email:u.email||'',Sekolah:akSekLabel(u.sekolah),NIP:p.nip||'',NUPTK:p.nuptk||'',Status:p.status||'',Pendidikan:p.pendidikan||'','Tugas tambahan':p.tugasTambahan||'','JP per minggu':akJp(u.id)}}));
  sh('Rombel',akKelasAll().map(function(k){return {Rombel:k.nama,Tingkat:k.tingkat,Sekolah:akSekLabel(k.sekolah),'Tahun ajaran':(akById('tahun',k.tahunId)||{}).nama||'','Wali kelas':k.waliId?akNamaUser(k.waliId):'','Jumlah siswa':akSiswaRombel(k).length,Status:k.aktif===false?'Arsip':'Aktif'}}));
  sh('Mata pelajaran',akMapelAll().map(function(m){var ind=m.induk&&akById('mapel',m.induk);return {Kode:m.kode||'','Mata pelajaran':m.nama,Produktif:akProduktif(m)?'Ya':'Tidak',Kelompok:m.kelompok,Komponen:m.komponen||'','Elemen dari':ind?ind.nama:'',Fase:m.fase||'',Tingkat:(m.tingkat||[]).join(', '),JP:m.jp||'','Unit SKKNI':(m.skkni||[]).map(akSkkniKode).join(', '),Sumber:m.sumber||'',Status:m.aktif===false?'Arsip':'Aktif'}}));
- sh('Tugas mengajar',AKD.D.tugas.filter(function(t){var k=akById('kelas',t.kelasId);return !k||akOk(k)}).map(function(t){return {Guru:akNamaUser(t.guruId),'Mata pelajaran':(akById('mapel',t.mapelId)||{}).nama||'',Rombel:(akById('kelas',t.kelasId)||{}).nama||'','JP per minggu':+t.jp||0}}));
+ sh('Tugas mengajar',AKD.D.tugas.filter(function(t){var k=akById('kelas',t.kelasId);return !k||akOk(k)}).map(function(t){return {Guru:akNamaUser(t.guruId),'Mata pelajaran':(akById('mapel',t.mapelId)||{}).nama||'',Rombel:(akById('kelas',t.kelasId)||{}).nama||'','Tahun ajaran':akTahunNama(t.tahunId||(akById('kelas',t.kelasId)||{}).tahunId),'JP per minggu':+t.jp||0,Status:akBerlaku(t)?'Berlaku':'Tidak berlaku'}}));
  XLSX.writeFile(wb,'administrasi-akademik-'+(schKode()||'semua').toLowerCase()+'-'+ymd(Date.now())+'.xlsx');
 }
 

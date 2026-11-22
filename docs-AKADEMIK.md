@@ -55,3 +55,13 @@ Aplikasi difokuskan pada mata pelajaran produktif/kejuruan: **Dasar-Dasar Teknik
 - **Yang hanya menghitung mapel produktif**: pemeriksaan "mapel belum punya guru pengampu", pilihan mapel pada tugas mengajar, daftar mapel pada form bank soal, dan statistik halaman Mata pelajaran. Tugas mengajar pada mapel non-produktif ditolak (centang dulu Mapel produktif bila memang diperlukan).
 - **Daftar mapel**: chip Produktif, Dasar Program, Kompetensi Keahlian; chip **Non-produktif (n)** muncul bila ada. Kelompok produktif ditampilkan lebih dulu.
 - **Data lama di Appwrite tidak dihapus.** Di Tata kelola, tombol **Arsipkan n mapel non-produktif** mengarsipkan yang belum dipakai pada tugas mengajar (bisa diaktifkan lagi). Excel mata pelajaran memuat kolom Produktif.
+
+## Perapian dan validasi (v103)
+- **Rombel**: nama yang sama pada sekolah dan tahun ajaran yang sama (rombel aktif) ditolak; sekolah atau tahun ajaran lain boleh memakai nama itu.
+- **Mata pelajaran**: kode tidak boleh kembar (huruf besar/kecil dianggap sama); JP kosong atau bilangan bulat 1 sampai 40; mapel yang sudah punya elemen CP tidak bisa dijadikan elemen CP.
+- **Tahun ajaran**: tahun kedua harus satu lebih besar (2026/2027, bukan 2026/2028); tanggal selesai tidak boleh lebih awal dari tanggal mulai.
+- **Atur anggota**: saat disimpan, id ganda dan siswa yang sudah ada di rombel lain dibuang.
+- **Jumlah LKPD terkait**: kata kunci pendek (3 huruf atau kurang, mis. ev, ban, rem) harus cocok sebagai kata utuh; sebelumnya "ev" cocok dengan "evaluasi" dan "ban" dengan "bank". Kata kunci lebih panjang cocok pada awal kata.
+- **Keluar akun** mengosongkan pilihan anggota, filter, pencarian, dan status lipat kelompok; akun berikutnya di perangkat yang sama mulai dari tampilan awal.
+- **Daftar guru** tidak lagi galat bila kode sekolah akun ditulis huruf kecil.
+- **Excel Tugas mengajar** memuat kolom Tahun ajaran dan Status (Berlaku / Tidak berlaku).

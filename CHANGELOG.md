@@ -1,5 +1,12 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Administrasi Akademik: perapian dan validasi (v103)
+- Validasi simpan: rombel ganda (sekolah + tahun ajaran), kode mapel kembar, JP mapel 1-40, mapel berelemen tidak bisa jadi elemen, tahun ajaran harus berurutan (2026/2027), tanggal selesai tidak lebih awal dari mulai.
+- Atur anggota rombel membuang id ganda dan siswa rombel lain saat disimpan.
+- Pencocokan kata kunci LKPD terkait: kata pendek (ev, ban, rem, ems, ecu, cvt, k3) harus kata utuh; kata panjang cocok di awal kata.
+- Keluar akun mereset status tampilan (pilihan anggota, filter, pencarian, kelompok terbuka); daftar guru aman untuk kode sekolah huruf kecil; input JP tugas mengajar min 1; atribut style ganda pada kartu mapel dirapikan.
+- Excel Tugas mengajar: kolom Tahun ajaran dan Status. `tools/uji-akademik.mjs` kini 87 uji. Perubahan: `js/akademik.js`, `tools/uji-akademik.mjs`, `docs-AKADEMIK.md`. Tidak ada perubahan Appwrite.
+
 ## Administrasi Akademik fokus mapel produktif (v102)
 - Bawaan kurikulum dipersempit ke Dasar-Dasar Teknik Otomotif, Teknik Sepeda Motor (dengan elemen CP), dan PKL. Penanda `produktif` pada mapel, kotak **Mapel produktif** di formulir.
 - Pemeriksaan pengampu, pilihan tugas mengajar, mapel pada bank soal, dan statistik hanya menghitung mapel produktif; tugas pada mapel non-produktif ditolak.

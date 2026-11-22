@@ -1,6 +1,6 @@
 /* Uji Administrasi Akademik (js/akademik.js): node tools/uji-akademik.mjs
    Mencakup: profil SDM hanya admin, JP dari tugas berlaku, hitung siswa rombel, pemeriksaan konsistensi,
-   validasi tugas mengajar, kode TB-xx, tahun ajaran bawaan dan duplikat. */
+   validasi tugas mengajar, kode TB-xx, tahun ajaran bawaan dan duplikat, fokus mapel produktif, validasi simpan (v103). */
 import fs from 'node:fs'; import vm from 'node:vm';
 let pass = 0, fail = 0;
 const T = (n, c, i) => { if (c) pass++; else fail++; console.log((c ? '  ok   ' : '  GAGAL ') + n + (c ? '' : ' ' + JSON.stringify(i))); };
@@ -251,6 +251,98 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   T('guru tidak bisa mengarsipkan mapel', g.AKD.D.mapel[0].aktif === true && /Hanya admin/.test(g.log.toast.join()));
   /* urutan grup: produktif lebih dulu */
   T('urutan grup: dasar, konsentrasi lebih dulu dari umum', ctx.AK_GRUP.map((x) => x[0]).join() === 'dasar,konsentrasi,kejuruan,umum,pilihan');
+}
+
+/* 8. Perapian v103: validasi simpan, kata kunci LKPD, anggota rombel */
+{
+  const { ctx, AKD, log } = boot();
+  AKD.D.tahun = [tahun('t1', '2026/2027', 'Ganjil', true)];
+  /* kata kunci pendek harus kata utuh */
+  T('kata kunci pendek: "ev" tidak cocok dengan "evaluasi"', !ctx.akKataCocok(' evaluasi level pengukuran ', 'ev'));
+  T('kata kunci pendek: "ban" tidak cocok dengan "bank soal"', !ctx.akKataCocok(' bank soal ', 'ban'));
+  T('kata kunci pendek: "ban" cocok dengan kata utuh "ban"', ctx.akKataCocok(' penggantian ban sepeda motor ', 'ban'));
+  T('kata kunci panjang cocok di awal kata (pendingin = pendinginan)', ctx.akKataCocok(' perawatan sistem pendinginan ', 'pendingin'));
+  T('kata kunci panjang tidak cocok di tengah kata', !ctx.akKataCocok(' perawatan sistem pendinginan ', 'dingin'));
+  ctx.LKPD_MODULES = [{ kelas: 'XI', title: 'Evaluasi level pengukuran', unit: '' }, { kelas: 'XI', title: 'Perawatan sistem pendinginan', unit: '' }, { kelas: 'X', title: 'Perawatan sistem pendinginan', unit: '' }];
+  T('modul LKPD terkait: hanya yang benar-benar cocok dan sesuai tingkat (1)', ctx.akModulTerkait({ kata: ['ev', 'pendingin'], tingkat: ['XI'] }) === 1, ctx.akModulTerkait({ kata: ['ev', 'pendingin'], tingkat: ['XI'] }));
+
+  /* simpan mata pelajaran */
+  const coba = async (k, o) => { log.toast.length = 0; const n0 = AKD.D[k].length; AKD.form = { k, o, judul: 'x' }; await ctx.akSimpan(); return { toast: log.toast.join(' | '), tambah: AKD.D[k].length - n0 }; };
+  AKD.D.mapel = [{ id: 'a1', kode: 'KK-01', nama: 'Teknik Sepeda Motor', kelompok: 'kejuruan', aktif: true, tingkat: [] }, { id: 'a1_1', kode: 'KK-01.1', nama: 'Engine', induk: 'a1', kelompok: 'kejuruan', aktif: true, tingkat: [] }];
+  let r = await coba('mapel', { id: 'n1', kode: ' kk-01 ', nama: 'Baru', kelompok: 'kejuruan', tingkat: [], jp: '' });
+  T('mapel: kode ganda ditolak (tak peka huruf besar)', r.tambah === 0 && /sudah dipakai/.test(r.toast), r);
+  r = await coba('mapel', { id: 'n2', kode: 'KK-09', nama: 'Baru', kelompok: 'kejuruan', tingkat: [], jp: 41 });
+  T('mapel: JP 41 ditolak', r.tambah === 0 && /1 sampai 40/.test(r.toast), r);
+  r = await coba('mapel', { id: 'n2', kode: 'KK-09', nama: 'Baru', kelompok: 'kejuruan', tingkat: [], jp: 2.5 });
+  T('mapel: JP pecahan ditolak', r.tambah === 0 && /1 sampai 40/.test(r.toast), r);
+  r = await coba('mapel', { id: 'a1', kode: 'KK-01', nama: 'Teknik Sepeda Motor', kelompok: 'kejuruan', tingkat: [], induk: 'a0', jp: '' });
+  T('mapel: yang sudah punya elemen tidak bisa jadi elemen', r.tambah === 0 && /tidak bisa dijadikan elemen/.test(r.toast), r);
+  r = await coba('mapel', { id: 'n3', kode: 'KK-09', nama: 'Baru', kelompok: 'kejuruan', tingkat: [], jp: 3 });
+  T('mapel: data sah tersimpan', r.tambah === 1 && AKD.D.mapel.find((m) => m.id === 'n3').jp === 3, r);
+  r = await coba('mapel', { id: 'n3', kode: 'KK-09', nama: 'Baru diubah', kelompok: 'kejuruan', tingkat: [], jp: '' });
+  T('mapel: mengubah mapel sendiri dengan kode yang sama tidak dianggap ganda', r.tambah === 0 && AKD.D.mapel.find((m) => m.id === 'n3').nama === 'Baru diubah', r);
+
+  /* simpan tahun ajaran */
+  r = await coba('tahun', { id: 'tx', nama: '2026/2028', semester: 'Genap', aktif: false });
+  T('tahun ajaran: 2026/2028 ditolak', r.tambah === 0 && /satu lebih besar/.test(r.toast), r);
+  r = await coba('tahun', { id: 'tx', nama: '2026/2027', semester: 'Genap', aktif: false, mulai: '2027-01-05', selesai: '2026-12-31' });
+  T('tahun ajaran: selesai sebelum mulai ditolak', r.tambah === 0 && /lebih awal/.test(r.toast), r);
+  r = await coba('tahun', { id: 'tx', nama: '2026/2027', semester: 'Genap', aktif: false, mulai: '2027-01-05', selesai: '2027-06-30' });
+  T('tahun ajaran: semester Genap yang sah tersimpan', r.tambah === 1, r);
+
+  /* simpan rombel */
+  AKD.D.kelas = [kelas('k1', 'X TSM 1', 'X')];
+  r = await coba('kelas', kelas('k9', ' x tsm 1 ', 'X'));
+  T('rombel: nama sama pada sekolah dan tahun yang sama ditolak', r.tambah === 0 && /sudah ada/.test(r.toast), r);
+  r = await coba('kelas', kelas('k9', 'X TSM 1', 'X', { sekolah: 'DF' }));
+  T('rombel: nama sama di sekolah lain diizinkan', r.tambah === 1, r);
+  r = await coba('kelas', kelas('k8', 'X TSM 1', 'X', { tahunId: 't2' }));
+  T('rombel: nama sama di tahun ajaran lain diizinkan', r.tambah === 1, r);
+  r = await coba('kelas', kelas('k7', 'X TSM 1', 'X', { aktif: false }));
+  T('rombel arsip dengan nama sama diizinkan', r.tambah === 1, r);
+}
+
+/* simpan anggota: tanpa ganda dan tanpa siswa rombel lain */
+{
+  const { AKD, klik } = boot();
+  AKD.D.tahun = [tahun('t1', '2026/2027', 'Ganjil', true)];
+  AKD.D.kelas = [kelas('k1', 'X TSM 1', 'X', { anggota: [] }), kelas('k2', 'X TSM 2', 'X', { anggota: ['s1'] })];
+  AKD.mem = 'k1'; AKD.memSel = ['s3', 's3', 's1'];
+  await klik('ang-simpan', { id: 'k1' });
+  T('simpan anggota: duplikat dibuang dan siswa rombel lain tidak ikut', JSON.stringify(AKD.D.kelas[0].anggota) === '["s3"]', AKD.D.kelas[0].anggota);
+  T('simpan anggota: status pilihan dibersihkan', AKD.memSel === null && AKD.mem === null);
+}
+
+/* 9. Status tampilan dibersihkan saat keluar akun */
+{
+  const { ctx, AKD } = boot();
+  AKD.memSel = ['s1']; AKD.tf = 'XI'; AKD.fl = 'lain'; AKD.q = 'abc'; AKD.sk = 'k1'; AKD.gopen = { dasar: false }; AKD.tgf = { jp: 3 };
+  ctx.akClear();
+  T('keluar akun: pilihan anggota, filter, pencarian, dan kelompok terbuka kembali awal',
+    AKD.memSel === null && AKD.tf === 'ALL' && AKD.fl === 'ALL' && AKD.q === '' && AKD.sk === '' && Object.keys(AKD.gopen).length === 0 && Object.keys(AKD.tgf).length === 0, { memSel: AKD.memSel, tf: AKD.tf, fl: AKD.fl, q: AKD.q });
+}
+
+/* 10. Kode sekolah huruf kecil pada akun guru tidak merusak daftar guru */
+{
+  const { ctx, AKD } = boot({ users: [{ id: 'g1', nama: 'Guru Satu', roles: ['guru'], sekolah: 'medina', aktif: true }, { id: 'g2', nama: 'Guru Dua', roles: ['guru'], sekolah: 'all', aktif: true }, { id: 'g3', nama: 'Guru Tiga', roles: ['guru'], aktif: true }] });
+  let h = '', galat = null;
+  try { h = ctx.akGuruCards(); } catch (e) { galat = e; }
+  T('daftar guru: sekolah huruf kecil/ALL/kosong tidak menimbulkan galat', !galat && /Guru Satu/.test(h) && /Semua sekolah/.test(h) && /Sekolah belum diatur/.test(h), galat && galat.message);
+  T('daftar guru: "medina" tampil sebagai nama sekolah', /Medina/.test(h));
+}
+
+/* 11. Ekspor tugas memuat tahun ajaran dan status */
+{
+  const { ctx, AKD, log } = boot();
+  AKD.D.tahun = [tahun('t1', '2026/2027', 'Ganjil', true)];
+  AKD.D.kelas = [kelas('k1', 'X TSM 1', 'X'), kelas('k2', 'X TSM 2', 'X', { aktif: false })];
+  AKD.D.mapel = [{ id: 'm1', nama: 'Teknik Sepeda Motor', kelompok: 'kejuruan', aktif: true, produktif: true }];
+  AKD.D.tugas = [tugas('u1', 'g1', 'm1', 'k1', 4), tugas('u2', 'g1', 'm1', 'k2', 6)];
+  ctx.akEkspor();
+  const tg = log.rows.find((r) => r[0] && 'Rombel' in r[0] && 'JP per minggu' in r[0] && 'Guru' in r[0]);
+  T('Excel tugas: kolom Tahun ajaran dan Status', tg && tg[0]['Tahun ajaran'] === '2026/2027' && tg[0].Status === 'Berlaku' && tg[1].Status === 'Tidak berlaku', tg);
+  ctx.S.tab = 'akd-guru'; ctx.AKD.tg = 'g1';
+  T('input JP tugas mengajar: batas bawah 1', /data-aktg="jp"[^>]*min="1"/.test(ctx.akTugasHtml('g1')));
 }
 
 console.log('\n' + pass + ' lulus, ' + fail + ' gagal');
