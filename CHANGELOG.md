@@ -1,5 +1,10 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Peta LKPD: dikelompokkan per Elemen CP
+- Di tab **Peta LKPD**, di dalam tiap kelas (X, XI, XII), LKPD kini dikelompokkan lagi per **Elemen CP** (mis. Kelas X: Wawasan Dunia Otomotif, Kecakapan Kerja Dasar K3 dan Budaya Kerja, dst., 7 elemen; XI 7 elemen; XII 7 elemen). Tiap kelompok elemen menampilkan jumlah LKPD dan total JP, dan bisa dilipat.
+- Chip baru **Kelompokkan: Elemen CP / Kelas saja** (bawaan Elemen CP). Filter kelas, Ada di aplikasi, dan pencarian tetap berfungsi; jumlah LKPD (62) dan JP per kelas tidak berubah. Tidak ada perubahan Appwrite.
+- `tools/uji-akademik.mjs` kini 144 uji.
+
 ## Peta LKPD: daftar dan JP diselaraskan dengan Matriks LKPD revisi2
 - Tab baru **Peta LKPD** di Administrasi Akademik (di antara Mata pelajaran dan Tata kelola; juga di laci menu). Hanya lihat, memuat **62 LKPD** dari `Matriks_LKPD_TSM_Kelas_X-XII_SKKNI_revisi2.xlsx`: kode, judul, jenis, semester, elemen CP, TP, JP, estimasi minggu, unit SKKNI, status matriks, serta catatan dan usulan revisi.
 - Kartu JP per kelas dihitung dari data dan dibandingkan dengan target: X 24 LKPD = 432 JP, XI 25 LKPD = 648 JP, XII 13 LKPD = 352 JP (semuanya sesuai target). Filter Semua, Kelas X, XI, XII, dan Ada di aplikasi; pencarian judul, kode, TP, elemen CP; kelompok per kelas bisa dilipat.

@@ -3,7 +3,7 @@
    dibaca dan ditulis admin saja). Mode lokal memakai localStorage. Data acuan ada di akademik-data.js. */
 var AKC={tahun:'akademik',kelas:'akademik',mapel:'akademik',tugas:'akademik',guru:'akademik_sdm'};
 var AKK='tbsm-akd',AKQ='tbsm-akd-queue';
-var AKD={D:{tahun:[],kelas:[],mapel:[],tugas:[],guru:[]},loaded:false,loading:false,err:[],seeded:false,form:null,mem:null,tg:null,tgf:{},q:'',fl:'ALL',lf:'ALL',lq:'',tf:'ALL',sk:'',rep:null,open:{},gopen:{},memSel:null,busy:false};
+var AKD={D:{tahun:[],kelas:[],mapel:[],tugas:[],guru:[]},loaded:false,loading:false,err:[],seeded:false,form:null,mem:null,tg:null,tgf:{},q:'',fl:'ALL',lf:'ALL',lg:'cp',lq:'',tf:'ALL',sk:'',rep:null,open:{},gopen:{},memSel:null,busy:false};
 ICO.akdGuru='<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/>';
 ICO.akdKelas='<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 17.5h7M17.5 14v7"/>';
 ICO.akdSiswa='<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14.4c1.8.8 3 2.6 3 5.6"/>';
@@ -504,7 +504,15 @@ function akLkpdCards(){
  ['X','XI','XII'].forEach(function(k){
   var L=all.filter(function(x){return x.kl===k});if(!L.length)return;
   var jp=L.reduce(function(a,x){return a+x.jp},0),id='lk-'+k,buka=cari||AKD.gopen[id]!==false;
-  out+='<button type=\"button\" class=\"akd-grp\" data-akd=\"grp\" data-id=\"'+id+'\" aria-expanded=\"'+buka+'\"><span><b>Kelas '+k+'</b><small class=\"note\"> · '+L.length+' LKPD · '+jp+' JP</small></span><span class=\"akd-chev\" aria-hidden=\"true\">'+(buka?'▾':'▸')+'</span></button>'+(buka?L.map(akLkpdCard).join(''):'');
+  out+='<button type=\"button\" class=\"akd-grp\" data-akd=\"grp\" data-id=\"'+id+'\" aria-expanded=\"'+buka+'\"><span><b>Kelas '+k+'</b><small class=\"note\"> · '+L.length+' LKPD · '+jp+' JP</small></span><span class=\"akd-chev\" aria-hidden=\"true\">'+(buka?'▾':'▸')+'</span></button>';
+  if(!buka)return;
+  if((AKD.lg||'cp')!=='cp'){out+=L.map(akLkpdCard).join('');return}
+  /* kelompok kedua: Elemen CP, menurut urutan kemunculan di matriks */
+  var el=[],per={};L.forEach(function(x){if(!per[x.el]){per[x.el]=[];el.push(x.el)}per[x.el].push(x)});
+  el.forEach(function(e,i){
+   var M=per[e],mjp=M.reduce(function(a,x){return a+x.jp},0),eid='lk-'+k+'-cp'+i,eb=cari||AKD.gopen[eid]!==false;
+   out+='<button type=\"button\" class=\"akd-grp akd-sub\" style=\"margin-left:12px\" data-akd=\"grp\" data-id=\"'+eid+'\" aria-expanded=\"'+eb+'\"><span><b>'+esc(e)+'</b><small class=\"note\"> · '+M.length+' LKPD · '+mjp+' JP</small></span><span class=\"akd-chev\" aria-hidden=\"true\">'+(eb?'▾':'▸')+'</span></button>'+(eb?M.map(akLkpdCard).join(''):'');
+  });
  });
  return out;
 }
@@ -514,6 +522,7 @@ function viewAkdLkpd(){
   var a=A[k]||{n:0,jp:0},t=T[k]&&T[k].jp,sel=t==null?'':(a.jp===t?'sesuai target '+t:'target '+t+', selisih '+(a.jp>t?'+':'-')+Math.abs(a.jp-t));
   return '<div class=\"card\"><span class=\"label\">Kelas '+k+'</span><b class=\"mono\">'+a.jp+' JP</b><span class=\"note\">'+a.n+' LKPD'+(sel?' · '+sel:'')+'</span></div>'}).join('')+'</div>';
  h+='<div class=\"chips\">'+[['ALL','Semua'],['X','Kelas X'],['XI','Kelas XI'],['XII','Kelas XII'],['ada','Ada di aplikasi']].map(function(c){return '<button type=\"button\" data-akd=\"lf\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lf||'ALL')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
+ h+='<div class=\"chips\"><span class=\"note\">Kelompokkan:</span>'+[['cp','Elemen CP'],['kelas','Kelas saja']].map(function(c){return '<button type=\"button\" data-akd=\"lg\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lg||'cp')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
  h+='<div class=\"card\"><label class=\"f\">Cari<input type=\"search\" data-akd=\"lq\" value=\"'+esc(AKD.lq)+'\" placeholder=\"Judul, kode LKPD, TP, atau elemen CP\"></label></div>';
  h+='<div id=\"akd-list\">'+akLkpdCards()+'</div>';
  var tp=akLkpdTanpaPadan();
@@ -656,6 +665,7 @@ document.addEventListener('click',async function(e){
  else if(a==='daftar'){AKD.sk=id;AKD.mem=null;AKD.form=null;S.tab='akd-siswa';render();window.scrollTo(0,0)}
  else if(a==='fl'){AKD.fl=id;render()}
  else if(a==='lf'){AKD.lf=id;render()}
+ else if(a==='lg'){AKD.lg=id==='kelas'?'kelas':'cp';render()}
  else if(a==='grp'){AKD.gopen=AKD.gopen||{};AKD.gopen[id]=AKD.gopen[id]===false;render()}
  else if(a==='sinkron')akSinkron();
  else if(a==='ekspor')akEkspor();

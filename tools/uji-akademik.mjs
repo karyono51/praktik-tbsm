@@ -435,6 +435,12 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   T('pencarian rantai: menemukan LKPD-XI-20, XII-08, dan X-01 (Rantai Usaha) tetapi bukan X-02', /LKPD-XI-20/.test(h) && /LKPD-XII-08/.test(h) && /LKPD-X-01</.test(h) && !/LKPD-X-02</.test(h));
   AKD.lq = 'zzzz'; T('pencarian tanpa hasil: pesan kosong', /Belum ada LKPD yang cocok/.test(ctx.akLkpdCards()));
   AKD.lq = '';
+  AKD.lf = 'ALL'; AKD.lg = 'cp'; h = ctx.akLkpdCards();
+  T('kelompok Elemen CP: subkelompok per elemen dengan jumlah LKPD dan JP', /Wawasan Dunia Otomotif<\/b><small class="note"> · 3 LKPD/.test(h) && /Dasar Sistem Hidrolik dan Pneumatik<\/b><small class="note"> · 2 LKPD/.test(h) && (h.match(/akd-sub/g) || []).length === 21, (h.match(/akd-sub/g) || []).length);
+  T('kelompok Elemen CP: total LKPD tetap 62', (h.match(/<span class="mono note">LKPD-/g) || []).length === 62, (h.match(/<span class="mono note">LKPD-/g) || []).length);
+  AKD.lg = 'kelas'; h = ctx.akLkpdCards();
+  T('kelompok Kelas saja: tanpa subkelompok', !/akd-sub/.test(h) && /LKPD-X-01/.test(h));
+  AKD.lg = 'cp';
   /* ekspor */
   log.rows.length = 0; await klik('ekspor');
   const pl = log.rows.find((r) => r[0] && 'Kode LKPD' in r[0]);
