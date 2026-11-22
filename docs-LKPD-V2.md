@@ -153,7 +153,7 @@ Tombol **Cetak kunci** muncul tepat di samping **Cetak** (pratinjau guru dan bar
 ## Foto pada Materi dan Soal evaluasi; Edit isi LKPD v2
 - Edit isi: Tujuan & teori, tombol **Tambah foto** di tiap topik teori; Soal, tombol foto soal pada semua jenis soal (termasuk **Isian angka**). Foto dikecilkan otomatis (sisi terpanjang 800 px) dan diunggah ke Google Drive saat sinkron.
 - Data: teori `[topik, uraian, foto]`; soal `qi` (foto soal), `oi` (foto pilihan, PG dan PG kompleks).
-- Yang dikunci di editor v2: jumlah dan urutan Langkah, butir K3, dan komponen Pemeriksaan (terhubung ke `v2.langkah`, `v2.k3grup`, `v2.obs`). Teksnya boleh diubah. Rencana pertemuan, tabel, dan soal gerbang tidak diubah editor ini dan dipertahankan saat menyimpan.
+- Yang dikunci di editor v2: jumlah dan urutan Langkah, butir K3, dan komponen Pemeriksaan (terhubung ke `v2.langkah`, `v2.k3grup`, `v2.obs`). Teksnya boleh diubah. Rencana pertemuan dan tabel tidak diubah editor ini dan dipertahankan saat menyimpan.
 - Uji: `node tools/uji-lkpd-foto.mjs`.
 
 ## Cetak LKPD dan Cetak kunci untuk semua LKPD
@@ -168,4 +168,12 @@ Format cetak (`js/lkpd-format.js`) dan tombol **Cetak kunci** berlaku untuk **se
 - **Buat LKPD v2 dari master**: tombol pada master membuka Editor LKPD berisi salinan (draf, tidak aktif, ID kosong, judul "… (baru dari master)"). Salinan mencatat `v2.dari` = ID master dan tidak membawa `peta` (peta ke soal lama milik master). Master tidak berubah. Isi tiap bagian lalu disesuaikan di Editor LKPD.
 - **14 butir daftar periksa master**: tujuan (min. 3); pemantik dan materi (min. 4 topik); rencana pertemuan (awal dan akhir tanpa kegiatan, JP dan menit terisi); tiap kegiatan terpetakan ke pertemuan; gerbang masuk (min. 3 soal TKA berlevel Aplikasi/Penalaran, kunci valid, pembahasan); K3 dan APD (min. 5 butir, semua terkelompok, ada APD); langkah tiap kegiatan dan ada langkah bersaksi guru; tabel data (min. 1); pemeriksaan dan bukti (tiap komponen punya kegiatan, ada wajib foto); latihan membaca skala (min. 3 soal isian berkunci, id pada pertemuan ada); analisis dan refleksi (min. 3); penilaian kinerja (bobot 100%, rubrik skor 1-4, ada aspek penghenti); tindak lanjut remedial dan pengayaan; cek kondisi alat.
 - Cetak LKPD dan **Cetak kunci** otomatis berlaku untuk turunan master karena disusun dari data modul (`lkpd-format.js`).
-- Batas saat ini: editor v2 mengunci jumlah dan urutan langkah, butir K3, dan komponen pemeriksaan (teksnya bisa diubah), dan soal gerbang masuk belum bisa diedit teks dan kuncinya (hanya foto). Turunan master yang topiknya berbeda perlu soal gerbang baru lewat data.
+- Batas saat ini: editor v2 mengunci jumlah dan urutan langkah, butir K3, dan komponen pemeriksaan (teksnya bisa diubah). Soal gerbang masuk sudah bisa diedit penuh (lihat di bawah), sehingga turunan master dengan topik berbeda tidak perlu mengubah data lewat kode. Rencana pertemuan dan tabel data masih memakai isi master.
+
+## Editor soal gerbang masuk (tab Soal, LKPD v2)
+Soal gerbang masuk dapat diedit penuh di Editor LKPD (`js/lkpd-v2-editor.js`), tab **Soal**, bagian *Soal gerbang masuk*. Uji: `node tools/uji-lkpd-gerbang.mjs` (47 uji).
+- Daftar soal ringkas (nomor, kutipan pertanyaan, bentuk, level); ketuk soal untuk membuka. Per soal: bentuk **PG**, **PG kompleks**, atau **PG kategori** (konversi membawa pertanyaan, pilihan, kunci, level, dan pembahasan), level **Aplikasi** atau **Penalaran**, pertanyaan, pilihan A sampai H (ketuk huruf untuk kunci; PG satu kunci, kompleks lebih dari satu), pernyataan Benar/Salah untuk kategori, foto soal dan pilihan, dan **Pembahasan (wajib)**.
+- Tambah PG, PG kompleks, atau PG kategori (soal baru: 5 pilihan kosong atau 3 pernyataan), Naik, Turun, Duplikat, dan Hapus soal. Batas: minimal 3 dan maksimal 10 soal, minimal 4 pilihan, minimal 3 pernyataan kategori.
+- Pemeriksaan sebelum simpan (daftar masalah editor): pertanyaan, jumlah pilihan, kunci, pembahasan, level, dan minimal 3 soal; pesan berawalan "Gerbang masuk no. N".
+- Saat simpan, pilihan dan pernyataan kosong dibuang dan kunci mengikuti pilihan yang sama; soal yang tidak diubah tersimpan identik dengan aslinya. Hasil menjadi `v2.gate.qs`, sehingga **Cetak kunci**, penilaian gerbang (KKM), dan daftar periksa master otomatis mengikuti.
+- Catatan: jawaban siswa yang sudah tersimpan mengikuti nomor soal, jadi ubah soal gerbang sebelum LKPD dipakai siswa. Hanya Guru dan Admin.

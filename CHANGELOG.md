@@ -1,5 +1,9 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Editor soal gerbang masuk LKPD v2
+- Tab Soal Editor LKPD v2 kini bisa mengedit penuh **soal gerbang masuk**: teks, pilihan, kunci, bentuk (PG, kompleks, kategori), level Aplikasi/Penalaran, pembahasan wajib, foto, tambah, hapus, urut, dan duplikat (3 sampai 10 soal). Pemeriksaan dan penyimpanan otomatis ke `v2.gate.qs`.
+- Turunan Master LKPD V2 dengan topik berbeda kini bisa memakai soal gerbang sendiri. Uji baru `tools/uji-lkpd-gerbang.mjs` (47 uji). Tidak ada perubahan Appwrite.
+
 ## Katalog SKKNI selaras dengan matriks LKPD (v105)
 - Lima judul unit SKKNI di Administrasi Akademik memakai judul resmi Kepmenaker 147/2019 seperti pada `Matriks_LKPD_TSM_Kelas_X-XII_SKKNI.xlsx`: 035, 036 (ABS), 037, 038 (CBS/UBS), dan 042 (ACG/SMG) tidak lagi disingkat. Selebihnya (50 unit) sudah sama. Pemetaan unit ke elemen CP tidak diubah.
 - `tools/uji-akademik.mjs` kini 116 uji. Berkas: `js/akademik-data.js`. Tidak ada perubahan Appwrite.

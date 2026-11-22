@@ -13,8 +13,9 @@
    3. Editor aman untuk LKPD v2: objek m.v2 (rencana pertemuan, gerbang, tabel, observasi) dan kolom lain dipertahankan saat menyimpan;
       pemeriksaan alokasi 1–600 menit dan menit per langkah tidak berlaku (waktu v2 diatur per pertemuan); jumlah/urutan langkah, butir K3,
       dan komponen pemeriksaan dikunci karena terhubung ke indeks v2 (teksnya tetap bisa diubah).
+   4. Soal gerbang masuk v2 dapat diedit penuh di tab Soal (teks, pilihan, kunci, level Aplikasi/Penalaran, pembahasan, urutan, tambah/hapus).
    Bergantung pada: lkpd-editor.js (lke*), lkpd-gambar.js (lkg*), soal-gambar.js (sg*), lkpd-soal.js (lkq*), lkpd.js. */
-var LKV={SKIP:{r:1,d:1,payload:1,updatedAt:1,updatedBy:1}};
+var LKV={SKIP:{r:1,d:1,payload:1,updatedAt:1,updatedBy:1},MAXG:10};
 
 function lkvIs(d){return !!(d&&d.src&&d.src.v2&&d.src.v2.ver===2)}
 function lkvRefOk(r){return typeof r==='string'&&/^(drive:|tmp:|data:image\/)/.test(r)}
@@ -209,7 +210,7 @@ document.addEventListener('click',function(e){
 })();
 
 /* ---------- LKPD v2: foto pada soal gerbang masuk (Materi) ---------- */
-/* Soal gerbang ada di m.v2.gate.qs. Editor ini hanya mengelola fotonya (qi untuk soal, oi untuk pilihan); teks dan kunci tidak diubah.
+/* Soal gerbang ada di m.v2.gate.qs. Editor mengelola teks, pilihan, kunci, level, pembahasan, urutan, tambah/hapus (minimal 3, maksimal 10), dan foto (qi untuk soal, oi untuk pilihan).
    Salinan kerja ada di d.S.gate dan ditulis kembali ke m.v2.gate.qs saat menyimpan. Tampil di tab Soal, bagian "Soal gerbang masuk". */
 (function(){
  var i0=lkeInit;
@@ -228,9 +229,17 @@ document.addEventListener('click',function(e){
  var b0=lkeBuild;
  lkeBuild=function(d){
   var m=b0.apply(this,arguments);
-  if(m.v2&&m.v2.gate&&Array.isArray(d.S.gate)){
+  if(m.v2&&Array.isArray(d.S.gate)&&(m.v2.gate||d.S.gate.length)){
+   if(!m.v2.gate)m.v2.gate={};
    m.v2.gate.qs=d.S.gate.map(function(q){
-    var c=lkeCp(q);
+    /* mulai dari salinan soal asli agar bentuk dan urutan kolom tetap bila tidak diubah; nilai diganti dengan hasil pembersihan */
+    var c=lkeCp(q),cl=lkeClean(q),t=lkqType(q);
+    c.q=cl.q;if(cl.e)c.e=cl.e;else delete c.e;
+    if(t==='kategori'){c.rows=cl.rows;delete c.o;delete c.a;delete c.oi;if(cl.lab)c.lab=cl.lab}
+    else{c.o=cl.o;c.a=cl.a;delete c.rows;if(cl.oi)c.oi=cl.oi;else delete c.oi}
+    if(t!=='pg'||q.t)c.t=t;
+    if(!c.lvl)c.lvl='Aplikasi';
+    if(cl.qi)c.qi=cl.qi;else delete c.qi;
     if(!lkvRefOk(c.qi))delete c.qi;
     if(Array.isArray(c.oi)){c.oi=c.oi.map(function(x){return lkvRefOk(x)?x:''});if(!c.oi.some(Boolean))delete c.oi}
     return c;
@@ -263,7 +272,7 @@ document.addEventListener('click',function(e){
  var t0=lkeTabSoal;
  lkeTabSoal=function(d){
   var h=t0.apply(this,arguments);
-  if(!lkvIs(d)||d.json||!d.S.gate||!d.S.gate.length)return h;
+  if(!lkvIs(d)||d.json||!d.S.gate)return h;
   return h+lkvGateHtml(d);
  };
 })();
@@ -275,13 +284,55 @@ function lkvGBox(q,i,w){
  if(ref)h+='<button type="button" class="btn small danger" data-lkv-a="g-img-del" data-i="'+i+'" data-w="'+w+'">Hapus</button>';
  return h+'</div>';
 }
+var LKV_GL=['Aplikasi','Penalaran'];
+function lkvGIssue(q){
+ var m=lkeQIssue(q);if(m)return m;
+ if(!lkeT(q.e))return 'Pembahasan wajib diisi (dipakai pada Kunci dan Pembahasan)';
+ if(LKV_GL.indexOf(q.lvl)<0)return 'Pilih level soal (Aplikasi atau Penalaran)';
+ return '';
+}
+function lkvGNew(t){var n=lkeNewQ(t);n.t=t;n.lvl='Aplikasi';if(t==='kategori')n.rows=[['',true],['',false],['',true]];else n.o=['','','','',''];return n}
+function lkvGConv(q,v){
+ var cur=lkqType(q),n=lkvGNew(v);n.q=q.q||'';n.e=q.e||'';n.lvl=q.lvl||'Aplikasi';if(q.qi)n.qi=q.qi;
+ if(cur!=='kategori'&&v!=='kategori'){
+  n.o=(q.o||[]).slice();while(n.o.length<5)n.o.push('');
+  n.a=v==='pg'?(Array.isArray(q.a)?(q.a.length?q.a[0]:-1):q.a):(Array.isArray(q.a)?q.a.slice():(q.a>=0?[q.a]:[]));
+  if(Array.isArray(q.oi)){n.oi=q.oi.slice(0,n.o.length);while(n.oi.length<n.o.length)n.oi.push('')}
+ }
+ return n;
+}
+function lkvGItem(d,q,i){
+ var t=lkqType(q),iss=lkvGIssue(q),open=d.gi===i,n=d.S.gate.length,lab=q.lab||['Benar','Salah'];
+ var tl={pg:'PG',kompleks:'PG kompleks',kategori:'PG kategori'}[t]||t;
+ var head='<button type="button" class="lke-qh" data-lkv-a="gq-open" data-i="'+i+'" aria-expanded="'+open+'"><span class="pill'+(iss?' warn':' ok')+'">'+(i+1)+'</span><b>'+(lkeT(q.q)?esc(q.q):'<span class="muted">Soal belum diisi</span>')+'</b><span class="pill plain">'+tl+'</span><span class="pill plain">'+esc(q.lvl||'Level?')+'</span></button>';
+ if(!open)return '<div class="lke-q'+(iss?' err':'')+'">'+head+'</div>';
+ function A(a,j,v){return 'data-lkv-a="'+a+'" data-i="'+i+'"'+(j!==undefined?' data-j="'+j+'"':'')+(v!==undefined?' data-v="'+v+'"':'')}
+ var b='<div class="lke-qb"><div class="seg lke-seg3" role="group" aria-label="Jenis soal">'+[['pg','PG'],['kompleks','PG kompleks'],['kategori','PG kategori']].map(function(x){return '<button type="button" '+A('gq-type',undefined,x[0])+' aria-pressed="'+(t===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>'+
+  '<div class="seg" role="group" aria-label="Level soal">'+LKV_GL.map(function(x){return '<button type="button" '+A('gq-lvl',undefined,x)+' aria-pressed="'+(q.lvl===x)+'">'+x+'</button>'}).join('')+'</div>'+
+  '<label class="f">Pertanyaan<textarea rows="3" data-lke="gate.'+i+'.q" placeholder="Tulis pertanyaan; kasus atau data ukur ada di dalam soal">'+esc(q.q||'')+'</textarea></label>'+lkvGBox(q,i,'q');
+ if(t==='kategori'){
+  b+='<div><span class="label">Pernyataan (pilih '+esc(lab[0])+' atau '+esc(lab[1])+' sebagai kunci)</span></div><div class="lke-list">'+(q.rows||[]).map(function(r,k){
+   return '<div class="lke-kat"><textarea class="lke-1" rows="1" data-lke="gate.'+i+'.rows.'+k+'.0" placeholder="Pernyataan '+(k+1)+'">'+esc(r[0])+'</textarea>'+
+    '<div class="lke-tf"><button type="button" '+A('gq-kat',k,'1')+' aria-pressed="'+(!!r[1])+'">'+esc(lab[0])+'</button><button type="button" '+A('gq-kat',k,'0')+' aria-pressed="'+(!r[1])+'">'+esc(lab[1])+'</button></div>'+
+    '<button type="button" class="lke-ic del" '+A('gq-row-del',k)+' aria-label="Hapus pernyataan">✕</button></div>'}).join('')+'</div>'+
+   ((q.rows||[]).length<LKE.MAXR?'<div><button type="button" class="btn small" '+A('gq-row-add')+'>+ Pernyataan</button></div>':'');
+ }else{
+  b+='<div><span class="label">Pilihan jawaban. Ketuk huruf untuk menandai '+(t==='pg'?'satu jawaban benar':'semua jawaban benar')+'.</span></div><div class="lke-list">'+(q.o||[]).map(function(o,k){
+   var on=t==='pg'?q.a===k:(Array.isArray(q.a)&&q.a.indexOf(k)>-1);
+   return '<div class="lke-opt"><button type="button" class="lke-key'+(t==='kompleks'?' sq':'')+'" '+A('gq-key',k)+' aria-pressed="'+on+'" aria-label="Jawaban benar '+lkeLtr(k)+'">'+lkeLtr(k)+'</button>'+
+    '<input data-lke="gate.'+i+'.o.'+k+'" placeholder="Pilihan '+lkeLtr(k)+'" value="'+esc(o)+'"><button type="button" class="lke-ic del" '+A('gq-opt-del',k)+' aria-label="Hapus pilihan"'+(q.o.length<=4?' disabled':'')+'>✕</button></div><div class="lke-oimg">'+lkvGBox(q,i,k)+'</div>'}).join('')+'</div>'+
+   ((q.o||[]).length<LKE.MAXO?'<div><button type="button" class="btn small" '+A('gq-opt-add')+'>+ Pilihan</button></div>':'');
+ }
+ b+='<label class="f">Pembahasan (wajib)<textarea rows="3" data-lke="gate.'+i+'.e" placeholder="Jelaskan jawaban benar dan kesalahan umum pada pengecoh">'+esc(q.e||'')+'</textarea></label>'+
+  (iss?'<div class="lke-qerr">'+esc(iss)+'</div>':'')+
+  '<div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small" '+A('gq-up')+(i===0?' disabled':'')+'>↑ Naik</button><button type="button" class="btn small" '+A('gq-down')+(i===n-1?' disabled':'')+'>↓ Turun</button><button type="button" class="btn small" '+A('gq-dup')+'>Duplikat</button><button type="button" class="btn small danger" '+A('gq-del')+'>Hapus soal</button></div></div>';
+ return '<div class="lke-q open'+(iss?' err':'')+'">'+head+b+'</div>';
+}
 function lkvGateHtml(d){
- return '<section class="card"><div><h3>Soal gerbang masuk (tab Materi siswa)</h3><p class="note">Di sini hanya foto yang bisa ditambahkan. Teks dan kunci soal gerbang tidak diubah.</p></div><div class="lke-list">'+
-  d.S.gate.map(function(q,i){
-   var h='<div class="lke-item" style="grid-template-columns:26px 1fr"><span class="lke-n">'+(i+1)+'</span><div class="lke-f"><b>'+esc(q.q||'')+'</b>'+lkvGBox(q,i,'q');
-   if(Array.isArray(q.o)&&q.t!=='kategori')q.o.forEach(function(o,k){h+='<div class="note">'+String.fromCharCode(65+k)+'. '+esc(o||'')+'</div>'+lkvGBox(q,i,k)});
-   return h+'</div></div>';
-  }).join('')+'</div></section>';
+ var g=d.S.gate;
+ return '<section class="card"><div><h3>Soal gerbang masuk (tab Materi siswa)</h3><p class="note">Soal TKA sebagai syarat masuk praktik: minimal 3 soal, lima pilihan, level Aplikasi atau Penalaran, dan pembahasan wajib. Foto soal dan pilihan bisa ditambahkan. Jawaban siswa yang sudah tersimpan mengikuti nomor soal, jadi ubah soal gerbang sebelum LKPD dipakai siswa.</p></div>'+
+  '<div class="lke-list">'+g.map(function(q,i){return lkvGItem(d,q,i)}).join('')+'</div>'+
+  '<div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small primary" data-lkv-a="gq-add" data-v="pg">+ PG</button><button type="button" class="btn small primary" data-lkv-a="gq-add" data-v="kompleks">+ PG kompleks</button><button type="button" class="btn small primary" data-lkv-a="gq-add" data-v="kategori">+ PG kategori</button></div></section>';
 }
 document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-lkv-a^="g-img"]');if(!b)return;
@@ -297,3 +348,56 @@ document.addEventListener('click',function(e){
   });
  }else{set('');lkeRe()}
 },true);
+
+/* Aksi editor soal gerbang masuk (data-lkv-a="gq-..."). Teks bertaut ke d.S.gate lewat data-lke="gate.i...." (penangan input editor). */
+document.addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-lkv-a^="gq-"]');if(!b||b.disabled)return;
+ var d=LK.editor;if(!d||!d.S||!Array.isArray(d.S.gate)||!isStaff())return;
+ e.stopPropagation();
+ var a=b.dataset.lkvA,i=+b.dataset.i,j=+b.dataset.j,v=b.dataset.v,g=d.S.gate,q=g[i];
+ if(a==='gq-add'){
+  if(g.length>=LKV.MAXG){toast('Maksimal '+LKV.MAXG+' soal gerbang');return}
+  g.push(lkvGNew(v));d.gi=g.length-1;lkeRe();return;
+ }
+ if(!q)return;
+ if(a==='gq-open'){d.gi=d.gi===i?-1:i;lkeRe()}
+ else if(a==='gq-type'){if(lkqType(q)!==v){g[i]=lkvGConv(q,v);lkeRe()}}
+ else if(a==='gq-lvl'){q.lvl=v;lkeRe()}
+ else if(a==='gq-key'){
+  if(lkqType(q)==='pg')q.a=q.a===j?-1:j;
+  else{q.a=Array.isArray(q.a)?q.a:[];var at=q.a.indexOf(j);if(at>-1)q.a.splice(at,1);else q.a.push(j)}
+  lkeRe();
+ }
+ else if(a==='gq-opt-add'){if(q.o.length<LKE.MAXO){q.o.push('');if(Array.isArray(q.oi))q.oi.push('');d.focus='gate.'+i+'.o.'+(q.o.length-1);lkeRe()}}
+ else if(a==='gq-opt-del'){
+  if(q.o.length<=4){toast('Minimal 4 pilihan');return}
+  if(Array.isArray(q.oi))lkgFit(q).splice(j,1);q.o.splice(j,1);
+  if(lkqType(q)==='pg'){if(q.a===j)q.a=-1;else if(q.a>j)q.a--}
+  else q.a=(q.a||[]).filter(function(x){return x!==j}).map(function(x){return x>j?x-1:x});
+  lkeRe();
+ }
+ else if(a==='gq-kat'){q.rows[j][1]=v==='1';lkeRe()}
+ else if(a==='gq-row-add'){if(q.rows.length<LKE.MAXR){q.rows.push(['',true]);d.focus='gate.'+i+'.rows.'+(q.rows.length-1)+'.0';lkeRe()}}
+ else if(a==='gq-row-del'){if(q.rows.length>3){q.rows.splice(j,1);lkeRe()}else toast('Minimal 3 pernyataan')}
+ else if(a==='gq-up'){lkeMove(g,i,i-1);d.gi=i-1;lkeRe()}
+ else if(a==='gq-down'){lkeMove(g,i,i+1);d.gi=i+1;lkeRe()}
+ else if(a==='gq-dup'){
+  if(g.length>=LKV.MAXG){toast('Maksimal '+LKV.MAXG+' soal gerbang');return}
+  g.splice(i+1,0,lkeCp(q));d.gi=i+1;lkeRe();
+ }
+ else if(a==='gq-del'){
+  if(g.length<=3){toast('Gerbang masuk minimal 3 soal');return}
+  uiConfirm('Hapus soal gerbang no. '+(i+1)+'? Nomor soal berikutnya bergeser.',{ok:'Hapus',danger:true}).then(function(ok){if(!ok||LK.editor!==d)return;g.splice(i,1);d.gi=-1;lkeRe()});
+ }
+},true);
+(function(){
+ var i0=lkeIssues;
+ lkeIssues=function(d){
+  var I=i0.apply(this,arguments);
+  if(lkvIs(d)&&d.S&&Array.isArray(d.S.gate)&&(d.S.gate.length||(d.src&&d.src.v2&&d.src.v2.gate))){
+   if(d.S.gate.length<3)I.push({tab:'soal',msg:'Gerbang masuk minimal 3 soal'});
+   d.S.gate.forEach(function(q,k){var m=lkvGIssue(q);if(m)I.push({tab:'soal',msg:'Gerbang masuk no. '+(k+1)+': '+m})});
+  }
+  return I;
+ };
+})();

@@ -134,7 +134,7 @@ ok('LKPD biasa: pemeriksaan alokasi tetap berlaku', run("dn.S.duration=700;lkeIs
 ok('LKPD biasa: tidak menambah kolom v2 saat simpan', run("lkeBuild(dn).v2===undefined"));
 
 console.log('Foto soal gerbang v2');
-run("var dg=lkEditorDefaults(__x07);dg.src=__x07;var sg0=lkeInit(dg);dg.tab='soal';var hg=lkEditorForm(dg);");
+run("var dg=lkEditorDefaults(__x07);dg.src=__x07;var sg0=lkeInit(dg);dg.tab='soal';dg.gi=0;var hg=lkEditorForm(dg);");
 ok('salinan gerbang dibuat tanpa menandai editor berubah', run("Array.isArray(sg0.gate)&&sg0.gate.length===__x07.v2.gate.qs.length&&lkeDirty(dg)===false"));
 ok('tab Soal memuat bagian soal gerbang dengan tombol foto', run("hg.indexOf('Soal gerbang masuk')>-1&&hg.indexOf('data-lkv-a=\"g-img\" data-i=\"0\" data-w=\"q\"')>-1"));
 ok('pilihan gerbang PG punya tombol foto pilihan', run("hg.indexOf('foto pilihan A')>-1"));
