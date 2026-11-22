@@ -327,6 +327,9 @@ let html = G('obsStuHtml(OB.d)');
 const atas = G('obsFormSiswa()');
 ok(!/ob2-on/.test(html) && !/ob2-off/.test(html) && /ob2-rate/.test(html) && !/data-ob2mod/.test(html), 'observasi baru langsung memakai formulir v2; pemilih LKPD tidak lagi di blok penilaian');
 ok(/LKPD yang diobservasi/.test(atas) && /data-ob2mod/.test(atas) && /type="hidden" data-ob="mapel"/.test(atas) && !/Unit \/ pekerjaan praktik<input/.test(atas), 'pemilih LKPD v2 di atas formulir menggantikan kolom unit');
+G(`OB.d.kelas='XII'`);
+ok(/id="ob2kelas"[^>]*>LKPD ini untuk Kelas X, sedangkan daftar siswa yang dipilih Kelas XII/.test(G('obsFormSiswa()')) && G(`ob2KelasCatatan(ob2Mod('LKPD-X-07'),'X')`) === '', 'peringatan bila kelas siswa berbeda dari kelas LKPD, kosong bila sama');
+G(`OB.d.kelas='X'`);
 ok(/data-ob="materi" maxlength="200" value="LKPD-X-07"/.test(atas) && /<option value="X" selected>Kelas X/.test(atas), 'jobsheet terisi otomatis kode LKPD dan kelas mengikuti LKPD');
 G(`document.dispatchLike=function(){}`);
 // pilih v2 lewat state langsung (jalur klik bergantung DOM)

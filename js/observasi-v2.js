@@ -334,6 +334,15 @@ obsFormSiswa=function(){
  if(!d||!d.v2)return h;
  var m=ob2Mod(d.v2);
  var blok='<label class="f">LKPD yang diobservasi<select data-ob2mod'+(d.id?' disabled':'')+'>'+ob2Mods().map(function(x){return '<option value="'+esc(x.id)+'"'+(x.id===d.v2?' selected':'')+'>'+esc(x.id+' · '+x.title)+'</option>'}).join('')+'</select></label>'+
-  '<div class="note" id="ob2judul">'+esc(m?m.title:'LKPD v2 tidak ditemukan')+'</div><input type="hidden" data-ob="mapel" value="'+esc(d.mapel)+'">';
+  '<div class="note" id="ob2judul">'+esc(m?m.title:'LKPD v2 tidak ditemukan')+'</div><div class="note" id="ob2kelas" role="status" style="color:var(--bad,#b3261e)">'+esc(ob2KelasCatatan(m,d.kelas))+'</div><input type="hidden" data-ob="mapel" value="'+esc(d.mapel)+'">';
  return h.replace(/<label class="f">[^<]*<input data-ob="mapel"[^>]*><\/label>/,function(){return blok});
 };
+
+/* Peringatan (tidak menghalangi) bila kelas daftar siswa berbeda dari kelas LKPD. */
+function ob2KelasCatatan(m,kelas){return m&&m.kelas&&kelas&&m.kelas!==kelas?'LKPD ini untuk Kelas '+m.kelas+', sedangkan daftar siswa yang dipilih Kelas '+kelas+'. Pastikan sudah sesuai.':''}
+function ob2KelasSync(kelas){var el=document.getElementById('ob2kelas');if(!el||!OB||!OB.d)return;el.textContent=ob2KelasCatatan(ob2Mod(OB.d.v2),kelas||OB.d.kelas)}
+document.addEventListener('change',function(e){
+ var t=e.target;if(!t.matches||!OB||!OB.d||!OB.d.v2)return;
+ if(t.matches('[data-ob="kelas"]'))ob2KelasSync(t.value);
+ else if(t.matches('[data-ob2mod]'))setTimeout(function(){ob2KelasSync()},0);
+});

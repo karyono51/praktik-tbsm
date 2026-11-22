@@ -1,5 +1,8 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Observasi LKPD Praktik: peringatan kelas tidak sesuai
+- Bila Kelas daftar siswa berbeda dari kelas LKPD yang dipilih (mis. LKPD-X-07 dengan Kelas XII), muncul catatan merah di bawah pilihan LKPD. Catatan tidak menghalangi penyimpanan dan ikut berubah saat kelas atau LKPD diganti. `tools/uji-lkpd-v2.mjs` kini 224 uji.
+
 ## Formulir Observasi LKPD Praktik dirapikan
 - Pemilih **LKPD yang diobservasi** dipindah ke bagian atas formulir dan menggantikan kolom "Unit / pekerjaan praktik" (judul LKPD tampil utuh di bawah pilihan, tersimpan otomatis sebagai unit). Blok "Formulir v2" di bawah daftar siswa dihapus.
 - **Kompetensi / jobsheet** terisi otomatis dengan kode LKPD (tetap bisa diubah), dan **Kelas** mengikuti kelas LKPD. Mengganti LKPD memperbarui isian itu.
