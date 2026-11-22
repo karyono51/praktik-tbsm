@@ -1,5 +1,9 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## UKK bukan mata pelajaran (daftar mapel Administrasi Akademik)
+- **UKK Teknik Sepeda Motor (TB-02)** tidak lagi tampil sebagai mata pelajaran. UKK (Uji Kompetensi Keahlian) adalah asesmen kompetensi, bukan baris mapel di struktur kurikulum SMK maupun e-Rapor SMK. Judul yang diawali "UKK" atau "Uji Kompetensi Keahlian" kini disaring seperti judul "LKPD": disembunyikan dari daftar, pilihan mapel, statistik, dan tidak diimpor lagi oleh Sinkronkan kurikulum (`akBukanMapel` di `js/akademik.js`).
+- Data lama di Appwrite tidak dihapus; barisnya hanya disembunyikan. Soal bank soal yang mapelnya "UKK ..." tidak berubah. `tools/uji-akademik.mjs` kini 120 uji. Tidak ada perubahan Appwrite.
+
 ## Editor soal gerbang masuk LKPD v2
 - Tab Soal Editor LKPD v2 kini bisa mengedit penuh **soal gerbang masuk**: teks, pilihan, kunci, bentuk (PG, kompleks, kategori), level Aplikasi/Penalaran, pembahasan wajib, foto, tambah, hapus, urut, dan duplikat (3 sampai 10 soal). Pemeriksaan dan penyimpanan otomatis ke `v2.gate.qs`.
 - Turunan Master LKPD V2 dengan topik berbeda kini bisa memakai soal gerbang sendiri. Uji baru `tools/uji-lkpd-gerbang.mjs` (47 uji). Tidak ada perubahan Appwrite.

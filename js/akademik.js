@@ -117,8 +117,8 @@ function akGrupKey(m){
  if(id==='m_tsm'||id.indexOf('m_tsm_')===0||/^Konsentrasi Keahlian/i.test(k))return 'konsentrasi';
  return AK_GRUP.some(function(x){return x[0]===m.kelompok})?m.kelompok:'kejuruan';
 }
-/* judul LKPD (mis. soal LKPD di bank soal) bukan mata pelajaran */
-function akBukanMapel(m){return /^\s*LKPD\b/i.test(String(m&&m.nama||''))}
+/* judul LKPD (mis. soal LKPD di bank soal) dan UKK bukan mata pelajaran: LKPD adalah bahan ajar, UKK adalah asesmen kompetensi (tidak punya baris mapel di e-Rapor SMK) */
+function akBukanMapel(m){return /^\s*(LKPD|UKK|Uji\s+Kompetensi\s+Keahlian)\b/i.test(String(m&&m.nama||''))}
 /* Mapel produktif: ditandai eksplisit (m.produktif), atau dasar program keahlian, konsentrasi keahlian, PKL, beserta elemen CP-nya */
 function akProduktif(m){
  if(!m)return false;

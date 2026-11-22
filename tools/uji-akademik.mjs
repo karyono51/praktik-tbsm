@@ -393,5 +393,15 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   T('SKKNI: setiap judul diawali huruf kapital (gaya judul resmi)', Object.keys(k).every((c) => /^[A-Z]/.test(k[c]) && !/^[a-z]/.test(k[c])), Object.keys(k).filter((c) => !/^[A-Z]/.test(k[c])));
 }
 
+/* 14. UKK dan LKPD bukan mata pelajaran (penamaan mapel mengikuti struktur kurikulum / e-Rapor SMK) */
+{
+  const { ctx } = boot();
+  const bukan = (n) => ctx.akBukanMapel({ nama: n });
+  T('UKK bukan mapel: judul diawali UKK disaring', bukan('UKK Teknik Sepeda Motor') && bukan('  ukk TSM'));
+  T('UKK bukan mapel: Uji Kompetensi Keahlian disaring', bukan('Uji Kompetensi Keahlian Teknik Sepeda Motor'));
+  T('LKPD tetap bukan mapel', bukan('LKPD X-1 Pemeriksaan Baterai dan Sistem Starter'));
+  T('mapel resmi tidak ikut tersaring', ['Dasar-Dasar Teknik Otomotif', 'Teknik Sepeda Motor', 'Praktik Kerja Lapangan'].every((n) => !bukan(n)));
+}
+
 console.log('\n' + pass + ' lulus, ' + fail + ' gagal');
 process.exit(fail ? 1 : 0);

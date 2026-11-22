@@ -71,3 +71,6 @@ Aplikasi difokuskan pada mata pelajaran produktif/kejuruan: **Dasar-Dasar Teknik
 - **Kepala halaman**: judul kecil "Administrasi Akademik" di atas nama halaman; tahun ajaran, sekolah, dan tanda "Hanya lihat" tampil sebagai pil, bukan satu kalimat panjang.
 - **Bilah tab** di dalam halaman: satu baris yang bisa digeser, berikon, tab aktif digulir ke tengah. Filter (Kelas X, Produktif, dan sebagainya) tetap berbentuk chip agar tidak tertukar dengan navigasi.
 - **Jarak kartu** seragam; kartu guru memakai avatar inisial; baris tahun ajaran dan pemeriksaan kelengkapan memakai garis pemisah; Hak akses, Acuan regulasi, dan Katalog SKKNI digabung menjadi satu kartu "Acuan dan referensi".
+
+## UKK bukan mata pelajaran
+- Judul yang diawali **UKK** atau **Uji Kompetensi Keahlian** (mis. "UKK Teknik Sepeda Motor", kode TB-xx yang masuk dari bank soal lewat Sinkronkan) bukan mata pelajaran: UKK adalah asesmen kompetensi keahlian dan tidak punya baris mapel di struktur kurikulum SMK atau e-Rapor SMK. Disembunyikan dari daftar, pilihan mapel, dan statistik, serta tidak diimpor lagi oleh Sinkronkan kurikulum (sama seperti judul LKPD). Data lama tidak dihapus.
