@@ -106,7 +106,7 @@ Pengelompokan skrip menurut awalan nama:
 Dijalankan dari folder proyek dengan Node.js (tanpa pustaka tambahan).
 
 - **Rilis dan pemeriksaan** (otomatis di `up.sh` dan GitHub Actions): `rilis.mjs` (versi berkas dan daftar cache offline), `periksa.mjs` (sintaks, berkas yang dirujuk, SRI, pola rahasia), `audit-izin.mjs` (izin koleksi Appwrite, hanya temuan baru yang menggagalkan).
-- **Uji otomatis tanpa peramban**: `node tools/uji-<topik>.mjs`, yaitu `uji-cbt`, `uji-cetak-siswa`, `uji-gambar`, `uji-grup`, `uji-label`, `uji-lkpd-cetak`, `uji-lkpd-v2`, `uji-multikelas`, `uji-pantau`, `uji-pra`, `uji-seb-keluar`, `uji-tata-bank`, `uji-tebak`, `uji-uraian`.
+- **Uji otomatis tanpa peramban**: `node tools/uji-<topik>.mjs`, yaitu `uji-cbt`, `uji-cetak-siswa`, `uji-gambar`, `uji-grup`, `uji-label`, `uji-lkpd-cetak`, `uji-lkpd-v2`, `uji-multikelas`, `uji-pandu`, `uji-pantau`, `uji-pra`, `uji-seb-keluar`, `uji-tata-bank`, `uji-tebak`, `uji-uraian`.
 - **Penyiapan Appwrite dan server**: `setup-appwrite.mjs`, `cek-appwrite.mjs`, `perbesar-peran.mjs`, `bangun-bawaan.mjs`, `gabung-cbt.mjs`, `foto-drive.mjs`.
 - **Lainnya**: `buat-seb.mjs` (berkas konfigurasi Safe Exam Browser), `hitung-sri.mjs` (SRI untuk skrip CDN).
 

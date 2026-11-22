@@ -7,10 +7,14 @@ var LKM={edit:null,d:null,reveal:{},sub:null};
 document.head.appendChild(st)})();
 
 /* ---- Konfigurasi LKPD ---- */
-function lkmCfg(m){return {mode:m&&m.mode==='latihan'?'latihan':'ujian',maxTry:Math.max(0,parseInt(m&&m.maxTry,10)||0),showKey:!m||m.showKey!==false,hideTeori:!m||m.hideTeori!==false,hideLangkah:!m||m.hideLangkah!==false,hidePetunjuk:!m||m.hidePetunjuk!==false,buka:(m&&m.buka)||'',tutup:(m&&m.tutup)||''}}
+function lkmCfg(m){return {mode:m&&m.mode==='latihan'?'latihan':'ujian',maxTry:Math.max(0,parseInt(m&&m.maxTry,10)||0),showKey:!m||m.showKey!==false,hideTeori:!m||m.hideTeori!==false,hideLangkah:!m||m.hideLangkah!==false,hidePetunjuk:!m||m.hidePetunjuk!==false,buka:(m&&m.buka)||'',tutup:(m&&m.tutup)||'',
+ /* Pembeda Latihan dan Ujian (lkpd-pandu.js): gerbang latihan, foto wajib semua komponen saat Ujian, Latihan berpemandu */
+ gerbang:(m&&typeof m.gerbang==='string')?m.gerbang:'',gKali:m&&parseInt(m.gKali,10)===2?2:1,fotoUjian:!!(m&&m.fotoUjian),pandu:!m||m.pandu!==false}}
 function lkmT(s){var t=s?new Date(s).getTime():0;return isNaN(t)?0:t}
 function lkmFmt(s){var t=lkmT(s);return t?new Date(t).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}
-function lkmLock(m){var c=lkmCfg(m),n=Date.now(),b=lkmT(c.buka),t=lkmT(c.tutup);if(b&&n<b)return 'Belum dibuka. Dibuka '+lkmFmt(c.buka);if(t&&n>t)return 'Sudah ditutup sejak '+lkmFmt(c.tutup);return ''}
+function lkmLock(m){var c=lkmCfg(m),n=Date.now(),b=lkmT(c.buka),t=lkmT(c.tutup);if(b&&n<b)return 'Belum dibuka. Dibuka '+lkmFmt(c.buka);if(t&&n>t)return 'Sudah ditutup sejak '+lkmFmt(c.tutup);
+ if(typeof lkpGateLock==='function'&&!isStaff()){var gl=lkpGateLock(m);if(gl)return gl}
+ return ''}
 function lkmModeOf(x){try{var p=typeof x.payload==='string'?JSON.parse(x.payload||'{}'):x.payload;return p&&p.mode==='latihan'?'latihan':'ujian'}catch(e){return 'ujian'}}
 function lkmUsed(m){return (S.lkpd||[]).filter(function(x){return x.moduleId===m.id&&x.sid===S.user.id&&lkmModeOf(x)!=='latihan'}).length}
 function lkmCur(){return (LKPD_MODULES||[]).find(function(x){return x.id===LK.module})}
@@ -42,9 +46,11 @@ function lkListView(){
     else st='<span class="pill plain">Belum dikerjakan</span>';
     if(c.maxTry)tags+='<span class="pill '+(habis?'bad':'plain')+'">Kesempatan '+used+'/'+c.maxTry+'</span>';
    }
-   if(lock)acts='<span class="pill warn">'+lkEsc(lock)+'</span>';
+   var gx=typeof lkpCardExtra==='function'?lkpCardExtra(m,c,uj):null;if(gx)tags+=gx.tags;
+   if(lock)acts='<span class="pill warn">'+lkEsc(lock)+'</span>'+(gx&&gx.acts?gx.acts:'');
    else acts='<button type="button" class="btn primary small" data-act="lkc-open" data-v="'+lkEsc(m.id)+'">'+(habis?'Lihat materi':(c.mode==='latihan'?(l?'Latihan lagi':'Mulai latihan'):(l?'Buka lagi':'Mulai praktik')))+'</button>';
   }
+  if(staff&&typeof lkpStaffTag==='function')tags+=lkpStaffTag(m,c);
   if(staff&&Array.isArray(m.fotoWajib)&&m.fotoWajib.length)tags+='<span class="pill warn">Foto wajib '+m.fotoWajib.length+' item</span>';
   return '<article class="card job '+cls+'"><div class="row sb"><h3 class="grow">'+lkEsc(m.title)+'</h3>'+(staff?'<span class="pill '+(pub?'ok':'warn')+'">'+(pub?'Tampil':'Tersembunyi')+'</span>':'')+'</div>'+
    '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(m.duration)+' menit</span><span>'+m.steps.length+' langkah, '+m.quiz.length+' soal</span></div>'+
@@ -64,10 +70,12 @@ function lkmPanel(){
  var tries=[[0,'Tidak terbatas'],[1,'1 kali'],[2,'2 kali'],[3,'3 kali']].map(function(o){return '<option value="'+o[0]+'"'+(+d.maxTry===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('');
  var info=d.mode==='latihan'?'Latihan: siswa boleh mengulang tanpa batas. Nilai tidak masuk Rekap nilai.':'Ujian: nilai masuk Rekap nilai dan dikoreksi guru.'+(+d.maxTry?' Pengiriman dibatasi '+(+d.maxTry)+' kali per siswa.':'');
  return '<section class="card" id="lkm-panel"><div class="row sb"><h3 class="grow">Pengaturan: '+lkEsc(m.title)+'</h3><button type="button" class="btn small" data-act="lkm-cancel">Batal</button></div>'+
+  (typeof lkpPaket==='function'?lkpPaket(d):'')+
   '<label class="lk-check"><input type="checkbox" data-lkm="tampil"'+(d.tampil?' checked':'')+'><span><b>Tampilkan ke siswa</b><small>Matikan untuk menyembunyikan LKPD (jadi draft).</small></span></label>'+
   '<div><span class="label">Mode</span><div class="seg" role="group" aria-label="Mode LKPD"><button type="button" data-act="lkm-mode" data-v="latihan" aria-pressed="'+(d.mode==='latihan')+'">Latihan</button><button type="button" data-act="lkm-mode" data-v="ujian" aria-pressed="'+(d.mode==='ujian')+'">Ujian</button></div></div>'+
   '<p class="note">'+lkEsc(info)+'</p>'+
   (d.mode==='ujian'?'<label class="f">Kesempatan mengirim<select data-lkm="maxTry">'+tries+'</select></label><span class="label">Isi yang disembunyikan saat Ujian</span>'+[['hideTeori','Teori ringkas','Siswa tidak melihat materi teori di tab Materi.'],['hideLangkah','Penjelasan langkah prosedur','Hanya judul dan durasi langkah yang tampil.'],['hidePetunjuk','Petunjuk komponen di Lembar Kerja','Keterangan di bawah nama komponen disembunyikan.']].map(function(o){return '<label class="lk-check"><input type="checkbox" data-lkm="'+o[0]+'"'+(d[o[0]]?' checked':'')+'><span><b>'+o[1]+'</b><small>'+o[2]+'</small></span></label>'}).join('')+'<p class="note">Soal evaluasi, K3, alat dan bahan, serta lembar kerja tetap tampil. Pratinjau menampilkan versi siswa.</p>':'<label class="lk-check"><input type="checkbox" data-lkm="showKey"'+(d.showKey?' checked':'')+'><span><b>Tampilkan kunci dan pembahasan</b><small>Siswa bisa memeriksa jawaban soal di tab Evaluasi.</small></span></label>')+
+  (typeof lkpPanel==='function'?lkpPanel(m,d):'')+
   (typeof lkkPanel==='function'?lkkPanel(m,d):'')+
   lkmFotoPanel(m,d)+
   '<div class="two"><label class="f">Dibuka (opsional)<input type="datetime-local" data-lkm="buka" value="'+lkEsc(d.buka)+'"></label><label class="f">Ditutup (opsional)<input type="datetime-local" data-lkm="tutup" value="'+lkEsc(d.tutup)+'"></label></div>'+
@@ -83,6 +91,8 @@ function lkmFotoPanel(m,d){
 }
 function lkmApply(src,d,full){
  var cp=lkSerialize(src);cp.mode=d.mode;cp.maxTry=Math.max(0,parseInt(d.maxTry,10)||0);cp.showKey=!!d.showKey;cp.hideTeori=!!d.hideTeori;cp.hideLangkah=!!d.hideLangkah;cp.hidePetunjuk=!!d.hidePetunjuk;
+ cp.fotoUjian=!!d.fotoUjian;cp.pandu=d.pandu!==false;
+ if(full){var gr=String(d.gerbang||'');if(d.mode==='ujian'&&gr&&gr!==cp.id){cp.gerbang=gr;cp.gKali=parseInt(d.gKali,10)===2?2:1}else{delete cp.gerbang;delete cp.gKali}}
  if(full&&d.kunci!==undefined){cp.kunci=!!d.kunci;cp.pertBuka=Math.max(0,parseInt(d.pertBuka,10)||0)}
  if(full){cp.fotoWajib=(d.fotoWajib||[]).filter(function(i){return cp.checks[i]}).sort(function(a,b){return a-b});cp.status=d.tampil?'published':'draft';cp.active=!!d.tampil;if(d.buka)cp.buka=d.buka;else delete cp.buka;if(d.tutup)cp.tutup=d.tutup;else delete cp.tutup}
  lkModuleStore(cp);
@@ -112,7 +122,7 @@ document.addEventListener('click',function(e){
  if(a==='lkm-reveal'){var cm=lkmCur();if(cm){LKM.reveal[cm.id]=!LKM.reveal[cm.id];render()}return}
  if(a.indexOf('lkm-')!==0||!isStaff())return;
  e.stopPropagation();
- if(a==='lkm-open'){var m=LKPD_MODULES.find(function(x){return x.id===v});if(!m)return;var c=lkmCfg(m);LKM.edit=v;LKM.d={tampil:lkmPub(m),mode:c.mode,maxTry:c.maxTry,showKey:c.showKey,hideTeori:c.hideTeori,hideLangkah:c.hideLangkah,hidePetunjuk:c.hidePetunjuk,buka:c.buka,tutup:c.tutup,semua:false,fotoWajib:(Array.isArray(m.fotoWajib)?m.fotoWajib.slice():[]),kunci:m.kunci!==false,pertBuka:parseInt(m.pertBuka,10)||0};render();window.scrollTo(0,0)}
+ if(a==='lkm-open'){var m=LKPD_MODULES.find(function(x){return x.id===v});if(!m)return;var c=lkmCfg(m);LKM.edit=v;LKM.d={tampil:lkmPub(m),mode:c.mode,maxTry:c.maxTry,showKey:c.showKey,hideTeori:c.hideTeori,hideLangkah:c.hideLangkah,hidePetunjuk:c.hidePetunjuk,gerbang:c.gerbang,gKali:c.gKali,fotoUjian:c.fotoUjian,pandu:c.pandu,buka:c.buka,tutup:c.tutup,semua:false,fotoWajib:(Array.isArray(m.fotoWajib)?m.fotoWajib.slice():[]),kunci:m.kunci!==false,pertBuka:parseInt(m.pertBuka,10)||0};render();window.scrollTo(0,0)}
  else if(a==='lkm-cancel'){LKM.edit=null;LKM.d=null;render()}
  else if(a==='lkm-mode'&&LKM.d){LKM.d.mode=v;render()}
  else if(a==='lkm-foto-all'&&LKM.d){var mm=LKPD_MODULES.find(function(x){return x.id===LKM.edit});LKM.d.fotoWajib=mm.checks.map(function(c,i){return i});render()}
@@ -131,8 +141,8 @@ document.addEventListener('change',function(e){
 
 /* ---- Tampilan LKPD: spanduk mode dan pembahasan latihan ---- */
 function lkmFilter(h,c){
- if(c.mode!=='ujian')return h;
- var m2=lkmCur();if(m2&&typeof lk2Is==='function'&&lk2Is(m2))return lk2ModeFilter(h,c);
+ if(c.mode!=='ujian')return typeof lkpPandu==='function'?lkpPandu(h,c):h;
+ var m2=lkmCur();if(m2&&typeof lk2Is==='function'&&lk2Is(m2)){h=lk2ModeFilter(h,c);return typeof lkpMandiri==='function'?lkpMandiri(h,c):h}
  try{
   if(LK.tab==='materi'){
    if(c.hideTeori)h=h.replace(/<h3>Teori ringkas<\/h3>[\s\S]*?(?=<div class="note">Gunakan manual)/,'<p class="note">Teori ringkas tidak ditampilkan pada mode Ujian.</p>');
@@ -202,7 +212,7 @@ persist=function(){if(LKM.sub)lkmPatchLast();return _lkmPersist.apply(this,argum
 var _lkmBuild=lkBuildModule;
 lkBuildModule=function(v){
  var m=_lkmBuild(v),o=(LKPD_MODULES||[]).find(function(x){return x.id===m.id});
- if(o)['mode','maxTry','showKey','hideTeori','hideLangkah','hidePetunjuk','buka','tutup','kunci','pertBuka'].forEach(function(k){if(o[k]!==undefined)m[k]=o[k]});
+ if(o)['mode','maxTry','showKey','hideTeori','hideLangkah','hidePetunjuk','buka','tutup','kunci','pertBuka','gerbang','gKali','fotoUjian','pandu'].forEach(function(k){if(o[k]!==undefined)m[k]=o[k]});
  if(o&&Array.isArray(o.fotoWajib)){var nm=o.fotoWajib.map(function(i){return o.checks[i]&&o.checks[i][0]}).filter(Boolean);m.fotoWajib=[];m.checks.forEach(function(c,i){if(nm.indexOf(c[0])>-1)m.fotoWajib.push(i)})}
  return m;
 };

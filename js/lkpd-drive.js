@@ -16,7 +16,7 @@ function ldParse(x){var m=/^c(\d+)\|([\s\S]*)$/.exec(x.label||'');return m?{item
 function ldItemName(i){var m=(window.LKPD_MODULES||[]).filter(function(x){return x.id===LK.module})[0];return m&&m.checks&&m.checks[i]?String(m.checks[i][0]):'Item '+(i+1)}
 
 /* ---------- Kamera per item (form siswa) ---------- */
-function ldReq(i){var m=lkmCur();return !!(m&&Array.isArray(m.fotoWajib)&&m.fotoWajib.indexOf(i)>-1)}
+function ldReq(i){var m=lkmCur();return !!(m&&(typeof lkpFotoWajib==='function'?lkpFotoWajib(m):(Array.isArray(m.fotoWajib)?m.fotoWajib:[])).indexOf(i)>-1)}
 function ldIb(act,ico,label,v,cls){return '<button type="button" class="btn small ld-ib'+(cls?' '+cls:'')+'" data-act="'+act+'" data-v="'+v+'" aria-label="'+label+'" title="'+label+'">'+svg(ICO[ico],18)+'</button>'}
 function ldRowCam(i){
  var f=lkFotos(),k=-1;f.forEach(function(x,j){if(x.item===i)k=j});
@@ -106,8 +106,9 @@ var _ldSubmit=lkSubmit;
 lkSubmit=function(){
  if(!isStaff()){
   var m=lkmCur();
-  if(m&&Array.isArray(m.fotoWajib)&&m.fotoWajib.length){
-   var f=lkFotos(),miss=m.fotoWajib.filter(function(i){return m.checks[i]&&!f.some(function(x){return x.item===i})});
+  var fw=m?(typeof lkpFotoWajib==='function'?lkpFotoWajib(m):(Array.isArray(m.fotoWajib)?m.fotoWajib:[])):[];
+  if(m&&fw.length){
+   var f=lkFotos(),miss=fw.filter(function(i){return m.checks[i]&&!f.some(function(x){return x.item===i})});
    if(miss.length){
     LK.tab='kerja';render();
     toast('Foto wajib belum lengkap ('+miss.length+'): '+miss.slice(0,3).map(function(i){return m.checks[i][0]}).join(', ')+(miss.length>3?', dan lainnya':''));
