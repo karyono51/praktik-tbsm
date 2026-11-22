@@ -1,5 +1,11 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Administrasi Akademik fokus mapel produktif (v102)
+- Bawaan kurikulum dipersempit ke Dasar-Dasar Teknik Otomotif, Teknik Sepeda Motor (dengan elemen CP), dan PKL. Penanda `produktif` pada mapel, kotak **Mapel produktif** di formulir.
+- Pemeriksaan pengampu, pilihan tugas mengajar, mapel pada bank soal, dan statistik hanya menghitung mapel produktif; tugas pada mapel non-produktif ditolak.
+- Daftar mapel: chip Produktif dan Non-produktif, kelompok produktif lebih dulu. Tombol **Arsipkan mapel non-produktif** di Tata kelola (data tidak dihapus). Kolom Produktif di Excel.
+- Perbaikan kecil: teks formulir profil guru tidak lagi menyebut guru dapat membaca profil SDM. `tools/uji-akademik.mjs` kini 61 uji. Tidak ada perubahan Appwrite.
+
 ## Administrasi Akademik: perbaikan tata kelola (v101)
 - **Profil SDM hanya admin**: izin baca `label:guru` dicabut dari `akademik_sdm` (NIP/NUPTK sebelumnya terbaca semua guru). Aplikasi tidak lagi memuat atau menampilkan profil SDM untuk guru. **Koleksi yang sudah terpasang perlu dijalankan ulang**: `node tools/setup-appwrite.mjs --only=akademik_sdm` (memperbarui izin).
 - **JP guru** dihitung dari tugas yang berlaku saja (rombel aktif, tahun ajaran sama dengan yang aktif). Pemeriksaan "guru belum bertugas" dan "mapel belum punya pengampu" memakai aturan yang sama; tugas yang tidak berlaku diberi keterangan di daftar.

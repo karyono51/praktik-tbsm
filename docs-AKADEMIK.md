@@ -47,3 +47,11 @@ Periksa dokumen resmi sebelum dipakai sebagai dasar keputusan.
 - **Pemeriksaan baru**: siswa di lebih dari satu rombel, tingkat rombel berbeda dengan kelas akun, anggota nonaktif atau akunnya hilang.
 - **Tugas mengajar**: mapel yang dibatasi tingkat tidak bisa dipasang ke rombel tingkat lain; JP harus bilangan bulat 1 sampai 40; mapel dan rombel yang sama sudah diampu guru lain meminta konfirmasi (mengajar bersama).
 - **Kode mapel `TB-xx`** memakai nomor terbesar yang ada, jadi tidak kembar setelah ada yang dihapus. **Tahun ajaran bawaan** memakai id tetap, dua perangkat admin tidak lagi membuat ganda. Tahun ajaran dan semester yang sama tidak bisa ditambah dua kali, dan menandai satu tahun ajaran aktif menonaktifkan yang lain.
+
+## Fokus mapel produktif (v102)
+Aplikasi difokuskan pada mata pelajaran produktif/kejuruan: **Dasar-Dasar Teknik Otomotif**, **Teknik Sepeda Motor** (beserta elemen CP), dan **PKL**.
+- **Bawaan** hanya memuat mapel itu (18 mapel). Mapel umum, Matematika, Bahasa Inggris, Informatika, Projek IPAS, KIK, dan Koding tidak lagi dibawa.
+- **Penanda produktif**: dari kotak *Mapel produktif* di formulir mapel. Data lama tanpa penanda dikenali otomatis (DDTO, TSM, PKL, elemen CP, dan komponen Dasar Program/Konsentrasi Keahlian). Penanda eksplisit mengalahkan pengenalan otomatis.
+- **Yang hanya menghitung mapel produktif**: pemeriksaan "mapel belum punya guru pengampu", pilihan mapel pada tugas mengajar, daftar mapel pada form bank soal, dan statistik halaman Mata pelajaran. Tugas mengajar pada mapel non-produktif ditolak (centang dulu Mapel produktif bila memang diperlukan).
+- **Daftar mapel**: chip Produktif, Dasar Program, Kompetensi Keahlian; chip **Non-produktif (n)** muncul bila ada. Kelompok produktif ditampilkan lebih dulu.
+- **Data lama di Appwrite tidak dihapus.** Di Tata kelola, tombol **Arsipkan n mapel non-produktif** mengarsipkan yang belum dipakai pada tugas mengajar (bisa diaktifkan lagi). Excel mata pelajaran memuat kolom Produktif.

@@ -109,7 +109,7 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   const { ctx, AKD, log, klik } = boot();
   AKD.D.tahun = [tahun('t1', '2026/2027', 'Ganjil', true)];
   AKD.D.kelas = [kelas('k1', 'X TSM 1', 'X'), kelas('k2', 'XI TSM 1', 'XI')];
-  AKD.D.mapel = [{ id: 'm1', nama: 'Dasar-Dasar Teknik Otomotif', tingkat: ['X'], aktif: true }, { id: 'm2', nama: 'Bahasa Indonesia', tingkat: [], aktif: true }];
+  AKD.D.mapel = [{ id: 'm1', nama: 'Dasar-Dasar Teknik Otomotif', tingkat: ['X'], aktif: true, produktif: true }, { id: 'm2', nama: 'Bahasa Indonesia', tingkat: [], aktif: true }];
   AKD.tg = 'g1';
   const coba = async (f) => { AKD.tgf = { ...f }; const n = AKD.D.tugas.length; log.toast.length = 0; await klik('tg-add'); return { baru: AKD.D.tugas.length - n, toast: log.toast.join('|') }; };
   let r = await coba({ mapelId: 'm1', kelasId: 'k2', jp: 4 });
@@ -176,6 +176,81 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   T('appwrite.json: akademik_sdm tanpa izin baca guru, baca admin ada', !sdm.$permissions.some((p) => /label:guru/.test(p)) && sdm.$permissions.includes('read("label:admin")'), sdm.$permissions);
   const akd = (conf.collections || conf.tables).find((c) => c.$id === 'akademik');
   T('appwrite.json: akademik tetap dibaca guru dan ditulis admin', akd.$permissions.includes('read("label:guru")') && !akd.$permissions.some((p) => /^(create|update|delete)\("label:guru"\)/.test(p)));
+}
+
+/* 7. Fokus mapel produktif (DDTO, Teknik Sepeda Motor, PKL) */
+{
+  const { ctx, AKD, log, klik } = boot();
+  const seed = ctx.akSeedList();
+  const ids = seed.map((m) => m.id);
+  T('bawaan: hanya DDTO, TSM, PKL dan elemennya (18 mapel)', seed.length === 18 && ids.includes('m_ddo') && ids.includes('m_tsm') && ids.includes('m_pkl') && !ids.includes('m_pabp') && !ids.includes('m_mtk') && !ids.includes('m_kka'), ids);
+  T('bawaan: semuanya bertanda produktif', seed.every((m) => m.produktif === true));
+  /* data lama (tanpa tanda produktif) */
+  const lama = (o) => ({ aktif: true, kelompok: 'kejuruan', ...o });
+  AKD.D.mapel = [
+    lama({ id: 'm_pabp', nama: 'Pendidikan Agama', kelompok: 'umum' }),
+    lama({ id: 'm_mtk', nama: 'Matematika', komponen: 'Mata pelajaran kejuruan' }),
+    lama({ id: 'm_ddo', nama: 'Dasar-Dasar Teknik Otomotif', komponen: 'Dasar-Dasar Program Keahlian' }),
+    lama({ id: 'm_ddo_3', nama: 'Teknik Dasar', induk: 'm_ddo', komponen: 'Dasar-Dasar Program Keahlian' }),
+    lama({ id: 'm_pkl', nama: 'Praktik Kerja Lapangan' }),
+    lama({ id: 'x1', nama: 'Mapel tambahan', komponen: 'Konsentrasi Keahlian' }),
+    lama({ id: 'x2', nama: 'Dipaksa bukan', komponen: 'Konsentrasi Keahlian', produktif: false }),
+    lama({ id: 'x3', nama: 'Dipaksa produktif', kelompok: 'umum', produktif: true }),
+  ];
+  const pr = (id) => ctx.akProduktif(AKD.D.mapel.find((m) => m.id === id));
+  T('data lama: umum dan Matematika bukan produktif', !pr('m_pabp') && !pr('m_mtk'));
+  T('data lama: DDTO, elemennya, PKL, komponen konsentrasi produktif', pr('m_ddo') && pr('m_ddo_3') && pr('m_pkl') && pr('x1'));
+  T('tanda eksplisit mengalahkan turunan', !pr('x2') && pr('x3'));
+  /* pemeriksaan */
+  AKD.D.tahun = [tahun('t1', '2026/2027', 'Ganjil', true)];
+  const c = ctx.akCek().find((x) => x.t.indexOf('Mata pelajaran belum punya guru') === 0);
+  T('pemeriksaan pengampu hanya menilai mapel produktif', c.list.join('|').indexOf('Pendidikan Agama') < 0 && c.list.join('|').indexOf('Matematika') < 0 && /Praktik Kerja/.test(c.list.join('|')), c);
+  /* daftar mapel */
+  ctx.S.tab = 'akd-mapel';
+  let h = ctx.viewAkdMapel();
+  T('daftar mapel: bawaan menampilkan produktif saja', /Praktik Kerja Lapangan/.test(h) && !/Pendidikan Agama/.test(h) && !/>Matematika</.test(h));
+  T('chip Non-produktif memuat jumlah (2: PABP, Matematika) dan x2', /Non-produktif \(3\)/.test(h), h.match(/Non-produktif[^<]*/));
+  AKD.fl = 'lain'; h = ctx.viewAkdMapel();
+  T('chip Non-produktif menampilkan mapel non-produktif', /Pendidikan Agama/.test(h) && /Matematika/.test(h) && !/Praktik Kerja Lapangan/.test(h));
+  AKD.fl = 'ALL';
+  /* bank soal */
+  const nm = ctx.akMapelNamaMaster();
+  T('daftar mapel bank soal hanya produktif', nm.includes('Praktik Kerja Lapangan') && !nm.includes('Matematika') && !nm.includes('Pendidikan Agama'), nm);
+  /* tugas */
+  AKD.D.kelas = [kelas('k1', 'X TSM 1', 'X')]; AKD.tg = 'g1';
+  const th = ctx.akTugasHtml('g1');
+  T('pilihan tugas mengajar hanya mapel produktif', /Praktik Kerja Lapangan/.test(th) && !/Pendidikan Agama/.test(th) && !/value="m_mtk"/.test(th));
+  AKD.tgf = { mapelId: 'm_mtk', kelasId: 'k1', jp: 2 }; log.toast.length = 0; await klik('tg-add');
+  T('tugas pada mapel non-produktif ditolak dengan petunjuk', AKD.D.tugas.length === 0 && /Mapel produktif/.test(log.toast.join()), log.toast);
+  AKD.D.mapel.find((m) => m.id === 'm_mtk').produktif = true;
+  await klik('tg-add');
+  T('setelah dicentang produktif, tugas diterima', AKD.D.tugas.length === 1);
+  AKD.D.mapel.find((m) => m.id === 'm_mtk').produktif = undefined; delete AKD.D.mapel.find((m) => m.id === 'm_mtk').produktif;
+  /* formulir: centang produktif */
+  AKD.form = { k: 'mapel', o: { id: 'n1', nama: 'Baru', produktif: false, tingkat: [], kelompok: 'kejuruan' }, judul: 'x' };
+  const fh = ctx.akFormHtml();
+  T('formulir memuat kotak Mapel produktif', /data-akbool="1"/.test(fh) && !/data-akbool="1" checked/.test(fh));
+  ctx.akFieldSet({ dataset: { akf: 'produktif', akbool: '1' }, checked: true, type: 'checkbox', value: 'on' });
+  T('kotak produktif menyimpan boolean', AKD.form.o.produktif === true);
+  AKD.form = null;
+  /* arsipkan non-produktif */
+  AKD.D.tugas = [tugas('u9', 'g1', 'x2', 'k1', 2)];
+  const n0 = ctx.akNonProduktifAktif().map((m) => m.id).sort();
+  T('kandidat arsip: non-produktif tanpa tugas (PABP, Matematika)', JSON.stringify(n0) === '["m_mtk","m_pabp"]', n0);
+  await klik('arsip-non');
+  const st = (id) => AKD.D.mapel.find((m) => m.id === id).aktif;
+  T('arsip: non-produktif tanpa tugas diarsipkan, yang bertugas dan produktif tetap', st('m_pabp') === false && st('m_mtk') === false && st('x2') === true && st('m_ddo') === true && st('x3') === true, AKD.D.mapel.map((m) => [m.id, m.aktif]));
+  T('arsip: ada dialog konfirmasi', log.conf.length === 1 && /2 mata pelajaran/.test(log.conf[0]), log.conf);
+  /* ekspor */
+  ctx.akEkspor();
+  const mp = log.rows.find((r) => r[0] && 'Produktif' in r[0]);
+  T('Excel mata pelajaran punya kolom Produktif Ya/Tidak', mp && mp.some((r) => r.Produktif === 'Ya') && mp.some((r) => r.Produktif === 'Tidak'));
+  /* guru tidak bisa mengarsipkan */
+  const g = boot({ peran: 'guru' }); g.AKD.D.mapel = [lama({ id: 'm_pabp', nama: 'Pendidikan Agama', kelompok: 'umum' })];
+  await g.klik('arsip-non');
+  T('guru tidak bisa mengarsipkan mapel', g.AKD.D.mapel[0].aktif === true && /Hanya admin/.test(g.log.toast.join()));
+  /* urutan grup: produktif lebih dulu */
+  T('urutan grup: dasar, konsentrasi lebih dulu dari umum', ctx.AK_GRUP.map((x) => x[0]).join() === 'dasar,konsentrasi,kejuruan,umum,pilihan');
 }
 
 console.log('\n' + pass + ' lulus, ' + fail + ' gagal');

@@ -39,6 +39,10 @@ var AKD_SKKNI={
 };
 function akSkkniKode(n){return 'G.45TSM01.'+n+'.2'}
 
+/* Fokus aplikasi: mata pelajaran produktif/kejuruan. Mapel (dan elemen CP-nya) pada daftar ini dibawa sebagai bawaan dan dihitung pada
+   pemeriksaan kelengkapan; mapel lain tetap bisa ditambah dengan mencentang Mapel produktif. */
+var AKD_PRODUKTIF_ID=['m_ddo','m_tsm','m_pkl'];
+
 /* Mata pelajaran umum, kejuruan, dan pilihan (struktur kurikulum SMK). tingkat kosong = semua tingkat. */
 var AKD_MAPEL_UMUM=[
  {id:'m_pabp',kode:'UM-01',nama:'Pendidikan Agama dan Budi Pekerti',kelompok:'umum'},
