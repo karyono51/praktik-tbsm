@@ -69,7 +69,22 @@ Contoh LKPD-X-07 (3 PG, 1 PG kompleks dengan 2 kunci, 1 PG kategori dengan 5 per
 
 Dengan 5 soal bobot sama, nilai gerbang selalu bilangan genap dan nilai terendah yang lulus adalah 76.
 
-**Rencana (belum dikerjakan):** tab Evaluasi akan terbuka bila nilai Lembar Kerja memenuhi KKM yang ditetapkan guru (disebut 76). Nilai Lembar Kerja yang dipakai adalah nilai praktik otomatis (langkah 30, K3 20, pemeriksaan dan tabel 25, analisis 25). Batas ini terpisah dari KKM gerbang.
+## 4B. Nilai praktik terverifikasi dan pembukaan Evaluasi
+Tab Evaluasi (soal latihan membaca skala) terbuka bagi siswa bila **nilai praktik terverifikasi guru >= KKM evaluasi (minimal 75)**. Soal yang terkunci hanya kartu latihan; rubrik penilaian kinerja tetap terbaca. Guru, pratinjau, dan cetak tidak terkunci.
+
+**Nilai praktik terverifikasi** (skala 100, bobot `rubric`): langkah 30 + K3 20 + pemeriksaan dan tabel 25 + analisis 25.
+- **Langkah:** langkah bersaksi guru dihitung hanya bila guru mencentang saksi di Detail.
+- **K3:** butir APD dihitung hanya bila guru mencentang paraf APD.
+- **Pemeriksaan dan tabel:** dari isian siswa (rata-rata baris pemeriksaan lengkap dan kelengkapan tabel).
+- **Analisis:** nilai 0-100 dari guru (kolom "Nilai analisis" di Detail), bukan lagi dihitung dari panjang jawaban. Belum diisi = 0 poin.
+- Disimpan di `payload.v2.verif` = `{s, a, n, praktik, kkm, lulus, by, ts}` saat guru menekan "Simpan verifikasi guru". Nilai analisis wajib diisi (bilangan bulat 0-100) agar verifikasi tersimpan.
+- Contoh: siswa mencentang semua dan mengetik jawaban analisis asal-asalan mendapat 54 (sebelumnya 75 dari nilai otomatis). Dengan semua langkah dan APD terverifikasi dan analisis 0, nilainya tepat 75.
+
+**Status siswa** (`lk2Status`): Evaluasi terbuka bila ada pengumpulan LKPD miliknya yang diverifikasi dengan `verif.praktik` >= KKM; bila ada beberapa, dipakai yang tertinggi. Pesan di tab: belum kirim, menunggu verifikasi, atau nilai terverifikasi di bawah KKM. Kiriman Evaluasi tidak dihitung sebagai pengumpulan praktik.
+
+**Kirim Evaluasi** (`lk2KirimEvaluasi`, tombol menggantikan Kirim LKPD di tab Evaluasi saat terbuka): kiriman terpisah berisi jawaban latihan. Nilai = praktik terverifikasi x bobot praktik (85%) + teori x bobot teori (15%), dicatat di `lkpd` (payload `v2.evaluasi = 1`) dan `hasil`. Detail guru menampilkan jawaban latihan dan kunci. Siswa boleh mengirim Evaluasi lebih dari sekali, sama seperti Kirim LKPD.
+
+**Gerbang** tetap terpisah: gerbang hanya syarat kelayakan masuk praktik (bagian 4A), KKM gerbang dan KKM evaluasi masing-masing minimal 75.
 
 ## 5. Observasi LKPD Praktik v2
 - **Penilaian aspek (skala 1-4 + nilai, sama dengan Observasi UKK):** untuk tiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** bulat sesuai rentang skala. Kolom nilai terkunci sampai skala dipilih, dan menolak angka di luar rentang (pesan merah "Nilai harus 75-90").

@@ -79,6 +79,59 @@ function lk2Gate(m,d){
  var nilai=auto?Math.round(poin/qs.length*100):0,ok=n===qs.length;
  return {n:n,total:qs.length,ok:ok,benar:b,auto:auto,poin:poin,nilai:nilai,kkm:kkm,lulus:auto?nilai>=kkm:ok};
 }
+/* ---------- Praktik terverifikasi guru dan pembukaan Evaluasi ----------
+   Evaluasi terbuka bila nilai praktik terverifikasi >= KKM evaluasi (75). Praktik terverifikasi = langkah (langkah bersaksi guru dihitung bila disaksikan)
+   + K3 (butir APD dihitung bila berparaf) + pemeriksaan dan tabel + analisis (nilai 0-100 dari guru), dengan bobot m.rubric. Disimpan guru di payload.v2.verif. */
+var LK2_KKM_EVALUASI=75;
+function lk2KkmEvaluasi(){return Math.max(LK2_KKM_EVALUASI,+(typeof S!=='undefined'&&S.kkm)||0)}
+function lk2PraktikV(m,p,vf){
+ var V=m.v2,r=m.rubric,vs=(vf&&vf.s)||{},va=(vf&&vf.a)||{},saksi={},apd={};
+ V.langkah.forEach(function(l){if(l.saksi)saksi[l.i]=1});
+ (V.apd||[]).forEach(function(i){apd[i]=1});
+ var st=m.steps.filter(function(x,i){return p['step'+i]&&(!saksi[i]||vs[i])}).length,
+  sf=m.safety.filter(function(x,i){return p['safe'+i]&&(!apd[i]||va[i])}).length,
+  rows=m.checks.filter(function(x,i){return lkRowOk(p,i)}).length,tb=lk2TabelPct(m,p),
+  ana=(vf&&typeof vf.n==='number'&&isFinite(vf.n))?Math.max(0,Math.min(100,vf.n)):null,
+  chk=(rows/m.checks.length+tb)/2,kkm=lk2KkmEvaluasi(),
+  praktik=Math.round(st/m.steps.length*r.steps+sf/m.safety.length*r.safety+chk*r.checks+(ana===null?0:ana/100)*r.analysis);
+ return {praktik:praktik,kkm:kkm,lulus:praktik>=kkm,st:st,stN:m.steps.length,sf:sf,sfN:m.safety.length,rows:rows,rowsN:m.checks.length,tabel:Math.round(tb*100),ana:ana};
+}
+/* Status siswa yang sedang masuk: sudah mengirim, sudah diverifikasi, nilai praktik terverifikasi tertinggi, dan apakah Evaluasi terbuka. */
+function lk2Status(m){
+ var sid=S.user&&S.user.id,out={ada:false,verif:false,praktik:null,lulus:false,kkm:lk2KkmEvaluasi()};
+ (S.lkpd||[]).forEach(function(x){
+  if(x.moduleId!==m.id||x.sid!==sid)return;
+  var p;try{p=JSON.parse(x.payload||'{}')}catch(e){p={}}
+  if(p.v2&&p.v2.evaluasi)return;
+  out.ada=true;var vf=p.v2&&p.v2.verif;
+  if(vf&&vf.ts&&typeof vf.praktik==='number'){out.verif=true;if(out.praktik===null||vf.praktik>out.praktik)out.praktik=vf.praktik}
+ });
+ out.lulus=out.verif&&out.praktik>=out.kkm;return out;
+}
+function lk2EvalBuka(m){return isStaff()||LK.preview||!!LK2.cetak||lk2Status(m).lulus}
+function lk2EvalSoal(m,d){
+ if(lk2EvalBuka(m))return '<section class="card"><h2>Latihan membaca skala</h2><p class="note">Hitung dari soal, lalu isi angkanya. Dinilai otomatis dengan toleransi pembulatan kecil.</p>'+lkqQuizHtml(m,d)+'</section>';
+ var s=lk2Status(m);
+ return '<section class="card"><h2>Evaluasi terkunci</h2><p>'+(!s.ada?'Kirim Lembar Kerja (Kirim LKPD) dulu. Evaluasi terbuka setelah guru memverifikasi praktikmu dengan nilai minimal '+s.kkm+'.':!s.verif?'Lembar Kerja sudah terkirim. Menunggu verifikasi dan penilaian guru. Evaluasi terbuka bila nilai praktik terverifikasi minimal '+s.kkm+'.':'Nilai praktik terverifikasimu '+s.praktik+', belum mencapai KKM '+s.kkm+'. Perbaiki praktik sesuai arahan guru, lalu kirim ulang Lembar Kerja.')+'</p></section>';
+}
+/* Kirim Evaluasi: kiriman terpisah berisi jawaban latihan. Nilai = praktik terverifikasi x bobot praktik + teori x bobot teori. */
+function lk2KirimEvaluasi(){
+ var m=lk2Cur();if(!lk2Is(m)||isStaff()||LK.preview||!S.user)return;
+ var s=lk2Status(m);
+ if(!s.lulus){toast('Evaluasi belum terbuka: nilai praktik terverifikasi minimal '+s.kkm);LK.tab='evaluasi';render();return}
+ var d=lkRead(),ans=0,benar=0,pay={};
+ m.quiz.forEach(function(q,i){if(lkqAnswered(q,d['q'+i]))ans++;benar+=lkqPoint(q,d['q'+i]);pay['q'+i]=d['q'+i]});
+ var miss=m.quiz.length-ans;
+ if(!uiOk('lk2eval','Kirim Evaluasi sekarang?'+(miss?'\n'+miss+' soal belum dijawab (dihitung salah).':''),function(){lk2KirimEvaluasi()},{ok:'Kirim'}))return;
+ var r=m.rubric,teori=m.quiz.length?Math.round(benar/m.quiz.length*100):0,akhir=Math.round(s.praktik*(r.practiceWeight/100)+teori*(r.theoryWeight/100));
+ pay.student=S.user.nama;pay['class']=S.user.kelas||'X';pay.date=ymd(Date.now());pay.qsig=lkqSig(m);pay.v2={ver:2,evaluasi:1,praktik:s.praktik,kkm:s.kkm};
+ var rec={id:uid(),ts:Date.now(),moduleId:m.id,moduleTitle:m.title,kelas:m.kelas,siswa:S.user.nama,sid:S.user.id,score:akhir,practice:s.praktik,theory:teori,kompeten:akhir>=S.kkm,payload:JSON.stringify(pay),oleh:S.user.username};
+ S.lkpd=S.lkpd||[];S.lkpd.push(rec);
+ S.results.push({id:uid(),ts:rec.ts,jobId:m.id,kelas:m.kelas,siswa:S.user.nama,tipe:'LKPD',score:akhir,kompeten:rec.kompeten,catatan:'Evaluasi: praktik terverifikasi '+s.praktik+'/100; teori '+teori+'/100. Detail tersimpan pada pengumpulan LKPD.',detik:0,oleh:S.user.username,penilai:S.user.nama,sid:S.user.id});
+ if(Cloud.on)persist();else{try{localStorage.setItem('tbsm-lkpd-records',JSON.stringify(S.lkpd));save()}catch(e){}}
+ LK.tab='riwayat';render();toast('Evaluasi terkirim · nilai '+akhir);
+}
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-act="lk2-eval-kirim"]');if(b)lk2KirimEvaluasi()});
 function lk2Ana(m,d){return m.v2.analisis.filter(function(x,i){return lk2Txt(d['ana'+i]).length>=15}).length}
 
 /* ---------- Penilaian otomatis (nilai koreksi guru tetap menggantikan) ---------- */
@@ -193,7 +246,7 @@ function lk2Eval(m,d){
    return lk2Det('a'+a.id,(i+1)+'. '+lkEsc(a.n),'Bobot '+a.b+'%'+(a.stop?' · aspek penghenti':''),(a.ket?'<p>'+lkEsc(a.ket)+'</p>':'')+'<ul class="plain">'+lv+'</ul>'+(a.stop?'<p class="note"><b>Penting:</b> skor 1 pada aspek ini menghentikan praktik dan keputusan menjadi Belum kompeten.</p>':''));
   }).join(''),
   pg=(O.panduan||[]).map(function(x,i){return lk2Det('g'+i,lkEsc(x.k),'',(x.lihat?'<p><b>Yang diamati:</b> '+lkEsc(x.lihat)+'</p>':'')+(x.salah?'<p><b>Kesalahan umum:</b> '+lkEsc(x.salah)+'</p>':''))}).join('');
- return '<section class="card"><h2>Latihan membaca skala</h2><p class="note">Hitung dari soal, lalu isi angkanya. Dinilai otomatis dengan toleransi pembulatan kecil.</p>'+lkqQuizHtml(m,d)+'</section>'+
+ return lk2EvalSoal(m,d)+
   '<section class="card"><h2>Penilaian kinerja oleh guru</h2><p class="note">Guru menilai selama praktik (Pertemuan 2–5) dan menyaksikan langkah bertanda saksi guru. Tiap aspek diberi skor 1–4. Ketuk aspek untuk melihat poin yang dinilai dan arti tiap skor.</p>'+asp+
   '<p class="note"><b>Cara hitung:</b> nilai = jumlah dari (skor ÷ 4 × bobot), maksimum 100. Contoh: skor 3 pada Prosedur kerja (30%) memberi 3 ÷ 4 × 30 = 22,5.</p></section>'+
   '<section class="card"><h2>Syarat kompeten</h2><p class="note">Kompeten bila semua indikator di bawah tercapai, semua aspek sudah dinilai, dan skor Persiapan dan K3 bukan 1. Ketuntasan nilai mengikuti KKTP sekolah.</p><ul class="plain">'+O.indikator.map(function(x){return '<li><b>'+lkEsc(x.t)+'</b><br><small class="note">Bukti: '+lkEsc(x.bukti)+'</small></li>'}).join('')+'</ul></section>'+
@@ -207,7 +260,7 @@ function lk2View(m){
  var body=LK.tab==='materi'?lk2Materi(m,d):LK.tab==='kerja'?lk2Kerja(m,d):lk2Eval(m,d);
  return (LK.preview&&staff?'<div class="row"><button class="btn small" data-act="lk-preview-exit">Keluar pratinjau</button></div>':'')+
   '<div class="row sb"><div><span class="pill">Fase '+lkEsc(m.fase)+' · Kelas '+lkEsc(m.kelas)+'</span><h2>'+lkEsc(m.title)+'</h2><p class="note">'+lkEsc(m.unit)+' · '+m.v2.jp+' JP ('+m.duration+' menit, '+m.v2.pertemuan.length+' pertemuan)</p></div><span class="pill">'+lkEsc(/^LKPD/i.test(m.id)?m.id:'LKPD '+m.id)+' · v2</span></div>'+
-  nav+body+(LK.preview&&staff?'':'<div class="lk-actions"><div class="row"><button class="btn" data-act="lk-save">Simpan draf</button><button class="btn primary" data-act="lk-submit">Kirim LKPD</button><button class="btn" data-act="lk-print">Cetak</button>'+(staff&&m.v2&&m.v2.gate?'<button class="btn" data-act="lk-print-kunci">Cetak kunci</button>':'')+'</div><details class="lk2-more" data-lk2d="more"'+(LK2.open&&LK2.open.more?' open':'')+'><summary>'+(lk2Kunci(m)?'Kunci pertemuan dan progres':'Progres dan cadangan draf')+'</summary><div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div>'+lk2BkBlock(m)+'</details></div>');
+  nav+body+(LK.preview&&staff?'':'<div class="lk-actions"><div class="row"><button class="btn" data-act="lk-save">Simpan draf</button>'+(LK.tab==='evaluasi'&&!staff&&!LK.preview&&lk2Status(m).lulus?'<button class="btn primary" data-act="lk2-eval-kirim">Kirim Evaluasi</button>':'<button class="btn primary" data-act="lk-submit">Kirim LKPD</button>')+'<button class="btn" data-act="lk-print">Cetak</button>'+(staff&&m.v2&&m.v2.gate?'<button class="btn" data-act="lk-print-kunci">Cetak kunci</button>':'')+'</div><details class="lk2-more" data-lk2d="more"'+(LK2.open&&LK2.open.more?' open':'')+'><summary>'+(lk2Kunci(m)?'Kunci pertemuan dan progres':'Progres dan cadangan draf')+'</summary><div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div>'+lk2BkBlock(m)+'</details></div>');
 }
 var _viewLKPD2=viewLKPD;
 viewLKPD=function(){
@@ -251,7 +304,23 @@ function lk2KeyBlock(m,d,on){
 }
 
 /* ---------- Detail guru: verifikasi gerbang, saksi langkah, paraf APD ---------- */
+/* Detail kiriman Evaluasi (jawaban latihan; nilai = praktik terverifikasi x bobot + teori x bobot). */
+function lk2DetailEval(p,m){
+ var staff=isStaff(),h='<h3>Evaluasi (latihan membaca skala)</h3><div class="lk-kv">'+[['Nama siswa',p.student],['Kelas',p['class']],['Tanggal',p.date],['Nilai praktik terverifikasi',p.v2&&p.v2.praktik]].map(function(x){return '<div><span>'+x[0]+'</span><b>'+lkEsc(x[1]==null?'-':x[1])+'</b></div>'}).join('')+'</div>';
+ return h+m.quiz.map(function(q,i){return lkqDetail(q,i,p['q'+i])+(staff?'<small class="lk2-key">Kunci: '+lkEsc(lkqKeyText(q))+(q.e?' · '+lkEsc(q.e):'')+'</small>':'')}).join('');
+}
+/* Kartu penilaian praktik: nilai analisis oleh guru, rincian praktik terverifikasi, dan tombol simpan verifikasi (guru). */
+function lk2NilaiCard(p,m,vf,staff){
+ var R=lk2PraktikV(m,p,vf),has=!!vf.ts&&typeof vf.n==='number',
+  h='<div id="lk2-nilai"><h3>Penilaian praktik oleh guru</h3>';
+ h+=staff?'<label class="f">Nilai analisis (0–100), dinilai guru dari jawaban analisis di atas<input id="lk2-ana-n" type="number" min="0" max="100" inputmode="numeric" value="'+(typeof vf.n==='number'?vf.n:'')+'"></label>':'<p>Nilai analisis: <b>'+(typeof vf.n==='number'?vf.n:'belum dinilai')+'</b></p>';
+ if(has)h+='<p class="note">Langkah '+R.st+'/'+R.stN+' (langkah saksi dihitung bila disaksikan guru) · K3 '+R.sf+'/'+R.sfN+' (butir APD dihitung bila berparaf) · Pemeriksaan '+R.rows+'/'+R.rowsN+' · Tabel '+R.tabel+'% · Analisis '+R.ana+'.</p><p>Nilai praktik terverifikasi: <b class="mono">'+R.praktik+'</b> · KKM '+R.kkm+': <b>'+(R.lulus?'lulus, Evaluasi terbuka':'belum lulus, Evaluasi belum terbuka')+'</b></p>';
+ else h+='<p class="note">Belum diverifikasi. Nilai praktik terverifikasi dihitung setelah guru menyimpan verifikasi dan nilai analisis. Evaluasi terbuka bila nilainya minimal '+R.kkm+'.</p>';
+ if(staff)h+='<div class="row"><button type="button" class="btn primary" data-act="lk2-verif">Simpan verifikasi guru</button></div>'+(vf.ts?'<p class="note">Terakhir diverifikasi '+lkEsc(vf.by||'-')+' · '+new Date(vf.ts).toLocaleString('id-ID')+'</p>':'');
+ return h+'</div>';
+}
 function lk2Detail(z,p,m){
+ if(p&&p.v2&&p.v2.evaluasi)return lk2DetailEval(p,m);
  var V=m.v2,vf=(p.v2&&p.v2.verif)||{},staff=isStaff(),calc=lk2Calc(m,p),h='',
   vs=vf.s||{},va=vf.a||{},
   mark=function(ok){return ok?'<span class="lk2-ok">✓</span>':'<span class="note">belum</span>'};
@@ -268,7 +337,6 @@ function lk2Detail(z,p,m){
   var t=String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,'');
   return '<div class="lk-check"><span>K'+l.k+' · '+lkEsc(t)+' · siswa: '+(p['step'+l.i]?'selesai':'belum')+(l.saksi?' · <b>saksi guru</b>':'')+'</span>'+(l.saksi?(staff?'<label class="lk-check"><input type="checkbox" data-lk2v="s'+l.i+'" '+(vs[l.i]?'checked':'')+'><span>Disaksikan</span></label>':' '+mark(vs[l.i])):'')+'</div>';
  }).join('');
- if(staff)h+='<div class="row"><button type="button" class="btn primary" data-act="lk2-verif">Simpan verifikasi guru</button></div>'+(vf.ts?'<p class="note">Terakhir diverifikasi '+lkEsc(vf.by||'-')+' · '+new Date(vf.ts).toLocaleString('id-ID')+'</p>':'');
  h+='</div>';
  h+='<h3>Data hasil pengukuran</h3>'+V.tabel.map(function(t){
   return '<h4>'+lkEsc(t.judul)+'</h4><div class="tablewrap"><table><thead><tr>'+t.kol.map(function(k,j){return '<th>'+lkEsc(k.l)+'</th>'+(j===0&&t.labelBaris?'<th>'+lkEsc(t.labelBaris)+'</th>':'')}).join('')+'</tr></thead><tbody>'+
@@ -278,6 +346,7 @@ function lk2Detail(z,p,m){
  h+='<h3>Waktu per pertemuan</h3><p class="note">'+V.pertemuan.map(function(q){return 'P'+q.n+': '+lkEsc(p['mt'+q.n]||'-')+' / '+q.menit+' menit'}).join(' · ')+'</p>';
  h+='<h3>Latihan membaca skala</h3>'+m.quiz.map(function(q,i){return lkqDetail(q,i,p['q'+i])+(staff?'<small class="lk2-key">Kunci: '+lkEsc(lkqKeyText(q))+(q.e?' · '+lkEsc(q.e):'')+'</small>':'')}).join('');
  h+='<h3>Analisis dan refleksi</h3>'+V.analisis.map(function(q,i){return '<p><b>'+(i+1)+'. '+lkEsc(q)+'</b><br><span class="lk-text">'+lkEsc(p['ana'+i]||'-')+'</span></p>'}).join('')+V.refleksi.map(function(q,i){return '<p><b>R'+(i+1)+'. '+lkEsc(q)+'</b><br><span class="lk-text">'+lkEsc(p['ref'+i]||'-')+'</span></p>'}).join('');
+ h+=lk2NilaiCard(p,m,vf,staff);
  return h;
 }
 var _lkDetailBody2=lkDetailBody;
@@ -303,11 +372,14 @@ document.addEventListener('click',function(e){
  try{p=JSON.parse(z.payload||'{}')}catch(x){p={}}
  var vf={g:{},s:{},a:{}};
  document.querySelectorAll('#lk2-verif [data-lk2v]').forEach(function(el){if(el.checked)vf[el.dataset.lk2v.charAt(0)][el.dataset.lk2v.slice(1)]=1});
- vf.by=String(S.user.nama||'').slice(0,128);vf.ts=Date.now();
+ var m=(LKPD_MODULES||[]).find(function(x){return x.id===z.moduleId}),inp=document.getElementById('lk2-ana-n'),raw=inp?String(inp.value).trim():'',n=Number(raw);
+ if(raw===''||!Number.isInteger(n)||n<0||n>100){toast('Isi nilai analisis (bilangan bulat 0–100) dulu');return}
+ vf.n=n;vf.by=String(S.user.nama||'').slice(0,128);vf.ts=Date.now();
+ if(m&&lk2Is(m)){var R=lk2PraktikV(m,p,vf);vf.praktik=R.praktik;vf.kkm=R.kkm;vf.lulus=R.lulus}
  p.v2=p.v2||{ver:2};p.v2.verif=vf;
  z.payload=JSON.stringify(p);z.d=1;LK.detail=z;
  if(Cloud.on)persist();else save();
- render();toast('Verifikasi guru tersimpan');
+ render();toast('Verifikasi guru tersimpan'+(typeof vf.praktik==='number'?' · praktik terverifikasi '+vf.praktik:''));
 });
 /* Editor LKPD lama belum memahami struktur v2: cegah penyuntingan/duplikasi agar data v2 tidak rusak. */
 document.addEventListener('click',function(e){

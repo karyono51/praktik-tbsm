@@ -1,5 +1,12 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Evaluasi LKPD v2 terbuka setelah praktik terverifikasi guru (KKM 75), nilai analisis oleh guru
+- **Nilai analisis oleh guru:** Detail guru punya kolom "Nilai analisis (0-100)"; tidak lagi dihitung dari panjang jawaban. Wajib diisi saat "Simpan verifikasi guru" (tombol dipindah ke kartu "Penilaian praktik oleh guru" di akhir Detail).
+- **Praktik terverifikasi:** langkah bersaksi hanya dihitung bila disaksikan guru, butir APD hanya bila berparaf, analisis dari nilai guru. Disimpan di `payload.v2.verif` (`n`, `praktik`, `kkm`, `lulus`).
+- **Evaluasi terkunci** (hanya kartu soal latihan) sampai nilai praktik terverifikasi >= KKM (minimal 75). Pesan jelas untuk belum kirim, menunggu verifikasi, atau di bawah KKM. Guru dan pratinjau tidak terkunci.
+- **Kirim Evaluasi:** kiriman terpisah, nilai = praktik terverifikasi x 85% + teori x 15%, dicatat di `lkpd` dan `hasil`; Detail guru menampilkan jawaban dan kunci.
+- Rincian di `docs-LKPD-V2.md` bagian 4B. 36 uji baru di `tools/uji-lkpd-v2.mjs`. Tidak ada perubahan Appwrite.
+
 ## Foto pada Materi dan Soal evaluasi, Edit LKPD aman untuk v2
 - **Materi**: Edit LKPD, tab Tujuan & teori, tiap topik teori punya tombol **Tambah foto / Ganti / Hapus foto**. Foto tampil di Materi siswa (Memahami / Teori ringkas) dan di cetak. Penanda disimpan sebagai elemen ketiga baris teori `[topik, uraian, 'drive:<id>']`.
 - **Soal evaluasi**: tombol foto soal sudah ada untuk PG, PG kompleks, dan PG kategori. Soal **isian angka** (10 soal latihan membaca skala LKPD-X-07) kini punya editor sendiri (pertanyaan, foto, kunci, toleransi, satuan, pembahasan) dan fotonya tampil di soal siswa, detail guru, dan cetak. Tombol **+ Isian angka** tersedia di LKPD v2.

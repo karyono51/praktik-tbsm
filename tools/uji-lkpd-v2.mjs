@@ -215,6 +215,83 @@ const detS = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.str
 ok(!/data-lk2v/.test(detS) && !/Kunci: B\./.test(detS), 'siswa tidak melihat kunci dan kotak verifikasi');
 ok(/Nilai gerbang \(acuan TKA\): <b>100<\/b>[^<]*KKM 75: <b>lulus/.test(detS), 'siswa melihat nilai gerbang otomatis (lulus)');
 
+/* ---------- Praktik terverifikasi guru dan pembukaan Evaluasi ---------- */
+run(`function uiOk(){return true}`, 'stub-uiok-evaluasi');
+const saksiIdx = M.v2.langkah.filter((l) => l.saksi).map((l) => l.i), apdIdx = M.v2.apd || [];
+const sA = Object.fromEntries(saksiIdx.map((i) => [i, 1])), aA = Object.fromEntries(apdIdx.map((i) => [i, 1]));
+const PV = (p, vf) => G(`lk2PraktikV(LKPD_MODULES[0],${JSON.stringify(p)},${JSON.stringify(vf)})`);
+sama(PV(penuh, { s: sA, a: aA, n: 100 }).praktik, 100, 'praktik terverifikasi: semua lengkap, disaksikan, APD berparaf, analisis 100 = 100');
+const tanpaGuru = Math.round((M.steps.length - saksiIdx.length) / M.steps.length * 30 + (M.safety.length - apdIdx.length) / M.safety.length * 20 + 25);
+sama(PV(penuh, {}).praktik, tanpaGuru, 'tanpa verifikasi guru: langkah saksi, APD, dan analisis tidak dihitung');
+ok(PV(penuh, {}).praktik < 75, 'centang semua + analisis asal tanpa guru TIDAK mencapai KKM 75 (sebelumnya 75)');
+sama([PV(penuh, { s: sA, a: aA, n: 0 }).praktik, PV(penuh, { s: sA, a: aA, n: 0 }).lulus], [75, true], 'analisis 0 tetapi semua lain lengkap dan terverifikasi = tepat 75 = lulus');
+sama(PV(penuh, { s: sA, a: aA, n: 60 }).praktik, 90, 'nilai analisis guru 60 = 15 poin (praktik 90)');
+sama(PV(penuh, { s: sA, a: aA }).ana, null, 'nilai analisis belum diisi guru = belum dinilai (0 poin)');
+sama(PV({}, { s: sA, a: aA, n: 100 }).praktik, 25, 'tanpa isian siswa, analisis guru 100 hanya 25 poin');
+G(`S.kkm=80`); sama(PV(penuh, { s: sA, a: aA, n: 0 }).lulus, false, 'KKM 80: praktik 75 belum lulus'); G(`S.kkm=60`); sama(G('lk2KkmEvaluasi()'), 75, 'KKM evaluasi tidak pernah di bawah 75'); G(`S.kkm=75`);
+
+/* status siswa dan pembukaan Evaluasi */
+const kiriman = (vf, extra = {}, sid = 'u1') => ({ id: 'r' + Math.random(), moduleId: 'LKPD-X-07', sid, payload: JSON.stringify({ v2: Object.assign({ ver: 2 }, vf ? { verif: vf } : {}, extra) }) });
+const lkpdAsli = G('S.lkpd');
+const ST = (list) => { G(`S.lkpd=${JSON.stringify(list)}`); return G('lk2Status(LKPD_MODULES[0])'); };
+sama(ST([]), { ada: false, verif: false, praktik: null, lulus: false, kkm: 75 }, 'status: belum kirim');
+sama(ST([kiriman(null)]).lulus || ST([kiriman(null)]).verif, false, 'status: sudah kirim tetapi belum diverifikasi = tertutup');
+sama([ST([kiriman({ ts: 1, praktik: 70 })]).verif, ST([kiriman({ ts: 1, praktik: 70 })]).lulus], [true, false], 'status: praktik terverifikasi 70 < 75 = tertutup');
+sama([ST([kiriman({ ts: 1, praktik: 70 }), kiriman({ ts: 2, praktik: 80 })]).praktik, ST([kiriman({ ts: 1, praktik: 70 }), kiriman({ ts: 2, praktik: 80 })]).lulus], [80, true], 'status: ambil nilai praktik terverifikasi tertinggi; 80 = terbuka');
+sama(ST([kiriman({ ts: 1, praktik: 75 })]).lulus, true, 'status: tepat 75 = terbuka');
+sama(ST([kiriman({ ts: 1, praktik: 90 }, {}, 'u2')]).lulus, false, 'status: nilai siswa lain tidak berlaku');
+sama(ST([kiriman({ ts: 1, praktik: 90 }, { evaluasi: 1 })]).ada, false, 'status: kiriman Evaluasi tidak dihitung sebagai pengumpulan praktik');
+sama(ST([kiriman({ ts: 1, g: { 0: 1 } })]).verif, false, 'status: verifikasi lama tanpa nilai praktik belum dianggap lulus (verifikasi ulang)');
+G(`S.kkm=80`); sama(ST([kiriman({ ts: 1, praktik: 78 })]).lulus, false, 'status: KKM 80, praktik 78 tertutup'); G(`S.kkm=75`);
+
+/* tab Evaluasi: terkunci / terbuka */
+const viewEval = (list, staff = false) => { G(`S.lkpd=${JSON.stringify(list)};STAFF=${staff};LK.module='LKPD-X-07';LK.tab='evaluasi';LK.preview=false;DRAFT={}`); return G('viewLKPD()'); };
+let hv = viewEval([]);
+ok(/Evaluasi terkunci/.test(hv) && /Kirim Lembar Kerja/.test(hv) && !/data-lk-field="q0"/.test(hv) && /data-act="lk-submit"/.test(hv) && !/lk2-eval-kirim/.test(hv), 'siswa belum kirim: soal Evaluasi terkunci, tombol Kirim LKPD');
+hv = viewEval([kiriman(null)]);
+ok(/Menunggu verifikasi/.test(hv) && !/data-lk-field="q0"/.test(hv), 'siswa sudah kirim: menunggu verifikasi guru');
+hv = viewEval([kiriman({ ts: 1, praktik: 70 })]);
+ok(/belum mencapai KKM 75/.test(hv) && /terverifikasimu 70/.test(hv) && !/data-lk-field="q0"/.test(hv), 'praktik terverifikasi 70: pesan belum mencapai KKM');
+hv = viewEval([kiriman({ ts: 1, praktik: 80 })]);
+ok(/Latihan membaca skala/.test(hv) && /data-lk-field="q0"/.test(hv) && /lk2-eval-kirim/.test(hv) && /Kirim Evaluasi/.test(hv) && !/Evaluasi terkunci/.test(hv), 'praktik terverifikasi 80: soal Evaluasi terbuka, tombol Kirim Evaluasi');
+hv = viewEval([], true);
+ok(/data-lk-field="q0"/.test(hv) && !/Evaluasi terkunci/.test(hv) && !/lk2-eval-kirim/.test(hv), 'guru melihat soal Evaluasi tanpa terkunci');
+G(`STAFF=false;LK.tab='kerja'`); G(`S.lkpd=${JSON.stringify([kiriman({ ts: 1, praktik: 80 })])}`);
+ok(!/lk2-eval-kirim/.test(G('viewLKPD()')), 'tombol Kirim Evaluasi hanya di tab Evaluasi');
+ok(/Penilaian kinerja oleh guru/.test(viewEval([])), 'rubrik penilaian kinerja tetap terbaca meski soal Evaluasi terkunci');
+
+/* Kirim Evaluasi */
+const jawabBenar = (n) => { const d = {}; M.quiz.forEach((q, i) => { if (i < n) d['q' + i] = String(q.kunci).replace('.', ','); }); return d; };
+G(`S.lkpd=${JSON.stringify([kiriman({ ts: 1, praktik: 80 })])};S.results=[];STAFF=false;LK.module='LKPD-X-07';LK.tab='evaluasi';LK.preview=false;DRAFT=${JSON.stringify(jawabBenar(M.quiz.length))};toasts.length=0`);
+G('lk2KirimEvaluasi()');
+let lastRec = G('S.lkpd[S.lkpd.length-1]'), pe = JSON.parse(lastRec.payload);
+sama([G('S.lkpd.length'), lastRec.practice, lastRec.theory, lastRec.score, pe.v2.evaluasi, pe.v2.praktik], [2, 80, 100, 83, 1, 80], 'Kirim Evaluasi: praktik 80 + teori 100 = nilai 83 (80 x 85% + 100 x 15%)');
+sama([G('S.results.length'), G('S.results[0].tipe'), G('S.results[0].score')], [1, 'LKPD', 83], 'Kirim Evaluasi: tercatat di hasil dengan nilai akhir');
+ok(pe.q0 === String(M.quiz[0].kunci).replace('.', ',') && pe.student === 'Budi', 'Kirim Evaluasi: jawaban latihan tersimpan di payload');
+G(`DRAFT=${JSON.stringify(jawabBenar(5))}`); G('lk2KirimEvaluasi()');
+lastRec = G('S.lkpd[S.lkpd.length-1]');
+sama([lastRec.theory, lastRec.score], [50, 76], 'Kirim Evaluasi: 5 dari 10 benar = teori 50, nilai 76');
+G(`S.lkpd=[];S.results=[];toasts.length=0`); G('lk2KirimEvaluasi()');
+sama([G('S.lkpd.length'), G('toasts').some((t) => /Evaluasi belum terbuka/.test(t))], [0, true], 'Kirim Evaluasi ditolak bila praktik belum terverifikasi lulus');
+G(`S.lkpd=${JSON.stringify([kiriman({ ts: 1, praktik: 80 })])};STAFF=true`); G('lk2KirimEvaluasi()');
+sama(G('S.lkpd.length'), 1, 'guru tidak mengirim Evaluasi'); G('STAFF=false');
+
+/* Detail guru: nilai analisis dan nilai praktik terverifikasi */
+G('STAFF=true');
+const detP = (vf) => G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, penuh, { v2: { ver: 2, verif: vf } }))})`);
+let dp = detP({});
+ok(/id="lk2-ana-n"/.test(dp) && /data-act="lk2-verif">Simpan verifikasi guru/.test(dp) && /Belum diverifikasi/.test(dp), 'Detail guru: kolom nilai analisis, tombol simpan, dan status belum diverifikasi');
+dp = detP({ ts: 1, by: 'Guru', s: sA, a: aA, n: 60, praktik: 90, lulus: true });
+ok(/value="60"/.test(dp) && /Nilai praktik terverifikasi: <b class="mono">90<\/b> · KKM 75: <b>lulus, Evaluasi terbuka/.test(dp), 'Detail guru: nilai praktik terverifikasi 90 dan Evaluasi terbuka');
+dp = detP({ ts: 1, by: 'Guru', s: {}, a: {}, n: 0 });
+ok(/belum lulus, Evaluasi belum terbuka/.test(dp), 'Detail guru: tanpa saksi dan APD berparaf = belum lulus');
+G('STAFF=false');
+dp = detP({ ts: 1, by: 'Guru', s: sA, a: aA, n: 60, praktik: 90, lulus: true });
+ok(!/id="lk2-ana-n"/.test(dp) && !/data-act="lk2-verif"/.test(dp) && /Nilai analisis: <b>60<\/b>/.test(dp), 'Detail siswa: nilai analisis hanya terbaca, tanpa kolom isian dan tombol simpan');
+const evRec = { student: 'Budi', 'class': 'X', date: '2026-11-22', v2: { ver: 2, evaluasi: 1, praktik: 80 }, q0: '24,35' };
+ok(/Evaluasi \(latihan membaca skala\)/.test(G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(evRec)})`)) && !/Gerbang masuk/.test(G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(evRec)})`)), 'Detail kiriman Evaluasi menampilkan jawaban latihan (bukan lembar kerja)');
+G(`S.lkpd=${JSON.stringify(lkpdAsli)};S.results=[];STAFF=false;LK.tab='materi'`);
+
 /* ---------- Observasi v2 (memakai observasi.js asli) ---------- */
 run(`
 var ICO={};function $(s){return document.querySelector(s)}function $$(s,r){return []}
