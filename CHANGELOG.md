@@ -1,5 +1,13 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Peta LKPD: daftar dan JP diselaraskan dengan Matriks LKPD revisi2
+- Tab baru **Peta LKPD** di Administrasi Akademik (di antara Mata pelajaran dan Tata kelola; juga di laci menu). Hanya lihat, memuat **62 LKPD** dari `Matriks_LKPD_TSM_Kelas_X-XII_SKKNI_revisi2.xlsx`: kode, judul, jenis, semester, elemen CP, TP, JP, estimasi minggu, unit SKKNI, status matriks, serta catatan dan usulan revisi.
+- Kartu JP per kelas dihitung dari data dan dibandingkan dengan target: X 24 LKPD = 432 JP, XI 25 LKPD = 648 JP, XII 13 LKPD = 352 JP (semuanya sesuai target). Filter Semua, Kelas X, XI, XII, dan Ada di aplikasi; pencarian judul, kode, TP, elemen CP; kelompok per kelas bisa dilipat.
+- **Padanan modul**: 15 kode matriks diberi padanan awal ke modul aplikasi (tepat, sebagian, atau kelas beda), misalnya LKPD-X-07 dengan LKPD-X-07 (v2) dan X-2, LKPD-XI-04 dengan XI-5. Tujuh modul aplikasi tanpa padanan (XI-1, XI-4, XII-1, XII-3, XII-4, XII-5, XII-7) didaftar di bawah daftar. ID modul **tidak diubah** karena pengumpulan siswa tersimpan menurut ID.
+- Durasi modul di aplikasi (menit) tidak diubah: itu waktu satu sesi praktik atau ujian, bukan alokasi JP matriks.
+- Catatan PKL dari matriks ikut ditampilkan: PKL kelas XII 736 JP, paling sedikit 16 minggu (Permendikdasmen 13/2025 Tabel 13); angka 792 dan 828 JP berasal dari struktur lama. Belum ada menu PKL.
+- Lembar baru **Peta LKPD** pada ekspor Excel Administrasi Akademik. Data dibangun oleh `tools/matriks-lkpd.py <berkas.xlsx>` ke blok `AKD_LKPD_*` di `js/akademik-data.js`; padanan modul (`AKD_LKPD_PADAN`) diubah manual. `tools/uji-akademik.mjs` kini 141 uji. Tidak ada perubahan Appwrite.
+
 ## Daftar mapel kembali lengkap per kelompok kurikulum SMK
 - Halaman **Mata pelajaran** menampilkan lagi **semua mapel SMK** menurut struktur kurikulum: **Kelompok Umum** (PABP, Pendidikan Pancasila, Bahasa Indonesia, PJOK, Sejarah, Seni dan Budaya, Muatan Lokal), **Kelompok Kejuruan** (Matematika, Bahasa Inggris, Informatika, Projek IPAS, Dasar-Dasar Teknik Otomotif, Teknik Sepeda Motor, Kreativitas/Inovasi/Kewirausahaan, PKL), dan **Mata Pelajaran Pilihan**. Tiap kelompok bisa disembunyikan.
 - Kelompok **Dasar-Dasar Program Keahlian Teknik Otomotif** dan **Kompetensi Keahlian Teknik Sepeda Motor** dihapus. Dasar-Dasar Teknik Otomotif dan Teknik Sepeda Motor beserta elemen CP-nya kini berada di Kelompok Kejuruan (`akGrupTampil` di `js/akademik.js`).

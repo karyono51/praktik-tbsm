@@ -80,3 +80,9 @@ Aplikasi difokuskan pada mata pelajaran produktif/kejuruan: **Dasar-Dasar Teknik
 - Chip: Semua, Umum, Kejuruan, Pilihan, Produktif. Tombol Arsipkan mapel non-produktif dihapus dari Tata kelola.
 - Penanda produktif tetap dipakai untuk pemeriksaan pengampu, pilihan tugas mengajar, dan daftar mapel di form bank soal.
 
+## Peta LKPD (matriks LKPD revisi2)
+- Tab **Peta LKPD** (hanya lihat) menampilkan 62 LKPD dari `Matriks_LKPD_TSM_Kelas_X-XII_SKKNI_revisi2.xlsx` per kelas, dengan JP, TP, elemen CP, unit SKKNI, dan status. Kartu JP per kelas dibandingkan dengan target (X 432, XI 648, XII 352).
+- **Memperbarui data**: simpan matriks baru, lalu jalankan `python3 tools/matriks-lkpd.py Matriks_....xlsx`. Blok `AKD_LKPD_*` di `js/akademik-data.js` diganti otomatis. Jalankan `node tools/uji-akademik.mjs` lalu pasang seperti biasa.
+- **Padanan modul** ada di `AKD_LKPD_PADAN` (`js/akademik-data.js`, diubah manual): kode matriks ke id modul aplikasi dengan tingkat `tepat`, `sebagian`, atau `kelas beda`. Modul bawaan tanpa padanan tampil di bawah daftar.
+- ID dan durasi modul aplikasi tidak diubah oleh fitur ini. Ekspor Excel memuat lembar Peta LKPD.
+

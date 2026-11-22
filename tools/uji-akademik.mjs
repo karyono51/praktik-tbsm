@@ -360,7 +360,7 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
     T('halaman ' + t + ' dibungkus .akd dengan kepala dan bilah tab', /^<div class="akd">/.test(h) && /akd-crumb/.test(h) && /class="akd-tabs"/.test(h), h.slice(0, 80));
     const dipilih = h.match(/aria-selected="true"/g) || [];
     T('halaman ' + t + ': tepat satu tab terpilih (' + t + ')', dipilih.length === 1 && new RegExp('data-v="' + t + '" aria-selected="true"').test(h), dipilih.length);
-    T('halaman ' + t + ': lima tab dengan role=tab', (h.match(/role="tab"/g) || []).length === 5);
+    T('halaman ' + t + ': enam tab dengan role=tab', (h.match(/role="tab"/g) || []).length === 6);
   }
   ctx.S.tab = 'akd-tata';
   const th = ctx.viewAkdTata();
@@ -375,14 +375,14 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   ctx.S.tab = 'akd-kelas';
   ctx.render();
   const v = (sb.html.match(/data-v="akd-[a-z]+"/g) || []).map((x) => x.slice(8, -1));
-  T('submenu laci: lima baris Administrasi Akademik', JSON.stringify(v) === '["akd-guru","akd-kelas","akd-siswa","akd-mapel","akd-tata"]', v);
+  T('submenu laci: enam baris Administrasi Akademik', JSON.stringify(v) === '["akd-guru","akd-kelas","akd-siswa","akd-mapel","akd-lkpd","akd-tata"]', v);
   T('submenu laci: hanya baris tab aktif bertanda aria-current', (sb.html.match(/aria-current="page"/g) || []).length === 1 && /data-v="akd-kelas" aria-current="page"/.test(sb.html));
-  T('submenu laci: tiap baris punya judul dan keterangan', ['Guru', 'Kelas', 'Daftar siswa', 'Mata pelajaran', 'Tata kelola'].every((j) => sb.html.indexOf('<b>' + j + '</b>') > -1) && /Rombel dan wali kelas/.test(sb.html));
+  T('submenu laci: tiap baris punya judul dan keterangan', ['Guru', 'Kelas', 'Daftar siswa', 'Mata pelajaran', 'Peta LKPD', 'Tata kelola'].every((j) => sb.html.indexOf('<b>' + j + '</b>') > -1) && /Rombel dan wali kelas/.test(sb.html));
   const g = { html: '', querySelector: () => null, insertAdjacentHTML(pos, html) { this.html += html; } };
   const gb = boot({ peran: 'guru', sbody: g }); gb.ctx.S.tab = 'akd-guru'; gb.ctx.render();
   T('submenu laci untuk guru: keterangan khusus lihat-saja', /Tugas mengajar saya/.test(g.html) && /Tahun ajaran dan pemeriksaan/.test(g.html));
   const md = baca('js/menu-dasbor.js');
-  T('menu-dasbor.js: grup Administrasi Akademik memuat kelima tab', ctx.AKTABS.every((t) => new RegExp("key:'akd'[^\\n]*'" + t + "'").test(md)));
+  T('menu-dasbor.js: grup Administrasi Akademik memuat keenam tab', ctx.AKTABS.every((t) => new RegExp("key:'akd'[^\\n]*'" + t + "'").test(md)));
   T('menu-dasbor.js: akd-guru tidak lagi tersisa di grup beranda', !/key:'home'[^\n]*akd-guru/.test(md));
 }
 
@@ -405,6 +405,40 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   T('UKK bukan mapel: Uji Kompetensi Keahlian disaring', bukan('Uji Kompetensi Keahlian Teknik Sepeda Motor'));
   T('LKPD tetap bukan mapel', bukan('LKPD X-1 Pemeriksaan Baterai dan Sistem Starter'));
   T('mapel resmi tidak ikut tersaring', ['Dasar-Dasar Teknik Otomotif', 'Teknik Sepeda Motor', 'Praktik Kerja Lapangan'].every((n) => !bukan(n)));
+}
+
+/* 15. Peta LKPD: matriks LKPD revisi2 (62 LKPD, JP per kelas sesuai target) */
+{
+  const { ctx, AKD, log, klik } = boot();
+  const D = ctx.AKD_LKPD_MATRIKS;
+  const jp = (k) => D.filter((x) => x.kl === k).reduce((a, x) => a + x.jp, 0);
+  T('matriks: 62 LKPD (X 24, XI 25, XII 13)', D.length === 62 && D.filter((x) => x.kl === 'X').length === 24 && D.filter((x) => x.kl === 'XI').length === 25 && D.filter((x) => x.kl === 'XII').length === 13);
+  T('matriks: JP per kelas sama dengan target (432, 648, 352)', jp('X') === 432 && jp('XI') === 648 && jp('XII') === 352 && ctx.AKD_LKPD_TARGET.X.jp === 432 && ctx.AKD_LKPD_TARGET.XI.jp === 648 && ctx.AKD_LKPD_TARGET.XII.jp === 352, [jp('X'), jp('XI'), jp('XII')]);
+  T('matriks: kode LKPD unik dan berurutan per kelas', new Set(D.map((x) => x.k)).size === 62 && D.every((x) => x.k.indexOf('LKPD-' + x.kl + '-') === 0));
+  T('matriks: catatan PKL 736 JP / 16 minggu ikut tersimpan', /736 JP/.test(ctx.AKD_LKPD_PKL) && /16 minggu/.test(ctx.AKD_LKPD_CATATAN));
+  const kode = new Set(D.map((x) => x.k));
+  T('padanan: semua kode padanan ada di matriks', Object.keys(ctx.AKD_LKPD_PADAN).every((k) => kode.has(k)));
+  T('padanan: setiap tingkat padanan sah (tepat, sebagian, kelas beda)', Object.values(ctx.AKD_LKPD_PADAN).every((L) => L.every((p) => ['tepat', 'sebagian', 'kelas beda'].includes(p[1]))));
+  ctx.LKPD_MODULES = [{ id: 'X-6', title: 'Penggunaan dan Perawatan Alat Tangan Bengkel', kelas: 'X' }, { id: 'XI-1', title: 'Tune-up', kelas: 'XI' }];
+  ctx.LKPD_DEFAULT_MODULES = ctx.LKPD_MODULES;
+  T('modul tanpa padanan: XI-1 terdaftar, X-6 tidak', JSON.stringify(ctx.akLkpdTanpaPadan().map((m) => m.id)) === '["XI-1"]', ctx.akLkpdTanpaPadan().map((m) => m.id));
+  ctx.S.tab = 'akd-lkpd';
+  let h = ctx.viewAkdLkpd();
+  T('halaman Peta LKPD: tiga kartu JP per kelas dengan keterangan sesuai target', /432 JP/.test(h) && /648 JP/.test(h) && /352 JP/.test(h) && (h.match(/sesuai target/g) || []).length === 3);
+  T('halaman Peta LKPD: kelompok Kelas X, XI, XII dan kartu LKPD', /Kelas X<\/b>/.test(h) && /Kelas XI<\/b>/.test(h) && /Kelas XII<\/b>/.test(h) && /LKPD-XII-13/.test(h) && /Penggunaan dan Perawatan Alat Ukur/.test(h));
+  T('halaman Peta LKPD: padanan modul tampil (X-6 tepat)', /Modul di aplikasi \(1\)/.test(h) && /X-6<\/span> Penggunaan dan Perawatan Alat Tangan Bengkel · tepat/.test(h));
+  AKD.lf = 'XII'; h = ctx.akLkpdCards();
+  T('filter Kelas XII: hanya 13 LKPD', (h.match(/LKPD-XII-\d+/g) || []).length >= 13 && !/LKPD-X-01/.test(h) && !/LKPD-XI-01/.test(h) && /13 LKPD · 352 JP/.test(h), h.match(/\d+ LKPD · \d+ JP/g));
+  AKD.lf = 'ada'; h = ctx.akLkpdCards();
+  T('filter Ada di aplikasi: hanya LKPD yang punya padanan', !/LKPD-X-01</.test(h) && /LKPD-X-06/.test(h));
+  AKD.lf = 'ALL'; AKD.lq = 'rantai'; h = ctx.akLkpdCards();
+  T('pencarian rantai: menemukan LKPD-XI-20, XII-08, dan X-01 (Rantai Usaha) tetapi bukan X-02', /LKPD-XI-20/.test(h) && /LKPD-XII-08/.test(h) && /LKPD-X-01</.test(h) && !/LKPD-X-02</.test(h));
+  AKD.lq = 'zzzz'; T('pencarian tanpa hasil: pesan kosong', /Belum ada LKPD yang cocok/.test(ctx.akLkpdCards()));
+  AKD.lq = '';
+  /* ekspor */
+  log.rows.length = 0; await klik('ekspor');
+  const pl = log.rows.find((r) => r[0] && 'Kode LKPD' in r[0]);
+  T('ekspor Excel: lembar Peta LKPD memuat 62 baris dengan padanan modul', pl && pl.length === 62 && pl.find((r) => r['Kode LKPD'] === 'LKPD-X-06')['Modul di aplikasi'] === 'X-6 (tepat)' && pl.every((r) => typeof r.JP === 'number'), pl && pl.length);
 }
 
 console.log('\n' + pass + ' lulus, ' + fail + ' gagal');
