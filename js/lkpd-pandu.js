@@ -8,7 +8,7 @@
 (function(){var st=document.createElement('style');st.textContent=
 '.lkp-pandu{border-left:4px solid var(--ok,#1b7f3b);font-size:13.5px;line-height:1.5}.lkp-mandiri{border-left:4px solid var(--warn,#b8860b);font-size:13.5px;line-height:1.5}'+
 '.lkp-pandu ul,.lkp-mandiri ul{margin:6px 0 0;padding-left:18px}.lkp-b{display:block;margin-top:4px}.lkp-b>summary{cursor:pointer;color:var(--accent);font-size:12.5px}'+
-'.lkp-paket{display:grid;gap:6px;border:1px dashed var(--line,#ccc);border-radius:12px;padding:10px}.lkp-gate{display:grid;gap:8px;border-top:1px solid var(--line,#ddd);padding-top:10px}';
+'.lkp-paket{display:grid;gap:6px;border:1px dashed var(--line,#ccc);border-radius:12px;padding:10px}.job .pill{white-space:normal;max-width:100%}.lkp-gate{display:grid;gap:8px;border-top:1px solid var(--line,#ddd);padding-top:10px}';
 document.head.appendChild(st)})();
 
 function lkpKkm(){return Number(S.kkm)||75}
@@ -40,7 +40,7 @@ function lkpGate(m){
 }
 function lkpGateLock(m){
  var g=lkpGate(m);if(!g||g.ok)return '';
- return (g.remedial?'Latih lagi dulu: ':'Ujian terbuka setelah ')+'latihan "'+g.ref.title+'" mencapai nilai '+g.kkm+(g.need>1?' dua kali berturut-turut':'')+' ('+g.run+'/'+g.need+')';
+ return (g.remedial?'Latih lagi dulu: ':'Ujian terbuka setelah ')+'latihan mencapai nilai '+g.kkm+(g.need>1?' dua kali berturut-turut':'')+' ('+g.run+'/'+g.need+')';
 }
 /* Tambahan kartu LKPD Ujian di daftar siswa: penanda gerbang dan tombol ke Latihan. */
 function lkpCardExtra(m,c,uj){

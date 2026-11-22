@@ -67,7 +67,7 @@ ok(G(`lkmCfg({gKali:'2'}).gKali`) === 2 && G(`lkmCfg({gKali:5}).gKali`) === 1, '
 reset();
 let g = JSON.parse(G(`JSON.stringify(lkpGate(LKPD_MODULES[0]).ok)`));
 ok(g === false, 'tanpa latihan gerbang tertutup');
-ok(/Ujian terbuka setelah latihan "LKPD L" mencapai nilai 75 dua kali berturut-turut \(0\/2\)/.test(G(`lkmLock(LKPD_MODULES[0])`)), 'pesan kunci gerbang 0/2: ' + G(`lkmLock(LKPD_MODULES[0])`));
+ok(/^Ujian terbuka setelah latihan mencapai nilai 75 dua kali berturut-turut \(0\/2\)$/.test(G(`lkmLock(LKPD_MODULES[0])`)), 'pesan kunci gerbang 0/2: ' + G(`lkmLock(LKPD_MODULES[0])`));
 G(rec('L', 10, 80, 'latihan'));
 sama(G(`lkpGate(LKPD_MODULES[0]).run`), 1, 'satu latihan lulus: 1/2');
 ok(G(`lkpGate(LKPD_MODULES[0]).ok`) === false, 'butuh 2 berturut-turut');
