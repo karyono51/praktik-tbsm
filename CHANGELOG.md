@@ -1,5 +1,11 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Kunci pertemuan: urutan bebas, kecuali pertemuan awal dan akhir
+- Siswa boleh mengunci pertemuan mana saja yang sudah dibuka guru. Pertemuan awal (P1) dan akhir (terakhir) tidak bisa dikunci siswa. Pada LKPD-X-07: P2-P5.
+- Kunci Pertemuan N hanya mengunci isian pertemuan N (dipetakan lewat kegiatan, latihan, dan analisis); gerbang, K3, dan refleksi tetap bebas. Bilah bawah menampilkan satu tombol per pertemuan yang belum terkunci.
+- Catatan kunci tidak lagi berantai, jadi guru dapat membuka kunci pertemuan mana pun (tombol "Buka kunci PN" per pertemuan). Batas buka guru (`pertBuka`) tetap berlaku.
+- Rincian di `docs-LKPD-V2.md` bagian 4C; uji kunci ditulis ulang (221 uji LKPD v2). Tidak ada perubahan Appwrite.
+
 ## Evaluasi LKPD v2 terbuka setelah praktik terverifikasi guru (KKM 75), nilai analisis oleh guru
 - **Nilai analisis oleh guru:** Detail guru punya kolom "Nilai analisis (0-100)"; tidak lagi dihitung dari panjang jawaban. Wajib diisi saat "Simpan verifikasi guru" (tombol dipindah ke kartu "Penilaian praktik oleh guru" di akhir Detail).
 - **Praktik terverifikasi:** langkah bersaksi hanya dihitung bila disaksikan guru, butir APD hanya bila berparaf, analisis dari nilai guru. Disimpan di `payload.v2.verif` (`n`, `praktik`, `kkm`, `lulus`).

@@ -86,6 +86,14 @@ Tab Evaluasi (soal latihan membaca skala) terbuka bagi siswa bila **nilai prakti
 
 **Gerbang** tetap terpisah: gerbang hanya syarat kelayakan masuk praktik (bagian 4A), KKM gerbang dan KKM evaluasi masing-masing minimal 75.
 
+## 4C. Kunci hasil per pertemuan (`js/lkpd-kunci.js`)
+- **Siswa boleh mengunci pertemuan mana saja, kecuali pertemuan awal dan akhir.** Untuk LKPD-X-07 (6 pertemuan) yang bisa dikunci adalah Pertemuan 2 sampai 5, dengan urutan bebas. Pertemuan 1 (materi, gerbang masuk, APD) dan Pertemuan 6 (penilaian kinerja, refleksi) tidak dikunci siswa.
+- **Kunci Pertemuan N hanya mengunci isian pertemuan N.** Isian dipetakan dari data modul (`lkkKeyMap`): langkah, tabel, dan komponen pemeriksaan lewat nomor kegiatan (`pertemuan[].kegiatan`); soal latihan lewat `pertemuan[].latihan`; analisis lewat pertemuan yang judulnya memuat "analisis"; waktu aktual `mt<N>` ke pertemuan N. Isian yang tidak terpetakan (gerbang, K3, refleksi, identitas) tetap bebas diubah.
+- **Tombol:** bilah bawah menampilkan satu tombol "Kunci Pertemuan N" untuk tiap pertemuan yang belum terkunci. Pertemuan yang belum dibuka guru tampil nonaktif. Pertemuan tanpa isian tidak membuat catatan kosong.
+- **Batas buka guru** (`pertBuka`, Pengaturan LKPD): "Semua pertemuan" = bebas mengunci P2 sampai sebelum terakhir; "Sampai Pertemuan N" membatasi.
+- **Catatan kunci tidak berantai:** tiap catatan (`lkpd_bukti`, label `kunci|N`) hanya memuat isian barunya. Guru dapat membuka kunci pertemuan mana pun (tombol "Buka kunci PN" per pertemuan di status siswa) tanpa memengaruhi pertemuan lain. Catatan lama (aturan berurutan, berantai) tetap terbaca.
+- Kunci tetap penegak di sisi aplikasi, bukan di server. Tidak ada perubahan Appwrite.
+
 ## 5. Observasi LKPD Praktik v2
 - **Penilaian aspek (skala 1-4 + nilai, sama dengan Observasi UKK):** untuk tiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** bulat sesuai rentang skala. Kolom nilai terkunci sampai skala dipilih, dan menolak angka di luar rentang (pesan merah "Nilai harus 75-90").
 
