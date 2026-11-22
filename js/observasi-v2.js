@@ -101,7 +101,7 @@ function ob2KeBelum(){
 }
 function ob2StuHtml(d){
  var m=ob2Mod(d.v2);
- var sel='<div class="card ob2-card"><div class="row sb"><b>Formulir v2</b>'+(d.id?'':'<button type="button" class="btn small" data-act="ob2-off">Pakai formulir lama</button>')+'</div>'+
+ var sel='<div class="card ob2-card"><div class="row sb"><b>Formulir v2</b>'+''+'</div>'+
   '<label class="f">LKPD v2<select data-ob2mod'+(d.id?' disabled':'')+'>'+ob2Mods().map(function(x){return '<option value="'+esc(x.id)+'"'+(x.id===d.v2?' selected':'')+'>'+esc(x.id+' · '+x.title)+'</option>'}).join('')+'</select></label></div>';
  if(!m)return sel+'<div class="card"><p class="muted">LKPD v2 tidak ditemukan. Pilih modul lain.</p></div>';
  if(!d.pilih.length)return sel+'<div class="card"><p class="muted">Pilih minimal satu siswa untuk mulai menilai.</p></div>';
@@ -125,9 +125,9 @@ function ob2StuHtml(d){
 var _obsStuHtml2=obsStuHtml;
 obsStuHtml=function(d){
  if(d.v2!==undefined&&d.v2!==null&&d.v2!=='')return ob2StuHtml(d);
- var h=_obsStuHtml2(d);
- if(d.id||!ob2Mods().length)return h;
- return '<div class="card"><div class="row sb"><span class="note">Formulir penilaian</span><button type="button" class="btn small" data-act="ob2-on">Pakai formulir v2</button></div></div>'+h;
+ /* Formulir v1 dihapus: observasi baru selalu v2. Formulir lama hanya dibuka untuk mengubah catatan v1 yang sudah tersimpan. */
+ if(!d.id)return '<div class="card"><p class="muted">Belum ada LKPD v2 untuk diobservasi.</p></div>';
+ return _obsStuHtml2(d);
 };
 var _obsDoneOf2=obsDoneOf;
 obsDoneOf=function(d,k){
@@ -316,3 +316,11 @@ document.addEventListener('click',function(e){
  d.pilih.forEach(function(k){if(k===d.cur)return;var pp=d.per[k]||(d.per[k]={nilai:{},cat:{},kekuatan:'',perbaikan:'',tindak:''});if(!ob2Hitung(pp.nilai,m.v2.obs).tDone){pp.nilai=Object.assign({},src);cnt++}});
  obsStuRefresh();toast(cnt?'Skor disalin ke '+cnt+' siswa. Periksa dan ubah per siswa.':'Semua siswa lain sudah punya skor');
 },true);
+
+/* Observasi LKPD Praktik baru selalu memakai formulir v2 (formulir v1 dihapus). */
+var _obsBaru2=obsBaru;
+obsBaru=function(t){
+ var d=_obsBaru2.apply(this,arguments);
+ if(t==='siswa'&&d&&!d.id){var ms=ob2Mods();if(ms.length){d.v2=ms[0].id;d.per={};d.nilai={};d.cat={};d.cur='';if(!String(d.mapel||'').trim())d.mapel=ms[0].title;obsEnsure(d)}}
+ return d;
+};

@@ -324,13 +324,13 @@ sama([G(`ob2Kat({stop:true,nilai:90})`), G(`ob2Kat({stop:false,nilai:100})`), G(
 
 G(`OB.tipe='siswa';OB.d=obsBaru('siswa');OB.d.pilih=['s1','s2'];OB.d.man=[];OB.mode='form'`);
 let html = G('obsStuHtml(OB.d)');
-ok(/ob2-on/.test(html) && /Siti/.test(html), 'formulir baru menawarkan pilihan formulir v2 dan tetap menampilkan formulir lama');
+ok(!/ob2-on/.test(html) && !/ob2-off/.test(html) && /Formulir v2/.test(html) && /ob2-rate/.test(html), 'observasi baru langsung memakai formulir v2 (formulir v1 dihapus)');
 G(`document.dispatchLike=function(){}`);
 // pilih v2 lewat state langsung (jalur klik bergantung DOM)
 G(`OB.d.v2='LKPD-X-07';OB.d.per={};OB.d.nilai={};OB.d.cat={};OB.d.cur='';obsEnsure(OB.d)`);
 html = G('obsStuHtml(OB.d)');
 ok(/Yang diamati dan kesalahan umum/.test(html) && (html.match(/data-act="ob2-rate"/g) || []).length === (6 + 8) * 4 && (html.match(/class="obu-nil ob2-nil"/g) || []).length === 14 && !/data-ob2i=/.test(html) && /<span id="ob2prog2">0<\/span> \/ 14 terisi/.test(html), 'formulir v2: panduan, 6 aspek + 8 indikator masing-masing skala 1-4 + kolom nilai, bar 0 / 14 terisi');
-ok(/Pakai formulir lama/.test(html), 'formulir v2 menyediakan kembali ke formulir lama');
+ok(!/Pakai formulir lama/.test(html), 'formulir v2 tidak lagi menawarkan kembali ke formulir lama');
 // simpan tanpa lengkap
 G(`OB.d.mapel='';OB.d.tanggal='2026-11-20';OB.d.kelas='X';OB.d.jenis='Bengkel sekolah';toasts.length=0;S.observasi=[];obsSaveSiswa()`);
 ok(G('toasts').some((t) => /Lengkapi skor 6 aspek/.test(t)) && G('S.observasi.length') === 0, 'simpan ditolak bila aspek belum lengkap');

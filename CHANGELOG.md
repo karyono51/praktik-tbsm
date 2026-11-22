@@ -1,5 +1,10 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Observasi LKPD Praktik v1 dihapus
+- Formulir **Observasi LKPD Praktik** baru kini selalu memakai formulir v2 (rubrik dari LKPD v2, skala 1-4 + nilai). Tombol "Pakai formulir lama" dan "Pakai formulir v2" dihapus; bila belum ada LKPD v2 tampil pesan "Belum ada LKPD v2 untuk diobservasi".
+- Catatan v1 yang sudah tersimpan **tidak dihapus** (tetap di Rekap nilai, Excel, PDF, dan bisa dibuka/diubah dengan formulir lama) supaya nilai siswa tidak hilang. Observasi guru (supervisi) tidak berubah.
+- `tools/uji-lkpd-v2.mjs` kini 221 uji.
+
 ## LKPD v1 dihapus
 - 21 modul LKPD v1 bawaan (X-1 sampai X-6, XI-1 sampai XI-8, XII-1 sampai XII-7) dihapus dari aplikasi: data di `js/lkpd.js` (X-1) dan `js/lkpd-modul.js` (20 modul lain) dikosongkan. Yang tersisa hanya **LKPD v2** (LKPD-X-07, `js/lkpd-v2-x07.js`) beserta mesin LKPD, Master LKPD V2, dan editornya.
 - Modul LKPD default kini LKPD-X-07. Padanan Peta LKPD hanya LKPD-X-07; modul aplikasi tanpa padanan kini kosong.
