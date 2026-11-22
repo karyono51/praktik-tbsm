@@ -1,5 +1,10 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## LKPD-X-07 menjadi Master LKPD V2
+- Halaman Kelola LKPD memuat kartu **Master LKPD V2** pada LKPD-X-07 dan **Kelengkapan sesuai master V2** pada LKPD v2 lain (14 butir daftar periksa).
+- Tombol **Buat LKPD v2 dari master** membuka Editor LKPD dengan salinan master (draf, tidak aktif, mencatat `v2.dari`). Master tidak berubah.
+- Berkas baru `js/lkpd-master.js` dan `tools/uji-lkpd-master.mjs` (39 uji). Rincian di `docs-LKPD-V2.md`. Tidak ada perubahan Appwrite.
+
 ## Cetak LKPD dan Cetak kunci berlaku untuk semua LKPD
 - Format cetak PDF dan tombol **Cetak kunci** kini untuk semua LKPD: v2 (gerbang masuk) dan 21 LKPD v1 serta buatan guru (kunci dan pembahasan soal evaluasi). Hanya Guru dan Admin yang melihat tombol; LKPD tanpa soal tidak menampilkannya.
 - Rincian di `docs-LKPD-V2.md`; uji baru `tools/uji-lkpd-semua.mjs` (848 pemeriksaan atas 22 LKPD). Tidak ada perubahan Appwrite.
