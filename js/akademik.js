@@ -11,6 +11,7 @@ ICO.akdMapel='<path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 1
 ICO.akdTata='<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="m9 12 2 2 4-4"/>';
 var AKTABS=['akd-guru','akd-kelas','akd-siswa','akd-mapel','akd-tata'];
 var AKNAMA={'akd-guru':'Guru','akd-kelas':'Kelas','akd-siswa':'Daftar siswa','akd-mapel':'Mata pelajaran','akd-tata':'Tata kelola'};
+var AKSUB={'akd-guru':'Profil dan tugas mengajar','akd-kelas':'Rombel dan wali kelas','akd-siswa':'Siswa per rombel dan NIS','akd-mapel':'Mapel produktif dan elemen CP','akd-tata':'Tahun ajaran, pemeriksaan, SKKNI'};
 var AKICO={'akd-guru':'akdGuru','akd-kelas':'akdKelas','akd-siswa':'akdSiswa','akd-mapel':'akdMapel','akd-tata':'akdTata'};
 var AKTK=['X','XI','XII'];
 function akOn(){return AKTABS.indexOf(S.tab)>-1}
@@ -263,12 +264,12 @@ async function akSinkron(){
 
 /* ---------- Tampilan ---------- */
 function akNav(){
- return '<div class="chips" role="tablist">'+AKTABS.map(function(t){return '<button type="button" data-act="menu" data-v="'+t+'" aria-pressed="'+(S.tab===t)+'">'+AKNAMA[t]+'</button>'}).join('')+'</div>';
+ return '<div class="akd-tabs" role="tablist" aria-label="Administrasi Akademik">'+AKTABS.map(function(t){var on=S.tab===t;return '<button type="button" role="tab" data-act="menu" data-v="'+t+'" aria-selected="'+on+'" aria-pressed="'+on+'">'+svg(ICO[AKICO[t]],16)+'<span>'+AKNAMA[t]+'</span></button>'}).join('')+'</div>';
 }
 function akHead(){
  var ta=akTahunAktif(),c=schCfg();
- return '<div class="sechead"><span class="ico">'+svg(ICO[AKICO[S.tab]],18)+'</span><h2>'+AKNAMA[S.tab]+'</h2></div>'+
-  '<p class="note">'+(ta?'Tahun ajaran '+esc(ta.nama)+' · '+esc(ta.semester):'Tahun ajaran belum diatur')+(c?' · '+esc(c.nama):'')+(akEdit()?'':' · hanya lihat')+'</p>'+akNav()+
+ return '<div class="sechead akd-head"><span class="ico">'+svg(ICO[AKICO[S.tab]],18)+'</span><div class="grow"><div class="akd-crumb">Administrasi Akademik</div><h2>'+AKNAMA[S.tab]+'</h2></div></div>'+
+  '<div class="row akd-ctx">'+(ta?akPill('Tahun ajaran '+ta.nama+' · '+ta.semester):akPill('Tahun ajaran belum diatur','warn'))+(c?akPill(c.nama,'plain'):'')+(akEdit()?'':akPill('Hanya lihat','plain'))+'</div>'+akNav()+
   (AKD.err.length?'<div class="err">'+AKD.err.map(esc).join('<br>')+(AKD.err.some(function(e){return /collection|not found|could not be found/i.test(e)})?'<br>Koleksi belum dibuat di Appwrite. Jalankan: node tools/setup-appwrite.mjs --only=akademik,akademik_sdm':'')+'</div>':'');
 }
 function akPill(t,tone){return '<span class="pill'+(tone?' '+tone:'')+'">'+esc(t)+'</span>'}
@@ -279,13 +280,14 @@ function akBtn(act,id,label,cls,k){return '<button type="button" class="btn smal
 
 function viewAkd(){
  if(!AKD.loaded&&!AKD.loading)setTimeout(akLoad,0);
- var h=akHead();
- if(!AKD.loaded)return h+'<p class="muted center" style="padding:32px 0">Memuat data akademik…</p>';
- if(S.tab==='akd-guru')return h+viewAkdGuru();
- if(S.tab==='akd-kelas')return h+viewAkdKelas();
- if(S.tab==='akd-siswa')return h+viewAkdSiswa();
- if(S.tab==='akd-mapel')return h+viewAkdMapel();
- return h+viewAkdTata();
+ var h=akHead(),b;
+ if(!AKD.loaded)b='<p class="muted center" style="padding:32px 0">Memuat data akademik…</p>';
+ else if(S.tab==='akd-guru')b=viewAkdGuru();
+ else if(S.tab==='akd-kelas')b=viewAkdKelas();
+ else if(S.tab==='akd-siswa')b=viewAkdSiswa();
+ else if(S.tab==='akd-mapel')b=viewAkdMapel();
+ else b=viewAkdTata();
+ return '<div class="akd">'+h+b+'</div>';
 }
 function akFormTop(){return AKD.form?akFormHtml():''}
 
@@ -308,8 +310,7 @@ function akGuruCards(){
  return L.map(function(u){
   var p=akProfil(u.id),tg=akTugasGuruAktif(u.id),mp={};tg.forEach(function(t){var m=akById('mapel',t.mapelId);if(m)mp[m.nama]=1});
   var mk=Object.keys(mp),wali=AKD.D.kelas.filter(function(k){return k.waliId===u.id&&k.aktif!==false});
-  return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b>'+akPill(akSek(u.sekolah)?akSekLabel(u.sekolah):(String(u.sekolah||'').toUpperCase()==='ALL'?'Semua sekolah':'Sekolah belum diatur'),akSek(u.sekolah)||String(u.sekolah||'').toUpperCase()==='ALL'?'':'warn')+'</div>'+
-   '<div class="note">'+esc(u.email||u.username||'')+(p&&p.nip?' · NIP '+esc(p.nip):'')+(p&&p.nuptk?' · NUPTK '+esc(p.nuptk):'')+'</div>'+
+  return '<div class="card"><div class="akd-gh"><span class="akd-av" aria-hidden="true">'+esc(String(u.nama||'?').trim().charAt(0).toUpperCase())+'</span><div class="grow"><b>'+esc(u.nama)+'</b><div class="note">'+esc(u.email||u.username||'')+(p&&p.nip?' · NIP '+esc(p.nip):'')+(p&&p.nuptk?' · NUPTK '+esc(p.nuptk):'')+'</div></div>'+akPill(akSek(u.sekolah)?akSekLabel(u.sekolah):(String(u.sekolah||'').toUpperCase()==='ALL'?'Semua sekolah':'Sekolah belum diatur'),akSek(u.sekolah)||String(u.sekolah||'').toUpperCase()==='ALL'?'':'warn')+'</div>'+
    '<div class="row">'+akPill(akJp(u.id)+' JP/minggu')+wali.map(function(k){return akPill('Wali '+k.nama,'ok')}).join('')+(p&&p.tugasTambahan?akPill(p.tugasTambahan):'')+'</div>'+
    (mk.length?'<div class="note">'+esc(mk.slice(0,4).join(', '))+(mk.length>4?' dan '+(mk.length-4)+' lainnya':'')+'</div>':'<div class="note">Belum ada tugas mengajar.</div>')+
    '<div class="row">'+akBtn('tugas',u.id,'Tugas mengajar')+(ed?akBtn('profil',u.id,'Ubah profil'):'')+'</div></div>';
@@ -480,24 +481,23 @@ function viewAkdTata(){
  /* tahun ajaran */
  h+='<div class="card"><div class="row sb"><b>Tahun ajaran dan semester</b>'+(ed?akBtn('ta-baru',null,'Tambah','primary'):'')+'</div>';
  h+=AKD.D.tahun.length?AKD.D.tahun.slice().sort(function(a,b){return String(b.nama).localeCompare(String(a.nama))||((a.semester==='Genap'?0:1)-(b.semester==='Genap'?0:1))}).map(function(t){
-  return '<div class="row sb"><span><b>'+esc(t.nama)+'</b> · '+esc(t.semester)+(t.aktif?' '+akPill('Aktif','ok'):'')+'</span>'+(ed?'<span class="row">'+(t.aktif?'':akBtn('ta-aktif',t.id,'Jadikan aktif'))+akBtn('edit',t.id,'Ubah',null,'tahun')+'</span>':'')+'</div>'}).join(''):'<p class="muted">Belum ada tahun ajaran.</p>';
+  return '<div class="akd-line"><span><b>'+esc(t.nama)+'</b> · '+esc(t.semester)+(t.aktif?' '+akPill('Aktif','ok'):'')+'</span>'+(ed?'<span class="row">'+(t.aktif?'':akBtn('ta-aktif',t.id,'Jadikan aktif'))+akBtn('edit',t.id,'Ubah',null,'tahun')+'</span>':'')+'</div>'}).join(''):'<p class="muted">Belum ada tahun ajaran.</p>';
  h+='</div>';
  /* pemeriksaan */
  var cek=akCek(),bad=cek.filter(function(c){return c.n}).length;
  h+='<div class="card"><div class="row sb"><b>Pemeriksaan kelengkapan</b>'+akPill(bad?bad+' perlu tindakan':'Semua lengkap',bad?'warn':'ok')+'</div>';
- h+=cek.map(function(c){return '<div class="row sb" style="padding:5px 0"><span>'+esc(c.t)+(c.n&&c.list.length?'<br><small class="note">'+esc(c.list.join(', '))+(c.n>c.list.length?' dan '+(c.n-c.list.length)+' lainnya':'')+'</small>':'')+'</span>'+(c.n?'<button type="button" class="pill '+c.tone+'" data-act="menu" data-v="'+c.tab+'">'+c.n+'</button>':akPill('OK','ok'))+'</div>'}).join('');
+ h+=cek.map(function(c){return '<div class="akd-cek"><span>'+esc(c.t)+(c.n&&c.list.length?'<br><small class="note">'+esc(c.list.join(', '))+(c.n>c.list.length?' dan '+(c.n-c.list.length)+' lainnya':'')+'</small>':'')+'</span>'+(c.n?'<button type="button" class="pill '+c.tone+'" data-act="menu" data-v="'+c.tab+'">'+c.n+'</button>':akPill('OK','ok'))+'</div>'}).join('');
  h+='</div>';
  if(ed){
   h+='<div class="card"><b>Sinkronisasi dan ekspor</b><p class="note">Memuat mata pelajaran kurikulum bawaan, mengimpor nama mapel dari bank soal, dan membuat rombel awal dari akun siswa. Aman diulang: data yang sudah ada tidak ditimpa.</p><div class="row">'+akBtn('sinkron',null,AKD.busy?'Menyinkronkan…':'Sinkronkan sekarang','primary')+akBtn('ekspor',null,'Ekspor Excel')+(akNonProduktifAktif().length?akBtn('arsip-non',null,'Arsipkan '+akNonProduktifAktif().length+' mapel non-produktif'):'')+'</div>';
   if(AKD.rep)h+='<p class="note">Terakhir: '+AKD.rep.mapel+' mapel/tahun ajaran baru, '+AKD.rep.bank+' mapel dari bank soal, '+AKD.rep.rombel+' rombel baru, '+AKD.rep.anggota+' siswa dimasukkan ke rombel'+(AKD.rep.tanpaSekolah?', '+AKD.rep.tanpaSekolah+' akun siswa belum diberi sekolah':'')+'.</p>';
   h+='</div>';
  }
- /* hak akses */
- h+='<div class="card"><details><summary><b>Hak akses data akademik</b></summary><div class="note">Admin: kelola tahun ajaran, rombel, mata pelajaran, profil dan tugas guru. Guru: melihat mata pelajaran, rombel, dan tugas mengajar. Siswa: tidak mengakses menu ini. NIP, NUPTK, dan data profil lain disimpan di koleksi terpisah yang hanya bisa dibaca dan diubah admin.</div></details></div>';
- /* regulasi */
- h+='<div class="card"><details><summary><b>Acuan regulasi</b></summary>'+AKD_REF.regulasi.map(function(r){return '<div class="note" style="margin-top:8px"><b>'+esc(r.k)+'</b><br>'+esc(r.t)+'</div>'}).join('')+'<div class="note" style="margin-top:8px">'+esc(AKD_REF.catatan)+'</div></details></div>';
- /* katalog SKKNI */
- h+='<div class="card"><details><summary><b>Katalog SKKNI Teknik Sepeda Motor</b> <span class="note">55 unit</span></summary>'+Object.keys(AKD_SKKNI).map(function(c){return '<div class="note" style="margin-top:4px"><span class="mono">'+akSkkniKode(c)+'</span> '+esc(AKD_SKKNI[c])+'</div>'}).join('')+'</details></div>';
+ /* hak akses, regulasi, dan katalog SKKNI dalam satu kartu acuan */
+ h+='<div class="card akd-ref"><b>Acuan dan referensi</b>'+
+  '<details><summary>Hak akses data akademik</summary><div class="note">Admin: kelola tahun ajaran, rombel, mata pelajaran, profil dan tugas guru. Guru: melihat mata pelajaran, rombel, dan tugas mengajar. Siswa: tidak mengakses menu ini. NIP, NUPTK, dan data profil lain disimpan di koleksi terpisah yang hanya bisa dibaca dan diubah admin.</div></details>'+
+  '<details><summary>Acuan regulasi</summary>'+AKD_REF.regulasi.map(function(r){return '<div class="note" style="margin-top:8px"><b>'+esc(r.k)+'</b><br>'+esc(r.t)+'</div>'}).join('')+'<div class="note" style="margin-top:8px">'+esc(AKD_REF.catatan)+'</div></details>'+
+  '<details><summary>Katalog SKKNI Teknik Sepeda Motor <span class="note">'+Object.keys(AKD_SKKNI).length+' unit</span></summary>'+Object.keys(AKD_SKKNI).map(function(c){return '<div class="note" style="margin-top:4px"><span class="mono">'+akSkkniKode(c)+'</span> '+esc(AKD_SKKNI[c])+'</div>'}).join('')+'</details></div>';
  return h;
 }
 
@@ -678,10 +678,13 @@ render=function(){
   var sb=document.querySelector('.sbody');
   if(sb&&!sb.querySelector('[data-v="akd-guru"]')){
    var cur=V.mode==='list'?S.tab:'';
-   var html='<button type="button" class="srow" data-act="menu" data-v="akd-guru"'+(AKTABS.indexOf(cur)>-1?' aria-current="page"':'')+'><span class="ico">'+svg(ICO.akdTata,22)+'</span><span class="st"><b>Administrasi Akademik</b><small>'+(akEdit()?'Guru, kelas, daftar siswa, mata pelajaran, tata kelola':'Guru, kelas, daftar siswa, dan mata pelajaran')+'</small></span>'+svg(ICO.chev,18)+'</button>';
+   var html=AKTABS.map(function(t){var sub=t==='akd-guru'&&!akEdit()?'Tugas mengajar saya':t==='akd-tata'&&!akEdit()?'Tahun ajaran dan pemeriksaan':AKSUB[t];
+    return '<button type="button" class="srow" data-act="menu" data-v="'+t+'"'+(cur===t?' aria-current="page"':'')+'><span class="ico">'+svg(ICO[AKICO[t]],22)+'</span><span class="st"><b>'+AKNAMA[t]+'</b><small>'+sub+'</small></span>'+svg(ICO.chev,18)+'</button>'}).join('');
    var br=sb.querySelector('.srow[data-v="beranda"]');
    if(br)br.insertAdjacentHTML('afterend',html);else sb.insertAdjacentHTML('beforeend',html);
   }
+  var bar=document.querySelector('.akd-tabs'),on=bar&&bar.querySelector('[aria-selected="true"]');
+  if(on&&bar.scrollTo)bar.scrollTo({left:Math.max(0,on.offsetLeft-(bar.clientWidth-on.offsetWidth)/2)});
  }catch(e){}
 };
 if(typeof NAVTABS!=='undefined')AKTABS.forEach(function(t){if(NAVTABS.indexOf(t)<0)NAVTABS.push(t)});

@@ -23,8 +23,9 @@
  /* Kelompok menurut urutan tampil. keys/pre: pengenal data-v baris; post: baris yang ditaruh setelah baris berawalan pre. */
  function groups(staff,admin){
   return [
-   {key:'home',label:'',ic:null,keys:['beranda','ruangujian','akd-guru']},
+   {key:'home',label:'',ic:null,keys:['beranda','ruangujian']},
    {key:'ajar',label:staff?'Pembelajaran':'Pembelajaran kelas saya',ic:'kelas',pre:['lkpd:','kelas:'],post:['nilai-akhir-ukk']},
+   {key:'akd',label:'Administrasi Akademik',ic:'akdTata',keys:['akd-guru','akd-kelas','akd-siswa','akd-mapel','akd-tata'],compact:true},
    {key:'uji',label:staff?'Ujian dan nilai':'Ujian, nilai, dan acuan',ic:'menu',keys:staff?['banksoal','cbtonline','riwayatlatihan','rekap','kompetensi']:['banksoal','cbtonline','rekap','kompetensi','acuan']},
    {key:'obs',label:'Supervisi',ic:'observasi',keys:['observasi','observasi-siswa','observasi-ukk']},
    {key:'sys',label:'Pengaturan',ic:'menu',keys:['acuan','akun','hapusnilai','logaudit','sinkron']},

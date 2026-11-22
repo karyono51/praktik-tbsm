@@ -1,5 +1,10 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Administrasi Akademik: tampilan dan submenu (v104)
+- Laci menu: **Administrasi Akademik** menjadi kelompok dengan submenu Guru, Kelas, Daftar siswa, Mata pelajaran, Tata kelola (`js/menu-dasbor.js` dan `js/akademik.js`); baris tunggal lama di kelompok Beranda dihapus.
+- Halaman: kepala dengan judul kecil, pil tahun ajaran dan sekolah, bilah tab berikon yang bisa digeser, jarak kartu seragam, avatar inisial pada kartu guru, garis pemisah pada tahun ajaran dan pemeriksaan, tombol hitungan tanpa garis tebal, satu kartu Acuan dan referensi. Gaya baru di `css/app.css` (awalan `.akd`), mengikuti mode terang dan gelap.
+- `tools/uji-akademik.mjs` kini 111 uji (tab, bungkus halaman, submenu laci, grup menu). Tidak ada perubahan Appwrite.
+
 ## Administrasi Akademik: perapian dan validasi (v103)
 - Validasi simpan: rombel ganda (sekolah + tahun ajaran), kode mapel kembar, JP mapel 1-40, mapel berelemen tidak bisa jadi elemen, tahun ajaran harus berurutan (2026/2027), tanggal selesai tidak lebih awal dari mulai.
 - Atur anggota rombel membuang id ganda dan siswa rombel lain saat disimpan.

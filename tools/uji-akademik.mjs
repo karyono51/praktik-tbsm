@@ -20,7 +20,7 @@ function boot(opt = {}) {
   const ctx = {
     console, addEventListener() {}, navigator: { onLine: true }, Math, JSON, Object, Array, Number, String, Date, Promise,
     localStorage: { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } },
-    document: { addEventListener(t, f) { hs[t] = f; }, getElementById: () => null, querySelector: () => null },
+    document: { addEventListener(t, f) { hs[t] = f; }, getElementById: () => null, querySelector: (q) => (opt.sbody && q === '.sbody' ? opt.sbody : null) },
     ICO: {}, NAVTABS: [], V: { mode: 'list' }, svg: () => '',
     S: { user: { id: peran === 'admin' ? 'adm' : 'g1', role: peran }, users, tab: 'akd-guru' },
     CFG: { DB: 'tbsm' },
@@ -30,7 +30,7 @@ function boot(opt = {}) {
     esc: (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])),
     toast(m) { log.toast.push(m); }, render() { log.render = (log.render || 0) + 1; },
     uiConfirm(m) { log.conf.push(m); return Promise.resolve(opt.setuju !== false); },
-    schAkunOk: () => true, schKode: () => 'MEDINA', ymd: () => '20261122',
+    schAkunOk: () => true, schKode: () => 'MEDINA', schCfg: () => ({ nama: 'SMKS Medina Bandung' }), ymd: () => '20261122',
     viewKatalog: () => '', doLogout: async () => {}, refreshData: async () => {},
     fromDoc: (d) => ({ ...d, id: d.$id || d.id }),
     Cloud: {
@@ -343,6 +343,43 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   T('Excel tugas: kolom Tahun ajaran dan Status', tg && tg[0]['Tahun ajaran'] === '2026/2027' && tg[0].Status === 'Berlaku' && tg[1].Status === 'Tidak berlaku', tg);
   ctx.S.tab = 'akd-guru'; ctx.AKD.tg = 'g1';
   T('input JP tugas mengajar: batas bawah 1', /data-aktg="jp"[^>]*min="1"/.test(ctx.akTugasHtml('g1')));
+}
+
+/* 12. Tampilan dan submenu (v104) */
+{
+  const { ctx, AKD } = boot();
+  AKD.D.tahun = [tahun('t1', '2026/2027', 'Ganjil', true)];
+  AKD.loaded = true;
+  for (const t of ctx.AKTABS) {
+    ctx.S.tab = t;
+    const h = ctx.viewAkd();
+    T('halaman ' + t + ' dibungkus .akd dengan kepala dan bilah tab', /^<div class="akd">/.test(h) && /akd-crumb/.test(h) && /class="akd-tabs"/.test(h), h.slice(0, 80));
+    const dipilih = h.match(/aria-selected="true"/g) || [];
+    T('halaman ' + t + ': tepat satu tab terpilih (' + t + ')', dipilih.length === 1 && new RegExp('data-v="' + t + '" aria-selected="true"').test(h), dipilih.length);
+    T('halaman ' + t + ': lima tab dengan role=tab', (h.match(/role="tab"/g) || []).length === 5);
+  }
+  ctx.S.tab = 'akd-tata';
+  const th = ctx.viewAkdTata();
+  T('tata kelola: acuan, regulasi, dan katalog dalam satu kartu', (th.match(/class="card akd-ref"/g) || []).length === 1 && /Hak akses data akademik/.test(th) && /Acuan regulasi/.test(th) && /55 unit/.test(th));
+  T('tata kelola: baris pemeriksaan memakai kelas akd-cek', /class="akd-cek"/.test(th) && !/padding:5px 0/.test(th));
+  const gh = ctx.akGuruCards();
+  T('kartu guru: avatar inisial', /class="akd-av"[^>]*>G</.test(gh));
+}
+{
+  const sb = { html: '', pos: '', querySelector: () => null, insertAdjacentHTML(pos, html) { this.pos = pos; this.html += html; } };
+  const { ctx } = boot({ sbody: sb });
+  ctx.S.tab = 'akd-kelas';
+  ctx.render();
+  const v = (sb.html.match(/data-v="akd-[a-z]+"/g) || []).map((x) => x.slice(8, -1));
+  T('submenu laci: lima baris Administrasi Akademik', JSON.stringify(v) === '["akd-guru","akd-kelas","akd-siswa","akd-mapel","akd-tata"]', v);
+  T('submenu laci: hanya baris tab aktif bertanda aria-current', (sb.html.match(/aria-current="page"/g) || []).length === 1 && /data-v="akd-kelas" aria-current="page"/.test(sb.html));
+  T('submenu laci: tiap baris punya judul dan keterangan', ['Guru', 'Kelas', 'Daftar siswa', 'Mata pelajaran', 'Tata kelola'].every((j) => sb.html.indexOf('<b>' + j + '</b>') > -1) && /Rombel dan wali kelas/.test(sb.html));
+  const g = { html: '', querySelector: () => null, insertAdjacentHTML(pos, html) { this.html += html; } };
+  const gb = boot({ peran: 'guru', sbody: g }); gb.ctx.S.tab = 'akd-guru'; gb.ctx.render();
+  T('submenu laci untuk guru: keterangan khusus lihat-saja', /Tugas mengajar saya/.test(g.html) && /Tahun ajaran dan pemeriksaan/.test(g.html));
+  const md = baca('js/menu-dasbor.js');
+  T('menu-dasbor.js: grup Administrasi Akademik memuat kelima tab', ctx.AKTABS.every((t) => new RegExp("key:'akd'[^\\n]*'" + t + "'").test(md)));
+  T('menu-dasbor.js: akd-guru tidak lagi tersisa di grup beranda', !/key:'home'[^\n]*akd-guru/.test(md));
 }
 
 console.log('\n' + pass + ' lulus, ' + fail + ' gagal');

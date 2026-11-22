@@ -1,6 +1,6 @@
 # Administrasi Akademik
 
-Menu baru di laci menu (staf): **Administrasi Akademik** berisi Guru, Kelas, Mata pelajaran, dan Tata kelola.
+Menu di laci menu (staf): kelompok **Administrasi Akademik** dengan submenu Guru, Kelas, Daftar siswa, Mata pelajaran, dan Tata kelola.
 
 ## Pasang (sekali)
 1. Buat dua koleksi baru di Appwrite: `node tools/setup-appwrite.mjs --only=akademik,akademik_sdm`
@@ -65,3 +65,9 @@ Aplikasi difokuskan pada mata pelajaran produktif/kejuruan: **Dasar-Dasar Teknik
 - **Keluar akun** mengosongkan pilihan anggota, filter, pencarian, dan status lipat kelompok; akun berikutnya di perangkat yang sama mulai dari tampilan awal.
 - **Daftar guru** tidak lagi galat bila kode sekolah akun ditulis huruf kecil.
 - **Excel Tugas mengajar** memuat kolom Tahun ajaran dan Status (Berlaku / Tidak berlaku).
+
+## Tampilan dan submenu (v104)
+- **Submenu di laci menu**: Administrasi Akademik kini kelompok yang bisa dibuka dan ditutup (di bawah Pembelajaran) berisi lima submenu: Guru, Kelas, Daftar siswa, Mata pelajaran, Tata kelola. Kelompok terbuka otomatis saat salah satu halamannya aktif. Guru melihat keterangan "Tugas mengajar saya".
+- **Kepala halaman**: judul kecil "Administrasi Akademik" di atas nama halaman; tahun ajaran, sekolah, dan tanda "Hanya lihat" tampil sebagai pil, bukan satu kalimat panjang.
+- **Bilah tab** di dalam halaman: satu baris yang bisa digeser, berikon, tab aktif digulir ke tengah. Filter (Kelas X, Produktif, dan sebagainya) tetap berbentuk chip agar tidak tertukar dengan navigasi.
+- **Jarak kartu** seragam; kartu guru memakai avatar inisial; baris tahun ajaran dan pemeriksaan kelengkapan memakai garis pemisah; Hak akses, Acuan regulasi, dan Katalog SKKNI digabung menjadi satu kartu "Acuan dan referensi".
