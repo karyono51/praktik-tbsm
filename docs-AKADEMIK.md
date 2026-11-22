@@ -5,7 +5,8 @@ Menu baru di laci menu (staf): **Administrasi Akademik** berisi Guru, Kelas, Mat
 ## Pasang (sekali)
 1. Buat dua koleksi baru di Appwrite: `node tools/setup-appwrite.mjs --only=akademik,akademik_sdm`
    - `akademik`: tahun ajaran, rombel, mata pelajaran, tugas mengajar. Dibaca guru dan admin, ditulis admin.
-   - `akademik_sdm`: profil guru (NIP, NUPTK, status, pendidikan). Dibaca guru dan admin, ditulis admin; dipisah karena memuat data pribadi.
+   - `akademik_sdm`: profil guru (NIP, NUPTK, status, pendidikan). Dibaca dan ditulis admin saja; dipisah karena memuat data pribadi.
+   - Bila koleksi ini sudah terpasang dari versi lama, jalankan lagi `node tools/setup-appwrite.mjs --only=akademik_sdm` (atau hapus izin `read("label:guru")` di Appwrite Console) agar guru tidak lagi bisa membacanya.
 2. Push ke GitHub seperti biasa. Versi berkas dan cache distempel otomatis oleh `tools/rilis.mjs`.
 3. Masuk sebagai admin, buka Administrasi Akademik. Kurikulum bawaan dimuat otomatis saat pertama dibuka.
 
@@ -23,7 +24,7 @@ membuat rombel dari akun siswa (per sekolah dan tingkat), dan melaporkan akun ta
 Daftar Mata pelajaran di form bank soal kini memuat mapel master. Modul LKPD terkait dihitung dari kata kunci judul.
 
 ## Hak akses
-Admin: semua. Guru: melihat mapel, rombel, dan profil sendiri. Siswa: tidak ada akses.
+Admin: semua. Guru: melihat mapel, rombel, dan tugas mengajar; profil SDM (NIP, NUPTK) hanya admin. Siswa: tidak ada akses.
 Data mengikuti sekolah yang sedang aktif di header (DF atau Medina); data tanpa sekolah dipakai bersama.
 
 ## Acuan (ditinjau 15 November 2026)
@@ -38,3 +39,11 @@ Periksa dokumen resmi sebelum dipakai sebagai dasar keputusan.
   Kejuruan (Matematika, Bahasa Inggris, Informatika, Projek IPAS, Dasar-Dasar Teknik Otomotif, Teknik Sepeda Motor, Kreativitas/Inovasi/Kewirausahaan, PKL); lalu Pilihan.
   Elemen CP mengikuti induknya sesuai nomor elemen; mapel tambahan menyusul di akhir kelompoknya. Urutan yang sama dipakai di pilihan mapel dan ekspor Excel.
 - Judul yang diawali "LKPD" (mis. LKPD X-1 Pemeriksaan Baterai dan Sistem Starter, yang masuk dari soal modul di bank soal) bukan mata pelajaran: disembunyikan dari daftar, pilihan mapel, dan tidak lagi diimpor oleh Sinkronkan kurikulum.
+
+## Perbaikan tata kelola (v101)
+- **Profil SDM hanya admin**: izin baca `label:guru` dicabut dari `akademik_sdm`. Aplikasi tidak lagi memuat atau menampilkan NIP/NUPTK untuk guru.
+- **JP hanya dari tugas yang berlaku**: tugas dihitung bila rombelnya aktif dan tahun ajarannya sama dengan tahun ajaran aktif (pergantian semester tidak menghapus tugas). Tugas lain tetap tampil di daftar dengan keterangan "tidak berlaku". Pemeriksaan "guru belum bertugas" dan "mapel belum punya pengampu" memakai aturan yang sama.
+- **Jumlah siswa rombel** memakai satu hitungan di kartu Kelas, daftar siswa, dan Excel: hanya akun siswa aktif.
+- **Pemeriksaan baru**: siswa di lebih dari satu rombel, tingkat rombel berbeda dengan kelas akun, anggota nonaktif atau akunnya hilang.
+- **Tugas mengajar**: mapel yang dibatasi tingkat tidak bisa dipasang ke rombel tingkat lain; JP harus bilangan bulat 1 sampai 40; mapel dan rombel yang sama sudah diampu guru lain meminta konfirmasi (mengajar bersama).
+- **Kode mapel `TB-xx`** memakai nomor terbesar yang ada, jadi tidak kembar setelah ada yang dihapus. **Tahun ajaran bawaan** memakai id tetap, dua perangkat admin tidak lagi membuat ganda. Tahun ajaran dan semester yang sama tidak bisa ditambah dua kali, dan menandai satu tahun ajaran aktif menonaktifkan yang lain.

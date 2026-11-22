@@ -1,5 +1,14 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Administrasi Akademik: perbaikan tata kelola (v101)
+- **Profil SDM hanya admin**: izin baca `label:guru` dicabut dari `akademik_sdm` (NIP/NUPTK sebelumnya terbaca semua guru). Aplikasi tidak lagi memuat atau menampilkan profil SDM untuk guru. **Koleksi yang sudah terpasang perlu dijalankan ulang**: `node tools/setup-appwrite.mjs --only=akademik_sdm` (memperbarui izin).
+- **JP guru** dihitung dari tugas yang berlaku saja (rombel aktif, tahun ajaran sama dengan yang aktif). Pemeriksaan "guru belum bertugas" dan "mapel belum punya pengampu" memakai aturan yang sama; tugas yang tidak berlaku diberi keterangan di daftar.
+- **Jumlah siswa rombel** seragam di kartu Kelas, daftar siswa, dan Excel (hanya akun siswa aktif).
+- **Tiga pemeriksaan baru** di Tata kelola: siswa di lebih dari satu rombel, tingkat rombel berbeda dengan kelas akun, anggota nonaktif atau akunnya hilang.
+- **Tugas mengajar divalidasi**: tingkat mapel harus cocok dengan rombel, JP bilangan bulat 1 sampai 40, mapel+rombel yang sudah diampu guru lain meminta konfirmasi.
+- **Kode `TB-xx`** tidak lagi kembar; **tahun ajaran bawaan** berid tetap; tahun ajaran+semester ganda ditolak; hanya satu tahun ajaran aktif; urutan semester Genap di atas Ganjil.
+- Berkas baru `tools/uji-akademik.mjs` (40 uji). Perubahan: `js/akademik.js`, `appwrite.json` (izin `akademik_sdm`), `docs-AKADEMIK.md`.
+
 ## LKPD-X-07 menjadi Master LKPD V2
 - Halaman Kelola LKPD memuat kartu **Master LKPD V2** pada LKPD-X-07 dan **Kelengkapan sesuai master V2** pada LKPD v2 lain (14 butir daftar periksa).
 - Tombol **Buat LKPD v2 dari master** membuka Editor LKPD dengan salinan master (draf, tidak aktif, mencatat `v2.dari`). Master tidak berubah.

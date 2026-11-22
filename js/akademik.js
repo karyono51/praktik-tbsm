@@ -1,6 +1,6 @@
 /* akademik.js: Administrasi Akademik (Guru, Kelas, Mata pelajaran, Tata kelola).
    Koleksi Appwrite: akademik (tahun, kelas, mapel, tugas; dibaca guru dan admin) dan akademik_sdm (profil guru: NIP, NUPTK;
-   dibaca guru dan admin). Hanya admin yang menulis. Mode lokal memakai localStorage. Data acuan ada di akademik-data.js. */
+   dibaca dan ditulis admin saja). Mode lokal memakai localStorage. Data acuan ada di akademik-data.js. */
 var AKC={tahun:'akademik',kelas:'akademik',mapel:'akademik',tugas:'akademik',guru:'akademik_sdm'};
 var AKK='tbsm-akd',AKQ='tbsm-akd-queue';
 var AKD={D:{tahun:[],kelas:[],mapel:[],tugas:[],guru:[]},loaded:false,loading:false,err:[],seeded:false,form:null,mem:null,tg:null,tgf:{},q:'',fl:'ALL',tf:'ALL',sk:'',rep:null,open:{},busy:false};
@@ -79,7 +79,8 @@ async function akLoad(){
   if(Cloud.on&&navigator.onLine===false)AKD.err.push('Offline: memakai salinan terakhir di perangkat.');
   else if(Cloud.on){
    await akFlushQ();
-   var cols=[['akademik',['tahun','kelas','mapel','tugas']],['akademik_sdm',['guru']]],okAll=true;
+   var cols=[['akademik',['tahun','kelas','mapel','tugas']]],okAll=true;
+   if(akEdit())cols.push(['akademik_sdm',['guru']]);else AKD.D.guru=[];
    await Promise.all(cols.map(async function(cc){
     try{
      var rows=(await Cloud.list(cc[0])).map(function(d){return akParse(fromDoc(d))});
@@ -135,11 +136,21 @@ function akGuruList(){
  if(!akEdit())L=L.filter(function(u){return u.id===S.user.id});
  return L.sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
 }
-function akProfil(uid){return AKD.D.guru.filter(function(x){return x.akunId===uid})[0]||null}
+/* Profil SDM (NIP, NUPTK) hanya untuk admin: koleksi akademik_sdm tidak dapat dibaca guru */
+function akProfil(uid){if(!akEdit())return null;return AKD.D.guru.filter(function(x){return x.akunId===uid})[0]||null}
 function akTugasGuru(uid){return AKD.D.tugas.filter(function(t){return t.guruId===uid})}
 function akTugasMapel(id){return AKD.D.tugas.filter(function(t){return t.mapelId===id})}
 function akTugasKelas(id){return AKD.D.tugas.filter(function(t){return t.kelasId===id})}
-function akJp(uid){return akTugasGuru(uid).reduce(function(s,t){return s+(+t.jp||0)},0)}
+/* Tugas berlaku: rombel masih aktif dan tahun ajarannya sama dengan tahun ajaran aktif (semester tidak membedakan) */
+function akTahunNama(id){var t=AKD.D.tahun.filter(function(x){return x.id===id})[0];return t?String(t.nama||''):''}
+function akBerlaku(t){
+ var k=akById('kelas',t.kelasId);if(!k||k.aktif===false)return false;
+ var ta=akTahunAktif();if(!ta)return true;
+ var n=akTahunNama(t.tahunId||k.tahunId);return !n||n===String(ta.nama||'');
+}
+function akTugasGuruAktif(uid){return akTugasGuru(uid).filter(akBerlaku)}
+function akTugasMapelAktif(id){return akTugasMapel(id).filter(akBerlaku)}
+function akJp(uid){return akTugasGuruAktif(uid).reduce(function(s,t){return s+(+t.jp||0)},0)}
 function akById(k,id){return AKD.D[k].filter(function(x){return x.id===id})[0]||null}
 function akNamaUser(id){var u=S.users.filter(function(x){return x.id===id})[0];return u?u.nama:'(akun tidak ditemukan)'}
 function akSiswaAktif(){return S.users.filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false&&akOk(u)})}
@@ -157,9 +168,9 @@ function akCek(){
  add('Rombel tanpa wali kelas',kl.filter(function(k){return !k.waliId}).length,kl.filter(function(k){return !k.waliId}).map(function(k){return k.nama}),'akd-kelas');
  var tanpa=sw.filter(function(u){return !pet[u.id]});
  add('Siswa aktif belum masuk rombel',tanpa.length,tanpa.map(function(u){return u.nama}),'akd-kelas');
- var ls=mp.filter(function(m){return akLeaf(m)&&!akTugasMapel(m.id).length&&(m.kelompok!=='pilihan')});
+ var ls=mp.filter(function(m){return akLeaf(m)&&!akTugasMapelAktif(m.id).length&&(m.kelompok!=='pilihan')});
  add('Mata pelajaran belum punya guru pengampu',ls.length,ls.map(function(m){return m.nama}),'akd-mapel');
- var gt=guru.filter(function(u){return !akTugasGuru(u.id).length});
+ var gt=guru.filter(function(u){return !akTugasGuruAktif(u.id).length});
  add('Guru belum punya tugas mengajar',gt.length,gt.map(function(u){return u.nama}),'akd-guru');
  var gs=S.users.filter(function(u){return (hasRole(u,'guru')||hasRole(u,'admin'))&&u.aktif!==false&&!SCH_LIST[String(u.sekolah||'').toUpperCase()]&&String(u.sekolah||'').toUpperCase()!=='ALL'});
  add('Akun guru/admin tanpa sekolah',gs.length,gs.map(function(u){return u.nama}),'akd-guru');
@@ -169,6 +180,19 @@ function akCek(){
  add('Elemen mata pelajaran tanpa induk',yatim.length,yatim.map(function(m){return m.nama}),'akd-mapel');
  var kosong=kl.filter(function(k){return !(k.anggota||[]).length});
  add('Rombel belum punya anggota',kosong.length,kosong.map(function(k){return k.nama}),'akd-kelas');
+ /* konsistensi anggota rombel dengan akun */
+ var um={};S.users.forEach(function(u){um[u.id]=u});
+ var cnt={},ganda=[],hilang=[],beda=[];
+ kl.forEach(function(k){(k.anggota||[]).forEach(function(id){
+  (cnt[id]=cnt[id]||[]).push(k.nama);
+  var u=um[id];
+  if(!u||!hasRole(u,'siswa')||u.aktif===false)hilang.push((u?u.nama:'(akun tidak ditemukan)')+' ('+k.nama+')');
+  else if(u.kelas&&u.kelas!==k.tingkat)beda.push(u.nama+': akun kelas '+u.kelas+', rombel '+k.nama);
+ })});
+ Object.keys(cnt).forEach(function(id){if(cnt[id].length>1)ganda.push((um[id]?um[id].nama:'(akun tidak ditemukan)')+' ('+cnt[id].join(' dan ')+')')});
+ add('Siswa masuk lebih dari satu rombel',ganda.length,ganda,'akd-kelas','bad');
+ add('Tingkat rombel berbeda dengan kelas pada akun',beda.length,beda,'akd-kelas');
+ add('Anggota rombel yang akunnya nonaktif atau hilang',hilang.length,hilang,'akd-kelas');
  return out;
 }
 
@@ -191,7 +215,7 @@ async function akSeed(){
  for(var i=0;i<L.length;i+=6){
   await Promise.all(L.slice(i,i+6).map(function(o){o.aktif=true;o.bawaan=1;o.sekolah='';made++;return akPut('mapel',o)}));
  }
- if(!AKD.D.tahun.length){await akPut('tahun',{id:akId('t'),nama:AKD_REF.ta,semester:'Ganjil',aktif:true,sekolah:'',mulai:'',selesai:''});made++}
+ if(!AKD.D.tahun.length){await akPut('tahun',{id:'t_'+AKD_REF.ta.replace(/\D/g,'')+'_ganjil',nama:AKD_REF.ta,semester:'Ganjil',aktif:true,sekolah:'',mulai:'',selesai:''});made++}
  akTerap();return made;
 }
 async function akSinkron(){
@@ -205,9 +229,9 @@ async function akSinkron(){
   try{if(window.bsLoad&&window.BS&&!BS.loaded&&!BS.loading)await bsLoad()}catch(e){}
   var nm={};AKD.D.mapel.forEach(function(m){nm[akNorm(m.nama)]=1});
   var baru={};((window.BS&&BS.D&&BS.D.soal)||[]).forEach(function(q){if(q.mapel&&!akBukanMapel({nama:q.mapel})&&!nm[akNorm(q.mapel)])baru[akNorm(q.mapel)]=String(q.mapel).trim()});
-  var kodeN=AKD.D.mapel.filter(function(m){return /^TB-/.test(m.kode||'')}).length;
+  var kodeN=AKD.D.mapel.reduce(function(mx,m){var r=/^TB-(\d+)$/.exec(m.kode||'');return r?Math.max(mx,+r[1]):mx},0);
   var nb=Object.keys(baru);
-  for(var i=0;i<nb.length;i++){kodeN++;await akPut('mapel',{id:akId('m'),kode:'TB-'+('0'+kodeN).slice(-2),nama:baru[nb[i]],kelompok:'kejuruan',komponen:'Tambahan (dari bank soal)',induk:'',fase:'',tingkat:[],jp:'',sumber:'Dari bank soal; tinjau dan petakan ke kurikulum',skkni:[],kata:[],aktif:true,sekolah:''});rep.bank++}
+  for(var i=0;i<nb.length;i++){kodeN++;await akPut('mapel',{id:akId('m'),kode:'TB-'+(kodeN<10?'0'+kodeN:kodeN),nama:baru[nb[i]],kelompok:'kejuruan',komponen:'Tambahan (dari bank soal)',induk:'',fase:'',tingkat:[],jp:'',sumber:'Dari bank soal; tinjau dan petakan ke kurikulum',skkni:[],kata:[],aktif:true,sekolah:''});rep.bank++}
   /* rombel awal dari akun siswa: satu rombel per sekolah dan tingkat bila belum ada */
   var ta=akTahunAktif(),pet=akAnggotaPeta();
   for(var s=0;s<SCH_URUT.length;s++){
@@ -258,7 +282,7 @@ function akFormTop(){return AKD.form?akFormHtml():''}
 /* --- Guru --- */
 function viewAkdGuru(){
  var L=akGuruList(),h='',ed=akEdit();
- var jp=L.reduce(function(s,u){return s+akJp(u.id)},0),dg=L.filter(function(u){return akTugasGuru(u.id).length}).length;
+ var jp=L.reduce(function(s,u){return s+akJp(u.id)},0),dg=L.filter(function(u){return akTugasGuruAktif(u.id).length}).length;
  h+='<div class="stats"><div class="card"><span class="label">Guru</span><b class="mono">'+L.length+'</b></div><div class="card"><span class="label">Sudah bertugas</span><b class="mono">'+dg+'</b></div><div class="card"><span class="label">Total JP/minggu</span><b class="mono">'+jp+'</b></div></div>';
  h+=akFormTop();
  if(AKD.tg)h+=akTugasHtml(AKD.tg);
@@ -272,13 +296,13 @@ function akGuruCards(){
  var q=akNorm(AKD.q),L=akGuruList().filter(function(u){return !q||akNorm(u.nama+' '+(u.email||'')).indexOf(q)>-1}),ed=akEdit();
  if(!L.length)return '<p class="muted center">Belum ada guru'+(AKD.q?' yang cocok':'')+'. Tambah akun berperan Guru di menu Akun.</p>';
  return L.map(function(u){
-  var p=akProfil(u.id),tg=akTugasGuru(u.id),mp={};tg.forEach(function(t){var m=akById('mapel',t.mapelId);if(m)mp[m.nama]=1});
+  var p=akProfil(u.id),tg=akTugasGuruAktif(u.id),mp={};tg.forEach(function(t){var m=akById('mapel',t.mapelId);if(m)mp[m.nama]=1});
   var mk=Object.keys(mp),wali=AKD.D.kelas.filter(function(k){return k.waliId===u.id&&k.aktif!==false});
   return '<div class="card"><div class="row sb"><b>'+esc(u.nama)+'</b>'+akPill(SCH_LIST[String(u.sekolah||'').toUpperCase()]?SCH_LIST[u.sekolah].pendek:(u.sekolah==='ALL'?'Semua sekolah':'Sekolah belum diatur'),SCH_LIST[String(u.sekolah||'').toUpperCase()]||u.sekolah==='ALL'?'':'warn')+'</div>'+
    '<div class="note">'+esc(u.email||u.username||'')+(p&&p.nip?' · NIP '+esc(p.nip):'')+(p&&p.nuptk?' · NUPTK '+esc(p.nuptk):'')+'</div>'+
    '<div class="row">'+akPill(akJp(u.id)+' JP/minggu')+wali.map(function(k){return akPill('Wali '+k.nama,'ok')}).join('')+(p&&p.tugasTambahan?akPill(p.tugasTambahan):'')+'</div>'+
    (mk.length?'<div class="note">'+esc(mk.slice(0,4).join(', '))+(mk.length>4?' dan '+(mk.length-4)+' lainnya':'')+'</div>':'<div class="note">Belum ada tugas mengajar.</div>')+
-   '<div class="row">'+akBtn('tugas',u.id,'Tugas mengajar')+akBtn('profil',u.id,ed?'Ubah profil':'Lihat profil')+'</div></div>';
+   '<div class="row">'+akBtn('tugas',u.id,'Tugas mengajar')+(ed?akBtn('profil',u.id,'Ubah profil'):'')+'</div></div>';
  }).join('');
 }
 function akTugasHtml(uid){
@@ -287,7 +311,7 @@ function akTugasHtml(uid){
  var mp=akAktif(akMapelAll()).filter(akLeaf),kl=akAktif(akKelasAll());
  var h='<div class="card"><div class="row sb"><b>Tugas mengajar · '+esc(u.nama)+'</b>'+akBtn('tg-tutup',null,'Tutup')+'</div>';
  h+=tg.length?tg.map(function(t){var m=akById('mapel',t.mapelId),k=akById('kelas',t.kelasId);
-  return '<div class="row sb"><span><b>'+esc(m?m.nama:'(mapel dihapus)')+'</b><br><small class="note">'+esc(k?k.nama:'(rombel dihapus)')+' · '+(+t.jp||0)+' JP/minggu</small></span>'+(ed?akBtn('tg-del',t.id,'Hapus','danger'):'')+'</div>'}).join(''):'<p class="muted">Belum ada tugas.</p>';
+  return '<div class="row sb"><span><b>'+esc(m?m.nama:'(mapel dihapus)')+'</b><br><small class="note">'+esc(k?k.nama:'(rombel dihapus)')+' · '+(+t.jp||0)+' JP/minggu'+(akBerlaku(t)?'':' · tidak berlaku (rombel diarsipkan atau tahun lain)')+'</small></span>'+(ed?akBtn('tg-del',t.id,'Hapus','danger'):'')+'</div>'}).join(''):'<p class="muted">Belum ada tugas.</p>';
  if(ed){
   h+='<div class="two">'+
    '<label class="f">Mata pelajaran<select data-aktg="mapelId"><option value="">Pilih…</option>'+mp.map(function(m){return '<option value="'+esc(m.id)+'"'+(f.mapelId===m.id?' selected':'')+'>'+esc(m.nama)+'</option>'}).join('')+'</select></label>'+
@@ -312,7 +336,7 @@ function viewAkdKelas(){
  return h+L.map(function(k){
   var tg=akTugasKelas(k.id),ta=akById('tahun',k.tahunId);
   return '<div class="card"'+(k.aktif===false?' style="opacity:.6"':'')+'><div class="row sb"><b>'+esc(k.nama)+'</b>'+akPill('Kelas '+k.tingkat)+'</div>'+
-   '<div class="row">'+akPill(akSekLabel(k.sekolah))+akPill((k.anggota||[]).length+' siswa')+(ta?akPill(ta.nama):'')+(k.aktif===false?akPill('Arsip','warn'):'')+'</div>'+
+   '<div class="row">'+akPill(akSekLabel(k.sekolah))+akPill(akSiswaRombel(k).length+' siswa')+(ta?akPill(ta.nama):'')+(k.aktif===false?akPill('Arsip','warn'):'')+'</div>'+
    '<div class="note">Wali kelas: '+(k.waliId?esc(akNamaUser(k.waliId)):'belum ditetapkan')+'</div>'+
    (tg.length?'<div class="note">'+tg.slice(0,5).map(function(t){var m=akById('mapel',t.mapelId);return esc((m?m.nama:'?')+' ('+akNamaUser(t.guruId)+')')}).join('; ')+(tg.length>5?' dan '+(tg.length-5)+' lainnya':'')+'</div>':'')+
    '<div class="row">'+akBtn('daftar',k.id,'Daftar siswa','primary')+akBtn('anggota',k.id,ed?'Atur anggota':'Lihat anggota')+(ed?akBtn('edit',k.id,'Ubah rombel',null,'kelas')+akBtn('arsip',k.id,k.aktif===false?'Aktifkan':'Arsipkan',null,'kelas'):'')+'</div></div>';
@@ -442,7 +466,7 @@ function viewAkdTata(){
  if(AKD.form)return akFormHtml();
  /* tahun ajaran */
  h+='<div class="card"><div class="row sb"><b>Tahun ajaran dan semester</b>'+(ed?akBtn('ta-baru',null,'Tambah','primary'):'')+'</div>';
- h+=AKD.D.tahun.length?AKD.D.tahun.slice().sort(function(a,b){return String(b.nama).localeCompare(String(a.nama))||(b.semester==='Ganjil'?1:-1)}).map(function(t){
+ h+=AKD.D.tahun.length?AKD.D.tahun.slice().sort(function(a,b){return String(b.nama).localeCompare(String(a.nama))||((a.semester==='Genap'?0:1)-(b.semester==='Genap'?0:1))}).map(function(t){
   return '<div class="row sb"><span><b>'+esc(t.nama)+'</b> · '+esc(t.semester)+(t.aktif?' '+akPill('Aktif','ok'):'')+'</span>'+(ed?'<span class="row">'+(t.aktif?'':akBtn('ta-aktif',t.id,'Jadikan aktif'))+akBtn('edit',t.id,'Ubah',null,'tahun')+'</span>':'')+'</div>'}).join(''):'<p class="muted">Belum ada tahun ajaran.</p>';
  h+='</div>';
  /* pemeriksaan */
@@ -456,7 +480,7 @@ function viewAkdTata(){
   h+='</div>';
  }
  /* hak akses */
- h+='<div class="card"><details><summary><b>Hak akses data akademik</b></summary><div class="note">Admin: kelola tahun ajaran, rombel, mata pelajaran, profil dan tugas guru. Guru: melihat mata pelajaran, rombel, dan profil sendiri. Siswa: tidak mengakses menu ini. NIP dan NUPTK disimpan di koleksi terpisah yang hanya bisa dibaca guru dan admin.</div></details></div>';
+ h+='<div class="card"><details><summary><b>Hak akses data akademik</b></summary><div class="note">Admin: kelola tahun ajaran, rombel, mata pelajaran, profil dan tugas guru. Guru: melihat mata pelajaran, rombel, dan tugas mengajar. Siswa: tidak mengakses menu ini. NIP, NUPTK, dan data profil lain disimpan di koleksi terpisah yang hanya bisa dibaca dan diubah admin.</div></details></div>';
  /* regulasi */
  h+='<div class="card"><details><summary><b>Acuan regulasi</b></summary>'+AKD_REF.regulasi.map(function(r){return '<div class="note" style="margin-top:8px"><b>'+esc(r.k)+'</b><br>'+esc(r.t)+'</div>'}).join('')+'<div class="note" style="margin-top:8px">'+esc(AKD_REF.catatan)+'</div></details></div>';
  /* katalog SKKNI */
@@ -515,9 +539,17 @@ async function akSimpan(){
   if(o.kataTeks!=null){o.kata=o.kataTeks.split(',').map(function(c){return c.trim()}).filter(Boolean);delete o.kataTeks}
   o.jp=o.jp===''||o.jp==null?'':+o.jp;o.aktif=o.aktif!==false;
  }
- if(k==='tahun'){if(!/^\d{4}\/\d{4}$/.test(String(o.nama||'').trim())){toast('Tulis tahun ajaran seperti 2026/2027');return}o.nama=o.nama.trim()}
+ if(k==='tahun'){
+  if(!/^\d{4}\/\d{4}$/.test(String(o.nama||'').trim())){toast('Tulis tahun ajaran seperti 2026/2027');return}
+  o.nama=o.nama.trim();
+  if(AKD.D.tahun.some(function(t){return t.id!==o.id&&t.nama===o.nama&&t.semester===o.semester})){toast('Tahun ajaran dan semester itu sudah ada');return}
+ }
  var ok=await akPut(k,o);
- if(k==='tahun'&&o.aktif)akTerap();
+ if(k==='tahun'&&o.aktif){
+  var lainA=AKD.D.tahun.filter(function(t){return t.id!==o.id&&t.aktif});
+  for(var ia=0;ia<lainA.length;ia++){lainA[ia].aktif=false;await akPut('tahun',lainA[ia])}
+  akTerap();
+ }
  AKD.form=null;toast(ok?'Tersimpan':'Disimpan di perangkat, menunggu sinkron');render();
 }
 function akFieldSet(t){
@@ -550,7 +582,7 @@ document.addEventListener('click',async function(e){
  else if(a==='grp'){AKD.gopen=AKD.gopen||{};AKD.gopen[id]=AKD.gopen[id]===false;render()}
  else if(a==='sinkron')akSinkron();
  else if(a==='ekspor')akEkspor();
- else if(!ed&&['kelas-baru','mapel-baru','ta-baru','ta-aktif','arsip','simpan','tg-add','tg-del','ang-simpan','ang-semua','edit'].indexOf(a)>-1)toast('Hanya admin yang dapat mengubah data akademik');
+ else if(!ed&&['kelas-baru','mapel-baru','ta-baru','ta-aktif','arsip','simpan','tg-add','tg-del','ang-simpan','ang-semua','edit','profil'].indexOf(a)>-1)toast('Hanya admin yang dapat mengubah data akademik');
  else if(a==='kelas-baru'){var ta=akTahunAktif();akBukaForm('kelas',{id:akId('k'),nama:'',tingkat:AKD.tf!=='ALL'?AKD.tf:'X',sekolah:schKode()||'',tahunId:ta?ta.id:'',waliId:'',anggota:[],catatan:'',aktif:true},'Rombel baru')}
  else if(a==='mapel-baru')akBukaForm('mapel',{id:akId('m'),kode:'',nama:'',kelompok:(AKD.fl==='umum'||AKD.fl==='pilihan')?AKD.fl:'kejuruan',komponen:AKD.fl==='dasar'?'Dasar-Dasar Program Keahlian':AKD.fl==='konsentrasi'?'Konsentrasi Keahlian':'',induk:'',fase:'',tingkat:[],jp:'',sumber:'',skkni:[],kata:[],catatan:'',aktif:true,sekolah:''},'Mata pelajaran baru');
  else if(a==='ta-baru')akBukaForm('tahun',{id:akId('t'),nama:'',semester:'Ganjil',aktif:false,mulai:'',selesai:'',sekolah:''},'Tahun ajaran baru');
@@ -571,8 +603,14 @@ document.addEventListener('click',async function(e){
  else if(a==='tg-tutup'){AKD.tg=null;render()}
  else if(a==='tg-add'){
   var f=AKD.tgf;if(!f.mapelId||!f.kelasId){toast('Pilih mata pelajaran dan rombel');return}
+  var mp0=akById('mapel',f.mapelId),kl0=akById('kelas',f.kelasId);
+  if(!mp0||!kl0){toast('Mata pelajaran atau rombel tidak ditemukan');return}
+  if((mp0.tingkat||[]).length&&mp0.tingkat.indexOf(kl0.tingkat)<0){toast(mp0.nama+' hanya untuk kelas '+mp0.tingkat.join(', ')+'; rombel '+kl0.nama+' kelas '+kl0.tingkat);return}
+  var jp0=Number(f.jp);if(f.jp===''||f.jp==null||!Number.isInteger(jp0)||jp0<1||jp0>40){toast('JP per minggu harus bilangan bulat 1 sampai 40');return}
   if(AKD.D.tugas.some(function(t){return t.guruId===AKD.tg&&t.mapelId===f.mapelId&&t.kelasId===f.kelasId})){toast('Tugas itu sudah ada');return}
-  var ta2=akTahunAktif();await akPut('tugas',{id:akId('u'),guruId:AKD.tg,mapelId:f.mapelId,kelasId:f.kelasId,jp:+f.jp||0,tahunId:ta2?ta2.id:'',nama:'',sekolah:(akById('kelas',f.kelasId)||{}).sekolah||''});
+  var lain=AKD.D.tugas.filter(function(t){return t.guruId!==AKD.tg&&t.mapelId===f.mapelId&&t.kelasId===f.kelasId&&akBerlaku(t)});
+  if(lain.length&&!(await uiConfirm(mp0.nama+' di '+kl0.nama+' sudah diampu '+lain.map(function(t){return akNamaUser(t.guruId)}).join(', ')+'. Tambahkan juga (mengajar bersama)?',{ok:'Tetap tambah'})))return;
+  var ta2=akTahunAktif();await akPut('tugas',{id:akId('u'),guruId:AKD.tg,mapelId:f.mapelId,kelasId:f.kelasId,jp:jp0,tahunId:ta2?ta2.id:'',nama:'',sekolah:kl0.sekolah||''});
   AKD.tgf={};render();
  }
  else if(a==='tg-del'){if(await uiConfirm('Hapus tugas mengajar ini?',{ok:'Hapus'})){await akDel('tugas',id);render()}}
@@ -591,7 +629,7 @@ function akEkspor(){
  if(typeof XLSX==='undefined'){if(window.Pustaka)Pustaka.muat();toast('Pustaka Excel sedang disiapkan. Coba lagi sebentar.');return}
  var wb=XLSX.utils.book_new(),sh=function(n,rows){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows.length?rows:[{Keterangan:'Belum ada data'}]),n)};
  sh('Guru',akGuruListAll().map(function(u){var p=akProfil(u.id)||{};return {Nama:u.nama,Email:u.email||'',Sekolah:akSekLabel(u.sekolah),NIP:p.nip||'',NUPTK:p.nuptk||'',Status:p.status||'',Pendidikan:p.pendidikan||'','Tugas tambahan':p.tugasTambahan||'','JP per minggu':akJp(u.id)}}));
- sh('Rombel',akKelasAll().map(function(k){return {Rombel:k.nama,Tingkat:k.tingkat,Sekolah:akSekLabel(k.sekolah),'Tahun ajaran':(akById('tahun',k.tahunId)||{}).nama||'','Wali kelas':k.waliId?akNamaUser(k.waliId):'','Jumlah siswa':(k.anggota||[]).length,Status:k.aktif===false?'Arsip':'Aktif'}}));
+ sh('Rombel',akKelasAll().map(function(k){return {Rombel:k.nama,Tingkat:k.tingkat,Sekolah:akSekLabel(k.sekolah),'Tahun ajaran':(akById('tahun',k.tahunId)||{}).nama||'','Wali kelas':k.waliId?akNamaUser(k.waliId):'','Jumlah siswa':akSiswaRombel(k).length,Status:k.aktif===false?'Arsip':'Aktif'}}));
  sh('Mata pelajaran',akMapelAll().map(function(m){var ind=m.induk&&akById('mapel',m.induk);return {Kode:m.kode||'','Mata pelajaran':m.nama,Kelompok:m.kelompok,Komponen:m.komponen||'','Elemen dari':ind?ind.nama:'',Fase:m.fase||'',Tingkat:(m.tingkat||[]).join(', '),JP:m.jp||'','Unit SKKNI':(m.skkni||[]).map(akSkkniKode).join(', '),Sumber:m.sumber||'',Status:m.aktif===false?'Arsip':'Aktif'}}));
  sh('Tugas mengajar',AKD.D.tugas.filter(function(t){var k=akById('kelas',t.kelasId);return !k||akOk(k)}).map(function(t){return {Guru:akNamaUser(t.guruId),'Mata pelajaran':(akById('mapel',t.mapelId)||{}).nama||'',Rombel:(akById('kelas',t.kelasId)||{}).nama||'','JP per minggu':+t.jp||0}}));
  XLSX.writeFile(wb,'administrasi-akademik-'+(schKode()||'semua').toLowerCase()+'-'+ymd(Date.now())+'.xlsx');
