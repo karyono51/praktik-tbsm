@@ -101,8 +101,7 @@ function ob2KeBelum(){
 }
 function ob2StuHtml(d){
  var m=ob2Mod(d.v2);
- var sel='<div class="card ob2-card"><div class="row sb"><b>Formulir v2</b>'+''+'</div>'+
-  '<label class="f">LKPD v2<select data-ob2mod'+(d.id?' disabled':'')+'>'+ob2Mods().map(function(x){return '<option value="'+esc(x.id)+'"'+(x.id===d.v2?' selected':'')+'>'+esc(x.id+' · '+x.title)+'</option>'}).join('')+'</select></label></div>';
+ var sel=''; /* pemilih LKPD v2 kini di bagian atas formulir (obsFormSiswa) */
  if(!m)return sel+'<div class="card"><p class="muted">LKPD v2 tidak ditemukan. Pilih modul lain.</p></div>';
  if(!d.pilih.length)return sel+'<div class="card"><p class="muted">Pilih minimal satu siswa untuk mulai menilai.</p></div>';
  obsEnsure(d);
@@ -294,7 +293,10 @@ document.addEventListener('change',function(e){
  if(t.matches('[data-ob2i]')){OB.d.nilai[t.dataset.ob2i]=t.checked?1:0;ob2Sync()}
  else if(t.matches('[data-ob2mod]')){
   if(obsAnyDone(OB.d)){toast('Kosongkan skor dulu sebelum mengganti LKPD v2');t.value=OB.d.v2;return}
-  var m=ob2Mod(t.value);if(!m)return;OB.d.v2=m.id;OB.d.per={};OB.d.nilai={};OB.d.cat={};OB.d.cur='';OB.d.mapel=m.title;obsEnsure(OB.d);obsStuRefresh();
+  var m=ob2Mod(t.value);if(!m)return;var d0=OB.d,lama=d0.v2;d0.v2=m.id;d0.per={};d0.nilai={};d0.cat={};d0.cur='';d0.mapel=m.title;
+  if(!String(d0.materi||'').trim()||d0.materi===lama){d0.materi=m.id;var mt=document.querySelector('[data-ob="materi"]');if(mt)mt.value=d0.materi}
+  var mp=document.querySelector('[data-ob="mapel"]');if(mp)mp.value=m.title;var jd=document.getElementById('ob2judul');if(jd)jd.textContent=m.title;
+  obsEnsure(d0);obsStuRefresh();
  }
 });
 /* Nilai aspek: harus bulat dan dalam rentang skala yang dipilih; di luar rentang ditandai merah dan tidak dihitung. */
@@ -321,6 +323,17 @@ document.addEventListener('click',function(e){
 var _obsBaru2=obsBaru;
 obsBaru=function(t){
  var d=_obsBaru2.apply(this,arguments);
- if(t==='siswa'&&d&&!d.id){var ms=ob2Mods();if(ms.length){d.v2=ms[0].id;d.per={};d.nilai={};d.cat={};d.cur='';if(!String(d.mapel||'').trim())d.mapel=ms[0].title;obsEnsure(d)}}
+ if(t==='siswa'&&d&&!d.id){var ms=ob2Mods();if(ms.length){d.v2=ms[0].id;d.per={};d.nilai={};d.cat={};d.cur='';if(!String(d.mapel||'').trim())d.mapel=ms[0].title;if(!String(d.materi||'').trim())d.materi=ms[0].id;if(ms[0].kelas&&typeof KELAS!=='undefined'&&KELAS[ms[0].kelas])d.kelas=ms[0].kelas;obsEnsure(d)}}
  return d;
+};
+
+/* Bagian atas formulir v2: pemilih LKPD menggantikan kolom Unit/pekerjaan praktik (diisi otomatis dari judul LKPD). */
+var _obsFormSiswa2=obsFormSiswa;
+obsFormSiswa=function(){
+ var h=_obsFormSiswa2.apply(this,arguments),d=OB&&OB.d;
+ if(!d||!d.v2)return h;
+ var m=ob2Mod(d.v2);
+ var blok='<label class="f">LKPD yang diobservasi<select data-ob2mod'+(d.id?' disabled':'')+'>'+ob2Mods().map(function(x){return '<option value="'+esc(x.id)+'"'+(x.id===d.v2?' selected':'')+'>'+esc(x.id+' · '+x.title)+'</option>'}).join('')+'</select></label>'+
+  '<div class="note" id="ob2judul">'+esc(m?m.title:'LKPD v2 tidak ditemukan')+'</div><input type="hidden" data-ob="mapel" value="'+esc(d.mapel)+'">';
+ return h.replace(/<label class="f">[^<]*<input data-ob="mapel"[^>]*><\/label>/,function(){return blok});
 };

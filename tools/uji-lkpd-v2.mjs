@@ -324,7 +324,10 @@ sama([G(`ob2Kat({stop:true,nilai:90})`), G(`ob2Kat({stop:false,nilai:100})`), G(
 
 G(`OB.tipe='siswa';OB.d=obsBaru('siswa');OB.d.pilih=['s1','s2'];OB.d.man=[];OB.mode='form'`);
 let html = G('obsStuHtml(OB.d)');
-ok(!/ob2-on/.test(html) && !/ob2-off/.test(html) && /Formulir v2/.test(html) && /ob2-rate/.test(html), 'observasi baru langsung memakai formulir v2 (formulir v1 dihapus)');
+const atas = G('obsFormSiswa()');
+ok(!/ob2-on/.test(html) && !/ob2-off/.test(html) && /ob2-rate/.test(html) && !/data-ob2mod/.test(html), 'observasi baru langsung memakai formulir v2; pemilih LKPD tidak lagi di blok penilaian');
+ok(/LKPD yang diobservasi/.test(atas) && /data-ob2mod/.test(atas) && /type="hidden" data-ob="mapel"/.test(atas) && !/Unit \/ pekerjaan praktik<input/.test(atas), 'pemilih LKPD v2 di atas formulir menggantikan kolom unit');
+ok(/data-ob="materi" maxlength="200" value="LKPD-X-07"/.test(atas) && /<option value="X" selected>Kelas X/.test(atas), 'jobsheet terisi otomatis kode LKPD dan kelas mengikuti LKPD');
 G(`document.dispatchLike=function(){}`);
 // pilih v2 lewat state langsung (jalur klik bergantung DOM)
 G(`OB.d.v2='LKPD-X-07';OB.d.per={};OB.d.nilai={};OB.d.cat={};OB.d.cur='';obsEnsure(OB.d)`);

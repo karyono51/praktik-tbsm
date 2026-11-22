@@ -1,5 +1,10 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Formulir Observasi LKPD Praktik dirapikan
+- Pemilih **LKPD yang diobservasi** dipindah ke bagian atas formulir dan menggantikan kolom "Unit / pekerjaan praktik" (judul LKPD tampil utuh di bawah pilihan, tersimpan otomatis sebagai unit). Blok "Formulir v2" di bawah daftar siswa dihapus.
+- **Kompetensi / jobsheet** terisi otomatis dengan kode LKPD (tetap bisa diubah), dan **Kelas** mengikuti kelas LKPD. Mengganti LKPD memperbarui isian itu.
+- `tools/uji-lkpd-v2.mjs` kini 223 uji.
+
 ## Observasi LKPD Praktik v1 dihapus
 - Formulir **Observasi LKPD Praktik** baru kini selalu memakai formulir v2 (rubrik dari LKPD v2, skala 1-4 + nilai). Tombol "Pakai formulir lama" dan "Pakai formulir v2" dihapus; bila belum ada LKPD v2 tampil pesan "Belum ada LKPD v2 untuk diobservasi".
 - Catatan v1 yang sudah tersimpan **tidak dihapus** (tetap di Rekap nilai, Excel, PDF, dan bisa dibuka/diubah dengan formulir lama) supaya nilai siswa tidak hilang. Observasi guru (supervisi) tidak berubah.
