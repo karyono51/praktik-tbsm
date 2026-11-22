@@ -93,6 +93,11 @@ ok(G(`lkpGate(LKPD_MODULES[0]).ok`) === true && G(`lkpGate(LKPD_MODULES[0]).reme
 /* Ujian lulus tidak menutup lagi */
 reset(); G(`LKPD_MODULES[0].gKali=1`); G(rec('L', 10, 80, 'latihan') + rec('U', 20, 90, 'ujian'));
 ok(G(`lkpGate(LKPD_MODULES[0]).remedial`) === false && G(`lkpGate(LKPD_MODULES[0]).ok`) === true, 'ujian lulus: tidak remedial');
+/* Jatah Ujian habis: gerbang tidak menahan lagi */
+reset(); G(`LKPD_MODULES[0].gKali=1;LKPD_MODULES[0].maxTry=1`); G(rec('U', 20, 50, 'ujian'));
+ok(G(`lkpGate(LKPD_MODULES[0])`) === null && G(`lkmLock(LKPD_MODULES[0])`) === '', 'jatah Ujian habis: tanpa gerbang (tidak ada percobaan baru yang perlu dibuka)');
+reset(); G(`LKPD_MODULES[0].gKali=1;LKPD_MODULES[0].maxTry=2`); G(rec('U', 20, 50, 'ujian'));
+ok(G(`lkpGate(LKPD_MODULES[0]).remedial`) === true, 'masih ada jatah: remedial berlaku');
 /* Rujukan tidak tersedia */
 reset(); G(`LKPD_MODULES[1].status='draft'`);
 ok(G(`lkpGate(LKPD_MODULES[0])`) === null && G(`lkmLock(LKPD_MODULES[0])`) === '', 'latihan rujukan tersembunyi: gerbang dilewati, tidak mengunci siswa selamanya');
@@ -111,7 +116,7 @@ G(rec('L', 10, 80, 'latihan') + rec('L', 20, 80, 'latihan'));
 ex = JSON.parse(G(`JSON.stringify(lkpCardExtra(LKPD_MODULES[0],lkmCfg(LKPD_MODULES[0]),[]))`));
 ok(/Siap ujian/.test(ex.tags) && ex.acts === '', 'kartu: Siap ujian');
 ok(G(`lkpCardExtra(LKPD_MODULES[1],lkmCfg(LKPD_MODULES[1]),[])`) === null, 'kartu latihan tanpa tambahan');
-ok(/Gerbang: LKPD L .* 2× berturut-turut/.test(G(`lkpStaffTag(LKPD_MODULES[0],lkmCfg(LKPD_MODULES[0]))`)), 'tag guru memuat gerbang');
+ok(/Prasyarat: LKPD L .* 2× berturut-turut/.test(G(`lkpStaffTag(LKPD_MODULES[0],lkmCfg(LKPD_MODULES[0]))`)), 'tag guru memuat gerbang');
 sama(G(`lkpStaffTag(LKPD_MODULES[1],lkmCfg(LKPD_MODULES[1]))`), '', 'tag guru kosong untuk latihan');
 
 /* Foto wajib */

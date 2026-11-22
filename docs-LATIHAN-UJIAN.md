@@ -1,16 +1,16 @@
 # Pembeda LKPD mode Latihan dan mode Ujian
 
-Berkas: `js/lkpd-pandu.js` (logika baru), pengait kecil di `js/lkpd-mode.js`, `js/lkpd-staff.js`, `js/lkpd-editor.js`, `js/lkpd-drive.js`. Uji: `node tools/uji-pandu.mjs`. Tidak ada perubahan Appwrite: pengaturan baru disimpan pada objek LKPD seperti pengaturan mode yang sudah ada.
+Berkas: `js/lkpd-pandu.js` (logika baru), pengait kecil di `js/lkpd-mode.js`, `js/lkpd-staff.js`, `js/lkpd-editor.js`, `js/lkpd-drive.js`. Uji: `node tools/uji-pandu.mjs` (logika, 61 uji) dan `node tools/uji-pandu-v2.mjs` (render LKPD v2 asli dan daftar kartu, 24 uji). Tidak ada perubahan Appwrite: pengaturan baru disimpan pada objek LKPD seperti pengaturan mode yang sudah ada.
 
 ## 1. Latihan berpemandu, Ujian mandiri
 - **Latihan** (opsi guru "Latihan berpemandu", bawaan aktif): tab Lembar Kerja diawali kartu panduan hijau. Petunjuk komponen dan poin kritis langkah tampil penuh. Angka acuan standar tidak langsung tampak: siswa membukanya lewat tombol **Bantuan: lihat angka acuan** setelah mencoba sendiri.
 - **Ujian**: kartu oranye "Ujian mandiri" memuat aturan (tanpa petunjuk dan angka acuan, cari standar di manual servis, langkah saksi guru harus disaksikan guru, jumlah kesempatan). Angka acuan **selalu** disembunyikan saat Ujian, terlepas dari sakelar "Petunjuk komponen". Opsi **Foto bukti wajib pada semua komponen (Ujian)** menambah foto wajib ke semua komponen pemeriksaan (di luar daftar foto wajib biasa).
-- Berlaku untuk LKPD v2 pada tampilan siswa dan Pratinjau guru.
+- Berlaku untuk LKPD v2 pada tampilan siswa dan Pratinjau guru. Kartu hanya muncul saat Lembar Kerja terbuka (tidak di layar "Lembar Kerja terkunci").
 
 ## 2. Gerbang Latihan ke Ujian
-- Pengaturan LKPD berstatus **Ujian** punya bagian "Gerbang Latihan ke Ujian": pilih LKPD Latihan prasyarat (satu kelas) dan syarat **KKM 1 kali** atau **2 kali berturut-turut**. Hanya nilai Latihan siswa yang bersangkutan yang dihitung (nilai koreksi guru bila ada).
+- Pengaturan LKPD berstatus **Ujian** punya bagian "Prasyarat Latihan sebelum Ujian" (di dokumen ini disebut gerbang; tidak sama dengan "Gerbang masuk" soal TKA di dalam LKPD v2): pilih LKPD Latihan prasyarat (satu kelas) dan syarat **KKM 1 kali** atau **2 kali berturut-turut**. Hanya nilai Latihan siswa yang bersangkutan yang dihitung (nilai koreksi guru bila ada).
 - Selama belum terpenuhi, kartu Ujian menampilkan "Latih lagi n/N" dan tombol **Buka latihan**; Ujian tidak bisa dibuka maupun dikirim. Bila terpenuhi tampil "Siap ujian".
-- **Remedial:** bila Ujian terakhir siswa belum kompeten (di bawah KKM), hanya nilai Latihan **sesudah** Ujian itu yang dihitung, sehingga siswa harus berlatih lagi sebelum mengulang. Tombolnya berubah menjadi "Latihan terarah (remedial)". Batas kesempatan Ujian tetap berlaku.
+- **Remedial:** bila Ujian terakhir siswa belum kompeten (di bawah KKM), hanya nilai Latihan **sesudah** Ujian itu yang dihitung, sehingga siswa harus berlatih lagi sebelum mengulang. Tombolnya berubah menjadi "Latihan terarah (remedial)". Batas kesempatan Ujian tetap berlaku: bila jatah Ujian siswa sudah habis, gerbang tidak menahan lagi (latihan tambahan tidak membuka percobaan baru).
 - Guru tidak terkena gerbang. Bila LKPD Latihan rujukan tersembunyi atau dihapus, gerbang dilewati supaya siswa tidak terkunci selamanya.
 - Tombol **Buat salinan Latihan dari LKPD ini** membuat LKPD baru (id `<id>-L`, judul "(Latihan)", mode Latihan, tampil, tanpa kunci pertemuan) lengkap dengan isinya, lalu memilihnya sebagai gerbang. Pengaturan baru tersimpan setelah **Simpan pengaturan**.
 - Gerbang tidak ikut saat "Terapkan ke semua LKPD" (gerbang khusus per LKPD).

@@ -29,8 +29,9 @@ function lkpGate(m){
  var ref=lkpFind(c.gerbang);if(!ref||!lkmPub(ref))return null;
  var need=c.gKali===2?2:1,kkm=lkpKkm();
  var uj=lkcRecs(m,false).filter(function(x){return lkmModeOf(x)!=='latihan'}).sort(function(a,b){return a.ts-b.ts}),
-  last=uj.length?uj[uj.length-1]:null,
-  /* Ujian terakhir belum kompeten: hanya latihan sesudahnya yang dihitung (remedial). */
+  last=uj.length?uj[uj.length-1]:null;
+ if(c.maxTry>0&&uj.length>=c.maxTry)return null; /* jatah Ujian habis: latihan tambahan tidak membuka percobaan baru */
+ var /* Ujian terakhir belum kompeten: hanya latihan sesudahnya yang dihitung (remedial). */
   since=last&&lkNilai(last)<kkm?last.ts:0,
   la=lkcRecs(ref,false).filter(function(x){return lkmModeOf(x)==='latihan'&&x.ts>since}).sort(function(a,b){return a.ts-b.ts}),
   run=0;
@@ -55,7 +56,7 @@ function lkpCardExtra(m,c,uj){
 function lkpStaffTag(m,c){
  if(c.mode!=='ujian'||!c.gerbang)return '';
  var r=lkpFind(c.gerbang);
- return '<span class="pill plain">Gerbang: '+lkEsc(r?r.title:c.gerbang)+' ≥ KKM'+(c.gKali===2?' 2× berturut-turut':'')+'</span>';
+ return '<span class="pill plain">Prasyarat: '+lkEsc(r?r.title:c.gerbang)+' ≥ KKM'+(c.gKali===2?' 2× berturut-turut':'')+'</span>';
 }
 
 /* ---- Paket cepat dan panel gerbang di Pengaturan ---- */
@@ -66,7 +67,7 @@ function lkpPaket(d){
 function lkpPanel(m,d){
  if(d.mode==='latihan')return '<label class="lk-check"><input type="checkbox" data-lkm="pandu"'+(d.pandu!==false?' checked':'')+'><span><b>Latihan berpemandu</b><small>Kartu panduan tampil, dan angka acuan di Lembar Kerja dibuka siswa lewat tombol Bantuan.</small></span></label>';
  var opts=lkpMods().filter(function(x){return x.id!==m.id&&x.kelas===m.kelas&&lkmCfg(x).mode==='latihan'}).map(function(x){return '<option value="'+lkEsc(x.id)+'"'+(d.gerbang===x.id?' selected':'')+'>'+lkEsc(x.title)+' ('+lkEsc(x.id)+')</option>'}).join('');
- return '<div class="lkp-gate"><span class="label">Gerbang Latihan ke Ujian</span>'+
+ return '<div class="lkp-gate"><span class="label">Prasyarat Latihan sebelum Ujian</span>'+
   '<label class="f">Ujian baru terbuka setelah siswa lulus latihan<select data-lkm="gerbang"><option value="">Tanpa gerbang</option>'+opts+'</select></label>'+
   (d.gerbang?'<label class="f">Syarat nilai latihan (KKM '+lkpKkm()+')<select data-lkm="gKali"><option value="1"'+(+d.gKali!==2?' selected':'')+'>Mencapai KKM 1 kali</option><option value="2"'+(+d.gKali===2?' selected':'')+'>Mencapai KKM 2 kali berturut-turut</option></select></label><p class="note">Siswa yang belum kompeten pada Ujian harus lulus gerbang lagi (nilai latihan sesudah Ujian terakhir) sebelum mengulang.</p>':'<p class="note">'+(opts?'Pilih LKPD Latihan sebagai prasyarat.':'Belum ada LKPD berstatus Latihan di kelas ini.')+' Tombol di bawah membuat salinan Latihan dari LKPD ini.</p>')+
   '<div><button type="button" class="btn small" data-act="lkp-salin">Buat salinan Latihan dari LKPD ini</button></div></div>'+
@@ -112,7 +113,7 @@ function lkpPanduKartu(){
 function lkpPandu(h,c){
  try{
   var m=lkmCur();if(!m||typeof lk2Is!=='function'||!lk2Is(m)||c.pandu===false)return h;
-  if(LK.tab==='kerja'){
+  if(LK.tab==='kerja'&&h.indexOf('lk2-cek')>-1){
    h=h.replace(/<small class="lk-acuan">([\s\S]*?)<\/small>/g,'<small class="lk-acuan"><details class="lkp-b"><summary>Bantuan: lihat angka acuan</summary>$1</details></small>');
    var i=h.indexOf('<section class="card">');
    h=i>-1?h.slice(0,i)+lkpPanduKartu()+h.slice(i):lkpPanduKartu()+h;
@@ -125,7 +126,7 @@ function lkpPandu(h,c){
 function lkpMandiri(h,c){
  try{
   var m=lkmCur();if(!m)return h;
-  if(LK.tab==='kerja'){
+  if(LK.tab==='kerja'&&h.indexOf('lk2-cek')>-1){
    h=h.replace(/<small class="lk-acuan">[\s\S]*?<\/small>/g,'');
    var li=['Tanpa petunjuk dan angka acuan: cari angka standar di manual servis kendaraan, lalu isi kolom Standar manual.','Langkah bertanda <b>saksi guru</b> harus disaksikan guru. Panggil guru sebelum mengerjakannya.'];
    if(c.fotoUjian)li.push('Foto bukti wajib pada <b>semua</b> komponen pemeriksaan sebelum LKPD dikirim.');
