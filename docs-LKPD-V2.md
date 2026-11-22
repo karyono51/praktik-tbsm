@@ -155,3 +155,9 @@ Tombol **Cetak kunci** muncul tepat di samping **Cetak** (pratinjau guru dan bar
 - Data: teori `[topik, uraian, foto]`; soal `qi` (foto soal), `oi` (foto pilihan, PG dan PG kompleks).
 - Yang dikunci di editor v2: jumlah dan urutan Langkah, butir K3, dan komponen Pemeriksaan (terhubung ke `v2.langkah`, `v2.k3grup`, `v2.obs`). Teksnya boleh diubah. Rencana pertemuan, tabel, dan soal gerbang tidak diubah editor ini dan dipertahankan saat menyimpan.
 - Uji: `node tools/uji-lkpd-foto.mjs`.
+
+## Cetak LKPD dan Cetak kunci untuk semua LKPD
+Format cetak (`js/lkpd-format.js`) dan tombol **Cetak kunci** berlaku untuk **semua LKPD**: 21 LKPD bawaan v1 (X-1 sampai XII-7), LKPD-X-07 (v2), dan LKPD buatan guru.
+- **Cetak LKPD**: v2 memakai banner pertemuan; v1 dan buatan guru memakai Tujuan, Materi, Alat dan bahan, Checklist K3, banner Prosedur praktik, Hasil pemeriksaan, Diagnosis dan analisis, Evaluasi pengetahuan, Bobot penilaian, dan tanda tangan, dengan kop, judul hijau, identitas, dan footer yang sama.
+- **Cetak kunci** (Guru dan Admin, di samping Cetak): LKPD v2 mencetak *Kunci dan Pembahasan Gerbang Masuk*; LKPD lain mencetak *Kunci dan Pembahasan Soal Evaluasi* (tabel No, Bentuk, Kunci, Pembahasan dari `m.quiz` yang sama dengan yang dilihat siswa; kolom Level hanya bila soal berlevel). Tombol dipasang oleh pembungkus `viewLKPD` di `lkpd-format.js`, hanya bila LKPD punya soal, dan tidak digandakan. Nama berkas PDF: `Kunci LKPD <id> <judul> <sekolah>`.
+- Uji: `node tools/uji-lkpd-semua.mjs` memeriksa ke-22 LKPD (isi cetak lengkap, tanpa undefined/NaN, satu baris kunci per soal dengan huruf kunci sesuai data, pembahasan, footer, dan tombol hanya untuk staf). `LKPD_DUMP=/tmp/x LKPD_ID=XI-3` menulis HTML cetak dan kunci untuk diperiksa.

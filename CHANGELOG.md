@@ -1,5 +1,9 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Cetak LKPD dan Cetak kunci berlaku untuk semua LKPD
+- Format cetak PDF dan tombol **Cetak kunci** kini untuk semua LKPD: v2 (gerbang masuk) dan 21 LKPD v1 serta buatan guru (kunci dan pembahasan soal evaluasi). Hanya Guru dan Admin yang melihat tombol; LKPD tanpa soal tidak menampilkannya.
+- Rincian di `docs-LKPD-V2.md`; uji baru `tools/uji-lkpd-semua.mjs` (848 pemeriksaan atas 22 LKPD). Tidak ada perubahan Appwrite.
+
 ## Kunci pertemuan: urutan bebas, kecuali pertemuan awal dan akhir
 - Siswa boleh mengunci pertemuan mana saja yang sudah dibuka guru. Pertemuan awal (P1) dan akhir (terakhir) tidak bisa dikunci siswa. Pada LKPD-X-07: P2-P5.
 - Kunci Pertemuan N hanya mengunci isian pertemuan N (dipetakan lewat kegiatan, latihan, dan analisis); gerbang, K3, dan refleksi tetap bebas. Bilah bawah menampilkan satu tombol per pertemuan yang belum terkunci.

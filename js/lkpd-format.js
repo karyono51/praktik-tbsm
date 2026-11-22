@@ -251,25 +251,34 @@ function kunciSoal(q){
  if(t==='kategori'){var lab=q.lab||['Benar','Salah'];return q.rows.map(function(r,k){return (k+1)+' '+E(r[1]?lab[0]:lab[1])}).join('<br>')}
  if(t==='kompleks'){var L=(q.a||[]).slice().sort(function(x,y){return x-y}).map(abc);return L.length>1?L.slice(0,-1).join(', ')+' dan '+L[L.length-1]:L[0]||''}
  if(q.o)return abc(q.a);
- return E(q.kunci!==undefined?q.kunci:q.a);
+ return E(q.kunci!==undefined?q.kunci:q.a!==undefined?q.a:(q.k!==undefined?q.k:''));
 }
 function hitungKoma(v){return String(v).replace('.',',')}
+function sumberKunci(m){
+ var V=m&&m.v2,g=V&&V.gate&&V.gate.qs&&V.gate.qs.length?V.gate:null;
+ if(g)return {gate:true,qs:g.qs};
+ return {gate:false,qs:(m&&m.quiz)||[]};
+}
+function adaKunci(m){return sumberKunci(m).qs.length>0}
+/* Kunci untuk semua LKPD: v2 memakai Gerbang masuk; LKPD lain (v1 dan buatan guru) memakai Soal evaluasi pengetahuan. */
 function kunciBangun(m){
- var V=m.v2,qs=V.gate.qs,BENTUK={pg:'PG',kompleks:'PG kompleks',kategori:'PG kategori'},lv={},ur=[];
- qs.forEach(function(q){if(!lv[q.lvl]){lv[q.lvl]=0;ur.push(q.lvl)}lv[q.lvl]++});
- var S0=typeof SEK!=='undefined'?SEK:{nama:''},ju=String(m.title||'').replace(/\s*\([^)]*\)\s*$/,'');
- var h='<div class="lkf">'+footStyle(m,{},'Kunci gerbang masuk · LKPD '+(V.judulPendek||m.id)+' · '+S0.nama+' (khusus guru)')+kop()+
-  '<p class="lkf-jdl">KUNCI DAN PEMBAHASAN GERBANG MASUK (UNTUK GURU)</p>'+
-  '<p>LKPD '+E(ju)+' · '+(m.kelas==='X'?'DDPK ':'')+'Kelas '+E(m.kelas)+' · Syarat lulus: nilai gerbang minimal '+kkG()+' (acuan TKA). <b>Dokumen ini tidak dibagikan kepada siswa.</b></p>'+
+ var V=m.v2||{},sm=sumberKunci(m),gate=sm.gate,qs=sm.qs,BENTUK={pg:'PG',kompleks:'PG kompleks',kategori:'PG kategori'},lv={},ur=[];
+ qs.forEach(function(q){if(q.lvl){if(!lv[q.lvl]){lv[q.lvl]=0;ur.push(q.lvl)}lv[q.lvl]++}});
+ var adaLvl=ur.length>0,S0=typeof SEK!=='undefined'?SEK:{nama:''},ju=String(m.title||'').replace(/\s*\([^)]*\)\s*$/,'');
+ var kiri=gate?'Kunci gerbang masuk · LKPD '+(V.judulPendek||m.id)+' · '+S0.nama+' (khusus guru)':'Kunci evaluasi · LKPD '+m.id+' · '+S0.nama+' (khusus guru)';
+ var skor='PG benar = 1, salah = 0; PG kompleks = (pilihan benar terpilih − pilihan salah terpilih) ÷ jumlah kunci, minimal 0; PG kategori = pernyataan tepat ÷ jumlah pernyataan.';
+ var h='<div class="lkf">'+footStyle(m,{},kiri)+kop()+
+  '<p class="lkf-jdl">'+(gate?'KUNCI DAN PEMBAHASAN GERBANG MASUK (UNTUK GURU)':'KUNCI DAN PEMBAHASAN SOAL EVALUASI (UNTUK GURU)')+'</p>'+
+  '<p>LKPD '+E(ju)+' · '+(m.kelas==='X'?'DDPK ':'')+'Kelas '+E(m.kelas)+' · '+(gate?'Syarat lulus: nilai gerbang minimal '+kkG()+' (acuan TKA).':qs.length+' soal evaluasi pengetahuan.')+' <b>Dokumen ini tidak dibagikan kepada siswa.</b></p>'+
   '<h2 class="lkf-h">Ketentuan soal</h2><ul class="lkf-ul">'+
-  '<li><b>Bentuk soal</b> mengikuti tiga bentuk TKA SMK: pilihan ganda (5 pilihan, 1 kunci), pilihan ganda kompleks (5 pilihan, kunci lebih dari 1), dan pilihan ganda kategori (pernyataan Benar/Salah). Semuanya soal tunggal; stimulus (kasus, data ukur) ada di dalam soal.</li>'+
-  '<li><b>Level kognitif:</b> soal HOTS berada pada level Aplikasi dan Penalaran. Sebaran soal gerbang: '+ur.map(function(x){return lv[x]+' '+E(x)}).join(', ')+'.</li>'+
-  '<li><b>Pengecoh</b> dibuat dari kesalahan umum siswa, bukan jawaban yang jelas keliru.</li>'+
-  '<li><b>Penskoran gerbang (acuan TKA):</b> PG benar = 1, salah = 0; PG kompleks = (pilihan benar terpilih − pilihan salah terpilih) ÷ jumlah kunci, minimal 0; PG kategori = pernyataan tepat ÷ jumlah pernyataan. Nilai gerbang = jumlah poin ÷ jumlah soal × 100; lulus bila minimal '+kkG()+' (KKM). Gerbang adalah syarat kelayakan masuk praktik, bukan komponen nilai akhir.</li></ul>'+
-  '<h2 class="lkf-h">Kunci</h2><table class="lkf-t"><thead><tr><th style="width:9mm">No</th><th style="width:22mm">Bentuk</th><th style="width:20mm">Level</th><th style="width:26mm">Kunci</th><th>Pembahasan</th></tr></thead><tbody>'+
-  qs.map(function(q,i){return '<tr><td class="k">'+(i+1)+'</td><td>'+E(BENTUK[tipeSoal(q)]||tipeSoal(q))+'</td><td>'+E(q.lvl||'')+'</td><td><b>'+kunciSoal(q)+'</b></td><td>'+E(q.e||'')+'</td></tr>'}).join('')+'</tbody></table>';
- if(V.peta&&V.peta.length)h+='<h2 class="lkf-h">Peta ke soal lama</h2><table class="lkf-t"><thead><tr><th>Soal lama (isian)</th><th>Soal baru</th></tr></thead><tbody>'+V.peta.map(function(x,i){return '<tr><td>'+(i+1)+'. '+E(x[0])+'</td><td>'+E(x[1])+'</td></tr>'}).join('')+'</tbody></table>';
- var lat=(m.quiz||[]).filter(function(q){return q.id&&q.kunci!==undefined&&q.kunci!==null&&q.kunci!==''});
+  '<li><b>Bentuk soal</b> mengikuti tiga bentuk TKA SMK: pilihan ganda (5 pilihan, 1 kunci), pilihan ganda kompleks (5 pilihan, kunci lebih dari 1), dan pilihan ganda kategori (pernyataan Benar/Salah).'+(gate?' Semuanya soal tunggal; stimulus (kasus, data ukur) ada di dalam soal.':'')+'</li>'+
+  (adaLvl?'<li><b>Level kognitif:</b> soal HOTS berada pada level Aplikasi dan Penalaran. Sebaran soal'+(gate?' gerbang':'')+': '+ur.map(function(x){return lv[x]+' '+E(x)}).join(', ')+'.</li>':'')+
+  (gate?'<li><b>Pengecoh</b> dibuat dari kesalahan umum siswa, bukan jawaban yang jelas keliru.</li><li><b>Penskoran gerbang (acuan TKA):</b> '+skor+' Nilai gerbang = jumlah poin ÷ jumlah soal × 100; lulus bila minimal '+kkG()+' (KKM). Gerbang adalah syarat kelayakan masuk praktik, bukan komponen nilai akhir.</li>'
+       :'<li><b>Penskoran (acuan TKA):</b> '+skor+' Nilai teori = rata-rata skor soal × 100.</li>')+
+  '</ul><h2 class="lkf-h">Kunci</h2><table class="lkf-t"><thead><tr><th style="width:9mm">No</th><th style="width:22mm">Bentuk</th>'+(adaLvl?'<th style="width:20mm">Level</th>':'')+'<th style="width:26mm">Kunci</th><th>Pembahasan</th></tr></thead><tbody>'+
+  qs.map(function(q,i){var t=tipeSoal(q),bahas=q.e!==undefined&&q.e!==''?q.e:(q.bahas||'');return '<tr><td class="k">'+(i+1)+'</td><td>'+E(BENTUK[t]||t)+'</td>'+(adaLvl?'<td>'+E(q.lvl||'')+'</td>':'')+'<td><b>'+kunciSoal(q)+'</b></td><td>'+E(bahas)+'</td></tr>'}).join('')+'</tbody></table>';
+ if(gate&&V.peta&&V.peta.length)h+='<h2 class="lkf-h">Peta ke soal lama</h2><table class="lkf-t"><thead><tr><th>Soal lama (isian)</th><th>Soal baru</th></tr></thead><tbody>'+V.peta.map(function(x,i){return '<tr><td>'+(i+1)+'. '+E(x[0])+'</td><td>'+E(x[1])+'</td></tr>'}).join('')+'</tbody></table>';
+ var lat=gate?(m.quiz||[]).filter(function(q){return q.id&&q.kunci!==undefined&&q.kunci!==null&&q.kunci!==''}):[];
  if(lat.length){
   var satuan=lat[0].u||'';
   h+='<h2 class="lkf-h">Kunci jawaban latihan (untuk guru)</h2><table class="lkf-t"><thead><tr>'+lat.map(function(q){return '<th>'+(m.quiz.indexOf(q)+1)+'</th>'}).join('')+'</tr></thead><tbody><tr>'+lat.map(function(q){return '<td class="k">'+E(hitungKoma(q.kunci))+'</td>'}).join('')+'</tr></tbody></table>'+
@@ -277,14 +286,29 @@ function kunciBangun(m){
  }
  return h+'</div>';
 }
-window.lkfKunci=kunciBangun;
+window.lkfKunci=kunciBangun;window.lkfAdaKunci=adaKunci;
+/* Tombol Cetak kunci di samping Cetak untuk semua LKPD (v1, v2, dan buatan guru) yang punya soal; hanya Guru dan Admin. */
+if(typeof viewLKPD==='function'){
+ var _vw=viewLKPD;
+ viewLKPD=function(){
+  var h=_vw.apply(this,arguments);
+  try{
+   if(typeof h==='string'&&h.indexOf('data-act="lk-print">')>-1&&typeof isStaff==='function'&&isStaff()){
+    var m=(LKPD_MODULES||[]).find(function(x){return x.id===LK.module});
+    if(adaKunci(m))h=h.replace(/(<button[^>]*data-act="lk-print">Cetak<\/button>)(?!<button[^>]*data-act="lk-print-kunci")/g,function(a){return a+'<button'+(/class="btn"/.test(a)?' class="btn"':'')+' data-act="lk-print-kunci">Cetak kunci</button>'});
+   }
+  }catch(e){}
+  return h;
+ };
+}
+
 document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-act="lk-print-kunci"]');if(!b)return;
  e.stopPropagation();e.preventDefault();
  try{
   if(typeof isStaff!=='function'||!isStaff()){toast('Kunci hanya untuk guru dan admin');return}
   var m=(typeof LKPD_MODULES!=='undefined'?LKPD_MODULES:[]).find(function(x){return x.id===LK.module});
-  if(!m||!m.v2||!m.v2.gate||!m.v2.gate.qs||!m.v2.gate.qs.length){toast('LKPD ini belum punya gerbang masuk');return}
+  if(!adaKunci(m)){toast('LKPD ini belum punya soal untuk dikunci');return}
   var lama=document.getElementById('lk-print');if(lama)lama.remove();
   var el=document.createElement('div');el.id='lk-print';el.innerHTML=kunciBangun(m);document.body.appendChild(el);
   var t0=document.title,nm=window.LKC&&window.LKC.namaPdf?window.LKC.namaPdf(m):'LKPD '+m.id;
