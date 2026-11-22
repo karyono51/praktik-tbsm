@@ -382,5 +382,16 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   T('menu-dasbor.js: akd-guru tidak lagi tersisa di grup beranda', !/key:'home'[^\n]*akd-guru/.test(md));
 }
 
+/* 13. Katalog SKKNI selaras dengan Matriks_LKPD_TSM_Kelas_X-XII_SKKNI.xlsx (judul resmi, v105) */
+{
+  const { ctx } = boot();
+  const k = ctx.AKD_SKKNI;
+  T('katalog SKKNI: 55 unit', Object.keys(k).length === 55);
+  T('SKKNI 035/036: judul resmi memuat Anti Lock Braking System', /Anti Lock Braking System/.test(k['035']) && /Anti Lock Braking System/.test(k['036']));
+  T('SKKNI 037/038: judul resmi memuat Combi Brake System dan Unified Brake System', ['037', '038'].every((c) => /Combi Brake System \(CBS\)\/Unified Brake System \(UBS\)/.test(k[c])));
+  T('SKKNI 042: judul resmi memuat Alternating Current Generator dan Smart Motor Generator', /Alternating Current Generator \(ACG\)\/Smart Motor Generator \(SMG\)/.test(k['042']));
+  T('SKKNI: setiap judul diawali huruf kapital (gaya judul resmi)', Object.keys(k).every((c) => /^[A-Z]/.test(k[c]) && !/^[a-z]/.test(k[c])), Object.keys(k).filter((c) => !/^[A-Z]/.test(k[c])));
+}
+
 console.log('\n' + pass + ' lulus, ' + fail + ' gagal');
 process.exit(fail ? 1 : 0);

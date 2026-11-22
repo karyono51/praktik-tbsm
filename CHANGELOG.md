@@ -1,5 +1,9 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Katalog SKKNI selaras dengan matriks LKPD (v105)
+- Lima judul unit SKKNI di Administrasi Akademik memakai judul resmi Kepmenaker 147/2019 seperti pada `Matriks_LKPD_TSM_Kelas_X-XII_SKKNI.xlsx`: 035, 036 (ABS), 037, 038 (CBS/UBS), dan 042 (ACG/SMG) tidak lagi disingkat. Selebihnya (50 unit) sudah sama. Pemetaan unit ke elemen CP tidak diubah.
+- `tools/uji-akademik.mjs` kini 116 uji. Berkas: `js/akademik-data.js`. Tidak ada perubahan Appwrite.
+
 ## Administrasi Akademik: tampilan dan submenu (v104)
 - Laci menu: **Administrasi Akademik** menjadi kelompok dengan submenu Guru, Kelas, Daftar siswa, Mata pelajaran, Tata kelola (`js/menu-dasbor.js` dan `js/akademik.js`); baris tunggal lama di kelompok Beranda dihapus.
 - Halaman: kepala dengan judul kecil, pil tahun ajaran dan sekolah, bilah tab berikon yang bisa digeser, jarak kartu seragam, avatar inisial pada kartu guru, garis pemisah pada tahun ajaran dan pemeriksaan, tombol hitungan tanpa garis tebal, satu kartu Acuan dan referensi. Gaya baru di `css/app.css` (awalan `.akd`), mengikuti mode terang dan gelap.
