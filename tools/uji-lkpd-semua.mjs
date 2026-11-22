@@ -22,8 +22,8 @@ function viewLKPD(){return '<div class="chips"><button data-act="lk-print">Cetak
 run(src('lkpd-format.js'), 'lkpd-format.js');
 const G = (e) => vm.runInContext(e, ctx);
 G('LKPD_MODULES=LKPD_MODULES.concat(LKPD_EXTRA_MODULES)'); /* seperti lkpd.js baris 20 */
-const ALL = G('LKPD_MODULES.slice()');
-ok(ALL.length === 22, '22 LKPD bawaan termuat (dapat ' + ALL.length + ')');
+const ALL = G('LKPD_MODULES.filter(function(m,i,a){return a.findIndex(function(x){return x.id===m.id})===i})');
+ok(ALL.length === 1 && ALL[0].id === 'LKPD-X-07', 'hanya LKPD v2 (LKPD-X-07) yang bawaan (dapat ' + ALL.map((m) => m.id).join(',') + ')');
 const abc = (k) => String.fromCharCode(65 + k);
 const teks = (h) => h.replace(/<style>[\s\S]*?<\/style>/g, '').replace(/<br>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ');
 const H = (d) => ({ d: d || {}, pihak: { siswa: 'Budi', tanggal: '21/11/2026', guru: 'Karyono, S.T.' }, semester: 'Ganjil 2026/2027', mapel: 'Mapel', akhir: '<div>TTD</div>' });

@@ -28,7 +28,7 @@ const cek = ctx.lkmsCek(master());
 ok(cek.length === 14, '14 butir daftar periksa (' + cek.length + ')');
 ok(cek.every((x) => x.ok), 'LKPD-X-07 memenuhi semua butir master: ' + cek.filter((x) => !x.ok).map((x) => x.k).join('; '));
 ok(ctx.lkmsMaster(master()) === true, 'LKPD-X-07 dikenali sebagai master');
-const v1 = G('LKPD_MODULES[0]');
+const v1 = salin(); delete v1.v2; v1.id = 'X-1'; /* LKPD v1 bawaan sudah dihapus: tiru bentuknya */
 ok(ctx.lkmsMaster(v1) === false && ctx.lkmsCek(v1)[0].ok === false, 'LKPD v1 bukan master dan bukan v2');
 /* salinan dengan id lain bukan master */
 const cp = salin(); cp.id = 'LKPD-X-08';

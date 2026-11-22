@@ -105,18 +105,5 @@ var AKD_LKPD_MATRIKS=[{"k":"LKPD-X-01","kl":"X","sm":"Ganjil","el":"Wawasan Duni
 /* Padanan modul LKPD di aplikasi (id modul) dengan kode LKPD pada matriks. Awal, berdasarkan kemiripan judul; verifikasi guru.
    'tepat' = cakupan sama, 'sebagian' = modul aplikasi hanya sebagian cakupan matriks, 'kelas beda' = topik sama tetapi tingkat kelas berbeda. */
 var AKD_LKPD_PADAN={
- 'LKPD-X-02':[['X-4','sebagian']],'LKPD-X-03':[['X-4','sebagian']],
- 'LKPD-X-05':[['X-1','sebagian']],
- 'LKPD-X-06':[['X-6','tepat']],
- 'LKPD-X-07':[['LKPD-X-07','tepat'],['X-2','sebagian']],
- 'LKPD-X-10':[['X-5','sebagian']],
- 'LKPD-XI-04':[['XI-5','tepat']],
- 'LKPD-XI-06':[['XI-6','tepat']],
- 'LKPD-XI-10':[['XII-6','kelas beda']],
- 'LKPD-XI-13':[['XI-2','sebagian']],
- 'LKPD-XI-15':[['XI-7','tepat']],
- 'LKPD-XI-18':[['XI-3','sebagian']],
- 'LKPD-XI-19':[['XI-8','sebagian']],
- 'LKPD-XI-20':[['X-3','kelas beda']],
- 'LKPD-XII-11':[['XII-2','sebagian']]
+ 'LKPD-X-07':[['LKPD-X-07','tepat']]
 };

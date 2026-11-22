@@ -419,18 +419,18 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   const kode = new Set(D.map((x) => x.k));
   T('padanan: semua kode padanan ada di matriks', Object.keys(ctx.AKD_LKPD_PADAN).every((k) => kode.has(k)));
   T('padanan: setiap tingkat padanan sah (tepat, sebagian, kelas beda)', Object.values(ctx.AKD_LKPD_PADAN).every((L) => L.every((p) => ['tepat', 'sebagian', 'kelas beda'].includes(p[1]))));
-  ctx.LKPD_MODULES = [{ id: 'X-6', title: 'Penggunaan dan Perawatan Alat Tangan Bengkel', kelas: 'X' }, { id: 'XI-1', title: 'Tune-up', kelas: 'XI' }];
+  ctx.LKPD_MODULES = [{ id: 'LKPD-X-07', title: 'Penggunaan dan Perawatan Alat Ukur', kelas: 'X' }, { id: 'XI-1', title: 'Tune-up', kelas: 'XI' }];
   ctx.LKPD_DEFAULT_MODULES = ctx.LKPD_MODULES;
-  T('modul tanpa padanan: XI-1 terdaftar, X-6 tidak', JSON.stringify(ctx.akLkpdTanpaPadan().map((m) => m.id)) === '["XI-1"]', ctx.akLkpdTanpaPadan().map((m) => m.id));
+  T('modul tanpa padanan: XI-1 terdaftar, LKPD-X-07 tidak', JSON.stringify(ctx.akLkpdTanpaPadan().map((m) => m.id)) === '["XI-1"]', ctx.akLkpdTanpaPadan().map((m) => m.id));
   ctx.S.tab = 'akd-lkpd';
   let h = ctx.viewAkdLkpd();
   T('halaman Peta LKPD: tiga kartu JP per kelas dengan keterangan sesuai target', /432 JP/.test(h) && /648 JP/.test(h) && /352 JP/.test(h) && (h.match(/sesuai target/g) || []).length === 3);
   T('halaman Peta LKPD: kelompok Kelas X, XI, XII dan kartu LKPD', /Kelas X<\/b>/.test(h) && /Kelas XI<\/b>/.test(h) && /Kelas XII<\/b>/.test(h) && /LKPD-XII-13/.test(h) && /Penggunaan dan Perawatan Alat Ukur/.test(h));
-  T('halaman Peta LKPD: padanan modul tampil (X-6 tepat)', /Modul di aplikasi \(1\)/.test(h) && /X-6<\/span> Penggunaan dan Perawatan Alat Tangan Bengkel · tepat/.test(h));
+  T('halaman Peta LKPD: padanan modul tampil (LKPD-X-07 tepat)', /Modul di aplikasi \(1\)/.test(h) && /LKPD-X-07<\/span> Penggunaan dan Perawatan Alat Ukur · tepat/.test(h));
   AKD.lf = 'XII'; h = ctx.akLkpdCards();
   T('filter Kelas XII: hanya 13 LKPD', (h.match(/LKPD-XII-\d+/g) || []).length >= 13 && !/LKPD-X-01/.test(h) && !/LKPD-XI-01/.test(h) && /13 LKPD · 352 JP/.test(h), h.match(/\d+ LKPD · \d+ JP/g));
   AKD.lf = 'ada'; h = ctx.akLkpdCards();
-  T('filter Ada di aplikasi: hanya LKPD yang punya padanan', !/LKPD-X-01</.test(h) && /LKPD-X-06/.test(h));
+  T('filter Ada di aplikasi: hanya LKPD yang punya padanan', !/LKPD-X-01</.test(h) && /LKPD-X-07/.test(h));
   AKD.lf = 'ALL'; AKD.lq = 'rantai'; h = ctx.akLkpdCards();
   T('pencarian rantai: menemukan LKPD-XI-20, XII-08, dan X-01 (Rantai Usaha) tetapi bukan X-02', /LKPD-XI-20/.test(h) && /LKPD-XII-08/.test(h) && /LKPD-X-01</.test(h) && !/LKPD-X-02</.test(h));
   AKD.lq = 'zzzz'; T('pencarian tanpa hasil: pesan kosong', /Belum ada LKPD yang cocok/.test(ctx.akLkpdCards()));
@@ -444,7 +444,7 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   /* ekspor */
   log.rows.length = 0; await klik('ekspor');
   const pl = log.rows.find((r) => r[0] && 'Kode LKPD' in r[0]);
-  T('ekspor Excel: lembar Peta LKPD memuat 62 baris dengan padanan modul', pl && pl.length === 62 && pl.find((r) => r['Kode LKPD'] === 'LKPD-X-06')['Modul di aplikasi'] === 'X-6 (tepat)' && pl.every((r) => typeof r.JP === 'number'), pl && pl.length);
+  T('ekspor Excel: lembar Peta LKPD memuat 62 baris dengan padanan modul', pl && pl.length === 62 && pl.find((r) => r['Kode LKPD'] === 'LKPD-X-07')['Modul di aplikasi'] === 'LKPD-X-07 (tepat)' && pl.every((r) => typeof r.JP === 'number'), pl && pl.length);
 }
 
 console.log('\n' + pass + ' lulus, ' + fail + ' gagal');

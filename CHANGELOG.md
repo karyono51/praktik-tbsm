@@ -1,5 +1,11 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## LKPD v1 dihapus
+- 21 modul LKPD v1 bawaan (X-1 sampai X-6, XI-1 sampai XI-8, XII-1 sampai XII-7) dihapus dari aplikasi: data di `js/lkpd.js` (X-1) dan `js/lkpd-modul.js` (20 modul lain) dikosongkan. Yang tersisa hanya **LKPD v2** (LKPD-X-07, `js/lkpd-v2-x07.js`) beserta mesin LKPD, Master LKPD V2, dan editornya.
+- Modul LKPD default kini LKPD-X-07. Padanan Peta LKPD hanya LKPD-X-07; modul aplikasi tanpa padanan kini kosong.
+- **Tidak dihapus:** data di Appwrite (salinan modul tersimpan, pengumpulan dan riwayat siswa, hasil penilaian). Modul v1 yang pernah disimpan/diedit guru di Appwrite masih akan tampil; hapus lewat menu Hapus LKPD bila perlu. Bank soal bawaan (54 soal XI-3) tidak berubah.
+- Tes disesuaikan: `uji-akademik` 144, `uji-lkpd-master` 39, `uji-lkpd-semua` 29 (semua lulus).
+
 ## Bank soal bawaan: hanya soal bentuk TKA dan level HOTS
 - Dihapus dari bank soal **bawaan**: 1.266 soal (soal-tka.js 60 soal, 20 unit LKPD selain XI-3 masing-masing 60 soal, dan 6 soal level Pengetahuan dan Pemahaman di XI-3). Alasan: bukan bentuk TKA (PG 4 opsi, kompleks/kategori di luar aturan) atau tidak berlevel HOTS (Aplikasi atau Penalaran).
 - Tersisa **54 soal** di `js/soal-lkpd/xi3.js` (LKPD XI-3 Pembongkaran dan Pemasangan Komponen CVT): 34 PG, 10 PG kompleks, 10 PG kategori, semuanya level Aplikasi atau Penalaran.
