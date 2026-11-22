@@ -60,7 +60,7 @@ function lkpStaffTag(m,c){
 
 /* ---- Paket cepat dan panel gerbang di Pengaturan ---- */
 function lkpPaket(d){
- return '<div class="lkp-paket"><span class="label">Paket cepat</span><div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small'+(d.mode==='latihan'?' primary':'')+'" data-act="lkp-paket" data-v="latihan">Paket Latihan</button><button type="button" class="btn small'+(d.mode==='ujian'?' primary':'')+'" data-act="lkp-paket" data-v="ujian">Paket Ujian</button></div>'+
+ return '<div class="lkp-paket"><span class="label">Paket cepat</span><div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small" data-act="lkp-paket" data-v="latihan">Paket Latihan</button><button type="button" class="btn small" data-act="lkp-paket" data-v="ujian">Paket Ujian</button></div>'+
   '<p class="note"><b>Paket Latihan:</b> boleh diulang tanpa batas, kunci dan pembahasan tampil, panduan bertahap aktif, tanpa gerbang. <b>Paket Ujian:</b> 1 kesempatan, teori, penjelasan langkah, dan petunjuk disembunyikan, kunci tidak tampil, foto bukti wajib pada semua komponen. Jadwal dan status tampil tidak diubah. Paket baru tersimpan setelah Simpan pengaturan.</p></div>';
 }
 function lkpPanel(m,d){
