@@ -1,5 +1,12 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Daftar mapel kembali lengkap per kelompok kurikulum SMK
+- Halaman **Mata pelajaran** menampilkan lagi **semua mapel SMK** menurut struktur kurikulum: **Kelompok Umum** (PABP, Pendidikan Pancasila, Bahasa Indonesia, PJOK, Sejarah, Seni dan Budaya, Muatan Lokal), **Kelompok Kejuruan** (Matematika, Bahasa Inggris, Informatika, Projek IPAS, Dasar-Dasar Teknik Otomotif, Teknik Sepeda Motor, Kreativitas/Inovasi/Kewirausahaan, PKL), dan **Mata Pelajaran Pilihan**. Tiap kelompok bisa disembunyikan.
+- Kelompok **Dasar-Dasar Program Keahlian Teknik Otomotif** dan **Kompetensi Keahlian Teknik Sepeda Motor** dihapus. Dasar-Dasar Teknik Otomotif dan Teknik Sepeda Motor beserta elemen CP-nya kini berada di Kelompok Kejuruan (`akGrupTampil` di `js/akademik.js`).
+- Chip filter: Semua (bawaan), Umum, Kejuruan, Pilihan, Produktif. Chip Non-produktif dan tombol "Arsipkan n mapel non-produktif" dihapus supaya mapel umum tidak ikut terarsip.
+- Angka Mata pelajaran dan Elemen CP menghitung semua mapel aktif; Tanpa pengampu tetap hanya menghitung mapel produktif. Bawaan kurikulum memuat 31 baris (14 mapel, DDTO dan TSM beserta elemen). Sinkronkan kurikulum melengkapi yang belum ada.
+- Pilihan mapel di tugas mengajar dan form bank soal tetap hanya mapel produktif. Pengelompokan di Bank soal tidak berubah. `tools/uji-akademik.mjs` kini 123 uji. Tidak ada perubahan Appwrite.
+
 ## UKK bukan mata pelajaran (daftar mapel Administrasi Akademik)
 - **UKK Teknik Sepeda Motor (TB-02)** tidak lagi tampil sebagai mata pelajaran. UKK (Uji Kompetensi Keahlian) adalah asesmen kompetensi, bukan baris mapel di struktur kurikulum SMK maupun e-Rapor SMK. Judul yang diawali "UKK" atau "Uji Kompetensi Keahlian" kini disaring seperti judul "LKPD": disembunyikan dari daftar, pilihan mapel, statistik, dan tidak diimpor lagi oleh Sinkronkan kurikulum (`akBukanMapel` di `js/akademik.js`).
 - Data lama di Appwrite tidak dihapus; barisnya hanya disembunyikan. Soal bank soal yang mapelnya "UKK ..." tidak berubah. `tools/uji-akademik.mjs` kini 120 uji. Tidak ada perubahan Appwrite.

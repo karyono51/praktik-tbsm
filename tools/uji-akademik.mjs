@@ -183,8 +183,8 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   const { ctx, AKD, log, klik } = boot();
   const seed = ctx.akSeedList();
   const ids = seed.map((m) => m.id);
-  T('bawaan: hanya DDTO, TSM, PKL dan elemennya (18 mapel)', seed.length === 18 && ids.includes('m_ddo') && ids.includes('m_tsm') && ids.includes('m_pkl') && !ids.includes('m_pabp') && !ids.includes('m_mtk') && !ids.includes('m_kka'), ids);
-  T('bawaan: semuanya bertanda produktif', seed.every((m) => m.produktif === true));
+  T('bawaan: seluruh mapel struktur kurikulum SMK (31 baris: 14 mapel, DDTO dan TSM beserta elemen CP)', seed.length === 31 && ['m_pabp', 'm_mtk', 'm_ddo', 'm_tsm', 'm_pkl', 'm_kka'].every((x) => ids.includes(x)), ids);
+  T('bawaan: hanya DDTO, TSM, PKL dan elemennya bertanda produktif (18)', seed.filter((m) => m.produktif === true).length === 18 && seed.filter((m) => m.produktif === false).length === 13);
   /* data lama (tanpa tanda produktif) */
   const lama = (o) => ({ aktif: true, kelompok: 'kejuruan', ...o });
   AKD.D.mapel = [
@@ -208,10 +208,13 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   /* daftar mapel */
   ctx.S.tab = 'akd-mapel';
   let h = ctx.viewAkdMapel();
-  T('daftar mapel: bawaan menampilkan produktif saja', /Praktik Kerja Lapangan/.test(h) && !/Pendidikan Agama/.test(h) && !/>Matematika</.test(h));
-  T('chip Non-produktif memuat jumlah (2: PABP, Matematika) dan x2', /Non-produktif \(3\)/.test(h), h.match(/Non-produktif[^<]*/));
-  AKD.fl = 'lain'; h = ctx.viewAkdMapel();
-  T('chip Non-produktif menampilkan mapel non-produktif', /Pendidikan Agama/.test(h) && /Matematika/.test(h) && !/Praktik Kerja Lapangan/.test(h));
+  T('daftar mapel: bawaan menampilkan semua mapel SMK per kelompok', /Praktik Kerja Lapangan/.test(h) && /Pendidikan Agama/.test(h) && /Matematika/.test(h));
+  T('kelompok: hanya Umum, Kejuruan, dan Pilihan (tanpa kelompok Dasar Program / Kompetensi Keahlian)', /Kelompok Umum/.test(h) && /Kelompok Kejuruan/.test(h) && !/<b>Dasar-Dasar Program Keahlian Teknik Otomotif<\/b>/.test(h) && !/<b>Kompetensi Keahlian Teknik Sepeda Motor<\/b>/.test(h));
+  T('chip: Semua, Umum, Kejuruan, Pilihan, Produktif', ['Semua', 'Umum', 'Kejuruan', 'Pilihan', 'Produktif'].every((c) => new RegExp('>' + c + '<').test(h)) && !/Non-produktif/.test(h));
+  AKD.fl = 'prod'; h = ctx.viewAkdMapel();
+  T('chip Produktif menampilkan mapel produktif saja', /Praktik Kerja Lapangan/.test(h) && !/Pendidikan Agama/.test(h) && !/>Matematika</.test(h));
+  AKD.fl = 'umum'; h = ctx.viewAkdMapel();
+  T('chip Umum menampilkan Kelompok Umum saja', /Pendidikan Agama/.test(h) && !/Praktik Kerja Lapangan/.test(h));
   AKD.fl = 'ALL';
   /* bank soal */
   const nm = ctx.akMapelNamaMaster();
@@ -250,7 +253,8 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   await g.klik('arsip-non');
   T('guru tidak bisa mengarsipkan mapel', g.AKD.D.mapel[0].aktif === true && /Hanya admin/.test(g.log.toast.join()));
   /* urutan grup: produktif lebih dulu */
-  T('urutan grup: dasar, konsentrasi lebih dulu dari umum', ctx.AK_GRUP.map((x) => x[0]).join() === 'dasar,konsentrasi,kejuruan,umum,pilihan');
+  T('urutan grup mengikuti struktur kurikulum: umum, kejuruan, pilihan', ctx.AK_GRUP.map((x) => x[0]).join() === 'umum,kejuruan,pilihan');
+  T('DDTO, TSM, dan PKL masuk Kelompok Kejuruan', ['m_ddo', 'm_tsm', 'm_pkl'].every((id) => ctx.akGrupTampil({ id, kelompok: 'kejuruan', komponen: 'Konsentrasi Keahlian' }) === 'kejuruan'));
 }
 
 /* 8. Perapian v103: validasi simpan, kata kunci LKPD, anggota rombel */

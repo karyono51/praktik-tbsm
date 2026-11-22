@@ -74,3 +74,9 @@ Aplikasi difokuskan pada mata pelajaran produktif/kejuruan: **Dasar-Dasar Teknik
 
 ## UKK bukan mata pelajaran
 - Judul yang diawali **UKK** atau **Uji Kompetensi Keahlian** (mis. "UKK Teknik Sepeda Motor", kode TB-xx yang masuk dari bank soal lewat Sinkronkan) bukan mata pelajaran: UKK adalah asesmen kompetensi keahlian dan tidak punya baris mapel di struktur kurikulum SMK atau e-Rapor SMK. Disembunyikan dari daftar, pilihan mapel, dan statistik, serta tidak diimpor lagi oleh Sinkronkan kurikulum (sama seperti judul LKPD). Data lama tidak dihapus.
+
+## Daftar mapel lengkap per kelompok (menggantikan fokus produktif v102 pada tampilan)
+- Halaman Mata pelajaran menampilkan semua mapel SMK dalam tiga kelompok sesuai struktur kurikulum: **Kelompok Umum**, **Kelompok Kejuruan**, **Mata Pelajaran Pilihan**. Dasar-Dasar Teknik Otomotif dan Teknik Sepeda Motor (beserta elemen CP) ada di Kelompok Kejuruan; kelompok tersendiri "Dasar-Dasar Program Keahlian Teknik Otomotif" dan "Kompetensi Keahlian Teknik Sepeda Motor" sudah dihapus.
+- Chip: Semua, Umum, Kejuruan, Pilihan, Produktif. Tombol Arsipkan mapel non-produktif dihapus dari Tata kelola.
+- Penanda produktif tetap dipakai untuk pemeriksaan pengampu, pilihan tugas mengajar, dan daftar mapel di form bank soal.
+
