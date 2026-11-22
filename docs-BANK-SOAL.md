@@ -1,5 +1,7 @@
 # Bank soal (v41, bentuk soal mengikuti acuan TKA)
 
+> Pembaruan: soal bawaan kini hanya 54 soal HOTS LKPD XI-3 (lihat CHANGELOG). Angka "60 soal bawaan" dan "40 PG bawaan tetap 4 opsi" di bawah adalah keadaan lama.
+
 Fitur terpisah dari LKPD. Menu: **Bank soal** (semua peran).
 
 ## Siswa

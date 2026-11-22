@@ -1,5 +1,12 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Bank soal bawaan: hanya soal bentuk TKA dan level HOTS
+- Dihapus dari bank soal **bawaan**: 1.266 soal (soal-tka.js 60 soal, 20 unit LKPD selain XI-3 masing-masing 60 soal, dan 6 soal level Pengetahuan dan Pemahaman di XI-3). Alasan: bukan bentuk TKA (PG 4 opsi, kompleks/kategori di luar aturan) atau tidak berlevel HOTS (Aplikasi atau Penalaran).
+- Tersisa **54 soal** di `js/soal-lkpd/xi3.js` (LKPD XI-3 Pembongkaran dan Pemasangan Komponen CVT): 34 PG, 10 PG kompleks, 10 PG kategori, semuanya level Aplikasi atau Penalaran.
+- `js/cp-peta.js` dipangkas ke 54 soal; `functions/cbt/src/bawaan.json` dan salinannya di `functions/akun-admin/src` dibangun ulang (54 soal). **Deploy ulang fungsi akun-admin** agar penilaian server memakai daftar baru.
+- Soal buatan guru di Appwrite tidak disentuh. LKPD bawaan yang soal banknya habis memakai soal evaluasi bawaan modul sendiri; salinan LKPD tersimpan yang sudah bertanda quizV tidak berubah.
+- Berkas lama `js/soal-lkpd/*.js` selain `xi3.js` ikut dihapus dari paket; hapus juga di folder proyek (lihat catatan pemasangan).
+
 ## Peta LKPD: dikelompokkan per Elemen CP
 - Di tab **Peta LKPD**, di dalam tiap kelas (X, XI, XII), LKPD kini dikelompokkan lagi per **Elemen CP** (mis. Kelas X: Wawasan Dunia Otomotif, Kecakapan Kerja Dasar K3 dan Budaya Kerja, dst., 7 elemen; XI 7 elemen; XII 7 elemen). Tiap kelompok elemen menampilkan jumlah LKPD dan total JP, dan bisa dilipat.
 - Chip baru **Kelompokkan: Elemen CP / Kelas saja** (bawaan Elemen CP). Filter kelas, Ada di aplikasi, dan pencarian tetap berfungsi; jumlah LKPD (62) dan JP per kelas tidak berubah. Tidak ada perubahan Appwrite.
