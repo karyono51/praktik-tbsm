@@ -40,7 +40,7 @@ function ob2Hitung(nl,O){
   else if(+nl['i'+i]===1)kom++;
  });
  var nI=O.indikator.length,stop=O.aspek.some(function(a){return a.stop&&+nl[baru?'l_'+a.id:a.id]===1}),lengkap=done===O.aspek.length&&(!fi||doneI===nI);
- return {done:done,n:O.aspek.length,doneI:fi?doneI:0,fi:fi,tDone:done+(fi?doneI:0),tN:O.aspek.length+(fi?nI:0),nilai:Math.round(sum),kom:kom,nKom:nI,stop:stop,lengkap:lengkap,baru:baru,kompeten:lengkap&&kom===nI&&!stop};
+ return {done:done,n:O.aspek.length,doneI:fi?doneI:0,fi:fi,tDone:done+(fi?doneI:0),tN:O.aspek.length+(fi?nI:0),nilai:Math.round(sum),kom:kom,nKom:nI,stop:stop,lengkap:lengkap,baru:baru,kompeten:lengkap&&kom===nI&&!stop&&Math.round(sum)>=(typeof S!=='undefined'&&+S.kkm||75)};
 }
 function ob2KatNilai(n){n=+n||0;return n>=91?'Sangat Kompeten':n>=75?'Kompeten':n>=61?'Cukup Kompeten':'Belum Kompeten'}
 function ob2Kat(h){return h.baru?(h.stop?'Belum Kompeten':ob2KatNilai(h.nilai)):(h.stop?'Kurang':obsKat(h.nilai/25))}
@@ -109,8 +109,8 @@ function ob2StuHtml(d){
  var guide='<details class="card"><summary><b>Yang diamati dan kesalahan umum</b></summary>'+O.panduan.map(function(g){return '<p><b>'+esc(g.k)+'</b><br>Yang diamati: '+esc(g.lihat)+'<br>Kesalahan umum: '+esc(g.salah)+'</p>'}).join('')+'</details>';
  var aspek=O.aspek.map(function(a,n){return ob2AspekHtml(a,n,d)}).join('');
  var ind=d.nilai._fi===2?
-  '<h3 class="obs-group">Indikator kompeten</h3><p class="note">Nilai tiap indikator dengan skala 1-4 yang sama. Indikator tercapai bila berskala 3 (Kompeten) atau 4 (Sangat Kompeten). Kompeten bila semua indikator tercapai dan K3 tidak berskala 1.</p>'+O.indikator.map(function(x,i){return ob2IndHtml(x,i,d)}).join(''):
-  '<div class="card ob2-card"><b>Indikator kompeten</b><p class="note">Centang bila terbukti. Kompeten bila semua tercentang dan K3 tidak bernilai 1.</p>'+
+  '<h3 class="obs-group">Indikator kompeten</h3><p class="note">Nilai tiap indikator dengan skala 1-4 yang sama. Indikator tercapai bila berskala 3 (Kompeten) atau 4 (Sangat Kompeten). Kompeten bila semua indikator tercapai, K3 tidak berskala 1, dan nilai akhir minimal KKM.</p>'+O.indikator.map(function(x,i){return ob2IndHtml(x,i,d)}).join(''):
+  '<div class="card ob2-card"><b>Indikator kompeten</b><p class="note">Centang bila terbukti. Kompeten bila semua tercentang, K3 tidak bernilai 1, dan nilai akhir minimal KKM.</p>'+
   O.indikator.map(function(x,i){return '<label class="ob2-ind"><input type="checkbox" data-ob2i="i'+i+'" '+(+d.nilai['i'+i]===1?'checked':'')+'><span>'+esc(x.t)+'<small>Bukti: '+esc(x.bukti)+'</small></span></label>'}).join('')+'</div>';
  return sel+ob2Chips(d,O)+
   '<div class="card"><div class="row sb"><b>Menilai: '+esc(cs.nama)+'</b><span class="pill plain mono">'+esc(cs.kelas||'-')+'</span></div><p class="note">Siswa '+(idx+1)+' dari '+d.pilih.length+'.</p>'+
