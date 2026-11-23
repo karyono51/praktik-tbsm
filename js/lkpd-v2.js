@@ -224,7 +224,9 @@ function lk2Kerja(m,d){
  if(!g.lulus&&!isStaff()&&!LK2.cetak)return '<section class="card"><h2>Lembar Kerja terkunci</h2><p>'+(g.auto?'Lembar Kerja terbuka bila nilai gerbang masuk minimal '+g.kkm+'. Nilai gerbangmu sekarang '+g.nilai+' ('+g.n+' dari '+g.total+' soal terjawab). Pelajari Materi, lalu perbaiki jawaban di gerbang masuk.':'Jawab semua pertanyaan gerbang masuk di tab Materi dulu ('+g.n+' dari '+g.total+' terjawab).')+'</p><button type="button" class="btn primary" data-act="lk-tab" data-v="materi">Ke gerbang masuk</button></section>';
  var h='<section class="card"><h2>Identitas praktik</h2><div class="formgrid">'+[['school','Sekolah',typeof schNama==='function'?schNama():''],['student','Nama siswa',S.user.nama],['class','Kelas',S.user.kelas||'X'],['group','Kelompok',''],['date','Tanggal',ymd(Date.now())],['teacher','Guru/instruktur',''],['meter','Alat ukur yang dipakai (ketelitian)','']].map(function(x){return '<label class="f">'+x[1]+'<input data-lk-field="'+x[0]+'" value="'+lkEsc(d[x[0]]||x[2])+'" '+(['student','class'].indexOf(x[0])>-1?'readonly':'')+'></label>'}).join('')+'</div></section>';
  V.pertemuan.forEach(function(p){
-  h+='<section class="card lk2-p"><div class="row sb"><h2>Pertemuan '+p.n+'</h2><span class="pill">Target '+p.menit+' menit</span></div><p class="note">'+lkEsc(p.judul)+'</p>';
+  if(p.sembunyi)return;
+  var kt=p.kartu||{};
+  h+='<section class="card lk2-p"><div class="row sb"><h2>'+(kt.judul?lkEsc(kt.judul):'Pertemuan '+p.n)+'</h2><span class="pill">Target '+(kt.menit||p.menit)+' menit</span></div>'+(kt.judul?'':'<p class="note">'+lkEsc(p.judul)+'</p>');
   if(!p.kegiatan.length)h+='<p class="note">'+(p.n===1?'Isi gerbang masuk dan daftar APD di tab Materi.':'Penilaian kinerja oleh guru. Lengkapi analisis dan refleksi di bawah.')+'</p>';
   p.kegiatan.forEach(function(k){
    h+='<h3>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+'</h3>'+

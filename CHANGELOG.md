@@ -1,5 +1,9 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
+## Kartu Lembar Kerja LKPD-X-07 disederhanakan
+- Di tab Lembar Kerja, kartu **Pertemuan 1** dan **Pertemuan 6** tidak ditampilkan (`sembunyi:true` pada `js/lkpd-v2-x07.js`; mesin di `js/lkpd-v2.js` melewati pertemuan bertanda itu). Data pertemuan, Rencana pertemuan di Materi, JP, dan cetak tidak berubah.
+- Kartu **Pertemuan 2** kini berjudul **Kegiatan 1 jangka Sorong** dengan **Target 10 menit** (`kartu:{judul,menit}`). Kartu Pertemuan 3, 4, 5 disesuaikan: **Kegiatan 2 mikrometer**, **Kegiatan 3 dial gauge**, **Kegiatan 4 perawatan**, masing-masing Target 10 menit.
+
 ## Pembeda LKPD Latihan dan Ujian
 - **Latihan berpemandu, Ujian mandiri:** Latihan menampilkan kartu panduan dan membuka angka acuan lewat tombol Bantuan; Ujian menyembunyikan angka acuan, menampilkan kartu aturan "Ujian mandiri", dan (opsional) mewajibkan foto bukti pada semua komponen.
 - **Latihan lalu Ujian di satu LKPD (tanpa salinan):** centang "Latihan dulu, baru Ujian" di Pengaturan. Siswa memulai dari Latihan (Tahap 1, tidak masuk rekap); setelah nilai mencapai KKM 1 kali atau 2 kali berturut-turut, LKPD yang sama otomatis menjadi Ujian (Tahap 2). Ujian gagal membawa siswa kembali ke Latihan (remedial) selama masih ada jatah. Tidak ada LKPD kedua, jadi siswa tidak bingung dengan judul ganda.
