@@ -80,7 +80,7 @@ function lksAnalisis(m){
 function lksOpenAtur(m){
  if(LKM.edit===m.id&&LKM.d)return;
  var c=lkmCfg(m);LKM.edit=m.id;
- LKM.d={tampil:lkmPub(m),mode:c.mode,maxTry:c.maxTry,showKey:c.showKey,hideTeori:c.hideTeori,hideLangkah:c.hideLangkah,hidePetunjuk:c.hidePetunjuk,gerbang:c.gerbang,gKali:c.gKali,fotoUjian:c.fotoUjian,pandu:c.pandu,buka:c.buka,tutup:c.tutup,semua:false,fotoWajib:(Array.isArray(m.fotoWajib)?m.fotoWajib.slice():[]),kunci:m.kunci!==false,pertBuka:parseInt(m.pertBuka,10)||0};
+ LKM.d={tampil:lkmPub(m),mode:c.mode,maxTry:c.maxTry,showKey:c.showKey,hideTeori:c.hideTeori,hideLangkah:c.hideLangkah,hidePetunjuk:c.hidePetunjuk,tahap:c.tahap,gKali:c.gKali,fotoUjian:c.fotoUjian,pandu:c.pandu,buka:c.buka,tutup:c.tutup,semua:false,fotoWajib:(Array.isArray(m.fotoWajib)?m.fotoWajib.slice():[]),kunci:m.kunci!==false,pertBuka:parseInt(m.pertBuka,10)||0};
 }
 function lksHub(){
  var m=lksMod();if(!m||m.kelas!==S.kelas){LKS.id=null;LKA.id=null;return lksList()}

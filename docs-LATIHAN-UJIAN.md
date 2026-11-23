@@ -1,31 +1,32 @@
 # Pembeda LKPD mode Latihan dan mode Ujian
 
-Berkas: `js/lkpd-pandu.js` (logika baru), pengait kecil di `js/lkpd-mode.js`, `js/lkpd-staff.js`, `js/lkpd-editor.js`, `js/lkpd-drive.js`. Uji: `node tools/uji-pandu.mjs` (logika dan panel, 88 uji) dan `node tools/uji-pandu-v2.mjs` (render LKPD v2 asli dan daftar kartu, 24 uji). Tidak ada perubahan Appwrite: pengaturan baru disimpan pada objek LKPD seperti pengaturan mode yang sudah ada.
+Berkas: `js/lkpd-pandu.js` (logika baru), pengait kecil di `js/lkpd-mode.js`, `js/lkpd-staff.js`, `js/lkpd-editor.js`, `js/lkpd-drive.js`. Uji: `node tools/uji-pandu.mjs` (logika, panel, dan alur kirim, 92 uji) dan `node tools/uji-pandu-v2.mjs` (render LKPD v2 asli dan daftar kartu, 28 uji). Tidak ada perubahan Appwrite: pengaturan baru disimpan pada objek LKPD seperti pengaturan mode yang sudah ada.
 
 ## 0. Susunan panel Pengaturan
 Panel kini terdiri dari **Ringkasan untuk siswa** (daftar efek pilihan saat ini, ikut berubah saat opsi diubah) lalu bagian bernomor yang mengikuti mode:
-- **Mode Ujian:** 1 Paket dan mode, 2 Aturan Ujian (kesempatan, isi disembunyikan, foto semua komponen), 3 Prasyarat Latihan, 4 Jadwal dan kunci pertemuan, 5 Foto bukti per komponen, 6 Terapkan dan simpan.
+- **Mode Ujian:** 1 Paket dan mode, 2 Aturan Ujian (kesempatan, isi disembunyikan, foto semua komponen), 3 Latihan sebelum Ujian, 4 Jadwal dan kunci pertemuan, 5 Foto bukti per komponen, 6 Terapkan dan simpan.
 - **Mode Latihan:** 1 Paket dan mode, 2 Aturan Latihan (kunci dan pembahasan, berpemandu), 3 Jadwal dan kunci pertemuan, 4 Foto bukti per komponen, 5 Terapkan dan simpan.
-Kontrol khusus Ujian tidak tampil saat Latihan, dan sebaliknya. Memilih LKPD prasyarat langsung memunculkan kolom Syarat nilai.
+Kontrol khusus Ujian tidak tampil saat Latihan, dan sebaliknya. Mencentang "Latihan dulu, baru Ujian" langsung memunculkan kolom Syarat nilai.
 
 ## 1. Latihan berpemandu, Ujian mandiri
 - **Latihan** (opsi guru "Latihan berpemandu", bawaan aktif): tab Lembar Kerja diawali kartu panduan hijau. Petunjuk komponen dan poin kritis langkah tampil penuh. Angka acuan standar tidak langsung tampak: siswa membukanya lewat tombol **Bantuan: lihat angka acuan** setelah mencoba sendiri.
 - **Ujian**: kartu oranye "Ujian mandiri" memuat aturan (tanpa petunjuk dan angka acuan, cari standar di manual servis, langkah saksi guru harus disaksikan guru, jumlah kesempatan). Angka acuan **selalu** disembunyikan saat Ujian, terlepas dari sakelar "Petunjuk komponen". Opsi **Foto bukti wajib pada semua komponen (Ujian)** menambah foto wajib ke semua komponen pemeriksaan (di luar daftar foto wajib biasa).
 - Berlaku untuk LKPD v2 pada tampilan siswa dan Pratinjau guru. Kartu hanya muncul saat Lembar Kerja terbuka (tidak di layar "Lembar Kerja terkunci").
 
-## 2. Gerbang Latihan ke Ujian
-- Pengaturan LKPD berstatus **Ujian** punya bagian "Prasyarat Latihan sebelum Ujian" (di dokumen ini disebut gerbang; tidak sama dengan "Gerbang masuk" soal TKA di dalam LKPD v2): pilih LKPD Latihan prasyarat (satu kelas) dan syarat **KKM 1 kali** atau **2 kali berturut-turut**. Hanya nilai Latihan siswa yang bersangkutan yang dihitung (nilai koreksi guru bila ada).
-- Selama belum terpenuhi, kartu Ujian menampilkan "Latih lagi n/N" dan tombol **Buka latihan**; Ujian tidak bisa dibuka maupun dikirim. Bila terpenuhi tampil "Siap ujian".
-- **Remedial:** bila Ujian terakhir siswa belum kompeten (di bawah KKM), hanya nilai Latihan **sesudah** Ujian itu yang dihitung, sehingga siswa harus berlatih lagi sebelum mengulang. Tombolnya berubah menjadi "Latihan terarah (remedial)". Batas kesempatan Ujian tetap berlaku: bila jatah Ujian siswa sudah habis, gerbang tidak menahan lagi (latihan tambahan tidak membuka percobaan baru).
-- Guru tidak terkena gerbang. Bila LKPD Latihan rujukan tersembunyi atau dihapus, gerbang dilewati supaya siswa tidak terkunci selamanya.
-- Tombol **Buat salinan Latihan dari LKPD ini** membuat LKPD baru (id `<id>-L`, judul "(Latihan)", mode Latihan, tampil, tanpa kunci pertemuan) lengkap dengan isinya, lalu memilihnya sebagai gerbang. Pengaturan baru tersimpan setelah **Simpan pengaturan**.
-- Gerbang tidak ikut saat "Terapkan ke semua LKPD" (gerbang khusus per LKPD).
+## 2. Latihan lalu Ujian di satu LKPD (tanpa salinan)
+- Cukup **satu LKPD**. Di Pengaturan LKPD berstatus **Ujian** ada bagian "Latihan sebelum Ujian" (tidak sama dengan "Gerbang masuk" soal TKA di dalam LKPD v2). Centang **Latihan dulu, baru Ujian**, lalu pilih syarat **KKM 1 kali** atau **2 kali berturut-turut**. Siswa tidak melihat dua LKPD berjudul sama.
+- **Tahap 1, Latihan:** siswa baru memulai dari Latihan. LKPD tampil dengan mode Latihan (kartu berpemandu, Bantuan angka acuan, kunci dan pembahasan, tanpa batas kesempatan). Kartu daftar menampilkan "Tahap 1: Latihan n/N". Pengumpulan otomatis bertanda Latihan dan **tidak masuk Rekap nilai**.
+- **Tahap 2, Ujian:** setelah nilai latihan mencapai KKM sesuai syarat, LKPD yang sama otomatis menjadi Ujian (Ujian mandiri, angka acuan disembunyikan, aturan kesempatan dan foto berlaku). Kartu menampilkan "Tahap 2: Ujian". Pengumpulan bertanda Ujian dan masuk Rekap nilai. Isian draf dikosongkan setiap kali LKPD dikirim, jadi Ujian dimulai dari lembar bersih.
+- **Remedial:** bila Ujian terakhir siswa belum kompeten (di bawah KKM) dan masih ada jatah, LKPD kembali ke Tahap 1 dengan penanda "Remedial". Hanya nilai Latihan **sesudah** Ujian itu yang dihitung. Bila jatah Ujian sudah habis, LKPD tetap Ujian (latihan tambahan tidak membuka percobaan baru).
+- Mode yang berlaku dihitung per siswa dari data pengumpulan (nilai koreksi guru bila ada). Guru selalu melihat konfigurasi dasar (Ujian) dengan keterangan alur bertahap, dan tidak terkena tahap. Pratinjau guru menampilkan versi Ujian.
+- Tahap tidak ikut saat "Terapkan ke semua LKPD" (khusus per LKPD). Menyimpan sebagai mode Latihan membuang pengaturan tahap.
+- **Perubahan dari versi sebelumnya:** tombol "Buat salinan Latihan" dan pilihan LKPD Latihan prasyarat dihapus. Bila ada salinan `-L` yang sudah dibuat, sembunyikan atau hapus lewat daftar LKPD. Bidang `gerbang` lama pada LKPD diabaikan dan dibuang saat pengaturan disimpan.
 
 ## 3. Paket cepat
 Tombol **Paket Latihan** dan **Paket Ujian** di atas panel Pengaturan mengisi semua opsi sekaligus (belum tersimpan sampai Simpan pengaturan; jadwal dan status tampil tidak diubah).
-- Paket Latihan: mode Latihan, tanpa batas kesempatan, kunci dan pembahasan tampil, panduan aktif, tanpa gerbang, foto semua komponen mati.
-- Paket Ujian: mode Ujian, 1 kesempatan, teori, penjelasan langkah, dan petunjuk disembunyikan, kunci tidak tampil, foto bukti wajib pada semua komponen. Gerbang yang sudah dipilih tidak dihapus.
+- Paket Latihan: mode Latihan, tanpa batas kesempatan, kunci dan pembahasan tampil, panduan aktif, tanpa tahap Latihan, foto semua komponen mati.
+- Paket Ujian: mode Ujian, 1 kesempatan, teori, penjelasan langkah, dan petunjuk disembunyikan, kunci tidak tampil, foto bukti wajib pada semua komponen. Pilihan Latihan dulu yang sudah dicentang tidak dihapus.
 
 ## 4. Catatan
-- Gerbang dan penghitungan memakai data pengumpulan di perangkat (`S.lkpd`), sama seperti penghitung kesempatan Ujian. Ini penegak di sisi aplikasi, bukan di server.
-- Pengaturan baru: `gerbang`, `gKali`, `fotoUjian`, `pandu` pada objek LKPD.
+- Tahap dan penghitungan memakai data pengumpulan di perangkat (`S.lkpd`), sama seperti penghitung kesempatan Ujian. Ini penegak di sisi aplikasi, bukan di server.
+- Pengaturan baru: `tahap`, `gKali`, `fotoUjian`, `pandu` pada objek LKPD.

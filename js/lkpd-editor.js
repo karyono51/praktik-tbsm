@@ -160,7 +160,7 @@ function lkeBuild(d){
  /* pertahankan pengaturan dari panel Pengaturan (mode, kesempatan, jadwal, foto wajib) dan versi soal bawaan */
  var o=(LKPD_MODULES||[]).find(function(x){return x.id===m.id});
  if(o){
-  ['mode','maxTry','showKey','hideTeori','hideLangkah','hidePetunjuk','buka','tutup','gerbang','gKali','fotoUjian','pandu'].forEach(function(k){if(o[k]!==undefined)m[k]=o[k]});
+  ['mode','maxTry','showKey','hideTeori','hideLangkah','hidePetunjuk','buka','tutup','tahap','gKali','fotoUjian','pandu'].forEach(function(k){if(o[k]!==undefined)m[k]=o[k]});
   if(Array.isArray(o.fotoWajib)){
    var nm=o.fotoWajib.map(function(i){return o.checks[i]&&o.checks[i][0]}).filter(Boolean);
    m.fotoWajib=[];m.checks.forEach(function(c,i){if(nm.indexOf(c[0])>-1)m.fotoWajib.push(i)});

@@ -83,7 +83,7 @@ ok(!/lkp-pandu/.test(h), 'tab Evaluasi tidak ada kartu panduan');
 G(`LK.tab='kerja'`);
 
 /* Ujian */
-h = kerja('ujian', { pandu: true, fotoUjian: true, maxTry: 1, gerbang: '' });
+h = kerja('ujian', { pandu: true, fotoUjian: true, maxTry: 1, tahap: false });
 ok(/Ujian mandiri/.test(h) && !/Acuan: 0,00 mm|lk-acuan/.test(h), 'Ujian v2 asli: kartu mandiri dan acuan hilang');
 ok(/Foto bukti wajib pada <b>semua/.test(h) || /semua<\/b> komponen/.test(h), 'Ujian: aturan foto semua komponen disebut');
 ok(/Mode Ujian/.test(h), 'banner mode Ujian tetap ada');
@@ -99,33 +99,34 @@ ok(G(`lkpFotoWajib(LKPD_MODULES[0])`).length === 7, 'Ujian + fotoUjian mewajibka
 G(`LKPD_MODULES[0].fotoUjian=false`);
 ok(G(`lkpFotoWajib(LKPD_MODULES[0])`).length === 1, 'tanpa fotoUjian hanya daftar bawaan');
 
-/* Gerbang terhadap LKPD asli */
-G(`LKPD_MODULES[0].mode='ujian';LKPD_MODULES[0].gerbang='LKPD-X-07-L';LKPD_MODULES[0].gKali=1;S.lkpd=[];LK.tab='kerja'`);
-G(`lkpSalin_test=0`);
-G(`STAFF=true;LKM.edit='LKPD-X-07';LKM.d={mode:'ujian',gerbang:''}`);
-G(`lkpSalin()`);
-const L = G(`LKPD_MODULES.find(function(x){return x.id==='LKPD-X-07-L'})`);
-ok(L && L.mode === 'latihan' && L.status === 'published' && L.v2 && L.v2.langkah.length === 6 || (L && L.v2), 'salinan LKPD-X-07 asli: lengkap dengan data v2');
-G(`STAFF=false;LK.preview=false`);
-ok(/Ujian terbuka setelah latihan/.test(G(`lkmLock(LKPD_MODULES[0])`)), 'siswa: ujian terkunci sebelum latihan');
-h = G(`viewLKPD()`);
-ok(/Ujian terbuka setelah latihan/.test(h), 'banner ujian memuat pesan gerbang');
-G(`S.lkpd.push({moduleId:'LKPD-X-07-L',sid:'u1',ts:5,score:90,payload:JSON.stringify({mode:'latihan'})})`);
-ok(G(`lkmLock(LKPD_MODULES[0])`) === '', 'setelah latihan 90: ujian terbuka');
-/* Daftar kartu siswa (lkListView asli) */
-G(`S.lkpd=[];STAFF=false;LK.preview=false;S.kelas='X';LKPD_MODULES[0].gKali=2;LKPD_MODULES[0].maxTry=0`);
+/* Tahap Latihan lalu Ujian di LKPD-X-07 asli: satu LKPD, tanpa salinan */
+G(`LKPD_MODULES[0].mode='ujian';LKPD_MODULES[0].tahap=true;LKPD_MODULES[0].gKali=2;LKPD_MODULES[0].maxTry=1;LKPD_MODULES[0].fotoUjian=true;S.lkpd=[];S.kelas='X';STAFF=false;LK.preview=false;LK.tab='kerja'`);
+ok(G(`LKPD_MODULES.length`) === 1, 'hanya satu LKPD, tidak ada salinan');
+/* Gerbang masuk soal TKA (v2) dianggap sudah lulus supaya Lembar Kerja terbuka bagi siswa uji */
+G(`var _g0=lk2Gate;lk2Gate=function(m,d){var g=_g0(m,d);g.lulus=true;return g}`);
+ok(G(`lkmLock(LKPD_MODULES[0])`) === '', 'siswa baru tidak terkunci: langsung bisa berlatih');
 let dh = G(`lkListView()`);
-ok(/Latih lagi 0\/2/.test(dh) && /Buka latihan/.test(dh) && /Ujian terbuka setelah latihan/.test(dh) && !/Mulai praktik/.test(dh), 'kartu siswa: Ujian terkunci, tombol Buka latihan, tanpa Mulai praktik');
-ok(/Mulai latihan/.test(dh), 'kartu Latihan salinan tampil dengan Mulai latihan');
-G(`S.lkpd.push({moduleId:'LKPD-X-07-L',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})},{moduleId:'LKPD-X-07-L',sid:'u1',ts:20,score:80,payload:JSON.stringify({mode:'latihan'})})`);
+ok((dh.match(/<article class="card job/g) || []).length === 1, 'daftar siswa: hanya satu kartu LKPD (tidak membingungkan)');
+ok(/Tahap 1: Latihan 0\/2/.test(dh) && />Latihan<\/span>/.test(dh) && /Mulai latihan/.test(dh) && !/Mulai praktik/.test(dh), 'kartu siswa: label Latihan, Tahap 1 0/2, tombol Mulai latihan');
+ok(!/Kesempatan 0\/1/.test(dh), 'kartu siswa tahap Latihan: kesempatan Ujian belum ditampilkan sebagai batas latihan');
+h = G(`viewLKPD()`);
+ok(/Mode Latihan/.test(h) && /Tahap 1 dari 2/.test(h) && /Latihan berpemandu/.test(h) && /Bantuan: lihat angka acuan/.test(h), 'LKPD asli tahap Latihan: spanduk tahap 1, kartu panduan, Bantuan angka acuan');
+ok(!/Ujian mandiri/.test(h), 'tahap Latihan: tidak memuat kartu Ujian mandiri');
+G(`S.lkpd.push({moduleId:'LKPD-X-07',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})},{moduleId:'LKPD-X-07',sid:'u1',ts:20,score:80,payload:JSON.stringify({mode:'latihan'})})`);
 dh = G(`lkListView()`);
-ok(/Siap ujian/.test(dh) && /Mulai praktik/.test(dh) && !/Buka latihan/.test(dh), 'kartu siswa: dua latihan lulus, Siap ujian dan tombol Mulai praktik');
-G(`S.lkpd.push({moduleId:'LKPD-X-07',sid:'u1',ts:30,score:40,payload:JSON.stringify({mode:'ujian'})})`);
+ok(/Tahap 2: Ujian/.test(dh) && />Ujian<\/span>/.test(dh) && /Mulai praktik/.test(dh) && !/Mulai latihan/.test(dh), 'kartu siswa: dua latihan lulus, LKPD yang sama menjadi Ujian (Tahap 2)');
+h = G(`viewLKPD()`);
+ok(/Mode Ujian/.test(h) && /Tahap 2 dari 2/.test(h) && /Ujian mandiri/.test(h) && !/lk-acuan/.test(h) && !/Latihan berpemandu/.test(h), 'LKPD asli tahap Ujian: spanduk tahap 2, kartu Ujian mandiri, angka acuan hilang');
+ok(/Foto bukti wajib pada <b>semua/.test(h), 'tahap Ujian: aturan foto semua komponen disebut');
+G(`LKPD_MODULES[0].maxTry=2;S.lkpd.push({moduleId:'LKPD-X-07',sid:'u1',ts:30,score:40,payload:JSON.stringify({mode:'ujian'})})`);
 dh = G(`lkListView()`);
-ok(/Remedial/.test(dh) && /Latihan terarah \(remedial\)/.test(dh) && /Belum kompeten/.test(dh), 'kartu siswa: Ujian gagal, Remedial dan tombol Latihan terarah');
-G(`STAFF=true`);
+ok(/Remedial/.test(dh) && /Tahap 1: Latihan 0\/2/.test(dh) && /Latihan lagi/.test(dh), 'kartu siswa: Ujian gagal, kembali Tahap 1 dengan penanda Remedial dan tombol Latihan lagi');
+G(`LKPD_MODULES[0].maxTry=1`);
 dh = G(`lkListView()`);
-ok(/Prasyarat: /.test(dh) && !/Latih lagi/.test(dh), 'kartu guru: tag Prasyarat, tanpa status gerbang siswa');
+ok(!/Remedial/.test(dh) && /Kesempatan 1\/1/.test(dh), 'jatah Ujian habis: tidak kembali ke Latihan, kesempatan 1/1');
+G(`STAFF=true;S.lkpd=[]`);
+dh = G(`lkListView()`);
+ok(/Bertahap: Latihan/.test(dh) && !/Tahap 1: Latihan/.test(dh), 'kartu guru: tag Bertahap, tanpa status tahap siswa');
 G(`STAFF=false`);
 console.log(`\nUji terpadu v2: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);

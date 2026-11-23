@@ -7,13 +7,22 @@ var LKM={edit:null,d:null,reveal:{},sub:null};
 document.head.appendChild(st)})();
 
 /* ---- Konfigurasi LKPD ---- */
-function lkmCfg(m){return {mode:m&&m.mode==='latihan'?'latihan':'ujian',maxTry:Math.max(0,parseInt(m&&m.maxTry,10)||0),showKey:!m||m.showKey!==false,hideTeori:!m||m.hideTeori!==false,hideLangkah:!m||m.hideLangkah!==false,hidePetunjuk:!m||m.hidePetunjuk!==false,buka:(m&&m.buka)||'',tutup:(m&&m.tutup)||'',
- /* Pembeda Latihan dan Ujian (lkpd-pandu.js): gerbang latihan, foto wajib semua komponen saat Ujian, Latihan berpemandu */
- gerbang:(m&&typeof m.gerbang==='string')?m.gerbang:'',gKali:m&&parseInt(m.gKali,10)===2?2:1,fotoUjian:!!(m&&m.fotoUjian),pandu:!m||m.pandu!==false}}
+function lkmCfgBase(m){return {mode:m&&m.mode==='latihan'?'latihan':'ujian',maxTry:Math.max(0,parseInt(m&&m.maxTry,10)||0),showKey:!m||m.showKey!==false,hideTeori:!m||m.hideTeori!==false,hideLangkah:!m||m.hideLangkah!==false,hidePetunjuk:!m||m.hidePetunjuk!==false,buka:(m&&m.buka)||'',tutup:(m&&m.tutup)||'',
+ /* Pembeda Latihan dan Ujian (lkpd-pandu.js): tahap Latihan sebelum Ujian di LKPD yang sama, foto wajib semua komponen saat Ujian, Latihan berpemandu */
+ tahap:!!(m&&m.tahap),gKali:m&&parseInt(m.gKali,10)===2?2:1,fotoUjian:!!(m&&m.fotoUjian),pandu:!m||m.pandu!==false}}
+/* Konfigurasi yang berlaku untuk orang yang sedang masuk. LKPD bertahap (tahap): siswa memulai dari Latihan, lalu LKPD yang sama
+   otomatis berubah menjadi Ujian setelah syarat latihan terpenuhi. Guru selalu melihat konfigurasi dasar (Ujian). */
+function lkmCfg(m){
+ var c=lkmCfgBase(m);c.fase=c.mode;
+ if(c.tahap&&c.mode==='ujian'&&typeof lkpGate==='function'&&!isStaff()){
+  var g=lkpGate(m);
+  if(g&&!g.ok){c.mode='latihan';c.fase='latihan';c.showKey=true;c.pandu=true;c.maxTry=0;c.fotoUjian=false}
+ }
+ return c;
+}
 function lkmT(s){var t=s?new Date(s).getTime():0;return isNaN(t)?0:t}
 function lkmFmt(s){var t=lkmT(s);return t?new Date(t).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}
 function lkmLock(m){var c=lkmCfg(m),n=Date.now(),b=lkmT(c.buka),t=lkmT(c.tutup);if(b&&n<b)return 'Belum dibuka. Dibuka '+lkmFmt(c.buka);if(t&&n>t)return 'Sudah ditutup sejak '+lkmFmt(c.tutup);
- if(typeof lkpGateLock==='function'&&!isStaff()){var gl=lkpGateLock(m);if(gl)return gl}
  return ''}
 function lkmModeOf(x){try{var p=typeof x.payload==='string'?JSON.parse(x.payload||'{}'):x.payload;return p&&p.mode==='latihan'?'latihan':'ujian'}catch(e){return 'ujian'}}
 function lkmUsed(m){return (S.lkpd||[]).filter(function(x){return x.moduleId===m.id&&x.sid===S.user.id&&lkmModeOf(x)!=='latihan'}).length}
@@ -78,7 +87,7 @@ function lkmFotoPanel(m,d){
 function lkmApply(src,d,full){
  var cp=lkSerialize(src);cp.mode=d.mode;cp.maxTry=Math.max(0,parseInt(d.maxTry,10)||0);cp.showKey=!!d.showKey;cp.hideTeori=!!d.hideTeori;cp.hideLangkah=!!d.hideLangkah;cp.hidePetunjuk=!!d.hidePetunjuk;
  cp.fotoUjian=!!d.fotoUjian;cp.pandu=d.pandu!==false;
- if(full){var gr=String(d.gerbang||'');if(d.mode==='ujian'&&gr&&gr!==cp.id){cp.gerbang=gr;cp.gKali=parseInt(d.gKali,10)===2?2:1}else{delete cp.gerbang;delete cp.gKali}}
+ if(full){delete cp.gerbang;if(d.mode==='ujian'&&d.tahap){cp.tahap=true;cp.gKali=parseInt(d.gKali,10)===2?2:1}else{delete cp.tahap;delete cp.gKali}}
  if(full&&d.kunci!==undefined){cp.kunci=!!d.kunci;cp.pertBuka=Math.max(0,parseInt(d.pertBuka,10)||0)}
  if(full){cp.fotoWajib=(d.fotoWajib||[]).filter(function(i){return cp.checks[i]}).sort(function(a,b){return a-b});cp.status=d.tampil?'published':'draft';cp.active=!!d.tampil;if(d.buka)cp.buka=d.buka;else delete cp.buka;if(d.tutup)cp.tutup=d.tutup;else delete cp.tutup}
  lkModuleStore(cp);
@@ -108,7 +117,7 @@ document.addEventListener('click',function(e){
  if(a==='lkm-reveal'){var cm=lkmCur();if(cm){LKM.reveal[cm.id]=!LKM.reveal[cm.id];render()}return}
  if(a.indexOf('lkm-')!==0||!isStaff())return;
  e.stopPropagation();
- if(a==='lkm-open'){var m=LKPD_MODULES.find(function(x){return x.id===v});if(!m)return;var c=lkmCfg(m);LKM.edit=v;LKM.d={tampil:lkmPub(m),mode:c.mode,maxTry:c.maxTry,showKey:c.showKey,hideTeori:c.hideTeori,hideLangkah:c.hideLangkah,hidePetunjuk:c.hidePetunjuk,gerbang:c.gerbang,gKali:c.gKali,fotoUjian:c.fotoUjian,pandu:c.pandu,buka:c.buka,tutup:c.tutup,semua:false,fotoWajib:(Array.isArray(m.fotoWajib)?m.fotoWajib.slice():[]),kunci:m.kunci!==false,pertBuka:parseInt(m.pertBuka,10)||0};render();window.scrollTo(0,0)}
+ if(a==='lkm-open'){var m=LKPD_MODULES.find(function(x){return x.id===v});if(!m)return;var c=lkmCfg(m);LKM.edit=v;LKM.d={tampil:lkmPub(m),mode:c.mode,maxTry:c.maxTry,showKey:c.showKey,hideTeori:c.hideTeori,hideLangkah:c.hideLangkah,hidePetunjuk:c.hidePetunjuk,tahap:c.tahap,gKali:c.gKali,fotoUjian:c.fotoUjian,pandu:c.pandu,buka:c.buka,tutup:c.tutup,semua:false,fotoWajib:(Array.isArray(m.fotoWajib)?m.fotoWajib.slice():[]),kunci:m.kunci!==false,pertBuka:parseInt(m.pertBuka,10)||0};render();window.scrollTo(0,0)}
  else if(a==='lkm-cancel'){LKM.edit=null;LKM.d=null;render()}
  else if(a==='lkm-mode'&&LKM.d){LKM.d.mode=v;render()}
  else if(a==='lkm-foto-all'&&LKM.d){var mm=LKPD_MODULES.find(function(x){return x.id===LKM.edit});LKM.d.fotoWajib=mm.checks.map(function(c,i){return i});render()}
@@ -147,6 +156,7 @@ viewLKPD=function(){
  var c=lkmCfg(m),lock=lkmLock(m),t;
  if(c.mode==='latihan')t='<b>Mode Latihan</b> Boleh diulang tanpa batas, nilai tidak masuk rekap'+(c.showKey?', pembahasan bisa dilihat di tab Evaluasi.':'.');
  else t='<b>Mode Ujian</b> Nilai masuk rekap dan dikoreksi guru'+(c.maxTry?'. Kesempatan mengirim '+c.maxTry+' kali'+(isStaff()?'':' (terpakai '+lkmUsed(m)+')'):'')+(c.tutup?'. Ditutup '+lkEsc(lkmFmt(c.tutup)):'')+'.';
+ if(typeof lkpBannerTahap==='function')t+=lkpBannerTahap(m,c);
  if(lock)t+=' <b>'+lkEsc(lock)+'.</b>';
  var siswaView=!isStaff()||LK.preview;
  if(siswaView)h=lkmFilter(h,c);
@@ -181,7 +191,9 @@ lkSubmit=function(){
   if(c.mode==='ujian'&&c.maxTry>0){var u=lkmUsed(m);if(u>=c.maxTry){toast('Kesempatan ujian ini sudah habis ('+u+' dari '+c.maxTry+')');return}}
  }
  LKM.sub={mode:c.mode,mod:m.id,maxTry:c.maxTry,n0:(S.lkpd||[]).length};
+ var fase0=c.fase;
  try{_lkmSubmit()}finally{lkmPatchLast();if(!Cloud.on){try{save()}catch(e){}}LKM.sub=null}
+ if(!isStaff()&&c.tahap&&fase0==='latihan'&&typeof lkpGate==='function'){var g1=lkpGate(m);if(g1&&g1.ok)setTimeout(function(){toast('Syarat latihan terpenuhi. Ujian di LKPD ini sudah terbuka, isian dikosongkan.')},1400)}
 };
 function lkmPatchLast(){
  var s=LKM.sub;if(!s||(S.lkpd||[]).length<=s.n0)return;
@@ -198,7 +210,7 @@ persist=function(){if(LKM.sub)lkmPatchLast();return _lkmPersist.apply(this,argum
 var _lkmBuild=lkBuildModule;
 lkBuildModule=function(v){
  var m=_lkmBuild(v),o=(LKPD_MODULES||[]).find(function(x){return x.id===m.id});
- if(o)['mode','maxTry','showKey','hideTeori','hideLangkah','hidePetunjuk','buka','tutup','kunci','pertBuka','gerbang','gKali','fotoUjian','pandu'].forEach(function(k){if(o[k]!==undefined)m[k]=o[k]});
+ if(o)['mode','maxTry','showKey','hideTeori','hideLangkah','hidePetunjuk','buka','tutup','kunci','pertBuka','tahap','gKali','fotoUjian','pandu'].forEach(function(k){if(o[k]!==undefined)m[k]=o[k]});
  if(o&&Array.isArray(o.fotoWajib)){var nm=o.fotoWajib.map(function(i){return o.checks[i]&&o.checks[i][0]}).filter(Boolean);m.fotoWajib=[];m.checks.forEach(function(c,i){if(nm.indexOf(c[0])>-1)m.fotoWajib.push(i)})}
  return m;
 };
