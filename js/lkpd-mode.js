@@ -163,7 +163,7 @@ viewLKPD=function(){
  else if(c.mode==='ujian')t+=' Siswa melihat versi ringkas (teori, penjelasan langkah, dan petunjuk komponen dapat disembunyikan). Pakai Pratinjau untuk melihatnya.';
  var ban='<div class="card lkm-banner" data-m="'+c.mode+'">'+t+'</div>',i=h.indexOf('<div class="chips">');
  h=i>-1?h.slice(0,i)+ban+h.slice(i):ban+h;
- if(LK.tab==='evaluasi'&&c.mode==='latihan'&&c.showKey){
+ if(LK.tab==='evaluasi'&&c.mode==='latihan'&&c.showKey&&!(typeof lk2Is==='function'&&lk2Is(m))){
   var blk=lkmKeyBlock(m),j=h.indexOf('<div class="lk-actions">');
   h=j>-1?h.slice(0,j)+blk+h.slice(j):h+blk;
  }

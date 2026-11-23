@@ -103,7 +103,7 @@ ok(G(`lkpFotoWajib(LKPD_MODULES[0])`).length === 1, 'tanpa fotoUjian hanya dafta
 G(`LKPD_MODULES[0].mode='ujian';LKPD_MODULES[0].tahap=true;LKPD_MODULES[0].gKali=2;LKPD_MODULES[0].maxTry=1;LKPD_MODULES[0].fotoUjian=true;S.lkpd=[];S.kelas='X';STAFF=false;LK.preview=false;LK.tab='kerja'`);
 ok(G(`LKPD_MODULES.length`) === 1, 'hanya satu LKPD, tidak ada salinan');
 /* Gerbang masuk soal TKA (v2) dianggap sudah lulus supaya Lembar Kerja terbuka bagi siswa uji */
-G(`var _g0=lk2Gate;lk2Gate=function(m,d){var g=_g0(m,d);g.lulus=true;return g}`);
+G(`var _g0=lk2Gate,FORCE=true;lk2Gate=function(m,d){var g=_g0(m,d);if(FORCE)g.lulus=true;return g}`);
 ok(G(`lkmLock(LKPD_MODULES[0])`) === '', 'siswa baru tidak terkunci: langsung bisa berlatih');
 let dh = G(`lkListView()`);
 ok((dh.match(/<article class="card job/g) || []).length === 1, 'daftar siswa: hanya satu kartu LKPD (tidak membingungkan)');
@@ -128,5 +128,38 @@ G(`STAFF=true;S.lkpd=[]`);
 dh = G(`lkListView()`);
 ok(/Bertahap: Latihan/.test(dh) && !/Tahap 1: Latihan/.test(dh), 'kartu guru: tag Bertahap, tanpa status tahap siswa');
 G(`STAFF=false`);
+
+/* Gerbang masuk hanya di Latihan, Evaluasi hanya di Ujian (LKPD-X-07 asli) */
+G(`FORCE=false;STAFF=false;LK.preview=false;S.lkpd=[];LKPD_MODULES[0].mode='ujian';LKPD_MODULES[0].tahap=true;LKPD_MODULES[0].gKali=1;LKPD_MODULES[0].maxTry=0`);
+G(`LK.tab='materi'`); h = G(`viewLKPD()`);
+ok(/id="lk2-gate"/.test(h) && /Gerbang masuk praktik/.test(h), 'Latihan: soal gerbang masuk tampil di tab Materi');
+ok(!/data-v="evaluasi"/.test(h), 'Latihan: tab Evaluasi tidak ada');
+G(`LK.tab='kerja'`); h = G(`viewLKPD()`);
+ok(/Lembar Kerja terkunci/.test(h), 'Latihan: gerbang masuk tetap mengunci Lembar Kerja sampai lulus');
+G(`LK.tab='evaluasi'`); h = G(`viewLKPD()`);
+ok(/Evaluasi hanya dikerjakan pada tahap Ujian/.test(h) && !/Pembahasan latihan|Periksa jawaban/.test(h), 'Latihan: isi Evaluasi dan pembahasan tidak tampil');
+/* Naik ke Ujian */
+G(`S.lkpd.push({moduleId:'LKPD-X-07',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})})`);
+G(`LK.tab='materi'`); h = G(`viewLKPD()`);
+ok(!/id="lk2-gate"/.test(h) && !/Gerbang masuk praktik/.test(h), 'Ujian: soal gerbang masuk tidak tampil');
+ok(/Tujuan pembelajaran/.test(h) && /Alat dan bahan/.test(h) && /Checklist|APD|K3/.test(h), 'Ujian: bagian lain Materi (tujuan, alat bahan, K3) tetap tampil');
+ok(/data-v="evaluasi"/.test(h), 'Ujian: tab Evaluasi ada');
+G(`LK.tab='kerja'`); h = G(`viewLKPD()`);
+ok(!/Lembar Kerja terkunci/.test(h) && /Identitas praktik/.test(h), 'Ujian: Lembar Kerja terbuka tanpa gerbang masuk');
+ok(G(`lk2Gate(LKPD_MODULES[0],{}).lulus`) === true, 'Ujian: lk2Gate lulus (kirim tidak dihambat gerbang)');
+G(`LK.tab='evaluasi'`); h = G(`viewLKPD()`);
+ok(!/Evaluasi hanya dikerjakan pada tahap Ujian/.test(h), 'Ujian: Evaluasi tampil (terkunci sampai praktik diverifikasi)');
+/* Pratinjau guru = versi Ujian */
+G(`STAFF=true;LK.preview=true;S.lkpd=[];LK.tab='materi'`); h = G(`viewLKPD()`);
+ok(!/id="lk2-gate"/.test(h) && /data-v="evaluasi"/.test(h), 'Pratinjau guru: versi Ujian (tanpa gerbang masuk, ada Evaluasi)');
+G(`STAFF=false;LK.preview=false;S.lkpd=[]`);
+/* Skor Latihan hanya dari praktik */
+G(`LKPD_MODULES[0].tahap=true;LKPD_MODULES[0].mode='ujian'`);
+const sk = JSON.parse(G(`JSON.stringify(lkScore({}))`));
+ok(sk.final === sk.practice && sk.theory === 0, 'nilai Latihan = nilai praktik (bobot teori tidak menurunkan)');
+G(`S.lkpd.push({moduleId:'LKPD-X-07',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})})`);
+const sj = JSON.parse(G(`JSON.stringify(lkScore({}))`));
+ok(sj.final === Math.round(sj.practice * (G(`LKPD_MODULES[0].rubric.practiceWeight`) / 100) + sj.theory * (G(`LKPD_MODULES[0].rubric.theoryWeight`) / 100)), 'nilai Ujian: rumus asli (praktik x bobot + teori x bobot)');
+G(`S.lkpd=[]`);
 console.log(`\nUji terpadu v2: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);

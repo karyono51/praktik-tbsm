@@ -1,6 +1,6 @@
 # Pembeda LKPD mode Latihan dan mode Ujian
 
-Berkas: `js/lkpd-pandu.js` (logika baru), pengait kecil di `js/lkpd-mode.js`, `js/lkpd-staff.js`, `js/lkpd-editor.js`, `js/lkpd-drive.js`. Uji: `node tools/uji-pandu.mjs` (logika, panel, dan alur kirim, 92 uji) dan `node tools/uji-pandu-v2.mjs` (render LKPD v2 asli dan daftar kartu, 28 uji). Tidak ada perubahan Appwrite: pengaturan baru disimpan pada objek LKPD seperti pengaturan mode yang sudah ada.
+Berkas: `js/lkpd-pandu.js` (logika baru), pengait kecil di `js/lkpd-mode.js`, `js/lkpd-staff.js`, `js/lkpd-editor.js`, `js/lkpd-drive.js`. Uji: `node tools/uji-pandu.mjs` (logika, panel, dan alur kirim, 92 uji) dan `node tools/uji-pandu-v2.mjs` (render LKPD v2 asli dan daftar kartu, 41 uji). Tidak ada perubahan Appwrite: pengaturan baru disimpan pada objek LKPD seperti pengaturan mode yang sudah ada.
 
 ## 0. Susunan panel Pengaturan
 Panel kini terdiri dari **Ringkasan untuk siswa** (daftar efek pilihan saat ini, ikut berubah saat opsi diubah) lalu bagian bernomor yang mengikuti mode:
@@ -21,6 +21,14 @@ Kontrol khusus Ujian tidak tampil saat Latihan, dan sebaliknya. Mencentang "Lati
 - Mode yang berlaku dihitung per siswa dari data pengumpulan (nilai koreksi guru bila ada). Guru selalu melihat konfigurasi dasar (Ujian) dengan keterangan alur bertahap, dan tidak terkena tahap. Pratinjau guru menampilkan versi Ujian.
 - Tahap tidak ikut saat "Terapkan ke semua LKPD" (khusus per LKPD). Menyimpan sebagai mode Latihan membuang pengaturan tahap.
 - **Perubahan dari versi sebelumnya:** tombol "Buat salinan Latihan" dan pilihan LKPD Latihan prasyarat dihapus. Bila ada salinan `-L` yang sudah dibuat, sembunyikan atau hapus lewat daftar LKPD. Bidang `gerbang` lama pada LKPD diabaikan dan dibuang saat pengaturan disimpan.
+
+## 2b. Gerbang masuk hanya di Latihan, Evaluasi hanya di Ujian (LKPD v2)
+Soal yang sama di dua tahap hanya menguji hafalan, jadi dipisah menurut mode yang sedang berlaku bagi siswa:
+- **Latihan:** soal **Gerbang masuk** (TKA) tampil di tab Materi dan tetap mengunci Lembar Kerja sampai lulus. Tab **Evaluasi tidak ada** (isinya hanya catatan bahwa Evaluasi dikerjakan di Ujian), dan blok "Pembahasan latihan" tidak muncul. Nilai Latihan dihitung dari **praktik saja**, supaya bobot teori yang tidak dikerjakan tidak menurunkan nilai dan syarat KKM tahap Latihan adil.
+- **Ujian:** soal Gerbang masuk **tidak tampil** dan tidak mengunci Lembar Kerja. Tab **Evaluasi ada**; aturan v2 yang lama tetap berlaku (terbuka setelah guru memverifikasi praktik dengan nilai minimal KKM). Nilai Ujian memakai rumus asli (praktik x bobot + teori x bobot).
+- Pratinjau guru menampilkan versi Ujian. Detail kiriman Ujian di sisi guru tidak lagi memuat bagian Gerbang masuk. Detail kiriman Latihan tidak berubah.
+- Berlaku juga untuk LKPD tanpa tahap: LKPD bermode Latihan murni memakai aturan Latihan, LKPD bermode Ujian memakai aturan Ujian.
+- Gerbang masuk tidak menampilkan kunci atau pembahasan kepada siswa. Pembahasan hanya ada di blok "Pembahasan latihan" milik soal Evaluasi, yang kini tidak tampil di Latihan.
 
 ## 3. Paket cepat
 Tombol **Paket Latihan** dan **Paket Ujian** di atas panel Pengaturan mengisi semua opsi sekaligus (belum tersimpan sampai Simpan pengaturan; jadwal dan status tampil tidak diubah).
