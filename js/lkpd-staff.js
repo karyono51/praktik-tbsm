@@ -30,7 +30,7 @@ function lksList(){
   var avg=uj.length?Math.round(uj.reduce(function(t,x){return t+lkNilai(x)},0)/uj.length):0;
   var sum=uj.length?uj.length+' pengumpulan · rata-rata '+avg:'Belum ada pengumpulan';
   return '<article class="card job lks-card"><div class="row sb"><h3 class="grow">'+lkEsc(m.title)+'</h3><span class="pill '+(pub?'ok':'warn')+'">'+(pub?'Tampil':'Tersembunyi')+'</span></div>'+
-   '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(m.duration)+' menit</span><span>'+m.steps.length+' langkah, '+m.quiz.length+' soal</span></div>'+
+   '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(typeof lkmWaktuLabel==='function'?lkmWaktuLabel(m):m.duration+' menit')+'</span><span>'+m.steps.length+' langkah, '+m.quiz.length+' soal</span></div>'+
    '<div class="lkm-tags"><span class="pill '+(c.mode==='latihan'?'ok':'warn')+'">'+(c.mode==='latihan'?'Latihan':'Ujian')+'</span><span class="pill plain">'+lkEsc(sum)+'</span>'+(belum?'<span class="pill bad">'+belum+' perlu dikoreksi</span>':'')+'</div>'+
    '<div class="lks-acts"><button type="button" class="btn primary small grow" data-act="lks-open" data-v="'+lkEsc(m.id)+'">Kelola LKPD</button>'+
    '<button type="button" class="btn small" data-act="lk-toggle" data-v="'+lkEsc(m.id)+'">'+(pub?'Sembunyikan':'Tampilkan')+'</button></div></article>';
@@ -92,7 +92,7 @@ function lksHub(){
  var xp=(typeof lkioOk==='function'&&lkioOk())?'<button type="button" class="btn small" data-lkio="exp-one" data-v="'+lkEsc(m.id)+'">Ekspor</button>':'';
  return '<div class="row"><button type="button" class="btn small" data-act="lks-list">‹ Daftar LKPD '+lkEsc(lkcKelasInfo(S.kelas).judul)+'</button></div>'+
   '<section class="card lks-card"><div class="row sb"><h2 class="grow">'+lkEsc(m.title)+'</h2><span class="pill '+(pub?'ok':'warn')+'">'+(pub?'Tampil':'Tersembunyi')+'</span></div>'+
-  '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(m.duration)+' menit</span><span>'+(c.mode==='latihan'?'Latihan':'Ujian')+'</span></div>'+
+  '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(typeof lkmWaktuLabel==='function'?lkmWaktuLabel(m):m.duration+' menit')+'</span><span>'+(c.mode==='latihan'?'Latihan':'Ujian')+'</span></div>'+
   '<div class="lks-acts"><button type="button" class="btn small" data-act="lks-preview" data-v="'+lkEsc(m.id)+'">Pratinjau</button><button type="button" class="btn small" data-act="lks-edit" data-v="'+lkEsc(m.id)+'">Edit isi</button>'+xp+
   '<button type="button" class="btn small" data-act="lk-toggle" data-v="'+lkEsc(m.id)+'">'+(pub?'Sembunyikan':'Tampilkan')+'</button></div></section>'+
   lksTabs()+body;

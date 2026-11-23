@@ -1,6 +1,6 @@
 # Pembeda LKPD mode Latihan dan mode Ujian
 
-Berkas: `js/lkpd-pandu.js` (logika baru), pengait kecil di `js/lkpd-mode.js`, `js/lkpd-staff.js`, `js/lkpd-editor.js`, `js/lkpd-drive.js`. Uji: `node tools/uji-pandu.mjs` (logika, panel, dan alur kirim, 92 uji) dan `node tools/uji-pandu-v2.mjs` (render LKPD v2 asli dan daftar kartu, 41 uji). Tidak ada perubahan Appwrite: pengaturan baru disimpan pada objek LKPD seperti pengaturan mode yang sudah ada.
+Berkas: `js/lkpd-pandu.js` (logika baru), pengait kecil di `js/lkpd-mode.js`, `js/lkpd-staff.js`, `js/lkpd-editor.js`, `js/lkpd-drive.js`. Uji: `node tools/uji-pandu.mjs` (logika, panel, alur kirim, dan waktu, 101 uji) dan `node tools/uji-pandu-v2.mjs` (render LKPD v2 asli dan daftar kartu, 42 uji). Tidak ada perubahan Appwrite: pengaturan baru disimpan pada objek LKPD seperti pengaturan mode yang sudah ada.
 
 ## 0. Susunan panel Pengaturan
 Panel kini terdiri dari **Ringkasan untuk siswa** (daftar efek pilihan saat ini, ikut berubah saat opsi diubah) lalu bagian bernomor yang mengikuti mode:
@@ -29,6 +29,13 @@ Soal yang sama di dua tahap hanya menguji hafalan, jadi dipisah menurut mode yan
 - Pratinjau guru menampilkan versi Ujian. Detail kiriman Ujian di sisi guru tidak lagi memuat bagian Gerbang masuk. Detail kiriman Latihan tidak berubah.
 - Berlaku juga untuk LKPD tanpa tahap: LKPD bermode Latihan murni memakai aturan Latihan, LKPD bermode Ujian memakai aturan Ujian.
 - Gerbang masuk tidak menampilkan kunci atau pembahasan kepada siswa. Pembahasan hanya ada di blok "Pembahasan latihan" milik soal Evaluasi, yang kini tidak tampil di Latihan.
+
+## 2c. Waktu: alokasi total berbeda dari waktu satu sesi
+- `duration` LKPD v2 adalah **alokasi pembelajaran total** (LKPD-X-07: 18 JP x 45 menit = 810 menit, 6 pertemuan x 135 menit), bukan waktu sekali mengerjakan.
+- Kartu dan daftar LKPD v2 kini menampilkan "18 JP · 6 pertemuan", bukan "810 menit". LKPD tanpa pertemuan tetap menampilkan menit.
+- **Pewaktu:** target = menit per pertemuan (135). Ujian: merah bila melewati 135 menit, tidak bisa dijeda. Latihan: "Perkiraan 135 menit per pertemuan · waktu bebas", tidak pernah merah.
+- **Pemeriksaan integritas:** peringatan "dikerjakan terlalu cepat" kini membandingkan dengan waktu satu pertemuan (bukan 810 menit). Sebelumnya setiap kiriman di bawah sekitar 202 menit terkena peringatan.
+- Pewaktu adalah penghitung maju, bukan batas keras: LKPD tidak otomatis tertutup saat waktu lewat.
 
 ## 3. Paket cepat
 Tombol **Paket Latihan** dan **Paket Ujian** di atas panel Pengaturan mengisi semua opsi sekaligus (belum tersimpan sampai Simpan pengaturan; jadwal dan status tampil tidak diubah).

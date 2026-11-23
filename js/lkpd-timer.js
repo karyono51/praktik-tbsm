@@ -8,7 +8,13 @@ function lktSec(){if(LKT.t0&&lktLocked())return Math.max(0,Math.floor((Date.now(
 function lktStore(){return 'tbsm-lkpd-timer-'+LKT.key}
 function lktSave(){try{if(LKT.key){var o={sec:LKT.sec,at:Date.now()};if(LKT.t0)o.t0=LKT.t0;localStorage.setItem(lktStore(),JSON.stringify(o))}}catch(e){}}
 function lktMmss(n){var m=Math.floor(n/60),s=n%60;return (m<10?'0':'')+m+':'+(s<10?'0':'')+s}
-function lktLimit(){var m=(LKPD_MODULES||[]).find(function(x){return x.id===LK.module});return m?(Number(m.duration)||0)*60:0}
+function lktLimit(){var m=(LKPD_MODULES||[]).find(function(x){return x.id===LK.module});if(!m)return 0;if(typeof lkmCfg==='function'&&lkmCfg(m).mode==='latihan')return 0;/* Latihan: waktu bebas, tidak merah */return (typeof lkmSesiMenit==='function'?lkmSesiMenit(m):Number(m.duration)||0)*60}
+function lktTarget(m){
+ if(!m)return 'Target - menit';
+ var sesi=typeof lkmSesiMenit==='function'?lkmSesiMenit(m):Number(m.duration)||0,v2=!!(m.v2&&m.v2.pertemuan),
+  lat=typeof lkmCfg==='function'&&lkmCfg(m).mode==='latihan';
+ return (lat?'Perkiraan ':'Target ')+lkEsc(sesi)+' menit'+(v2?' per pertemuan':'')+(lat?' · waktu bebas':'');
+}
 function lktBtnText(){if(LKT.running)return lktLocked()?'Berjalan (terkunci)':'Jeda';return LKT.sec>0?'Lanjut':'Mulai waktu'}
 function lktPaint(){
  var el=document.getElementById('lk-clock'),b=document.getElementById('lk-tbtn');
@@ -51,7 +57,7 @@ function lktSync(){
   var h=vw();
   if(h.indexOf('<div class="lk-actions">')<0)return h;
   var m=(LKPD_MODULES||[]).find(function(x){return x.id===LK.module});
-  var row='<div class="lk-timer"><div><div class="mono lk-clock" id="lk-clock">'+lktMmss(LKT.sec)+'</div><div class="note">Target '+(m?lkEsc(m.duration):'-')+' menit'+(lktLocked()?' · waktu ujian tidak bisa dijeda':'')+'</div></div><button type="button" class="btn small" data-act="lkt-toggle" id="lk-tbtn"'+(LKT.running&&lktLocked()?' disabled':'')+'>'+lktBtnText()+'</button></div>';
+  var row='<div class="lk-timer"><div><div class="mono lk-clock" id="lk-clock">'+lktMmss(LKT.sec)+'</div><div class="note">'+lktTarget(m)+(lktLocked()?' · waktu ujian tidak bisa dijeda':'')+'</div></div><button type="button" class="btn small" data-act="lkt-toggle" id="lk-tbtn"'+(LKT.running&&lktLocked()?' disabled':'')+'>'+lktBtnText()+'</button></div>';
   return h.replace('<div class="lk-actions">','<div class="lk-actions">'+row);
  };
  var sub=lkSubmit;

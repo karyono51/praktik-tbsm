@@ -20,6 +20,16 @@ function lkmCfg(m){
  }
  return c;
 }
+/* Waktu LKPD. m.duration = alokasi total pembelajaran (LKPD v2: seluruh pertemuan, mis. 18 JP = 810 menit), bukan waktu satu kali mengerjakan.
+   Waktu satu sesi (target pewaktu dan pemeriksaan integritas) = menit per pertemuan. */
+function lkmSesiMenit(m){
+ var P=m&&m.v2&&Array.isArray(m.v2.pertemuan)?m.v2.pertemuan:[],mx=P.reduce(function(a,p){return Math.max(a,Number(p&&p.menit)||0)},0);
+ return mx||Number(m&&m.duration)||0;
+}
+function lkmWaktuLabel(m){
+ var P=m&&m.v2&&Array.isArray(m.v2.pertemuan)?m.v2.pertemuan:[];
+ return P.length&&m.v2.jp?m.v2.jp+' JP · '+P.length+' pertemuan':(m?m.duration:'')+' menit';
+}
 function lkmT(s){var t=s?new Date(s).getTime():0;return isNaN(t)?0:t}
 function lkmFmt(s){var t=lkmT(s);return t?new Date(t).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}
 function lkmLock(m){var c=lkmCfg(m),n=Date.now(),b=lkmT(c.buka),t=lkmT(c.tutup);if(b&&n<b)return 'Belum dibuka. Dibuka '+lkmFmt(c.buka);if(t&&n>t)return 'Sudah ditutup sejak '+lkmFmt(c.tutup);
@@ -62,7 +72,7 @@ function lkListView(){
   if(staff&&typeof lkpStaffTag==='function')tags+=lkpStaffTag(m,c);
   if(staff&&Array.isArray(m.fotoWajib)&&m.fotoWajib.length)tags+='<span class="pill warn">Foto wajib '+m.fotoWajib.length+' item</span>';
   return '<article class="card job '+cls+'"><div class="row sb"><h3 class="grow">'+lkEsc(m.title)+'</h3>'+(staff?'<span class="pill '+(pub?'ok':'warn')+'">'+(pub?'Tampil':'Tersembunyi')+'</span>':'')+'</div>'+
-   '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(m.duration)+' menit</span><span>'+m.steps.length+' langkah, '+m.quiz.length+' soal</span></div>'+
+   '<div class="meta"><span>'+lkEsc(m.unit)+'</span><span class="mono">'+lkEsc(typeof lkmWaktuLabel==='function'?lkmWaktuLabel(m):m.duration+' menit')+'</span><span>'+m.steps.length+' langkah, '+m.quiz.length+' soal</span></div>'+
    (m.skkni?'<details class="lk-elnote"><summary class="note">Kode SKKNI</summary><div class="note mono">'+lkEsc(m.skkni)+'</div></details>':'')+
    '<div class="lkm-tags">'+tags+'</div><div class="row sb" style="flex-wrap:wrap;gap:8px">'+st+'</div>'+acts+'</article>';
  });

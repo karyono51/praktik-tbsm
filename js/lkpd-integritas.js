@@ -44,9 +44,9 @@ function lkiFlags(x,ix){
    var sc=lkiScoreFor(m,p);
    if(!isNaN(sc.practice+sc.theory+sc.final)&&(sc.practice!==x.practice||sc.theory!==x.theory||sc.final!==x.score))
     out.push({k:'nilai',lv:'bad',t:'Nilai tersimpan ('+x.score+') berbeda dari hitung ulang isian ('+sc.final+'). Data mungkin diubah, atau LKPD diedit setelah dikirim.'});
-   var det=Number(p.detik)||0,tgt=(Number(m.duration)||0)*60,semua=sc.work===m.steps.length&&sc.safe===m.safety.length;
-   if(semua&&(!det||(tgt&&det<tgt*0.25)))out.push({k:'cepat',lv:'warn',t:'Semua langkah dan K3 dicentang'+(det?' dalam '+Math.max(1,Math.round(det/60))+' menit dari target '+m.duration+' menit.':' tanpa waktu pengerjaan tercatat.')});
-   else if(det&&tgt&&det<tgt*0.25)out.push({k:'cepat',lv:'warn',t:'Dikerjakan '+Math.max(1,Math.round(det/60))+' menit dari target '+m.duration+' menit.'});
+   var det=Number(p.detik)||0,sesi=typeof lkmSesiMenit==='function'?lkmSesiMenit(m):Number(m.duration)||0,tgt=sesi*60,semua=sc.work===m.steps.length&&sc.safe===m.safety.length;
+   if(semua&&(!det||(tgt&&det<tgt*0.25)))out.push({k:'cepat',lv:'warn',t:'Semua langkah dan K3 dicentang'+(det?' dalam '+Math.max(1,Math.round(det/60))+' menit dari target '+sesi+' menit.':' tanpa waktu pengerjaan tercatat.')});
+   else if(det&&tgt&&det<tgt*0.25)out.push({k:'cepat',lv:'warn',t:'Dikerjakan '+Math.max(1,Math.round(det/60))+' menit dari target '+sesi+' menit.'});
   }catch(e){}
  }
  var L=[p.evidence,p.cause,p.conclusion].map(function(s){return String(s||'').trim().length});

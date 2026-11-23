@@ -258,5 +258,25 @@ ok(G(`lkmModeOf(S.lkpd[2])`) === 'ujian' && G(`S.results.length`) === 1 && G(`lk
 G(`SC=40;${U}.maxTry=0;lkSubmit()`);
 ok(modeU() === 'latihan', 'Ujian gagal: LKPD yang sama kembali ke Latihan (remedial)');
 
+
+/* Waktu: alokasi total (810 menit = 18 JP) berbeda dari waktu satu sesi (135 menit per pertemuan) */
+{
+  const tm = fs.readFileSync(path.join(root, 'js', 'lkpd-timer.js'), 'utf8').split('\n');
+  const ambil = (awal, akhir) => tm.slice(tm.findIndex((l) => l.startsWith(awal)), tm.findIndex((l) => l.startsWith(akhir))).join('\n');
+  G(ambil('function lktLimit', 'function lktTarget') + '\n' + ambil('function lktTarget', 'function lktBtnText'));
+  G(`var V2=mk('V','ujian',{duration:810,unit:'u',v2:{jp:18,pertemuan:[1,2,3,4,5,6].map(function(n){return {n:n,jp:3,menit:135}})}});LKPD_MODULES.push(V2);LK.module='V';STAFF=false;S.lkpd=[]`);
+  sama(G(`lkmSesiMenit(V2)`), 135, 'waktu satu sesi LKPD v2 = menit per pertemuan, bukan 810');
+  sama(G(`lkmWaktuLabel(V2)`), '18 JP · 6 pertemuan', 'kartu LKPD v2 menampilkan JP dan pertemuan, bukan 810 menit');
+  sama(G(`lkmSesiMenit({duration:45})`), 45, 'LKPD tanpa pertemuan: waktu sesi = durasi');
+  sama(G(`lkmWaktuLabel({duration:45})`), '45 menit', 'LKPD tanpa pertemuan: label menit');
+  sama(G(`lktLimit()`), 135 * 60, 'pewaktu Ujian: batas merah 135 menit');
+  ok(/Target 135 menit per pertemuan/.test(G(`lktTarget(V2)`)), 'pewaktu Ujian: teks target per pertemuan');
+  G(`V2.mode='latihan'`);
+  sama(G(`lktLimit()`), 0, 'pewaktu Latihan: tidak ada batas (waktu bebas, tidak merah)');
+  ok(/Perkiraan 135 menit per pertemuan · waktu bebas/.test(G(`lktTarget(V2)`)), 'pewaktu Latihan: perkiraan, waktu bebas');
+  ok(/135 menit/.test(G(`lktTarget(V2)`)) && !/810/.test(G(`lktTarget(V2)`)), 'angka 810 tidak muncul di pewaktu');
+  G(`LKPD_MODULES.pop();LK.module='U'`);
+}
+
 console.log(`\nUji pembeda Latihan dan Ujian: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);
