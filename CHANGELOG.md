@@ -2,9 +2,11 @@
 
 ## Kartu Lembar Kerja LKPD-X-07 disederhanakan
 - Tab Lembar Kerja: kartu **Pertemuan 1** dan **6** tidak tampil (`sembunyi:true` di `js/lkpd-v2-x07.js`). Kartu 2 sampai 5 berjudul **Kegiatan 1 jangka Sorong**, **Kegiatan 2 mikrometer**, **Kegiatan 3 dial gauge**, **Kegiatan 4 perawatan** (`kartu:{judul}`).
-- **Target praktik 20 menit** per kegiatan (`praktik:20`). Menit pertemuan (135) tetap sebagai waktu belajar. Target 20 menit dipakai di pill kartu, pewaktu bawah (`lkmSesiMenit`, pertemuan tersembunyi tidak dihitung), rekap waktu per pertemuan, Rencana pertemuan (tampilan dan cetak), dan banner cetak.
+- **Total praktik 20 menit untuk semua kegiatan**, dibagi per kegiatan (`praktik` pada pertemuan): jangka sorong 10, mikrometer 4, dial gauge 3, perawatan 3. Tiap langkah punya alokasi menit (`menit` pada `v2.langkah`): K1 2+6+2, K2 1+3, K3 1+2, K4 2+1; jumlahnya sama dengan target kegiatan (diuji). Menit pertemuan (135) tetap sebagai waktu belajar.
+- Kartu Lembar Kerja disusun sistematis: judul kegiatan, target menit, catatan "Alokasi praktik N dari total 20 menit", Langkah kerja (dengan menit tiap langkah), tabel data, Pemeriksaan dan bukti, lalu Waktu aktual per kegiatan. Judul ganda "Kegiatan 1 · Jangka sorong" dihapus.
+- Pewaktu bawah memakai total praktik (`lkmPraktik`): "Perkiraan/Target 20 menit praktik (semua kegiatan)". Rencana pertemuan, rekap waktu, rubrik Waktu dan efisiensi, serta cetak ikut menyesuaikan.
 - **Kunci hanya pada mode Latihan:** tombol Kunci tidak muncul di Ujian, dan catatan kunci lama tidak memaksa isian saat Ujian (`lkkLatihan`). Yang bisa dikunci hanya kegiatan yang kartunya tampil; tombol, pesan, status guru, dan panel Pengaturan memakai nama "Kegiatan N" (`lkkLabel`).
-- Uji baru: `tools/uji-lkpd-v2.mjs` 229 uji, `tools/uji-pandu.mjs` 103 uji.
+- Uji baru: `tools/uji-lkpd-v2.mjs` 233 uji, `tools/uji-pandu.mjs` 103 uji.
 
 ## Pembeda LKPD Latihan dan Ujian
 - **Latihan berpemandu, Ujian mandiri:** Latihan menampilkan kartu panduan dan membuka angka acuan lewat tombol Bantuan; Ujian menyembunyikan angka acuan, menampilkan kartu aturan "Ujian mandiri", dan (opsional) mewajibkan foto bukti pada semua komponen.

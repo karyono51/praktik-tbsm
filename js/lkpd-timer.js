@@ -13,7 +13,7 @@ function lktTarget(m){
  if(!m)return 'Target - menit';
  var sesi=typeof lkmSesiMenit==='function'?lkmSesiMenit(m):Number(m.duration)||0,v2=!!(m.v2&&m.v2.pertemuan),
   lat=typeof lkmCfg==='function'&&lkmCfg(m).mode==='latihan';
- return (lat?'Perkiraan ':'Target ')+lkEsc(sesi)+' menit'+(v2?' per pertemuan':'')+(lat?' · waktu bebas':'');
+ return (lat?'Perkiraan ':'Target ')+lkEsc(sesi)+' menit'+(v2?(typeof lkmPraktik==='function'&&lkmPraktik(m)?' praktik (semua kegiatan)':' per pertemuan'):'')+(lat?' · waktu bebas':'');
 }
 function lktBtnText(){if(LKT.running)return lktLocked()?'Berjalan (terkunci)':'Jeda';return LKT.sec>0?'Lanjut':'Mulai waktu'}
 function lktPaint(){

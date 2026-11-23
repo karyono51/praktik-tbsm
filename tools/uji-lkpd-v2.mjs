@@ -168,7 +168,14 @@ ok(!/Lembar Kerja terkunci/.test(kerja) && /data-lk-field="t_F1_0_u1"/.test(kerj
 ok(/data-lk2-calc="F1\|0\|rata"/.test(kerja) && /data-lk2-calc="F3\|0\|olengan"/.test(kerja), 'sel rata-rata/keolengan berupa teks hitung otomatis');
 ok(/Kegiatan 1 jangka Sorong/.test(kerja) && /Kegiatan 2 mikrometer/.test(kerja) && /Kegiatan 3 dial gauge/.test(kerja) && /Kegiatan 4 perawatan/.test(kerja), 'Lembar Kerja: empat kartu berjudul kegiatan');
 ok((kerja.match(/class="card lk2-p"/g) || []).length === 4 && !/<h2>Pertemuan \d/.test(kerja) && !/data-lk-field="mt1"/.test(kerja) && !/data-lk-field="mt6"/.test(kerja), 'Lembar Kerja: kartu Pertemuan 1 dan 6 tidak tampil, tersisa 4 kartu');
-ok((kerja.match(/Target 20 menit/g) || []).length === 4 && !/Target 135 menit/.test(kerja), 'Lembar Kerja: target praktik 20 menit tiap kartu');
+sama([...kerja.matchAll(/Target (\d+) menit/g)].map((x) => +x[1]), [10, 4, 3, 3], 'Lembar Kerja: target tiap kartu 10 + 4 + 3 + 3 menit');
+ok(!/Target 135 menit/.test(kerja) && (kerja.match(/dari total 20 menit/g) || []).length === 4, 'Lembar Kerja: tiap kartu menyebut bagiannya dari total praktik 20 menit');
+ok(!/<h3>Kegiatan \d ·/.test(kerja) && (kerja.match(/<h4>Langkah kerja<\/h4>/g) || []).length === 4 && /Waktu aktual Kegiatan 1 \(menit\)/.test(kerja), 'Lembar Kerja: judul ganda dihapus; ada bagian Langkah kerja dan waktu aktual per kegiatan');
+sama([...kerja.matchAll(/class=\"lk2-mnt\">(\d+) menit/g)].map((x) => +x[1]), [2, 6, 2, 1, 3, 1, 2, 2, 1], 'Lembar Kerja: menit tiap langkah tampil');
+{
+  const per = M.v2.pertemuan.filter((p) => p.kegiatan.length), jum = (k) => M.v2.langkah.filter((l) => l.k === k).reduce((t, l) => t + l.menit, 0);
+  ok(per.every((p) => jum(p.kegiatan[0]) === p.praktik) && per.reduce((t, p) => t + p.praktik, 0) === 20, 'waktu praktik: menit langkah tiap kegiatan = target kegiatan; total semua kegiatan 20 menit');
+}
 G(`STAFF=true;LK.preview=false;DRAFT={}`);
 ok(!/Lembar Kerja terkunci/.test(G('viewLKPD()')), 'guru melihat Lembar Kerja tanpa gerbang');
 G(`STAFF=false;LK.tab='materi'`);
@@ -432,7 +439,7 @@ const ev = G('viewLKPD()');
 ok((ev.match(/data-lk2d="a[a-z0-9]+"/g) || []).length === 6, 'penilaian kinerja: 6 aspek lipat');
 ok(/Bobot 20% · aspek penghenti/.test(ev) && /Bobot 30%/.test(ev) && /Bobot 25%/.test(ev) && /Bobot 10%/.test(ev) && /Bobot 5%/.test(ev), 'bobot dan penanda aspek penghenti tampil');
 ok(/Skor 4<\/b> \(Sangat baik\)/.test(ev) && /Skor 1<\/b> \(Kurang\)/.test(ev), 'arti skor 4 sampai 1 tampil pada tiap aspek');
-ok(/Yang dinilai: APD terpasang benar/.test(ev) && /Yang dinilai: jujur mencatat/.test(ev) && /target menit tiap pertemuan/.test(ev), 'poin yang dinilai tiap aspek tampil');
+ok(/Yang dinilai: APD terpasang benar/.test(ev) && /Yang dinilai: jujur mencatat/.test(ev) && /total praktik 20 menit/.test(ev), 'poin yang dinilai tiap aspek tampil');
 ok(/Syarat kompeten/.test(ev) && (ev.match(/Bukti: /g) || []).length === 8, 'syarat kompeten: 8 indikator beserta buktinya');
 ok(/Yang diamati dan kesalahan umum/.test(ev) && /Kesalahan umum:/.test(ev) && /3 ÷ 4 × 30 = 22,5/.test(ev), 'panduan diamati dan contoh hitung nilai tampil');
 G(`LK2.open={ak3:true}`);

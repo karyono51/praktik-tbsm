@@ -10,7 +10,7 @@
    rekap, dan sinkronisasi tidak berubah. Foto wajib memakai m.fotoWajib yang sudah ada. */
 var LK2={};
 (function(){var st=document.createElement('style');st.textContent=
-'.lk2-p{border-left:4px solid var(--accent)}.lk2-st{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start}'+
+'.lk2-p{border-left:4px solid var(--accent)}.lk2-mnt{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:var(--accent-soft,#e3f1e8);color:var(--accent);font-size:12px;font-weight:600;white-space:nowrap}.lk2-st{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start}'+
 '.lk2-saksi{display:inline-block;margin-left:6px;font-size:11px;padding:1px 6px;border-radius:8px;border:1px solid var(--warn,#b8860b);color:var(--warn,#b8860b)}'+
 '.lk2-t input,.lk2-t select{min-width:64px;width:100%}.lk2-t td,.lk2-t th{padding:4px}.lk2-cek{border-top:1px solid var(--line,#ddd);padding:10px 0;display:grid;gap:6px}'+
 '.lk2-dt{border:1px solid var(--line,#ddd);border-radius:12px;margin:8px 0;background:var(--surface,#fff)}.lk2-dt>summary{cursor:pointer;list-style:none;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}.lk2-dt>summary::-webkit-details-marker{display:none}.lk2-dt>summary::after{content:"\\25B8";flex:none;transition:transform .15s}.lk2-dt[open]>summary::after{transform:rotate(90deg)}.lk2-ttl{display:grid;gap:2px}.lk2-ttl small{color:var(--muted,#666);font-size:12.5px;line-height:1.3}.lk2-bd{padding:0 14px 12px;font-size:14px}.lk2-bd ul{margin:6px 0}.lk2-grp{margin:12px 0 4px;font-size:14px}'+
@@ -167,9 +167,12 @@ lkSubmit=function(){
 
 /* ---------- Tampilan siswa ---------- */
 function lk2Chk(d,key,label){return '<label class="lk-check"><input type="checkbox" data-lk-check="'+key+'" '+(d[key]?'checked':'')+'><span>'+label+'</span></label>'}
+/* Waktu praktik: total semua kegiatan dibagi per kegiatan (p.praktik). Menit langkah (v2.langkah[].menit) menjumlah ke target kegiatannya. */
+function lk2PraktikTotal(V){return V.pertemuan.reduce(function(t,p){return t+(p.sembunyi?0:Number(p.praktik)||0)},0)}
+function lk2PraktikRingkas(V){var a=V.pertemuan.filter(function(p){return !p.sembunyi&&p.praktik});return a.length?' Praktik '+lk2PraktikTotal(V)+' menit ('+a.map(function(p){return (p.kegiatan.length?'K'+p.kegiatan[0]:'P'+p.n)+' '+p.praktik}).join(' + ')+').':''}
 function lk2Rencana(m){
  var V=m.v2,tot=V.pertemuan.reduce(function(t,p){return t+p.menit},0),jp=V.pertemuan.reduce(function(t,p){return t+p.jp},0);
- return '<section class="card"><h2>Rencana pertemuan</h2><p class="note">'+V.pertemuan.length+' pertemuan · '+jp+' JP · '+tot+' menit. Ketuk satu pertemuan untuk melihat kegiatannya.</p>'+V.pertemuan.map(function(p){
+ return '<section class="card"><h2>Rencana pertemuan</h2><p class="note">'+V.pertemuan.length+' pertemuan · '+jp+' JP · '+tot+' menit.'+lk2PraktikRingkas(V)+' Ketuk satu pertemuan untuk melihat kegiatannya.</p>'+V.pertemuan.map(function(p){
   var ls=[];p.kegiatan.forEach(function(k){V.langkah.forEach(function(l){if(l.k===k)ls.push('<li>'+lkEsc(String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,''))+(l.saksi?' <span class="lk2-saksi">saksi guru</span>':'')+'</li>')})});
   var isi=p.kegiatan.length?'<p class="note">'+p.kegiatan.map(function(k){return 'Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])}).join('; ')+'</p><ul class="plain">'+ls.join('')+'</ul>':'<p class="note">'+(p.n===1?'Jawab gerbang masuk dan centang butir K3 di tab ini, lalu periksa alat.':'Penilaian kinerja oleh guru, refleksi, remedial atau pengayaan.')+'</p>';
   return lk2Det('p'+p.n,'Pertemuan '+p.n,p.jp+' JP · '+p.menit+' menit'+(p.praktik?' · target praktik '+p.praktik+' menit':'')+' · '+lkEsc(p.judul),isi);
@@ -193,7 +196,7 @@ function lk2Materi(m,d){
 }
 function lk2StepHtml(m,i,d){
  var s=m.steps[i],V=m.v2.langkah[i],t=String(s[0]).replace(/^Kegiatan \d+ · /,'');
- return '<label class="lk-step"><input type="checkbox" data-lk-check="step'+i+'" '+(d['step'+i]?'checked':'')+'><span><b>'+lkEsc(t)+'</b>'+(V.saksi?'<span class="lk2-saksi">saksi guru</span>':'')+'<small>Poin kritis: '+lkEsc(s[2])+'</small></span></label>';
+ return '<label class="lk-step"><input type="checkbox" data-lk-check="step'+i+'" '+(d['step'+i]?'checked':'')+'><span><b>'+lkEsc(t)+'</b>'+(V.saksi?'<span class="lk2-saksi">saksi guru</span>':'')+(V.menit?'<span class="lk2-mnt">'+V.menit+' menit</span>':'')+'<small>Poin kritis: '+lkEsc(s[2])+'</small></span></label>';
 }
 function lk2TabelHtml(m,t,d,c){
  /* Sel pertama = label baris (bila ada), lalu kolom. data-w menandai lebar kartu di ponsel: full = satu baris, half = berdampingan. */
@@ -226,15 +229,15 @@ function lk2Kerja(m,d){
  V.pertemuan.forEach(function(p){
   if(p.sembunyi)return;
   var kt=p.kartu||{};
-  h+='<section class="card lk2-p"><div class="row sb"><h2>'+(kt.judul?lkEsc(kt.judul):'Pertemuan '+p.n)+'</h2><span class="pill">Target '+(p.praktik||p.menit)+' menit</span></div>'+(kt.judul?'':'<p class="note">'+lkEsc(p.judul)+'</p>');
+  h+='<section class="card lk2-p"><div class="row sb"><h2>'+(kt.judul?lkEsc(kt.judul):'Pertemuan '+p.n)+'</h2><span class="pill">Target '+(p.praktik||p.menit)+' menit</span></div>'+(kt.judul?'<p class="note">Alokasi praktik '+(p.praktik||p.menit)+' dari total '+lk2PraktikTotal(V)+' menit.</p>':'<p class="note">'+lkEsc(p.judul)+'</p>');
   if(!p.kegiatan.length)h+='<p class="note">'+(p.n===1?'Isi gerbang masuk dan daftar APD di tab Materi.':'Penilaian kinerja oleh guru. Lengkapi analisis dan refleksi di bawah.')+'</p>';
   p.kegiatan.forEach(function(k){
-   h+='<h3>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+'</h3>'+
+   h+=(kt.judul?'<h4>Langkah kerja</h4>':'<h3>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+'</h3>')+
     V.langkah.filter(function(l){return l.k===k}).map(function(l){return lk2StepHtml(m,l.i,d)}).join('')+
     V.tabel.filter(function(t){return t.k===k}).map(function(t){return lk2TabelHtml(m,t,d,c)}).join('')+
     '<h4>Pemeriksaan dan bukti</h4>'+V.cekK.map(function(kk,i){return kk===k?lk2CekHtml(m,i,d):''}).join('');
   });
-  h+='<label class="f">Waktu aktual pertemuan '+p.n+' (menit)<input inputmode="numeric" data-lk-field="mt'+p.n+'" value="'+lkEsc(d['mt'+p.n]||'')+'"></label></section>';
+  h+='<label class="f">Waktu aktual '+(kt.judul&&p.kegiatan.length?'Kegiatan '+p.kegiatan[0]:'pertemuan '+p.n)+' (menit)<input inputmode="numeric" data-lk-field="mt'+p.n+'" value="'+lkEsc(d['mt'+p.n]||'')+'"></label></section>';
  });
  h+='<section class="card"><h2>Analisis dan keputusan teknis</h2>'+V.analisis.map(function(q,i){return '<label class="f">'+(i+1)+'. '+lkEsc(q)+'<textarea data-lk-field="ana'+i+'">'+lkEsc(d['ana'+i]||'')+'</textarea></label>'}).join('')+'</section>'+
   '<section class="card"><h2>Refleksi</h2>'+V.refleksi.map(function(q,i){return '<label class="f">'+(i+1)+'. '+lkEsc(q)+'<textarea data-lk-field="ref'+i+'">'+lkEsc(d['ref'+i]||'')+'</textarea></label>'}).join('')+'</section>'+

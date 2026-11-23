@@ -268,9 +268,9 @@ ok(modeU() === 'latihan', 'Ujian gagal: LKPD yang sama kembali ke Latihan (remed
   sama(G(`lkmSesiMenit(V2)`), 135, 'waktu satu sesi LKPD v2 = menit per pertemuan, bukan 810');
   sama(G(`lkmWaktuLabel(V2)`), '18 JP · 6 pertemuan', 'kartu LKPD v2 menampilkan JP dan pertemuan, bukan 810 menit');
   sama(G(`lkmSesiMenit({duration:45})`), 45, 'LKPD tanpa pertemuan: waktu sesi = durasi');
-  G(`var V3=mk('V3','latihan',{duration:810,unit:'u',v2:{jp:18,pertemuan:[{n:1,jp:3,menit:135,sembunyi:true},{n:2,jp:3,menit:135,praktik:20},{n:3,jp:3,menit:135,praktik:20},{n:4,jp:3,menit:135,sembunyi:true}]}});LKPD_MODULES.push(V3)`);
-  sama(G(`lkmSesiMenit(V3)`), 20, 'waktu sesi = target praktik 20 menit; pertemuan tersembunyi (135) tidak dihitung');
-  ok(/Perkiraan 20 menit per pertemuan · waktu bebas/.test(G(`lktTarget(V3)`)), 'pewaktu Latihan memakai target praktik 20 menit');
+  G(`var V3=mk('V3','latihan',{duration:810,unit:'u',v2:{jp:18,pertemuan:[{n:1,jp:3,menit:135,sembunyi:true},{n:2,jp:3,menit:135,praktik:12},{n:3,jp:3,menit:135,praktik:8},{n:4,jp:3,menit:135,sembunyi:true}]}});LKPD_MODULES.push(V3)`);
+  sama(G(`lkmSesiMenit(V3)`), 20, 'waktu sesi = total praktik 20 menit (12 + 8); pertemuan tersembunyi tidak dihitung');
+  ok(/Perkiraan 20 menit praktik \(semua kegiatan\) · waktu bebas/.test(G(`lktTarget(V3)`)), 'pewaktu Latihan memakai total praktik 20 menit');
   sama(G(`lkmWaktuLabel({duration:45})`), '45 menit', 'LKPD tanpa pertemuan: label menit');
   sama(G(`lktLimit()`), 135 * 60, 'pewaktu Ujian: batas merah 135 menit');
   ok(/Target 135 menit per pertemuan/.test(G(`lktTarget(V2)`)), 'pewaktu Ujian: teks target per pertemuan');
