@@ -182,6 +182,9 @@ sama([...kerja.matchAll(/class=\"lk2-mnt\">(\d+) menit/g)].map((x) => +x[1]), [4
   const w = M.v2.obs.aspek.find((x) => x.id === 'waktu').ket;
   ok(/total praktik 80 menit/.test(w) && /jangka sorong 25, mikrometer 20, dial gauge 20, perawatan 15/.test(w), 'rubrik Waktu memakai angka yang sama dengan menit langkah');
   ok(/data-lk-field="mtk3"/.test(kerja) && /data-lk-field="mtk4"/.test(kerja) && !/data-lk-field="mt4"/.test(kerja), 'kartu Kegiatan 3 dan 4 punya kolom waktu aktual sendiri (mtk3 dan mtk4)');
+  { const ren = G(`lk2Rencana(LKPD_MODULES[0])`);
+    ok(/K1 25 \+ K2 20 \+ K3 20 \+ K4 15/.test(ren) && !/K3\+4/.test(ren) && !/target praktik 35 menit/.test(ren), 'Rencana pertemuan: waktu K3 dan K4 tidak dijumlah jadi satu (K3 20 + K4 15)');
+    ok(/Kegiatan 3 · Dial gauge<\/b> · target 20 menit/.test(ren) && /Kegiatan 4 · Perawatan dan penyimpanan<\/b> · target 15 menit/.test(ren), 'Rencana pertemuan: Kegiatan 3 dan 4 masing-masing punya daftar langkah dan target menit sendiri'); }
 }
 G(`STAFF=true;LK.preview=false;DRAFT={}`);
 ok(!/Lembar Kerja terkunci/.test(G('viewLKPD()')), 'guru melihat Lembar Kerja tanpa gerbang');

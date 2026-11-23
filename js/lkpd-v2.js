@@ -211,17 +211,20 @@ function lk2KegMenit(V,k){return V.langkah.filter(function(l){return l.k===k}).r
    key = kolom waktu aktual: mt<n> bila kartu mewakili pertemuan, mtk<k> bila kartu mewakili satu kegiatan dari pertemuan yang dipisah. */
 function lk2Pisah(p){return !!(p&&p.kartu&&p.kartu.per&&(p.kegiatan||[]).length>1)}
 function lk2WaktuKey(p,k){return lk2Pisah(p)?'mtk'+k:'mt'+p.n}
+/* Teks waktu praktik sebuah pertemuan: pertemuan yang dipisah menyebut tiap kegiatan sendiri (K3 20 + K4 15), tidak dijumlah jadi satu angka. */
+function lk2PraktikTeks(V,p){return lk2Pisah(p)?p.kegiatan.map(function(k){return 'K'+k+' '+(lk2KegMenit(V,k)||0)}).join(' + '):String(p.praktik||'')}
 function lk2Kartu(V,p){
  var kt=p.kartu||{};
  if(lk2Pisah(p))return p.kegiatan.map(function(k){return {ks:[k],judul:kt.per[k]||('Kegiatan '+k+' '+V.kegiatan[k-1]),menit:lk2KegMenit(V,k)||0,key:'mtk'+k,k:k}});
  return [{ks:p.kegiatan,judul:kt.judul||'',menit:p.praktik||p.menit,key:'mt'+p.n}]}
-function lk2PraktikRingkas(V){var a=V.pertemuan.filter(function(p){return !p.sembunyi&&p.praktik});return a.length?' Praktik '+lk2PraktikTotal(V)+' menit ('+a.map(function(p){return (p.kegiatan.length?'K'+p.kegiatan.join('+'):'P'+p.n)+' '+p.praktik}).join(' + ')+').':''}
+function lk2PraktikRingkas(V){var a=V.pertemuan.filter(function(p){return !p.sembunyi&&p.praktik});return a.length?' Praktik '+lk2PraktikTotal(V)+' menit ('+a.map(function(p){return lk2Pisah(p)?lk2PraktikTeks(V,p):(p.kegiatan.length?'K'+p.kegiatan.join('+'):'P'+p.n)+' '+p.praktik}).join(' + ')+').':''}
 function lk2Rencana(m){
  var V=m.v2,tot=V.pertemuan.reduce(function(t,p){return t+p.menit},0),jp=V.pertemuan.reduce(function(t,p){return t+p.jp},0);
  return '<section class="card"><h2>Rencana pertemuan</h2><p class="note">'+V.pertemuan.length+' pertemuan · '+jp+' JP · '+tot+' menit.'+lk2PraktikRingkas(V)+' Ketuk satu pertemuan untuk melihat kegiatannya.</p>'+V.pertemuan.map(function(p){
   var ls=[];p.kegiatan.forEach(function(k){V.langkah.forEach(function(l){if(l.k===k)ls.push('<li>'+lkEsc(String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,''))+(l.saksi?' <span class="lk2-saksi">saksi guru</span>':'')+'</li>')})});
-  var isi=p.kegiatan.length?'<p class="note">'+p.kegiatan.map(function(k){return 'Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])}).join('; ')+'</p><ul class="plain">'+ls.join('')+'</ul>':'<p class="note">'+(p.n===1?'Jawab gerbang masuk dan centang butir K3 di tab ini, lalu periksa alat.':'Penilaian kinerja oleh guru, refleksi, remedial atau pengayaan.')+'</p>';
-  return lk2Det('p'+p.n,'Pertemuan '+p.n,p.jp+' JP · '+p.menit+' menit'+(p.praktik?' · target praktik '+p.praktik+' menit':'')+' · '+lkEsc(p.judul),isi);
+  var pisah=lk2Pisah(p);
+  var isi=pisah?p.kegiatan.map(function(k){var li=[];V.langkah.forEach(function(l){if(l.k===k)li.push('<li>'+lkEsc(String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,''))+(l.saksi?' <span class="lk2-saksi">saksi guru</span>':'')+'</li>')});return '<p class="note"><b>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+'</b> · target '+(lk2KegMenit(V,k)||0)+' menit</p><ul class="plain">'+li.join('')+'</ul>'}).join(''):p.kegiatan.length?'<p class="note">'+p.kegiatan.map(function(k){return 'Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])}).join('; ')+'</p><ul class="plain">'+ls.join('')+'</ul>':'<p class="note">'+(p.n===1?'Jawab gerbang masuk dan centang butir K3 di tab ini, lalu periksa alat.':'Penilaian kinerja oleh guru, refleksi, remedial atau pengayaan.')+'</p>';
+  return lk2Det('p'+p.n,'Pertemuan '+p.n,p.jp+' JP · '+p.menit+' menit'+(p.praktik?' · target praktik '+(pisah?lk2PraktikTeks(V,p):p.praktik)+' menit':'')+' · '+lkEsc(p.judul),isi);
  }).join('')+'</section>';
 }
 function lk2K3(m,d){

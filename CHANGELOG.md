@@ -1,3 +1,9 @@
+## LKPD v2: Kegiatan tidak digabung di Rencana pertemuan dan cetak
+- Aturan tetap: **Kegiatan tidak boleh disatukan.** Lembar Kerja sudah memisahkan kartu Kegiatan 3 dan 4; kini Rencana pertemuan dan cetak juga memisahkannya.
+- **Rencana pertemuan (Materi):** ringkasan menjadi "K1 25 + K2 20 + K3 20 + K4 15" (sebelumnya "K3+4 35"); Pertemuan 4 menyebut "target praktik K3 20 + K4 15 menit" dan menampilkan daftar langkah serta target menit tiap kegiatan sendiri (`lk2PraktikTeks` di `js/lkpd-v2.js`).
+- **Cetak (`js/lkpd-format.js`):** tabel rencana dan spanduk pertemuan memakai teks yang sama; judul Kegiatan 3 dan 4 memuat target menit masing-masing.
+- Uji `uji-lkpd-v2` 274 (2 baru). Tidak ada perubahan Appwrite.
+
 ## Perbaikan: Lembar Kerja tidak bisa dibuka (bentrok nama global LKC)
 - **Penyebab:** pewaktu per pertemuan (`js/lkpd-timer.js`) dan `js/lkpd-cetak.js` sama-sama memakai variabel global `LKC`. Di peramban yang terakhir dimuat menimpa yang lain, sehingga membuka tab Lembar Kerja menimbulkan galat ("Cannot read properties of undefined") dan siswa tetap di Materi.
 - **Perbaikan:** variabel pewaktu diganti menjadi `LKCT`. Uji pewaktu mendapat pemeriksaan agar nama itu tidak dipakai lagi; diuji juga di Chromium (gerbang dijawab, Lembar Kerja terbuka, pewaktu kartu berjalan, tanpa galat).
