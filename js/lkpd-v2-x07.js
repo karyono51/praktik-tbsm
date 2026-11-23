@@ -62,10 +62,10 @@
    ver:2,jenis:'jobsheet',jp:18,tp:'X.4.2',cp:'Peralatan dan Perlengkapan Tempat Kerja',
    pertemuan:[
     {n:1,jp:3,menit:135,judul:'Pemantik, materi, gerbang masuk, APD, cek alat',kegiatan:[],sembunyi:true},
-    {n:2,jp:3,menit:135,judul:'Kegiatan 1 jangka sorong, latihan soal 1–4',kegiatan:[1],latihan:['J1','J2','J3','J4'],kartu:{judul:'Kegiatan 1 jangka Sorong',menit:10}},
-    {n:3,jp:3,menit:135,judul:'Kegiatan 2 mikrometer, latihan soal 5–8',kegiatan:[2],latihan:['M1','M2','M3','M4'],kartu:{judul:'Kegiatan 2 mikrometer',menit:10}},
-    {n:4,jp:3,menit:135,judul:'Kegiatan 3 dial gauge, latihan soal 9–10',kegiatan:[3],latihan:['D1','D2'],kartu:{judul:'Kegiatan 3 dial gauge',menit:10}},
-    {n:5,jp:3,menit:135,judul:'Kegiatan 4 perawatan, analisis',kegiatan:[4],kartu:{judul:'Kegiatan 4 perawatan',menit:10}},
+    {n:2,jp:3,menit:135,judul:'Kegiatan 1 jangka sorong, latihan soal 1–4',kegiatan:[1],latihan:['J1','J2','J3','J4'],praktik:20,kartu:{judul:'Kegiatan 1 jangka Sorong'}},
+    {n:3,jp:3,menit:135,judul:'Kegiatan 2 mikrometer, latihan soal 5–8',kegiatan:[2],latihan:['M1','M2','M3','M4'],praktik:20,kartu:{judul:'Kegiatan 2 mikrometer'}},
+    {n:4,jp:3,menit:135,judul:'Kegiatan 3 dial gauge, latihan soal 9–10',kegiatan:[3],latihan:['D1','D2'],praktik:20,kartu:{judul:'Kegiatan 3 dial gauge'}},
+    {n:5,jp:3,menit:135,judul:'Kegiatan 4 perawatan, analisis',kegiatan:[4],praktik:20,kartu:{judul:'Kegiatan 4 perawatan'}},
     {n:6,jp:3,menit:135,judul:'Penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[],sembunyi:true}
    ],
    kegiatan:kegiatan,judulPendek:'Alat Ukur',

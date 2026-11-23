@@ -184,13 +184,13 @@ function bangunV2(m,H){
  try{if(typeof lk2Calc==='function')calc=lk2Calc(m,d)}catch(e){}
  var jp=P.reduce(function(t,p){return t+p.jp},0);
  var h=tujuan(m)+'<h2 class="lkf-h">Rencana pertemuan</h2><table class="lkf-t"><thead><tr><th>Pertemuan</th><th>JP</th><th>Menit</th><th>Kegiatan</th></tr></thead><tbody>'+
-  P.map(function(p){return '<tr><td class="k">'+p.n+'</td><td class="k">'+p.jp+'</td><td class="k">'+p.menit+'</td><td>'+E(sen(p.judul))+'</td></tr>'}).join('')+'</tbody></table>';
+  P.map(function(p){return '<tr><td class="k">'+p.n+'</td><td class="k">'+p.jp+'</td><td class="k">'+p.menit+(p.praktik?' (praktik '+p.praktik+')':'')+'</td><td>'+E(sen(p.judul))+'</td></tr>'}).join('')+'</tbody></table>';
  var lastK=0;P.forEach(function(p){(p.kegiatan||[]).forEach(function(k){if(k>lastK)lastK=k})});
  var pemantik=(m.theory||[]).filter(function(x){return /pemantik/i.test(x[0])})[0];
  var first=true;
  P.forEach(function(p,pi){
   var ks=p.kegiatan||[],judul=ks.length?'Kegiatan '+ks.map(function(k){return k+': '+V.kegiatan[k-1]}).join('; '):sen(p.judul);
-  h+='<table class="lkf-ban"><tbody><tr><td>Pertemuan '+p.n+' · '+E(judul)+'</td><td class="r">'+p.jp+' JP · target '+p.menit+' menit</td></tr></tbody></table>';
+  h+='<table class="lkf-ban"><tbody><tr><td>Pertemuan '+p.n+' · '+E(judul)+'</td><td class="r">'+p.jp+' JP · target '+(p.praktik?'praktik '+p.praktik:p.menit)+' menit</td></tr></tbody></table>';
   if(pi===0){
    if(pemantik)h+='<p><b>Pertanyaan pemantik</b><br>'+E(pemantik[1])+'</p>'+garis('')+garis('');
    h+=materi(m,/pemantik/i)+gerbang(m,d)+alat(m)+k3v2(m,d)+cekAlat(m);

@@ -1,8 +1,10 @@
 # Riwayat pembaruan dan rincian fitur per versi
 
 ## Kartu Lembar Kerja LKPD-X-07 disederhanakan
-- Di tab Lembar Kerja, kartu **Pertemuan 1** dan **Pertemuan 6** tidak ditampilkan (`sembunyi:true` pada `js/lkpd-v2-x07.js`; mesin di `js/lkpd-v2.js` melewati pertemuan bertanda itu). Data pertemuan, Rencana pertemuan di Materi, JP, dan cetak tidak berubah.
-- Kartu **Pertemuan 2** kini berjudul **Kegiatan 1 jangka Sorong** dengan **Target 10 menit** (`kartu:{judul,menit}`). Kartu Pertemuan 3, 4, 5 disesuaikan: **Kegiatan 2 mikrometer**, **Kegiatan 3 dial gauge**, **Kegiatan 4 perawatan**, masing-masing Target 10 menit.
+- Tab Lembar Kerja: kartu **Pertemuan 1** dan **6** tidak tampil (`sembunyi:true` di `js/lkpd-v2-x07.js`). Kartu 2 sampai 5 berjudul **Kegiatan 1 jangka Sorong**, **Kegiatan 2 mikrometer**, **Kegiatan 3 dial gauge**, **Kegiatan 4 perawatan** (`kartu:{judul}`).
+- **Target praktik 20 menit** per kegiatan (`praktik:20`). Menit pertemuan (135) tetap sebagai waktu belajar. Target 20 menit dipakai di pill kartu, pewaktu bawah (`lkmSesiMenit`, pertemuan tersembunyi tidak dihitung), rekap waktu per pertemuan, Rencana pertemuan (tampilan dan cetak), dan banner cetak.
+- **Kunci hanya pada mode Latihan:** tombol Kunci tidak muncul di Ujian, dan catatan kunci lama tidak memaksa isian saat Ujian (`lkkLatihan`). Yang bisa dikunci hanya kegiatan yang kartunya tampil; tombol, pesan, status guru, dan panel Pengaturan memakai nama "Kegiatan N" (`lkkLabel`).
+- Uji baru: `tools/uji-lkpd-v2.mjs` 229 uji, `tools/uji-pandu.mjs` 103 uji.
 
 ## Pembeda LKPD Latihan dan Ujian
 - **Latihan berpemandu, Ujian mandiri:** Latihan menampilkan kartu panduan dan membuka angka acuan lewat tombol Bantuan; Ujian menyembunyikan angka acuan, menampilkan kartu aturan "Ujian mandiri", dan (opsional) mewajibkan foto bukti pada semua komponen.

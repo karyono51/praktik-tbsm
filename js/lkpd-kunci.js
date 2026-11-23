@@ -12,7 +12,9 @@ var LKK_PFX='kunci|';
 var LKK_SKIP={student:1,'class':1,date:1,v2:1,detik:1,kunci:1,qsig:1,school:1,vehicle:1,evidence:1,cause:1,conclusion:1};
 var LKK_DEFAULT={'Belum diperiksa':1};
 
-function lkkOn(m){return !!m&&typeof lk2Is==='function'&&lk2Is(m)&&m.kunci!==false&&!!(m.v2&&m.v2.pertemuan&&m.v2.pertemuan.length>1)}
+function lkkLatihan(m){if(typeof lkmCfg!=='function')return true;try{return lkmCfg(m).mode==='latihan'}catch(e){return false}}
+/* Kunci hanya muncul dan berlaku saat mode Latihan (termasuk tahap Latihan pada LKPD bertahap). Saat Ujian tidak ada tombol kunci dan catatan kunci lama tidak memaksa isian. */
+function lkkOn(m){return !!m&&typeof lk2Is==='function'&&lk2Is(m)&&m.kunci!==false&&!!(m.v2&&m.v2.pertemuan&&m.v2.pertemuan.length>1)&&lkkLatihan(m)}
 function lkkTotal(m){return m.v2.pertemuan.length}
 function lkkBuka(m){var n=parseInt(m.pertBuka,10)||0;return n>0?Math.min(n,lkkTotal(m)):lkkTotal(m)}
 function lkkRid(m){return 'k|'+m.id}
@@ -32,8 +34,12 @@ function lkkLocks(m){
  return out}
 function lkkNums(L){return Object.keys(L).map(Number).sort(function(a,b){return a-b})}
 function lkkMerged(m){var L=lkkLocks(m),f={};lkkNums(L).forEach(function(n){Object.keys(L[n].f).forEach(function(k){if(!(k in f))f[k]=L[n].f[k]})});return f}
-function lkkIsLockable(m,n){return n>1&&n<lkkTotal(m)}
-function lkkLockable(m){var a=[];for(var n=2;n<lkkTotal(m);n++)a.push(n);return a}
+/* Yang bisa dikunci siswa: pertemuan yang kartunya tampil dan punya kegiatan (pertemuan awal dan akhir tidak). */
+function lkkPert(m,n){return m.v2.pertemuan.filter(function(p){return p.n===n})[0]||null}
+function lkkIsLockable(m,n){var p=lkkPert(m,n);return !!p&&!p.sembunyi&&(p.kegiatan||[]).length>0&&n>1&&n<lkkTotal(m)}
+function lkkLockable(m){var a=[];for(var n=1;n<=lkkTotal(m);n++)if(lkkIsLockable(m,n))a.push(n);return a}
+/* Nama pendek untuk tombol dan pesan: "Kegiatan 1" bila kartu bernama kegiatan, selain itu "Pertemuan N". */
+function lkkLabel(m,n){var p=lkkPert(m,n);return p&&p.kartu&&(p.kegiatan||[]).length?'Kegiatan '+p.kegiatan[0]:'Pertemuan '+n}
 /* Peta isian -> nomor pertemuan, dari data pertemuan modul (kegiatan, latihan, judul analisis). Isian tanpa pertemuan tidak dikunci siswa. */
 function lkkKeyMap(m){
  var V=m.v2,P=V.pertemuan,mp={};
@@ -80,32 +86,32 @@ viewLKPD=function(){
  if(Cloud.on)setTimeout(function(){lkkLoad(m)},0);
  if(ns.length){
   h=lkkDisable(h,f);
-  h=h.replace('· v2</span>','· v2</span><span class="pill plain" title="Hasil pertemuan ini dikunci">Terkunci: P'+ns.join(', P')+'</span>')}
+  h=h.replace('· v2</span>','· v2</span><span class="pill plain" title="Hasil yang dikunci">Terkunci: '+ns.map(function(n){return lkkLabel(m,n).replace('Kegiatan ','K').replace('Pertemuan ','P')}).join(', ')+'</span>')}
  return h};
 
 /* Blok di bilah bawah siswa (menggantikan cadangan berkas bila kunci aktif). */
 function lkkBlock(m){
  var L=lkkLocks(m),ns=lkkNums(L),tot=lkkTotal(m),buka=lkkBuka(m),opts=lkkLockable(m),sisa=opts.filter(function(n){return !L[n]}),st;
  if(!opts.length)st='<p class="note">Tidak ada pertemuan yang bisa dikunci siswa pada LKPD ini.</p>';
- else if(!sisa.length)st='<p class="note">Semua pertemuan yang bisa dikunci (Pertemuan 2 sampai '+(tot-1)+') sudah terkunci. Kirim LKPD bila sudah selesai.</p>';
- else st='<div class="row" style="gap:6px;flex-wrap:wrap">'+sisa.map(function(n){return n<=buka?'<button type="button" class="btn small primary" data-act="lkk-lock" data-n="'+n+'">Kunci Pertemuan '+n+'</button>':'<button type="button" class="btn small" disabled title="Belum dibuka guru">Kunci Pertemuan '+n+'</button>'}).join('')+'</div>'+(sisa.some(function(n){return n>buka})?'<p class="note">Pertemuan yang belum dibuka guru belum bisa dikunci.</p>':'');
- return '<div class="lk2-kb"><b>Kunci hasil pertemuan</b><p class="note">'+(ns.length?'Terkunci: Pertemuan '+ns.join(', ')+'. ':'Belum ada yang dikunci. ')+'Kunci pertemuan mana saja yang sudah selesai, kecuali Pertemuan 1 (awal) dan Pertemuan '+tot+' (akhir). Isian pertemuan itu tersimpan di server dan tidak bisa diubah lagi kecuali guru membuka kunci.</p>'+st+'</div>'}
+ else if(!sisa.length)st='<p class="note">Semua kegiatan yang bisa dikunci sudah terkunci. Kirim LKPD bila sudah selesai.</p>';
+ else st='<div class="row" style="gap:6px;flex-wrap:wrap">'+sisa.map(function(n){return n<=buka?'<button type="button" class="btn small primary" data-act="lkk-lock" data-n="'+n+'">Kunci '+lkkLabel(m,n)+'</button>':'<button type="button" class="btn small" disabled title="Belum dibuka guru">Kunci '+lkkLabel(m,n)+'</button>'}).join('')+'</div>'+(sisa.some(function(n){return n>buka})?'<p class="note">Pertemuan yang belum dibuka guru belum bisa dikunci.</p>':'');
+ return '<div class="lk2-kb"><b>Kunci hasil pertemuan</b><p class="note">'+(ns.length?'Terkunci: '+ns.map(function(n){return lkkLabel(m,n)}).join(', ')+'. ':'Belum ada yang dikunci. ')+'Kunci kegiatan yang sudah selesai (urutan bebas). Isiannya tersimpan di server dan tidak bisa diubah lagi kecuali guru membuka kunci.</p>'+st+'</div>'}
 
 function lkkFlush(){setTimeout(function(){try{if(Cloud.on)Cloud.flush()}catch(e){}},300)}
 
 function lkkLock(n){
  var m=lkkActive();if(!m)return;
  n=parseInt(n,10)||0;
- if(!lkkIsLockable(m,n)){toast('Pertemuan awal dan akhir tidak dikunci oleh siswa');return}
- if(lkkLocks(m)[n]){toast('Pertemuan '+n+' sudah dikunci');return}
- if(n>lkkBuka(m)){toast('Guru belum membuka Pertemuan '+n+' untuk dikunci');return}
+ if(!lkkIsLockable(m,n)){toast('Bagian ini tidak dikunci oleh siswa');return}
+ if(lkkLocks(m)[n]){toast(lkkLabel(m,n)+' sudah dikunci');return}
+ if(n>lkkBuka(m)){toast('Guru belum membuka '+lkkLabel(m,n)+' untuk dikunci');return}
  var d=lkRead(),have=lkkMerged(m),mp=lkkKeyMap(m),f={},add=0;
  Object.keys(d).forEach(function(k){
   if(LKK_SKIP[k]||/^row\d/.test(k)||mp[k]!==n||Object.prototype.hasOwnProperty.call(have,k))return;
   var v=d[k];if(v===''||v===false||v==null||typeof v==='object'||LKK_DEFAULT[v])return;
   f[k]=v;add++});
- if(!add){toast('Belum ada isian Pertemuan '+n+' untuk dikunci');return}
- if(!uiOk('lkkunci','Kunci hasil Pertemuan '+n+'?\n'+add+' isian akan dikunci dan tidak bisa diubah, kecuali guru membuka kunci.',function(){lkkLock(n)},{ok:'Kunci'}))return;
+ if(!add){toast('Belum ada isian '+lkkLabel(m,n)+' untuk dikunci');return}
+ if(!uiOk('lkkunci','Kunci hasil '+lkkLabel(m,n)+'?\n'+add+' isian akan dikunci dan tidak bisa diubah, kecuali guru membuka kunci.',function(){lkkLock(n)},{ok:'Kunci'}))return;
  var rec={id:uid(),lkpdId:lkkRid(m),sid:S.user.id,moduleId:m.id,ts:Date.now(),label:LKK_PFX+n,data:JSON.stringify({n:n,f:f})};
  if(rec.data.length>280000){toast('Isian terlalu besar untuk dikunci');return}
  S.lkpdBukti=S.lkpdBukti||[];S.lkpdBukti.push(rec);
@@ -113,7 +119,7 @@ function lkkLock(n){
  lkkSaveMirror(m);
  try{localStorage.setItem(lkKey(),JSON.stringify(lkRead()))}catch(e){}
  persist();render();
- toast('Pertemuan '+n+' terkunci'+(Cloud.on?(navigator.onLine===false?'. Terkirim ke server saat online':''):''));
+ toast(lkkLabel(m,n)+' terkunci'+(Cloud.on?(navigator.onLine===false?'. Terkirim ke server saat online':''):''));
  lkkFlush()}
 
 /* Muat catatan kunci siswa dari server (sekali tiap 5 menit per LKPD). */
@@ -137,17 +143,17 @@ function lkkStatus(m){
  var ids=Object.keys(by).sort(function(a,b){return lkkNama(a).localeCompare(lkkNama(b))});
  var rows=ids.map(function(sid){
   var L=by[sid].slice().sort(function(a,b){return lkkN(a)-lkkN(b)});
-  return '<div class="lk2-krow"><div><b>'+lkEsc(lkkNama(sid))+'</b><small>Terkunci: P'+L.map(lkkN).join(', P')+'</small></div><div class="row" style="gap:4px;flex-wrap:wrap">'+L.map(function(o){return '<button type="button" class="btn small" data-act="lkk-unlock" data-v="'+lkEsc(o.id)+'">Buka kunci P'+lkkN(o)+'</button>'}).join('')+'</div></div>'}).join('');
+  return '<div class="lk2-krow"><div><b>'+lkEsc(lkkNama(sid))+'</b><small>Terkunci: '+L.map(function(o){return lkkLabel(m,lkkN(o))}).join(', ')+'</small></div><div class="row" style="gap:4px;flex-wrap:wrap">'+L.map(function(o){return '<button type="button" class="btn small" data-act="lkk-unlock" data-v="'+lkEsc(o.id)+'">Buka kunci '+lkkLabel(m,lkkN(o))+'</button>'}).join('')+'</div></div>'}).join('');
  return '<div class="lk2-kstat"><div class="row" style="gap:6px;flex-wrap:wrap;align-items:center"><span class="label grow">Status kunci siswa</span>'+(Cloud.on?'<button type="button" class="btn small" data-act="lkk-load">'+(LKK.busy?'Memuat...':'Muat status')+'</button>':'')+'</div>'+
   (rows||'<p class="note">'+(Cloud.on&&LKK.all[m.id]===undefined?'Ketuk "Muat status" untuk melihat siswa yang sudah mengunci.':'Belum ada siswa yang mengunci pertemuan.')+'</p>')+(LKK.msg?'<p class="note">'+lkEsc(LKK.msg)+'</p>':'')+'</div>'}
 function lkkPanel(m,d){
  if(typeof lk2Is!=='function'||!lk2Is(m)||!(m.v2.pertemuan&&m.v2.pertemuan.length>1))return '';
- var tot=m.v2.pertemuan.length,sel=parseInt(d.pertBuka,10)||0,opt='<option value="0"'+(sel===0?' selected':'')+'>Semua pertemuan</option>';
- for(var i=1;i<=tot;i++)opt+='<option value="'+i+'"'+(sel===i?' selected':'')+'>Sampai Pertemuan '+i+'</option>';
- return '<div><span class="label">Kunci hasil per pertemuan</span>'+
-  '<label class="lk-check"><input type="checkbox" data-lkm="kunci"'+(d.kunci?' checked':'')+'><span><b>Aktifkan kunci per pertemuan</b><small>Siswa mengunci pertemuan mana saja yang sudah selesai (urutan bebas), kecuali pertemuan awal dan akhir. Hasil tersimpan di server dan tidak bisa diubah siswa, jadi tidak perlu cadangan berkas.</small></span></label>'+
-  '<label class="f">Pertemuan yang dibuka untuk dikunci<select data-lkm="pertBuka">'+opt+'</select></label>'+
-  '<p class="note">"Semua pertemuan" = siswa bebas mengunci Pertemuan 2 sampai sebelum terakhir. Batasi dengan "Sampai Pertemuan N" bila perlu, lalu naikkan tiap pertemuan selesai. Simpan pengaturan agar berlaku.</p>'+lkkStatus(m)+'</div>'}
+ var sel=parseInt(d.pertBuka,10)||0,opt='<option value="0"'+(sel===0?' selected':'')+'>Semua kegiatan</option>';
+ lkkLockable(m).forEach(function(i){opt+='<option value="'+i+'"'+(sel===i?' selected':'')+'>Sampai '+lkkLabel(m,i)+'</option>'});
+ return '<div><span class="label">Kunci hasil per kegiatan</span>'+
+  '<label class="lk-check"><input type="checkbox" data-lkm="kunci"'+(d.kunci?' checked':'')+'><span><b>Aktifkan kunci per kegiatan</b><small>Hanya tampil saat mode Latihan. Siswa mengunci kegiatan yang sudah selesai (urutan bebas); pertemuan awal dan akhir tidak ada kuncinya. Hasil tersimpan di server dan tidak bisa diubah siswa, jadi tidak perlu cadangan berkas.</small></span></label>'+
+  '<label class="f">Kegiatan yang dibuka untuk dikunci<select data-lkm="pertBuka">'+opt+'</select></label>'+
+  '<p class="note">"Semua kegiatan" = siswa bebas mengunci setiap kegiatan yang kartunya tampil. Batasi dengan "Sampai Kegiatan N" bila perlu, lalu naikkan tiap kegiatan selesai. Simpan pengaturan agar berlaku.</p>'+lkkStatus(m)+'</div>'}
 
 async function lkkLoadAll(m){
  if(!Cloud.on||LKK.busy)return;
@@ -158,7 +164,7 @@ async function lkkLoadAll(m){
 async function lkkUnlock(id){
  var m=LKPD_MODULES.find(function(x){return x.id===LKM.edit});if(!m)return;
  var o=lkkAllRecs(m).find(function(x){return x.id===id});if(!o)return;
- if(!(await uiConfirm('Buka kunci Pertemuan '+lkkN(o)+' milik '+lkkNama(o.sid)+'?\nIsiannya bisa diubah lagi dan perlu dikunci ulang.',{ok:'Buka kunci'})))return;
+ if(!(await uiConfirm('Buka kunci '+lkkLabel(m,lkkN(o))+' milik '+lkkNama(o.sid)+'?\nIsiannya bisa diubah lagi dan perlu dikunci ulang.',{ok:'Buka kunci'})))return;
  if(Cloud.on){
   if(navigator.onLine===false){toast('Buka kunci hanya bisa saat online');return}
   try{await Cloud.db.deleteDocument(CFG.DB,'lkpd_bukti',id)}

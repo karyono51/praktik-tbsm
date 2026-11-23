@@ -166,6 +166,9 @@ G(`DRAFT=${JSON.stringify(penuh)};LK.tab='kerja'`);
 const kerja = G('viewLKPD()');
 ok(!/Lembar Kerja terkunci/.test(kerja) && /data-lk-field="t_F1_0_u1"/.test(kerja) && /data-lk-check="step2"/.test(kerja) && /saksi guru/.test(kerja), 'Lembar Kerja terbuka dengan tabel, langkah, dan penanda saksi');
 ok(/data-lk2-calc="F1\|0\|rata"/.test(kerja) && /data-lk2-calc="F3\|0\|olengan"/.test(kerja), 'sel rata-rata/keolengan berupa teks hitung otomatis');
+ok(/Kegiatan 1 jangka Sorong/.test(kerja) && /Kegiatan 2 mikrometer/.test(kerja) && /Kegiatan 3 dial gauge/.test(kerja) && /Kegiatan 4 perawatan/.test(kerja), 'Lembar Kerja: empat kartu berjudul kegiatan');
+ok((kerja.match(/class="card lk2-p"/g) || []).length === 4 && !/<h2>Pertemuan \d/.test(kerja) && !/data-lk-field="mt1"/.test(kerja) && !/data-lk-field="mt6"/.test(kerja), 'Lembar Kerja: kartu Pertemuan 1 dan 6 tidak tampil, tersisa 4 kartu');
+ok((kerja.match(/Target 20 menit/g) || []).length === 4 && !/Target 135 menit/.test(kerja), 'Lembar Kerja: target praktik 20 menit tiap kartu');
 G(`STAFF=true;LK.preview=false;DRAFT={}`);
 ok(!/Lembar Kerja terkunci/.test(G('viewLKPD()')), 'guru melihat Lembar Kerja tanpa gerbang');
 G(`STAFF=false;LK.tab='materi'`);
@@ -473,7 +476,7 @@ ok(G(`lkkOn(${KM})`) === true, 'kunci: aktif bawaan untuk v2 enam pertemuan');
 sama(G(`lkkLockable(${KM})`), [2, 3, 4, 5], 'kunci: siswa boleh mengunci P2 sampai P5 (kecuali pertemuan awal dan akhir)');
 /* pertemuan awal dan akhir ditolak */
 G(`toasts=[];lkkLock(1)`); G(`lkkLock(6)`);
-ok(G('S.lkpdBukti.length') === 0 && G('toasts').filter((t) => /awal dan akhir/.test(t)).length === 2, 'kunci: Pertemuan 1 (awal) dan Pertemuan 6 (akhir) tidak bisa dikunci siswa');
+ok(G('S.lkpdBukti.length') === 0 && G('toasts').filter((t) => /tidak dikunci oleh siswa/.test(t)).length === 2, 'kunci: Pertemuan 1 (awal) dan Pertemuan 6 (akhir) tidak bisa dikunci siswa');
 /* peta isian per pertemuan */
 const km = G(`lkkKeyMap(${KM})`);
 sama([km.step0, km.step3, km.step5, km.step7, km.t_F1_0_nol, km.t_F2_0_nol, km.actual0, km.actual2, km.actual4, km.actual6, km.q0, km.q4, km.q8, km.ana0, km.mt3], [2, 3, 4, 5, 2, 3, 2, 3, 4, 5, 2, 3, 4, 5, 3], 'kunci: isian dipetakan ke pertemuan lewat kegiatan, latihan, dan analisis');
@@ -495,19 +498,19 @@ sama(merged(), ['actual0', 'actual2', 'q0', 'q4', 'status0', 'status2', 't_F1_0_
 sama(Object.keys(JSON.parse(G('S.lkpdBukti[1].data')).f).sort(), ['actual0', 'q0', 'status0', 't_F1_0_nol'], 'kunci: catatan P2 hanya memuat isian P2 (tidak berantai dengan P3)');
 /* batas pertemuan yang dibuka guru */
 G(`${KM}.pertBuka=3;toasts=[];lkkLock(5)`);
-ok(G('S.lkpdBukti.length') === 2 && /belum membuka Pertemuan 5/.test(G('toasts.join("|")')), 'kunci: pertemuan di atas batas buka guru tidak bisa dikunci');
+ok(G('S.lkpdBukti.length') === 2 && /belum membuka Kegiatan 4/.test(G('toasts.join("|")')), 'kunci: pertemuan di atas batas buka guru tidak bisa dikunci');
 G(`${KM}.pertBuka=0;lkkLock(5)`);
 sama(G(`Object.keys(lkkLocks(${KM})).sort()`), ['2', '3', '5'], 'kunci: P5 terkunci setelah batas dibuka');
 ok(merged().indexOf('ana0') > -1 && merged().indexOf('safe0') < 0 && merged().indexOf('q100') < 0, 'kunci: analisis ikut P5; K3 dan gerbang tetap tidak terkunci');
 G(`toasts=[];lkkLock(4)`);
-ok(G('S.lkpdBukti.length') === 3 && /Belum ada isian Pertemuan 4/.test(G('toasts.join("|")')), 'kunci: pertemuan tanpa isian tidak membuat catatan kosong');
+ok(G('S.lkpdBukti.length') === 3 && /Belum ada isian Kegiatan 3/.test(G('toasts.join("|")')), 'kunci: pertemuan tanpa isian tidak membuat catatan kosong');
 /* tampilan */
 const dis = G(`lkkDisable('<input data-lk-field="actual0" value="1"><input data-lk-field="actual7" value=""><select data-lk-field="status0"><option>a</option></select><input type="radio" data-lk-answer="0"><input type="checkbox" data-lk-check="safe0"><input type="checkbox" data-lk-check="safe9">',lkkMerged(${KM}))`);
 ok((dis.match(/disabled/g) || []).length === 3 && !/actual7[^>]*disabled/.test(dis) && !/safe0[^>]*disabled/.test(dis), 'kunci: hanya kolom terkunci yang dinonaktifkan (isian, pilihan, pilihan ganda); K3 tetap bebas');
 const kbk = G(`lkkBlock(${KM})`);
-ok(/Kunci Pertemuan 4/.test(kbk) && /data-n="4"/.test(kbk) && !/Kunci Pertemuan 1\b/.test(kbk) && !/Kunci Pertemuan 6\b/.test(kbk) && /kecuali Pertemuan 1 \(awal\) dan Pertemuan 6 \(akhir\)/.test(kbk), 'kunci: bilah bawah menawarkan pertemuan yang belum terkunci, tanpa Pertemuan 1 dan 6');
+ok(/Kunci Kegiatan 3/.test(kbk) && /data-n="4"/.test(kbk) && !/data-n="1"/.test(kbk) && !/data-n="6"/.test(kbk) && !/Kunci Pertemuan/.test(kbk) && /Kunci kegiatan yang sudah selesai/.test(kbk), 'kunci: bilah bawah menawarkan kegiatan yang belum terkunci (nama kegiatan), tanpa Pertemuan 1 dan 6');
 G(`${KM}.pertBuka=3`);
-ok(/disabled[^>]*>Kunci Pertemuan 4/.test(G(`lkkBlock(${KM})`)) && /Belum dibuka guru/.test(G(`lkkBlock(${KM})`)), 'kunci: pertemuan di atas batas buka tampil nonaktif');
+ok(/disabled[^>]*>Kunci Kegiatan 3/.test(G(`lkkBlock(${KM})`)) && /Belum dibuka guru/.test(G(`lkkBlock(${KM})`)), 'kunci: pertemuan di atas batas buka tampil nonaktif');
 G(`${KM}.pertBuka=0`);
 /* guru membuka kunci pertemuan mana pun tanpa memengaruhi yang lain */
 G(`S.lkpdBukti=S.lkpdBukti.filter(function(x){return x.label!=="kunci|3"})`);
@@ -516,9 +519,15 @@ G(`lkkLock(3)`);
 ok(merged().indexOf('actual2') > -1, 'kunci: P3 bisa dikunci ulang setelah dibuka guru');
 G(`Cloud.on=false;S.users=[{id:'u1',nama:'Budi'}]`);
 const kst = G(`lkkStatus(${KM})`);
-ok(/Buka kunci P2/.test(kst) && /Buka kunci P3/.test(kst) && /Buka kunci P5/.test(kst) && /Budi/.test(kst), 'kunci: status guru memuat tombol buka kunci per pertemuan');
+ok(/Buka kunci Kegiatan 1/.test(kst) && /Buka kunci Kegiatan 2/.test(kst) && /Buka kunci Kegiatan 4/.test(kst) && /Budi/.test(kst), 'kunci: status guru memuat tombol buka kunci per pertemuan');
 const pn = G(`lkkPanel(${KM},{kunci:true,pertBuka:4})`);
-ok(/data-lkm="kunci" checked/.test(pn) && /<option value="4" selected>/.test(pn) && /kecuali pertemuan awal dan akhir/.test(pn) && /Status kunci siswa/.test(pn), 'kunci: panel guru menampilkan sakelar, batas pertemuan, dan aturan awal/akhir');
+ok(/data-lkm="kunci" checked/.test(pn) && /<option value="4" selected>/.test(pn) && /pertemuan awal dan akhir tidak ada kuncinya/.test(pn) && /Hanya tampil saat mode Latihan/.test(pn) && !/<option value="1"/.test(pn) && !/<option value="6"/.test(pn) && /Status kunci siswa/.test(pn), 'kunci: panel guru menampilkan sakelar, batas pertemuan, dan aturan awal/akhir');
+/* kunci hanya pada mode Latihan */
+G(`var MODEX='ujian';var lkmCfg=function(){return {mode:MODEX}}`);
+ok(G(`lkkOn(${KM})`) === false && G('lkRead().actual2') === '99' && !/lkk-lock/.test(G(`lk2BkBlock(${KM})`)), 'kunci: mode Ujian tidak ada tombol kunci dan catatan kunci lama tidak memaksa isian');
+G(`MODEX='latihan'`);
+ok(G(`lkkOn(${KM})`) === true && /lkk-lock/.test(G(`lk2BkBlock(${KM})`)), 'kunci: mode Latihan tombol kunci muncul');
+G(`delete globalThis.lkmCfg`);
 /* mati / guru / pratinjau */
 G(`${KM}.kunci=false`);
 ok(G(`lkkOn(${KM})`) === false && G('lkRead().actual2') === '99', 'kunci: dimatikan guru, tidak ada penguncian');
