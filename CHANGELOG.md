@@ -1,3 +1,9 @@
+## LKPD-X-07: proporsi praktik 20 menit disesuaikan
+- Total praktik tetap **20 menit**, kini dibagi menurut beban kerja: jangka sorong **9** (9 pembacaan + cek nol), mikrometer **4** (3 titik + cek nol), dial gauge **3**, perawatan dan penyimpanan **4** (3 alat + 5R). Sebelumnya 10 / 4 / 3 / 3, perawatan terlalu singkat untuk tiga alat.
+- Menit langkah: K1 2+5+2, K2 1+3, K3 1+2, K4 3+1. Target kartu Lembar Kerja: P2 9, P3 4, P4 7 (Kegiatan 3 3 + Kegiatan 4 4).
+- Kartu Kegiatan 3 dan 4 kini menampilkan target menit tiap kegiatan; teks rubrik Waktu dan efisiensi dihitung dari menit langkah (tidak lagi ditulis manual).
+- Uji: `uji-lkpd-v2` kini memeriksa proporsi, rubrik, dan target per kegiatan. Tidak ada perubahan Appwrite.
+
 ## LKPD-X-07 disesuaikan ke 5 pertemuan × 4 JP
 - Modul LKPD-X-07 (master V2) kini **20 JP = 5 pertemuan × 4 JP (180 menit), total 900 menit**, sebelumnya 18 JP = 6 pertemuan × 3 JP (810 menit). Sesuai Peta LKPD (X-07 20 JP) dan aturan Kelas X 4 JP per pertemuan.
 - Susunan: P1 (awal: pemantik, materi, gerbang masuk, APD, cek alat), P2 Kegiatan 1 jangka sorong, P3 Kegiatan 2 mikrometer, **P4 Kegiatan 3 dial gauge dan Kegiatan 4 perawatan (latihan 9–10 dan analisis)**, P5 (akhir: penilaian kinerja, refleksi, remedial atau pengayaan). Target praktik tetap 20 menit (10 + 4 + 6). Soal gerbang, latihan, langkah, tabel, dan rubrik tidak berubah.
@@ -19,7 +25,7 @@
 
 ## Kartu Lembar Kerja LKPD-X-07 disederhanakan
 - Tab Lembar Kerja: kartu **Pertemuan 1** dan **6** tidak tampil (`sembunyi:true` di `js/lkpd-v2-x07.js`). Kartu 2 sampai 5 berjudul **Kegiatan 1 jangka Sorong**, **Kegiatan 2 mikrometer**, **Kegiatan 3 dial gauge**, **Kegiatan 4 perawatan** (`kartu:{judul}`).
-- **Total praktik 20 menit untuk semua kegiatan**, dibagi per kegiatan (`praktik` pada pertemuan): jangka sorong 10, mikrometer 4, dial gauge 3, perawatan 3. Tiap langkah punya alokasi menit (`menit` pada `v2.langkah`): K1 2+6+2, K2 1+3, K3 1+2, K4 2+1; jumlahnya sama dengan target kegiatan (diuji). Menit pertemuan (135) tetap sebagai waktu belajar.
+- **Total praktik 20 menit untuk semua kegiatan**, dibagi per kegiatan (`praktik` pada pertemuan): jangka sorong 9, mikrometer 4, dial gauge 3, perawatan 4 (disesuaikan kemudian). Tiap langkah punya alokasi menit (`menit` pada `v2.langkah`): K1 2+5+2, K2 1+3, K3 1+2, K4 3+1; jumlahnya sama dengan target kegiatan (diuji). Menit pertemuan (135) tetap sebagai waktu belajar.
 - Kartu Lembar Kerja disusun sistematis: judul kegiatan, target menit, catatan "Alokasi praktik N dari total 20 menit", Langkah kerja (dengan menit tiap langkah), tabel data, Pemeriksaan dan bukti, lalu Waktu aktual per kegiatan. Judul ganda "Kegiatan 1 · Jangka sorong" dihapus.
 - Pewaktu bawah memakai total praktik (`lkmPraktik`): "Perkiraan/Target 20 menit praktik (semua kegiatan)". Rencana pertemuan, rekap waktu, rubrik Waktu dan efisiensi, serta cetak ikut menyesuaikan.
 - **Nol alat dicek 1 kali di awal:** tabel F1 dan F2 punya satu isian "Nol alat (cek 1 kali di awal, mm)" di atas tabel (`nolSekali:true`), bukan kolom per baris. Kunci data tetap `t_F1_0_nol` dan `t_F2_0_nol`, jadi draf lama tetap terbaca. Kelengkapan tabel, detail guru, dan cetak ikut (cetak: satu baris "Nol alat" di atas tabel).

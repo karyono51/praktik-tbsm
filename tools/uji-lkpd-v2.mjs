@@ -168,13 +168,20 @@ ok(!/Lembar Kerja terkunci/.test(kerja) && /data-lk-field="t_F1_0_u1"/.test(kerj
 ok(/data-lk2-calc="F1\|0\|rata"/.test(kerja) && /data-lk2-calc="F3\|0\|olengan"/.test(kerja), 'sel rata-rata/keolengan berupa teks hitung otomatis');
 ok(/Kegiatan 1 jangka Sorong/.test(kerja) && /Kegiatan 2 mikrometer/.test(kerja) && /Kegiatan 3 dial gauge dan 4 perawatan/.test(kerja), 'Lembar Kerja: tiga kartu berjudul kegiatan (kegiatan 3 dan 4 satu kartu)');
 ok((kerja.match(/class="card lk2-p"/g) || []).length === 3 && !/<h2>Pertemuan \d/.test(kerja) && !/data-lk-field="mt1"/.test(kerja) && !/data-lk-field="mt5"/.test(kerja), 'Lembar Kerja: kartu Pertemuan 1 dan 5 tidak tampil, tersisa 3 kartu');
-sama([...kerja.matchAll(/Target (\d+) menit/g)].map((x) => +x[1]), [10, 4, 6], 'Lembar Kerja: target tiap kartu 10 + 4 + 6 menit');
+sama([...kerja.matchAll(/Target (\d+) menit/g)].map((x) => +x[1]), [9, 4, 7], 'Lembar Kerja: target tiap kartu 9 + 4 + 7 menit');
 ok(!/Target 180 menit/.test(kerja) && (kerja.match(/dari total 20 menit/g) || []).length === 3, 'Lembar Kerja: tiap kartu menyebut bagiannya dari total praktik 20 menit');
 ok((kerja.match(/<h3>Kegiatan \d ·/g) || []).length === 2 && (kerja.match(/<h4>Langkah kerja<\/h4>/g) || []).length === 2 && /Waktu aktual Kegiatan 1 \(menit\)/.test(kerja) && /Waktu aktual Kegiatan 3 dan 4 \(menit\)/.test(kerja), 'Lembar Kerja: kartu satu kegiatan memakai Langkah kerja; kartu Kegiatan 3 dan 4 memberi judul tiap kegiatan; waktu aktual per kartu');
-sama([...kerja.matchAll(/class=\"lk2-mnt\">(\d+) menit/g)].map((x) => +x[1]), [2, 6, 2, 1, 3, 1, 2, 2, 1], 'Lembar Kerja: menit tiap langkah tampil');
+sama([...kerja.matchAll(/class=\"lk2-mnt\">(\d+) menit/g)].map((x) => +x[1]), [2, 5, 2, 1, 3, 1, 2, 3, 1], 'Lembar Kerja: menit tiap langkah tampil');
 {
   const per = M.v2.pertemuan.filter((p) => p.kegiatan.length), jum = (ks) => M.v2.langkah.filter((l) => ks.includes(l.k)).reduce((t, l) => t + l.menit, 0);
   ok(per.every((p) => jum(p.kegiatan) === p.praktik) && per.reduce((t, p) => t + p.praktik, 0) === 20, 'waktu praktik: menit langkah tiap kegiatan = target kegiatan; total semua kegiatan 20 menit');
+}
+{
+  const km = (k) => M.v2.langkah.filter((l) => l.k === k).reduce((t, l) => t + l.menit, 0);
+  sama([1, 2, 3, 4].map(km), [9, 4, 3, 4], 'proporsi praktik 20 menit: jangka sorong 9, mikrometer 4, dial gauge 3, perawatan 4');
+  const w = M.v2.obs.aspek.find((x) => x.id === 'waktu').ket;
+  ok(/total praktik 20 menit/.test(w) && /jangka sorong 9, mikrometer 4, dial gauge 3, perawatan 4/.test(w), 'rubrik Waktu memakai angka yang sama dengan menit langkah');
+  ok(/Kegiatan 3 · Dial gauge · target 3 menit/.test(kerja) && /Kegiatan 4 · Perawatan dan penyimpanan · target 4 menit/.test(kerja), 'kartu Kegiatan 3 dan 4 menampilkan target menit tiap kegiatan');
 }
 G(`STAFF=true;LK.preview=false;DRAFT={}`);
 ok(!/Lembar Kerja terkunci/.test(G('viewLKPD()')), 'guru melihat Lembar Kerja tanpa gerbang');

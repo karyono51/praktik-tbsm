@@ -5,15 +5,17 @@
 (function(){
  var langkah=[
   {k:1,m:2,t:'Bersihkan rahang dan benda; rapatkan rahang dan periksa nol',p:'Catat penyimpangan nol (foto)'},
-  {k:1,m:6,t:'Ukur diameter luar, diameter dalam, dan kedalaman, masing-masing 3 kali',p:'Rahang tegak lurus, tekanan ringan'},
+  {k:1,m:5,t:'Ukur diameter luar, diameter dalam, dan kedalaman, masing-masing 3 kali',p:'Rahang tegak lurus, tekanan ringan'},
   {k:1,m:2,t:'Kunci, baca, catat pada tabel F1',p:'Baca tegak lurus skala',saksi:1},
   {k:2,m:1,t:'Bersihkan landasan dan poros; tutup dengan pemutar gelitik; periksa nol',p:'Selalu pakai gelitik'},
   {k:2,m:3,t:'Ukur diameter benda pada 3 titik; baca selubung lalu bidal',p:'Benda tidak miring',saksi:1},
   {k:3,m:1,t:'Pasang pada dudukan magnet, letakkan benda di blok V, beri pratekan, nolkan bezel',p:'Poros ukur tegak lurus, dudukan stabil'},
   {k:3,m:2,t:'Putar benda perlahan satu putaran; catat bacaan terbesar dan terkecil; hitung keolengan',p:'Putar perlahan, jangan terbentur',saksi:1},
-  {k:4,m:2,t:'Bersihkan semua alat, olesi oli tipis, renggangkan poros mikrometer (jangan dikunci rapat), simpan di kotak',p:'Tanpa amplas; oli tipis saja',saksi:1},
+  {k:4,m:3,t:'Bersihkan semua alat, olesi oli tipis, renggangkan poros mikrometer (jangan dikunci rapat), simpan di kotak',p:'Tanpa amplas; oli tipis saja',saksi:1},
   {k:4,m:1,t:'Rapikan area (5R), pisahkan limbah B3',p:'Majun kotor ke wadah khusus'}
  ];
+ /* Menit tiap kegiatan = jumlah menit langkahnya; angka pada rubrik dan target pertemuan dicocokkan dengan ini (diuji). */
+ function jumMenit(ks){return langkah.filter(function(x){return ks.indexOf(x.k)>-1}).reduce(function(t,x){return t+x.m},0)}
  var kegiatan=['Jangka sorong','Mikrometer','Dial gauge','Perawatan dan penyimpanan'];
  var m={
   id:'LKPD-X-07',version:2,kelas:'X',fase:'E',status:'draft',active:false,
@@ -62,9 +64,9 @@
    ver:2,jenis:'jobsheet',jp:20,tp:'X.4.2',cp:'Peralatan dan Perlengkapan Tempat Kerja',
    pertemuan:[
     {n:1,jp:4,menit:180,judul:'Pemantik, materi, gerbang masuk, APD, cek alat',kegiatan:[],sembunyi:true},
-    {n:2,jp:4,menit:180,judul:'Kegiatan 1 jangka sorong, latihan soal 1–4',kegiatan:[1],latihan:['J1','J2','J3','J4'],praktik:10,kartu:{judul:'Kegiatan 1 jangka Sorong'}},
+    {n:2,jp:4,menit:180,judul:'Kegiatan 1 jangka sorong, latihan soal 1–4',kegiatan:[1],latihan:['J1','J2','J3','J4'],praktik:9,kartu:{judul:'Kegiatan 1 jangka Sorong'}},
     {n:3,jp:4,menit:180,judul:'Kegiatan 2 mikrometer, latihan soal 5–8',kegiatan:[2],latihan:['M1','M2','M3','M4'],praktik:4,kartu:{judul:'Kegiatan 2 mikrometer'}},
-    {n:4,jp:4,menit:180,judul:'Kegiatan 3 dial gauge dan Kegiatan 4 perawatan, latihan soal 9–10, analisis',kegiatan:[3,4],latihan:['D1','D2'],praktik:6,kartu:{judul:'Kegiatan 3 dial gauge dan 4 perawatan'}},
+    {n:4,jp:4,menit:180,judul:'Kegiatan 3 dial gauge dan Kegiatan 4 perawatan, latihan soal 9–10, analisis',kegiatan:[3,4],latihan:['D1','D2'],praktik:7,kartu:{judul:'Kegiatan 3 dial gauge dan 4 perawatan'}},
     {n:5,jp:4,menit:180,judul:'Penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[],sembunyi:true}
    ],
    kegiatan:kegiatan,judulPendek:'Alat Ukur',
@@ -122,7 +124,7 @@
      {id:'k3',ket:'Yang dinilai: APD terpasang benar, meja dan area siap, alat diperiksa sebelum dipakai, larangan K3 dipatuhi, letak APAR dan P3K diketahui.',n:'Persiapan dan K3',b:20,d:{4:'APD lengkap, area aman, alat diperiksa tanpa diingatkan',3:'Lengkap, diingatkan 1 kali',2:'APD kurang atau area belum aman, diingatkan lebih dari 1 kali',1:'Mengabaikan K3 (praktik dihentikan)'},stop:1},
      {id:'prosedur',ket:'Yang dinilai: urutan langkah (periksa nol dulu, ukur 3 kali, baca, catat), cara memegang alat, tidak memaksa atau menjatuhkan alat.',n:'Prosedur kerja',b:30,d:{4:'Semua langkah urut, nol alat diperiksa, tanpa bantuan',3:'Urut dengan 1–2 koreksi kecil',2:'Beberapa langkah terbalik atau terlewat',1:'Tidak mengikuti prosedur, berisiko merusak'}},
      {id:'hasil',ket:'Yang dinilai: bacaan benar (latihan skala dan tabel F1–F3), rata-rata dan keolengan terhitung, keputusan Sesuai atau Tidak sesuai berdasarkan standar dari guru, foto bukti ada dan jelas.',n:'Hasil kerja dan data',b:25,d:{4:'Data akurat, bacaan benar semua, keputusan sesuai standar',3:'Data akurat, 1 catatan perbaikan',2:'Data tidak lengkap atau keputusan kurang tepat',1:'Data salah atau tidak ada'}},
-     {id:'waktu',ket:'Acuan waktu standar: total praktik 20 menit, dibagi per kegiatan (jangka sorong 10, mikrometer 4, dial gauge 3, perawatan 3). Isi waktu aktualmu di tiap kegiatan pada Lembar Kerja.',n:'Waktu dan efisiensi',b:10,d:{4:'Dalam waktu standar',3:'Hingga 125%',2:'Hingga 150%',1:'Lebih dari 150%'}},
+     {id:'waktu',ket:'Acuan waktu standar: total praktik '+jumMenit([1,2,3,4])+' menit, dibagi per kegiatan (jangka sorong '+jumMenit([1])+', mikrometer '+jumMenit([2])+', dial gauge '+jumMenit([3])+', perawatan '+jumMenit([4])+'). Isi waktu aktualmu di tiap kartu kegiatan pada Lembar Kerja.',n:'Waktu dan efisiensi',b:10,d:{4:'Dalam waktu standar',3:'Hingga 125%',2:'Hingga 150%',1:'Lebih dari 150%'}},
      {id:'5r',ket:'Yang dinilai: meja bersih, alat dibersihkan lalu diolesi oli tipis dan kembali ke kotak, majun dan limbah oli dipisah.',n:'5R dan limbah',b:5,d:{4:'Area bersih, alat kembali, limbah terpisah',3:'Satu hal terlewat',2:'Dua hal terlewat',1:'Area dibiarkan kotor'}},
      {id:'sikap',ket:'Yang dinilai: jujur mencatat hasil sendiri (tidak menyalin data teman), aktif, membantu teman, mengikuti arahan guru.',n:'Sikap dan kerja sama',b:10,d:{4:'Aktif, jujur, membantu teman',3:'Aktif, sesekali diingatkan',2:'Pasif',1:'Mengganggu kegiatan'}}
     ],
