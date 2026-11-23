@@ -87,84 +87,71 @@ function lktSync(){
 })();
 
 /* ---------- Pewaktu per kartu pertemuan (LKPD v2) ----------
-   Tiap kartu Lembar Kerja punya pewaktu sendiri dan mengisi kolom "Waktu aktual" (menit) otomatis.
-   Ujian (siswa): mulai otomatis saat kartu pertama diisi atau lewat Mulai; tidak bisa dijeda; berbasis jam dinding sehingga tetap berjalan
-   walau halaman ditutup; berhenti hanya lewat Selesai (atau saat Kirim) dan setelah itu tidak bisa dimulai lagi. Hanya satu kartu berjalan.
-   Kolom waktu terkunci (readonly) agar tidak diketik manual. Latihan: Mulai/Jeda/Lanjut bebas dan kolom boleh diedit. */
+   Tanpa tombol Mulai/Jeda/Lanjut. Kartu Kegiatan terbuka = pewaktunya jalan; kartu tertutup (atau pindah ke kartu lain, pindah tab,
+   keluar dari LKPD) = pewaktunya berhenti dan waktunya tersimpan. Membuka kartu lagi melanjutkan dari waktu terakhir.
+   Pewaktu mengisi kolom "Waktu aktual" (menit, dibulatkan, minimal 1); jumlah semua kartu menjadi waktu kiriman (lktSec).
+   Ujian (siswa): waktu berbasis jam dinding dan kolom waktu terkunci (readonly). Latihan: kolom boleh diedit. */
 var LKCT={iv:null,m:{}};
 function lkcMod(){return typeof lkmCur==='function'?lkmCur():null}
 function lkcSk(m,key){return 'tbsm-lkpd-ct-'+(S.user?S.user.id:'')+'|'+m.id+'|'+key}
 function lkcGet(m,key){
  var k=lkcSk(m,key),o=LKCT.m[k];
- if(!o){o={sec:0,t0:0,run:false,done:false};try{var j=JSON.parse(localStorage.getItem(k)||'null');if(j){o.sec=j.sec||0;o.t0=j.t0||0;o.done=!!j.done}}catch(e){}LKCT.m[k]=o}
+ if(!o){o={sec:0,t0:0,run:false,mod:m,ck:key};try{var j=JSON.parse(localStorage.getItem(k)||'null');if(j){o.sec=j.sec||0;o.t0=j.t0||0}}catch(e){}LKCT.m[k]=o}
  return o}
-function lkcSave(m,key){try{var o=lkcGet(m,key);localStorage.setItem(lkcSk(m,key),JSON.stringify({sec:o.sec,t0:o.t0,done:o.done,at:Date.now()}))}catch(e){}}
+function lkcSave(m,key){try{var o=lkcGet(m,key);localStorage.setItem(lkcSk(m,key),JSON.stringify({sec:o.sec,t0:o.t0,at:Date.now()}))}catch(e){}}
 function lkcCards(m){var out=[];if(!m||!m.v2||!m.v2.pertemuan||typeof lk2Kartu!=='function')return out;m.v2.pertemuan.forEach(function(p){if(p.sembunyi)return;lk2Kartu(m.v2,p).forEach(function(c){if(c.ks&&c.ks.length)out.push(c)})});return out}
-function lkcRO(m,key){var o=lkcGet(m,key);return lktLocked()&&(o.run||o.done||o.sec>0)}
+function lkcRO(m,key){var o=lkcGet(m,key);return lktLocked()&&(o.run||o.sec>0)}
 function lkcTotal(m){return lkcCards(m).reduce(function(a,c){return a+lkcSecNow(m,c.key)},0)}
 function lkcSecNow(m,key){var o=lkcGet(m,key);if(o.run&&lktLocked()&&o.t0)return Math.max(0,Math.floor((Date.now()-o.t0)/1000));return o.sec}
 function lkcMin(sec){return sec>0?String(Math.max(1,Math.round(sec/60))):''}
 function lkcRunning(m){var r=null;lkcCards(m).forEach(function(c){if(lkcGet(m,c.key).run)r=c});return r}
+/* Hanya jam di kepala kartu (tanpa tombol). */
 function lkcRow(m,c,kecil){
  if(!c.ks||!c.ks.length)return '';
  var o=lkcGet(m,c.key);
- if(kecil)return '<div class="lk-timer lk-ct lk-ct-s" data-ct="'+c.key+'" data-lim="'+(Number(c.menit)||0)*60+'"'+(lktLocked()?' title="Waktu tidak bisa dijeda"':'')+'><span class="mono lk-clock" data-ct-clock="'+c.key+'">'+lktMmss(lkcSecNow(m,c.key))+'</span><button type="button" class="btn small" data-act="lkc-toggle" data-key="'+c.key+'" data-ct-btn="'+c.key+'">'+lkcBtn(m,c.key)+'</button></div>';
- return '<div class="lk-timer lk-ct" data-ct="'+c.key+'" data-lim="'+(Number(c.menit)||0)*60+'"><div><div class="mono lk-clock" data-ct-clock="'+c.key+'">'+lktMmss(lkcSecNow(m,c.key))+'</div><div class="note">Pewaktu kartu ini · target '+lkEsc(c.menit)+' menit'+(lktLocked()?' · tidak bisa dijeda':'')+'</div></div><button type="button" class="btn small" data-act="lkc-toggle" data-key="'+c.key+'" data-ct-btn="'+c.key+'">'+lkcBtn(m,c.key)+'</button></div>'}
-function lkcBtn(m,key){
- var o=lkcGet(m,key);
- if(lktLocked())return o.done?'Selesai':o.run?'Selesai kegiatan':'Mulai waktu';
- return o.run?'Jeda':o.sec>0?'Lanjut':'Mulai waktu'}
+ if(kecil)return '<div class="lk-timer lk-ct lk-ct-s'+(o.run?' is-run':'')+'" data-ct="'+c.key+'" data-lim="'+(Number(c.menit)||0)*60+'" title="Waktu berjalan selama kartu terbuka"><span class="mono lk-clock" data-ct-clock="'+c.key+'">'+lktMmss(lkcSecNow(m,c.key))+'</span></div>';
+ return '<div class="lk-timer lk-ct'+(o.run?' is-run':'')+'" data-ct="'+c.key+'" data-lim="'+(Number(c.menit)||0)*60+'"><div><div class="mono lk-clock" data-ct-clock="'+c.key+'">'+lktMmss(lkcSecNow(m,c.key))+'</div><div class="note">Pewaktu kartu ini · target '+lkEsc(c.menit)+' menit · berjalan selama kartu terbuka</div></div></div>'}
 function lkcPaint(){
  var m=lkcMod();if(!m||!m.v2)return;
  lkcCards(m).forEach(function(c){
-  var o=lkcGet(m,c.key),s=lkcSecNow(m,c.key),el=document.querySelector('[data-ct-clock="'+c.key+'"]'),b=document.querySelector('[data-ct-btn="'+c.key+'"]'),f=document.querySelector('[data-lk-field="'+c.key+'"]');
+  var o=lkcGet(m,c.key),s=lkcSecNow(m,c.key),el=document.querySelector('[data-ct-clock="'+c.key+'"]'),row=document.querySelector('[data-ct="'+c.key+'"]'),f=document.querySelector('[data-lk-field="'+c.key+'"]');
   if(el){el.textContent=lktMmss(s);el.classList.toggle('over',lktLocked()&&c.menit>0&&s>c.menit*60)}
-  if(b){b.textContent=lkcBtn(m,c.key);b.disabled=!!(lktLocked()&&o.done)}
-  if(f){if(lktLocked()&&(o.run||o.done||o.sec>0)){f.value=lkcMin(s);f.readOnly=true}else if(o.run&&!f.value)f.value=lkcMin(s)}
+  if(row)row.classList.toggle('is-run',!!o.run);
+  if(f){if(lktLocked()&&(o.run||o.sec>0)){f.value=lkcMin(s);f.readOnly=true}else if(o.run&&!f.value)f.value=lkcMin(s)}
  })}
-function lkcStop(m,key,fin){
- var o=lkcGet(m,key);o.sec=lkcSecNow(m,key);o.run=false;if(fin)o.done=true;lkcSave(m,key);
- if(!lkcRunning(m)&&LKCT.iv){clearInterval(LKCT.iv);LKCT.iv=null}}
+function lkcTick(){
+ var any=false;
+ Object.keys(LKCT.m).forEach(function(k){var o=LKCT.m[k];if(!o.run)return;any=true;if(!lktLocked())o.sec++;else o.sec=lkcSecNow(o.mod,o.ck);lkcSave(o.mod,o.ck)});
+ lkcPaint();
+ if(!any&&LKCT.iv){clearInterval(LKCT.iv);LKCT.iv=null}}
+function lkcStop(m,key){
+ var o=lkcGet(m,key);o.sec=lkcSecNow(m,key);o.run=false;lkcSave(m,key);
+ if(!Object.keys(LKCT.m).some(function(k){return LKCT.m[k].run})&&LKCT.iv){clearInterval(LKCT.iv);LKCT.iv=null}}
 function lkcStart(m,key){
- var o=lkcGet(m,key);if(o.run||o.done&&lktLocked())return false;
- var r=lkcRunning(m);if(r&&r.key!==key){if(lktLocked()){toast('Selesaikan dulu pewaktu '+(r.judul||'kartu sebelumnya'));return false}lkcStop(m,r.key,false)}
- o.run=true;if(lktLocked())o.t0=Date.now()-o.sec*1000;lkcSave(m,key);
- if(!LKCT.iv)LKCT.iv=setInterval(function(){var mm=lkcMod();if(!mm){clearInterval(LKCT.iv);LKCT.iv=null;return}lkcCards(mm).forEach(function(c){var q=lkcGet(mm,c.key);if(q.run){if(!lktLocked())q.sec++;else q.sec=lkcSecNow(mm,c.key)}});lkcPaint();if(!lkcRunning(mm)){clearInterval(LKCT.iv);LKCT.iv=null}},1000);
+ var o=lkcGet(m,key);if(o.run)return false;
+ o.mod=m;o.ck=key;o.run=true;if(lktLocked())o.t0=Date.now()-o.sec*1000;lkcSave(m,key);
+ if(!LKCT.iv)LKCT.iv=setInterval(lkcTick,1000);
  return true}
-/* Kartu dipilih (lk2Buka): pewaktu kartu itu mulai sendiri. Tidak mulai bila sudah berjalan, sudah Selesai (Ujian), mode cetak, atau ada kartu lain yang berjalan di Ujian (lkcStart memberi pesan). */
-function lkcAutoMulai(key){
- var m=lkcMod();if(!m||!m.v2||!m.v2.pertemuan||(typeof LK2!=='undefined'&&LK2.cetak))return false;
- var ada=lkcCards(m).some(function(c){return c.key===key});if(!ada)return false;
- var o=lkcGet(m,key);if(o.run||(o.done&&lktLocked()))return false;
- var ok=lkcStart(m,key);lkcPaint();return ok}
-function lkcSync(){
- var m=lkcMod();if(!m||!m.v2||!m.v2.pertemuan||!document.querySelector('[data-ct]'))return;
- /* Ujian: pewaktu yang sudah dimulai tetap berjalan setelah halaman dimuat ulang. */
- lkcCards(m).forEach(function(c){var o=lkcGet(m,c.key);if(lktLocked()&&o.t0&&!o.done&&!o.run&&o.sec>0){o.run=true}});
- if(lkcRunning(m)&&!LKCT.iv){var r=lkcRunning(m);var o2=lkcGet(m,r.key);o2.run=false;lkcStart(m,r.key)}
+function lkcStopAll(kecuali){
+ Object.keys(LKCT.m).forEach(function(k){var o=LKCT.m[k];if(o.run&&k!==kecuali)lkcStop(o.mod,o.ck)})}
+/* Menyelaraskan pewaktu dengan kartu yang sedang terbuka di tab Lembar Kerja. Dipanggil tiap render, saat kartu dibuka/ditutup, dan saat halaman ditinggalkan. */
+function lkcSelaras(){
+ var m=lkcMod(),buka='';
+ if(m&&m.v2&&m.v2.pertemuan&&document.querySelector('[data-ct]')&&!(typeof LK2!=='undefined'&&LK2.cetak)){
+  var k=typeof LK2!=='undefined'?LK2.kartu:'';
+  if(k&&lkcCards(m).some(function(c){return c.key===k}))buka=k}
+ lkcStopAll(buka?lkcSk(m,buka):'');
+ if(buka)lkcStart(m,buka);
  lkcPaint()}
+function lkcSync(){return lkcSelaras()}
 function lkcClear(m){lkcCards(m).forEach(function(c){var k=lkcSk(m,c.key);delete LKCT.m[k];try{localStorage.removeItem(k)}catch(e){}});if(LKCT.iv){clearInterval(LKCT.iv);LKCT.iv=null}}
 (function(){
- document.addEventListener('click',function(e){
-  var b=e.target.closest('[data-act="lkc-toggle"]');if(!b)return;
-  var m=lkcMod();if(!m)return;var key=b.dataset.key,o=lkcGet(m,key);
-  if(lktLocked()){if(o.done)return;if(o.run){if(!uiOk('lkcdone:'+key,'Selesaikan kegiatan ini?\nWaktu berhenti dan tidak bisa dilanjutkan.',function(){var m2=lkcMod();if(m2){lkcStop(m2,key,true);lkcPaint()}},{ok:'Selesai'}))return;lkcStop(m,key,true)}else lkcStart(m,key)}
-  else{if(o.run)lkcStop(m,key,false);else lkcStart(m,key)}
-  lkcPaint()});
- /* Mengisi kartu memulai pewaktunya (bila belum ada kartu lain yang berjalan). */
- function auto(e){
-  var t=e.target;if(!t.matches||!t.matches('[data-lk-field],[data-lk-check],[data-lk-yn]'))return;
-  var sec=t.closest('section.lk2-p');if(!sec)return;var ct=sec.querySelector('[data-ct]');if(!ct)return;
-  var m=lkcMod();if(!m||t.matches('[data-lk-field="'+ct.dataset.ct+'"]'))return;
-  var o=lkcGet(m,ct.dataset.ct);if(o.run||o.done||lkcRunning(m))return;
-  lkcStart(m,ct.dataset.ct);lkcPaint()}
- document.addEventListener('input',auto);document.addEventListener('change',auto);
  var sub=lkSubmit;
  lkSubmit=function(){
   var m=lkcMod(),n=(S.lkpd||[]).length,cards=m&&m.v2&&m.v2.pertemuan?lkcCards(m):[];
-  /* Kirim menghentikan pewaktu yang masih berjalan agar waktunya tercatat. */
-  var r=m&&cards.length?lkcRunning(m):null;if(r&&lktLocked()){lkcStop(m,r.key,true);lkcPaint()}
+  /* Kirim membekukan waktu kartu yang sedang terbuka agar waktunya tercatat; bila kiriman gagal, render menyelaraskan lagi. */
+  if(m&&cards.length){lkcStopAll('');lkcPaint()}
   sub();
-  if(m&&cards.length&&(S.lkpd||[]).length>n)lkcClear(m)};
- window.addEventListener('pagehide',function(){var m=lkcMod();if(m)lkcCards(m).forEach(function(c){lkcSave(m,c.key)})});
+  if(m&&cards.length&&(S.lkpd||[]).length>n){lkcClear(m);if(typeof lk2TutupKartu==='function')lk2TutupKartu()}};
+ if(window.addEventListener)window.addEventListener('pagehide',function(){lkcStopAll('')});
 })();

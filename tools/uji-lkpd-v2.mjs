@@ -470,9 +470,9 @@ ok(G(`LK.module='${M.id}';LK.tab='evaluasi';viewLKPD()`).indexOf('Latihan membac
 G(`STAFF=false;LK.preview=false;LK.module='${M.id}';DRAFT=${JSON.stringify(penuh)}`);
 const cU = (o) => JSON.stringify(Object.assign({ mode: 'ujian', hideTeori: false, hideLangkah: false, hidePetunjuk: false }, o));
 G(`LK.tab='materi'`); const mat = G('viewLKPD()');
-ok(/<h2>Memahami<\/h2>/.test(mat) && /Rencana pertemuan/.test(mat), 'v2 materi: teori dan rencana ada sebelum disaring');
+ok(/<h2>Teori singkat<\/h2>/.test(mat) && /Rencana pertemuan/.test(mat), 'v2 materi: teori dan rencana ada sebelum disaring');
 const fMat = G(`lk2ModeFilter(viewLKPD(),${cU({ hideTeori: true, hideLangkah: true })})`);
-ok(/Teori ringkas tidak ditampilkan/.test(fMat) && !new RegExp(M.theory[0][0]).test(fMat.slice(fMat.indexOf('<h2>Memahami'), fMat.indexOf('Gerbang masuk praktik'))), 'ujian: teori v2 disembunyikan');
+ok(/Teori singkat tidak ditampilkan/.test(fMat) && !new RegExp(M.theory[0][0]).test(fMat.slice(fMat.indexOf('<h2>Teori singkat'), fMat.indexOf('Gerbang masuk praktik'))), 'ujian: teori v2 disembunyikan');
 ok(/Rincian langkah tidak ditampilkan/.test(fMat) && /Pertemuan 1/.test(fMat), 'ujian: isi pertemuan disembunyikan, judul pertemuan tetap');
 ok(/Gerbang masuk praktik/.test(fMat), 'ujian: gerbang masuk tetap tampil');
 G(`LK.tab='kerja'`); const ker = G('viewLKPD()');

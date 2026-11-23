@@ -196,7 +196,7 @@ if(_lkpGate2)lk2Gate=function(m,d){var g=_lkpGate2(m,d);if(lkpFaseView(m)==='uji
 var _lkpMateri2=typeof lk2Materi==='function'?lk2Materi:null;
 if(_lkpMateri2)lk2Materi=function(m,d){
  var h=_lkpMateri2(m,d);
- if(lkpFaseView(m)==='ujian')h=h.replace(/<section class="card" id="lk2-gate">[\s\S]*?<\/section>/,'');
+ if(lkpFaseView(m)==='ujian')h=h.replace(/<section class="card[^"]*" id="lk2-gate">[\s\S]*?<\/section>/,'');
  return h;
 };
 var _lkpEval2=typeof lk2Eval==='function'?lk2Eval:null;

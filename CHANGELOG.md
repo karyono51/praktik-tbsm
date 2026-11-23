@@ -1,9 +1,9 @@
-## LKPD v2: pewaktu kartu Kegiatan mulai otomatis saat kartu dipilih
-- Berlaku untuk **semua kartu Kegiatan** yang punya pewaktu (Kegiatan 1 sampai 4, dan modul v2 lain). Mengetuk judul kartu atau fokus ke isian di dalamnya membuka kartu **dan** memulai pewaktunya (`lkcAutoMulai` di `js/lkpd-timer.js`, dipanggil dari `lk2Buka` di `js/lkpd-v2.js`).
-- **Ujian:** tidak mulai bila kartu itu sudah Selesai, atau bila kartu lain masih berjalan (muncul pesan "Selesaikan dulu pewaktu ..."; waktu tidak bisa dijeda).
-- **Latihan:** memilih kartu lain menjeda kartu sebelumnya lalu memulai kartu yang dipilih.
-- Tidak mulai sendiri bila kartu dibuka lewat tombol pewaktu (agar tidak bentrok dengan Mulai/Selesai), lewat penanda isian kurang saat Kirim, atau pada mode cetak.
-- Uji `uji-pewaktu-pertemuan` 30 (9 baru); `uji-lkpd-v2`, `uji-pandu-v2`, `uji-lkpd-format`, `uji-lkpd-semua` tetap lulus. Tidak ada perubahan Appwrite.
+## LKPD v2: pewaktu otomatis mengikuti kartu, banner lipat, overlay tombol Materi dan Lembar Kerja
+- **Pewaktu tanpa tombol.** Tombol Mulai/Jeda/Lanjut/Selesai dihapus; kepala kartu hanya menampilkan jam (titik berdenyut saat berjalan). Kartu Kegiatan **terbuka = pewaktu jalan, tertutup = berhenti** dan waktunya tersimpan; membuka lagi melanjutkan. Berlaku untuk semua kartu Kegiatan (1 sampai 4). Pindah ke kartu lain, pindah tab, keluar dari LKPD, atau muat ulang juga menghentikan pewaktu (`lkcSelaras` di `js/lkpd-timer.js`, dipanggil dari `lk2Buka` dan tiap render). Kirim membekukan waktu; setelah Kirim berhasil kartu ditutup.
+  - Ujian tetap berbasis jam dinding dan kolom waktu terkunci, tetapi waktu **bisa berhenti dengan menutup kartu** (sesuai permintaan).
+- **Banner lipat** (tertutup secara bawaan, status diingat selama sesi, cetak membuka semua; `lk2Bn` di `js/lkpd-v2.js`): Materi: Tujuan pembelajaran, Rencana pertemuan, **Teori singkat** (sebelumnya "Memahami"), Gerbang masuk praktik, K3. Lembar Kerja: Identitas praktik, Analisis dan keputusan teknis, Refleksi. Gerbang dan K3 menampilkan ringkasan progres di judul. Saat Kirim menemukan isian kurang, banner yang memuatnya dibuka otomatis; tombol "Ke gerbang masuk" membuka banner Gerbang.
+- **Overlay tombol** Materi & Prosedur dan Lembar Kerja melayang di bawah layar (di atas bilah tindakan bila menempel); dua tombol itu dipindah dari deretan tombol atas. Evaluasi dan Riwayat/Rekap tetap di atas. Tersembunyi saat cetak.
+- Uji `uji-pewaktu-pertemuan` ditulis ulang (36 pemeriksaan); `uji-lkpd-v2` 274, `uji-pandu-v2` 44, `uji-lkpd-format` 69 tetap lulus; diperiksa juga di Chromium tanpa galat. (`uji-lkpd-banner` gagal sejak sebelum perubahan ini karena `lkpd-v2-banner.js` tidak dimuat aplikasi.) Tidak ada perubahan Appwrite.
 
 ## LKPD v2 (X-07): kartu Lembar Kerja terbuka otomatis saat dipilih
 - Hanya satu kartu Lembar Kerja yang terbuka. Mengetuk judul kartu atau fokus ke isian di dalamnya membuka kartu itu dan menutup kartu sebelumnya; mengetuk judul kartu yang terbuka menutupnya (`lk2Buka`, `.lk2-p.is-open` di `js/lkpd-v2.js` dan `css/app.css`).

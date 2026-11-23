@@ -528,7 +528,23 @@ fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);out
 .lk2-pm{grid-column:1/-1;grid-row:2;display:flex;align-items:center;gap:10px;min-width:0}
 .lk2-pm .lk-ct-s{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 1 auto}
 .lk2-pm .lk-ct-s .lk-clock{font-size:17px}
-.lk2-pm .lk-ct-s .btn{max-width:none;padding:6px 12px}
+.lk-ct.is-run .lk-clock::before{content:'';display:inline-block;width:8px;height:8px;margin-right:7px;border-radius:50%;background:var(--accent);vertical-align:middle;animation:lkpulse 1.2s ease-in-out infinite}
+@keyframes lkpulse{50%{opacity:.25}}
+/* Banner lipat Materi dan Lembar Kerja */
+.lk2-bn-c{padding:0;gap:0;overflow:hidden}
+.lk2-bn>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-left:4px solid var(--accent);background:linear-gradient(135deg,var(--accent-soft),var(--surface));-webkit-tap-highlight-color:transparent}
+.lk2-bn>summary::-webkit-details-marker{display:none}
+.lk2-bn>summary::after{content:'\25BE';flex:none;color:var(--accent);transition:transform .15s}
+.lk2-bn[open]>summary::after{transform:rotate(180deg)}
+.lk2-bn>summary h2{margin:0;font-size:17px}
+.lk2-bn>summary small{display:block;margin-top:2px;color:var(--muted);font-size:12.5px;font-weight:500}
+.lk2-bnb{padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px}
+/* Overlay tombol Materi dan Lembar Kerja */
+.lk-ov{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:8;display:flex;gap:4px;padding:4px;border-radius:99px;background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(10px);border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.lk-ov button{border:0;background:transparent;border-radius:99px;padding:9px 14px;font-size:13.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.lk-ov button[aria-pressed=true]{background:var(--accent);color:var(--onc)}
+.lk-ovsp{height:56px}
+@media print{.lk-ov,.lk-ovsp{display:none!important}}
 .lk2-pb{margin-top:10px}
 .lk2-p:not(.is-open) .lk2-pb{display:none}
 .lk2-p.is-open{border-color:var(--pri,#1b5e20)}

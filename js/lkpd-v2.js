@@ -36,6 +36,8 @@ function lk2Txt(x){return String(x==null?'':x).trim()}
 /* Bagian lipat. Status buka/tutup diingat selama sesi; saat mencetak semua dibuka. */
 function lk2DetB(id,t,b){return lk2Det(id,t,'',b)}
 function lk2Det(id,ttl,sub,body){var op=LK2.cetak||(LK2.open&&LK2.open[id]);return '<details class="lk2-dt" data-lk2d="'+id+'"'+(op?' open':'')+'><summary><span class="lk2-ttl"><b>'+ttl+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span></summary><div class="lk2-bd">'+body+'</div></details>'}
+/* Banner lipat (kartu bagian Materi dan Lembar Kerja). Tertutup secara bawaan; status buka/tutup diingat selama sesi (LK2.open, kunci 'bn-<id>'); cetak membuka semua. */
+function lk2Bn(id,ttl,body,attr,sub){var op=LK2.cetak||(LK2.open&&LK2.open['bn-'+id]);return '<section class="card lk2-bn-c"'+(attr||'')+'><details class="lk2-bn" data-lk2d="bn-'+id+'"'+(op?' open':'')+'><summary><span class="lk2-ttl"><h2>'+ttl+'</h2>'+(sub?'<small>'+sub+'</small>':'')+'</span></summary><div class="lk2-bnb">'+body+'</div></details></section>'}
 document.addEventListener('toggle',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.lk2d){LK2.open=LK2.open||{};LK2.open[t.dataset.lk2d]=t.open}},true);
 
 /* ---------- Tabel data: rata-rata dan selisih otomatis ---------- */
@@ -220,26 +222,27 @@ function lk2Kartu(V,p){
 function lk2PraktikRingkas(V){var a=V.pertemuan.filter(function(p){return !p.sembunyi&&p.praktik});return a.length?' Praktik '+lk2PraktikTotal(V)+' menit ('+a.map(function(p){return lk2Pisah(p)?lk2PraktikTeks(V,p):(p.kegiatan.length?'K'+p.kegiatan.join('+'):'P'+p.n)+' '+p.praktik}).join(' + ')+').':''}
 function lk2Rencana(m){
  var V=m.v2,tot=V.pertemuan.reduce(function(t,p){return t+p.menit},0),jp=V.pertemuan.reduce(function(t,p){return t+p.jp},0);
- return '<section class="card"><h2>Rencana pertemuan</h2><p class="note">'+V.pertemuan.length+' pertemuan · '+jp+' JP · '+tot+' menit.'+lk2PraktikRingkas(V)+' Ketuk satu pertemuan untuk melihat kegiatannya.</p>'+V.pertemuan.map(function(p){
+ return lk2Bn('rencana','Rencana pertemuan','<p class="note">'+V.pertemuan.length+' pertemuan · '+jp+' JP · '+tot+' menit.'+lk2PraktikRingkas(V)+' Ketuk satu pertemuan untuk melihat kegiatannya.</p>'+V.pertemuan.map(function(p){
   var ls=[];p.kegiatan.forEach(function(k){V.langkah.forEach(function(l){if(l.k===k)ls.push('<li>'+lkEsc(String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,''))+(l.saksi?' <span class="lk2-saksi">saksi guru</span>':'')+'</li>')})});
   var pisah=lk2Pisah(p);
   var isi=pisah?p.kegiatan.map(function(k){var li=[];V.langkah.forEach(function(l){if(l.k===k)li.push('<li>'+lkEsc(String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,''))+(l.saksi?' <span class="lk2-saksi">saksi guru</span>':'')+'</li>')});return '<p class="note"><b>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+'</b> · target '+(lk2KegMenit(V,k)||0)+' menit</p><ul class="plain">'+li.join('')+'</ul>'}).join(''):p.kegiatan.length?'<p class="note">'+p.kegiatan.map(function(k){return 'Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])}).join('; ')+'</p><ul class="plain">'+ls.join('')+'</ul>':'<p class="note">'+(p.n===1?'Jawab gerbang masuk dan centang butir K3 di tab ini, lalu periksa alat.':'Penilaian kinerja oleh guru, refleksi, remedial atau pengayaan.')+'</p>';
   return lk2Det('p'+p.n,'Pertemuan '+p.n,p.jp+' JP · '+p.menit+' menit'+(p.praktik?' · target praktik '+(pisah?lk2PraktikTeks(V,p):p.praktik)+' menit':'')+' · '+lkEsc(p.judul),isi);
- }).join('')+'</section>';
+ }).join(''));
 }
 function lk2K3(m,d){
  var V=m.v2,g=V.k3grup||[{judul:'',i:m.safety.map(function(x,i){return i})}];
- return '<section class="card"><h2>Keselamatan dan Kesehatan Kerja (K3)</h2><p class="note">Centang setiap butir yang sudah kamu penuhi sebelum mulai praktik. Semua butir harus tercentang sebelum Kirim LKPD. Guru memberi paraf pada butir APD saat memeriksa (terlihat di Detail setelah dikirim).</p>'+
-  g.map(function(x){return (x.judul?'<h3 class="lk2-grp">'+lkEsc(x.judul)+'</h3>':'')+'<div class="lk-checks">'+x.i.map(function(i){return lk2Chk(d,'safe'+i,lkEsc(m.safety[i]))}).join('')+'</div>'}).join('')+'</section>';
+ var tot=m.safety.length,ok=m.safety.filter(function(x,i){return d['safe'+i]}).length;
+ return lk2Bn('k3','Keselamatan dan Kesehatan Kerja (K3)','<p class="note">Centang setiap butir yang sudah kamu penuhi sebelum mulai praktik. Semua butir harus tercentang sebelum Kirim LKPD. Guru memberi paraf pada butir APD saat memeriksa (terlihat di Detail setelah dikirim).</p>'+
+  g.map(function(x){return (x.judul?'<h3 class="lk2-grp">'+lkEsc(x.judul)+'</h3>':'')+'<div class="lk-checks">'+x.i.map(function(i){return lk2Chk(d,'safe'+i,lkEsc(m.safety[i]))}).join('')+'</div>'}).join(''),'',ok+' dari '+tot+' butir dicentang');
 }
 function lk2Materi(m,d){
  var V=m.v2,g=lk2Gate(m,d);
- return '<section class="card"><h2>Tujuan pembelajaran</h2><ul class="plain">'+m.objectives.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul></section>'+
+ return lk2Bn('tujuan','Tujuan pembelajaran','<ul class="plain">'+m.objectives.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul>')+
   lk2Rencana(m)+
-  '<section class="card"><h2>Memahami</h2>'+m.theory.map(function(x){return '<p><b>'+lkEsc(x[0])+'</b><br>'+lkEsc(x[1])+'</p>'+(typeof lkvMateriImg==='function'?lkvMateriImg(x):'')}).join('')+'</section>'+
-  '<section class="card" id="lk2-gate"><h2>Gerbang masuk praktik</h2><p class="note">'+(g.auto?'Jawab semua soal. Penilaian mengikuti soal TKA: pilihan ganda benar bernilai 1; PG kompleks dan PG kategori bernilai sebagian sesuai pilihan yang tepat. Lembar Kerja terbuka bila nilai gerbang minimal '+g.kkm+'.':'Jawab semua soal agar Lembar Kerja terbuka.')+'</p>'+
+  lk2Bn('teori','Teori singkat',m.theory.map(function(x){return '<p><b>'+lkEsc(x[0])+'</b><br>'+lkEsc(x[1])+'</p>'+(typeof lkvMateriImg==='function'?lkvMateriImg(x):'')}).join(''))+
+  lk2Bn('gate','Gerbang masuk praktik','<p class="note">'+(g.auto?'Jawab semua soal. Penilaian mengikuti soal TKA: pilihan ganda benar bernilai 1; PG kompleks dan PG kategori bernilai sebagian sesuai pilihan yang tepat. Lembar Kerja terbuka bila nilai gerbang minimal '+g.kkm+'.':'Jawab semua soal agar Lembar Kerja terbuka.')+'</p>'+
   V.gate.qs.map(function(x,i){if(lk2GPG(x))return lkqRender(x,LK2_GOFF+i,d).replace('<b>'+(LK2_GOFF+i+1)+'. ','<b>'+(i+1)+'. ');return '<label class="f">'+(i+1)+'. '+lkEsc(x.q)+'<textarea data-lk-field="gate'+i+'" rows="2">'+lkEsc(d['gate'+i]||'')+'</textarea></label>'}).join('')+
-  '<p class="note">Terjawab '+g.n+' dari '+g.total+(g.auto?' · Nilai gerbang <b class="mono">'+g.nilai+'</b> (KKM '+g.kkm+'): '+(g.lulus?'lulus, Lembar Kerja terbuka.':'belum lulus, Lembar Kerja masih terkunci.'):(g.ok?'. Lembar Kerja terbuka.':'.'))+'</p></section>'+
+  '<p class="note">Terjawab '+g.n+' dari '+g.total+(g.auto?' · Nilai gerbang <b class="mono">'+g.nilai+'</b> (KKM '+g.kkm+'): '+(g.lulus?'lulus, Lembar Kerja terbuka.':'belum lulus, Lembar Kerja masih terkunci.'):(g.ok?'. Lembar Kerja terbuka.':'.'))+'</p>',' id="lk2-gate"','Terjawab '+g.n+' dari '+g.total+(g.auto?' · nilai '+g.nilai+' (KKM '+g.kkm+')':''))+
   '<section class="card"><h2>Alat dan bahan</h2><ul class="plain">'+m.tools.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul></section>'+
   lk2K3(m,d);
 }
@@ -279,8 +282,8 @@ function lk2Latihan(m,p,d){
 }
 function lk2Kerja(m,d){
  var V=m.v2,g=lk2Gate(m,d),c0=lk2Calc(m,d);
- if(!g.lulus&&!isStaff()&&!LK2.cetak)return '<section class="card"><h2>Lembar Kerja terkunci</h2><p>'+(g.auto?'Lembar Kerja terbuka bila nilai gerbang masuk minimal '+g.kkm+'. Nilai gerbangmu sekarang '+g.nilai+' ('+g.n+' dari '+g.total+' soal terjawab). Pelajari Materi, lalu perbaiki jawaban di gerbang masuk.':'Jawab semua pertanyaan gerbang masuk di tab Materi dulu ('+g.n+' dari '+g.total+' terjawab).')+'</p><button type="button" class="btn primary" data-act="lk-tab" data-v="materi">Ke gerbang masuk</button></section>';
- var h='<section class="card"><h2>Identitas praktik</h2><div class="formgrid">'+[['school','Sekolah',typeof schNama==='function'?schNama():''],['student','Nama siswa',S.user.nama],['class','Kelas',S.user.kelas||'X'],['group','Kelompok',''],['date','Tanggal',ymd(Date.now())],['teacher','Guru/instruktur',''],['meter','Alat ukur yang dipakai (ketelitian)','']].map(function(x){return '<label class="f">'+x[1]+'<input data-lk-field="'+x[0]+'" value="'+lkEsc(d[x[0]]||x[2])+'" '+(['student','class'].indexOf(x[0])>-1?'readonly':'')+'></label>'}).join('')+'</div></section>';
+ if(!g.lulus&&!isStaff()&&!LK2.cetak){LK2.open=LK2.open||{};LK2.open['bn-gate']=true;return '<section class="card"><h2>Lembar Kerja terkunci</h2><p>'+(g.auto?'Lembar Kerja terbuka bila nilai gerbang masuk minimal '+g.kkm+'. Nilai gerbangmu sekarang '+g.nilai+' ('+g.n+' dari '+g.total+' soal terjawab). Pelajari Materi, lalu perbaiki jawaban di gerbang masuk.':'Jawab semua pertanyaan gerbang masuk di tab Materi dulu ('+g.n+' dari '+g.total+' terjawab).')+'</p><button type="button" class="btn primary" data-act="lk-tab" data-v="materi">Ke gerbang masuk</button></section>'}
+var h=lk2Bn('identitas','Identitas praktik','<div class="formgrid">'+[['school','Sekolah',typeof schNama==='function'?schNama():''],['student','Nama siswa',S.user.nama],['class','Kelas',S.user.kelas||'X'],['group','Kelompok',''],['date','Tanggal',ymd(Date.now())],['teacher','Guru/instruktur',''],['meter','Alat ukur yang dipakai (ketelitian)','']].map(function(x){return '<label class="f">'+x[1]+'<input data-lk-field="'+x[0]+'" value="'+lkEsc(d[x[0]]||x[2])+'" '+(['student','class'].indexOf(x[0])>-1?'readonly':'')+'></label>'}).join('')+'</div>');
  V.pertemuan.forEach(function(p){
   if(p.sembunyi)return;
   lk2Kartu(V,p).forEach(function(c){
@@ -296,8 +299,8 @@ function lk2Kerja(m,d){
    h+='<label class="f">Waktu aktual '+(c.judul&&c.ks.length?'Kegiatan '+c.ks.join(' dan '):'pertemuan '+p.n)+' (menit)<input inputmode="numeric" data-lk-field="'+c.key+'" value="'+lkEsc(d[c.key]||'')+'"'+(typeof lkcRO==='function'&&lkcRO(m,c.key)?' readonly':'')+'></label></div></section>';
   });
  });
- h+='<section class="card"><h2>Analisis dan keputusan teknis</h2>'+V.analisis.map(function(q,i){return '<label class="f">'+(i+1)+'. '+lkEsc(q)+'<textarea data-lk-field="ana'+i+'">'+lkEsc(d['ana'+i]||'')+'</textarea></label>'}).join('')+'</section>'+
-  '<section class="card"><h2>Refleksi</h2>'+V.refleksi.map(function(q,i){return '<label class="f">'+(i+1)+'. '+lkEsc(q)+'<textarea data-lk-field="ref'+i+'">'+lkEsc(d['ref'+i]||'')+'</textarea></label>'}).join('')+'</section>'+
+ h+=lk2Bn('analisis','Analisis dan keputusan teknis',V.analisis.map(function(q,i){return '<label class="f">'+(i+1)+'. '+lkEsc(q)+'<textarea data-lk-field="ana'+i+'">'+lkEsc(d['ana'+i]||'')+'</textarea></label>'}).join(''))+
+  lk2Bn('refleksi','Refleksi',V.refleksi.map(function(q,i){return '<label class="f">'+(i+1)+'. '+lkEsc(q)+'<textarea data-lk-field="ref'+i+'">'+lkEsc(d['ref'+i]||'')+'</textarea></label>'}).join(''))+
   (typeof lkFotoSection==='function'?lkFotoSection():'');
  return h;
 }
@@ -315,14 +318,24 @@ function lk2Eval(m,d){
   (pg?'<section class="card"><h2>Yang diamati dan kesalahan umum</h2><p class="note">Pelajari sebelum praktik agar kesalahan umum bisa dihindari.</p>'+pg+'</section>':'')+
   '<section class="card"><div class="note">Nilai otomatis di aplikasi hanya perkiraan awal dari kelengkapan pengisian. Nilai akhir ditentukan guru lewat Observasi LKPD Praktik v2 dan nilai guru yang diisi pada Detail pengumpulan (menggantikan nilai otomatis).</div></section>';
 }
+/* Overlay tombol (melayang di bawah layar): pindah antara Materi &amp; Prosedur dan Lembar Kerja tanpa menggulir ke atas. Posisinya naik di atas bilah tindakan bila bilah itu menempel di bawah (lk2OvUkur). */
+function lk2Ov(){return '<div class="lk-ovsp" aria-hidden="true"></div><div class="lk-ov" role="group" aria-label="Pindah bagian">'+[['materi','Materi &amp; Prosedur'],['kerja','Lembar Kerja']].map(function(t){return '<button type="button" data-act="lk-tab" data-v="'+t[0]+'" aria-pressed="'+(LK.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>'}
+function lk2OvUkur(){
+ var ov=document.querySelector('.lk-ov');if(!ov)return;
+ var b=document.querySelector('.lk-actions'),off=14;
+ try{if(b&&getComputedStyle(b).position==='sticky')off=b.offsetHeight+10}catch(e){}
+ ov.style.bottom=off+'px'}
+if(typeof render==='function'){var _render2=render;render=function(){_render2();lk2OvUkur()}}
+document.addEventListener('toggle',function(){lk2OvUkur()},true);
+if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('resize',function(){lk2OvUkur()});
 function lk2View(m){
- var d=lkDraft(),staff=isStaff(),tabs=[['materi','Materi &amp; Prosedur'],['kerja','Lembar Kerja'],['evaluasi','Evaluasi'],['riwayat',staff?'Rekap LKPD':'Riwayat']];
+ var d=lkDraft(),staff=isStaff(),tabs=[['evaluasi','Evaluasi'],['riwayat',staff?'Rekap LKPD':'Riwayat']];
  var nav=(staff?'<div class="chips"><button data-act="lk-tab" data-v="editor" aria-pressed="false">Editor Guru</button>'+(LK.preview?'<button data-act="lk-print">Cetak</button>'+(m.v2&&m.v2.gate?'<button data-act="lk-print-kunci">Cetak kunci</button>':''):'')+'</div>':'')+
   '<div class="chips">'+tabs.map(function(t){return '<button data-act="lk-tab" data-v="'+t[0]+'" aria-pressed="'+(LK.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>';
  var body=LK.tab==='materi'?lk2Materi(m,d):LK.tab==='kerja'?lk2Kerja(m,d):lk2Eval(m,d);
  return (LK.preview&&staff?'<div class="row"><button class="btn small" data-act="lk-preview-exit">Keluar pratinjau</button></div>':'')+
   '<div class="row sb"><div><span class="pill">Fase '+lkEsc(m.fase)+' · Kelas '+lkEsc(m.kelas)+'</span><h2>'+lkEsc(m.title)+'</h2><p class="note">'+lkEsc(m.unit)+' · '+m.v2.jp+' JP ('+m.duration+' menit, '+m.v2.pertemuan.length+' pertemuan)</p></div><span class="pill">'+lkEsc(/^LKPD/i.test(m.id)?m.id:'LKPD '+m.id)+' · v2</span></div>'+
-  nav+body+(LK.preview&&staff?'':(LK.tab==='materi'&&!staff?'<i class="lk-lite"></i>':'')+'<div class="lk-actions"><div class="row"><button class="btn" data-act="lk-save">Simpan draf</button>'+(LK.tab==='materi'&&!staff?'':LK.tab==='evaluasi'&&!staff&&!LK.preview&&lk2Status(m).lulus?'<button class="btn primary" data-act="lk2-eval-kirim">Kirim Evaluasi</button>':'<button class="btn primary" data-act="lk-submit">Kirim LKPD</button>')+'<button class="btn" data-act="lk-print">Cetak</button>'+(staff&&m.v2&&m.v2.gate?'<button class="btn" data-act="lk-print-kunci">Cetak kunci</button>':'')+'</div><details class="lk2-more" data-lk2d="more"'+(LK2.open&&LK2.open.more?' open':'')+'><summary>'+(lk2Kunci(m)?'Kunci pertemuan dan progres':'Progres dan cadangan draf')+'</summary><div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div>'+lk2BkBlock(m)+'</details></div>');
+  nav+body+lk2Ov()+(LK.preview&&staff?'':(LK.tab==='materi'&&!staff?'<i class="lk-lite"></i>':'')+'<div class="lk-actions"><div class="row"><button class="btn" data-act="lk-save">Simpan draf</button>'+(LK.tab==='materi'&&!staff?'':LK.tab==='evaluasi'&&!staff&&!LK.preview&&lk2Status(m).lulus?'<button class="btn primary" data-act="lk2-eval-kirim">Kirim Evaluasi</button>':'<button class="btn primary" data-act="lk-submit">Kirim LKPD</button>')+'<button class="btn" data-act="lk-print">Cetak</button>'+(staff&&m.v2&&m.v2.gate?'<button class="btn" data-act="lk-print-kunci">Cetak kunci</button>':'')+'</div><details class="lk2-more" data-lk2d="more"'+(LK2.open&&LK2.open.more?' open':'')+'><summary>'+(lk2Kunci(m)?'Kunci pertemuan dan progres':'Progres dan cadangan draf')+'</summary><div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div>'+lk2BkBlock(m)+'</details></div>');
 }
 var _viewLKPD2=viewLKPD;
 viewLKPD=function(){
@@ -336,7 +349,7 @@ viewLKPD=function(){
 
 /* ---------- Pengaturan mode Latihan/Ujian untuk LKPD v2 ----------
    Pengaturan (Kelola LKPD > Pengaturan) memakai tiga sakelar untuk mode Ujian; di v2 artinya:
-   - Teori ringkas  -> kartu "Memahami" disembunyikan
+   - Teori ringkas  -> banner "Teori singkat" disembunyikan
    - Penjelasan langkah -> isi tiap pertemuan di Rencana pertemuan dan "Poin kritis" di Lembar Kerja disembunyikan
    - Petunjuk komponen -> keterangan dan acuan di bawah nama komponen pemeriksaan disembunyikan
    Dipanggil dari lkmFilter (lkpd-mode.js) hanya untuk tampilan siswa/pratinjau. */
@@ -344,7 +357,7 @@ function lk2ModeFilter(h,c){
  if(c.mode!=='ujian')return h;
  try{
   if(LK.tab==='materi'){
-   if(c.hideTeori)h=h.replace(/<section class="card"><h2>Memahami<\/h2>[\s\S]*?<\/section>/,'<section class="card"><h2>Memahami</h2><p class="note">Teori ringkas tidak ditampilkan pada mode Ujian.</p></section>');
+   if(c.hideTeori)h=h.replace(/<section class="card lk2-bn-c"><details class="lk2-bn" data-lk2d="bn-teori"[\s\S]*?<\/section>/,function(){return lk2Bn('teori','Teori singkat','<p class="note">Teori singkat tidak ditampilkan pada mode Ujian.</p>')});
    if(c.hideLangkah)h=h.replace(/(<details class="lk2-dt" data-lk2d="p\d+"[^>]*><summary>[\s\S]*?<\/summary>)<div class="lk2-bd">[\s\S]*?<\/div>/g,'$1<div class="lk2-bd"><p class="note">Rincian langkah tidak ditampilkan pada mode Ujian.</p></div>');
   }else if(LK.tab==='kerja'){
    if(c.hideLangkah)h=h.replace(/<small>Poin kritis:[\s\S]*?<\/small>/g,'');
@@ -503,7 +516,7 @@ document.addEventListener('change',function(e){
 
 /* Kartu Lembar Kerja: satu kartu terbuka. Terbuka otomatis saat dipilih (ketuk judul atau fokus ke isian di dalamnya), tertutup saat berpindah ke kartu lain. */
 function lk2Gulung(){var e=document.scrollingElement||document.documentElement;return e}
-function lk2Buka(key,diam){
+function lk2Buka(key){
  if(!key||LK2.kartu===key)return;
  var tj=document.querySelector('.lk2-p[data-lk2k="'+key+'"] .lk2-ph'),y0=tj?tj.getBoundingClientRect().top:0;
  LK2.kartu=key;
@@ -514,16 +527,14 @@ function lk2Buka(key,diam){
  });
  /* Kartu sebelumnya menutup dan menggeser isi halaman; judul kartu yang dipilih dijaga tetap di posisi layar semula agar tidak meloncat. */
  if(tj){var d=tj.getBoundingClientRect().top-y0;if(d)lk2Gulung().scrollTop+=d}
- /* Kartu dipilih = pewaktunya mulai otomatis (berlaku untuk semua kartu Kegiatan). diam=true: dibuka oleh tombol pewaktu atau penanda isian kurang, jadi tidak memulai sendiri. */
- if(!diam&&typeof lkcAutoMulai==='function')lkcAutoMulai(key);
+ /* Kartu terbuka = pewaktunya jalan, kartu lain berhenti (semua kartu Kegiatan). */
+ if(typeof lkcSelaras==='function')lkcSelaras();
 }
 function lk2KartuDari(t){var el=t&&t.closest?t.closest('.lk2-p[data-lk2k]'):null;return el?el.getAttribute('data-lk2k'):''}
 document.addEventListener('click',function(e){
- var tw=e.target.closest('[data-act="lkc-toggle"]');
- if(tw){var kt=lk2KartuDari(tw);if(kt)lk2Buka(kt,true);return}
  var h=e.target.closest('[data-act="lk2-kartu"]');
  if(h){var k=h.getAttribute('data-key'),el=h.closest('.lk2-p');
-  if(el&&el.classList.contains('is-open')){LK2.kartu='';el.classList.remove('is-open');h.setAttribute('aria-expanded','false')}else lk2Buka(k);
+  if(el&&el.classList.contains('is-open')){LK2.kartu='';el.classList.remove('is-open');h.setAttribute('aria-expanded','false');if(typeof lkcSelaras==='function')lkcSelaras()}else lk2Buka(k);
   return}
  var k2=lk2KartuDari(e.target);if(k2)lk2Buka(k2);
 });
@@ -534,4 +545,10 @@ document.addEventListener('keydown',function(e){
  if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-act="lk2-kartu"]')){e.preventDefault();e.target.click()}
 });
 /* Setelah render dengan penanda "kurang", buka kartu yang memuat isian merah pertama */
-function lk2BukaYangKurang(){var n=document.querySelector('.lk2-p .lk2-need');if(n)lk2Buka(lk2KartuDari(n),true)}
+function lk2BukaYangKurang(){
+ var n=document.querySelector('.lk2-need');if(!n)return;
+ var bn=n.closest('details.lk2-bn');if(bn){bn.open=true;LK2.open=LK2.open||{};LK2.open[bn.getAttribute('data-lk2d')]=true}
+ var k=lk2KartuDari(n);if(k)lk2Buka(k);
+ try{n.scrollIntoView({block:'center'})}catch(e){}}
+/* Tutup semua kartu Kegiatan (mis. setelah Kirim berhasil) dan hentikan pewaktunya. */
+function lk2TutupKartu(){LK2.kartu='';document.querySelectorAll('.lk2-p[data-lk2k]').forEach(function(el){el.classList.remove('is-open');var h=el.querySelector('.lk2-ph');if(h)h.setAttribute('aria-expanded','false')});if(typeof lkcSelaras==='function')lkcSelaras()}

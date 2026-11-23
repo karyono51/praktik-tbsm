@@ -16,7 +16,7 @@ const ctx = vm.createContext({
   console, Math, JSON, Object, Array, String, Number, isFinite, parseInt, setTimeout, setInterval() { return 1 }, clearInterval() {},
   localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v) }, removeItem: (k) => { delete store[k] } },
   navigator: { onLine: true }, window: { scrollTo() {}, addEventListener() {} },
-  document: { createElement: el, head: el(), body: el(), addEventListener() {}, querySelectorAll() { return [] }, getElementById() { return null }, querySelector() { return null } }
+  document: { createElement: el, head: el(), body: el(), addEventListener() {}, querySelectorAll() { return [] }, getElementById() { return null }, querySelector(q) { return (ctx.ADA_CT && q === '[data-ct]') ? {} : null } }
 });
 ctx.window = ctx; ctx.addEventListener = () => {}; ctx.NOW = 1000000;
 ctx.Date = Object.assign(function () {}, { now: () => ctx.NOW });
@@ -44,62 +44,82 @@ const reset = () => { for (const k of Object.keys(store)) delete store[k]; G('LK
 
 const keys = G('lkcCards(LKPD_MODULES[0]).map(function(c){return c.key})');
 ok(keys.length === 4 && keys.join() === 'mt2,mt3,mtk3,mtk4', 'empat kartu kegiatan punya pewaktu sendiri: ' + keys.join());
-
-/* Ujian */
-G(`MODE='ujian';STAFF=false`); reset();
 const m = 'LKPD_MODULES[0]';
-ok(G('lktLocked()') === true, 'Ujian siswa: waktu terkunci');
-ok(/tidak bisa dijeda/.test(G(`lkcRow(${m},lkcCards(${m})[0])`)), 'Ujian: kartu menyebut tidak bisa dijeda');
-ok(G(`lkcStart(${m},'mt2')`) === true && G(`lkcGet(${m},'mt2').run`) === true, 'Ujian: kartu 1 mulai');
-ok(G(`lkcStart(${m},'mt3')`) === false && G(`lkcGet(${m},'mt3').run`) === false && /Selesaikan dulu/.test(G('toasts[toasts.length-1]')), 'Ujian: kartu lain ditolak selama satu kartu berjalan');
+ctx.ADA_CT = true;
+const buka = (k) => { G(`LK2.kartu='${k}'`); G('lkcSelaras()'); };
+const jalan = (k) => G(`lkcGet(${m},'${k}').run`);
+
+/* Tanpa tombol */
+G(`MODE='ujian';STAFF=false`); reset(); G(`LK2={}`);
+const row = G(`lkcRow(${m},lkcCards(${m})[0],true)`);
+ok(/data-ct-clock/.test(row) && !/<button|lkc-toggle|Mulai|Jeda|Lanjut|Selesai/.test(row), 'kepala kartu hanya jam, tanpa tombol');
+ok(!/<button|lkc-toggle/.test(G(`lkcRow(${m},lkcCards(${m})[0])`)), 'baris pewaktu besar juga tanpa tombol');
+
+/* Ujian: kartu terbuka = jalan, tertutup = berhenti */
+ok(jalan('mt2') === false, 'belum ada kartu terbuka: pewaktu diam');
+buka('mt2');
+ok(jalan('mt2') === true, 'kartu 1 dibuka: pewaktu jalan otomatis');
 ctx.NOW += 90 * 1000;
 ok(G(`lkcSecNow(${m},'mt2')`) === 90, 'Ujian: waktu dari jam dinding (90 dtk)');
-ok(G(`lkcMin(90)`) === '2' && G(`lkcMin(20)`) === '1' && G(`lkcMin(0)`) === '', 'menit dibulatkan, minimal 1, kosong bila 0');
-ok(G(`lkcRO(${m},'mt2')`) === true && G(`lkcBtn(${m},'mt2')`) === 'Selesai kegiatan', 'Ujian: kolom waktu readonly, tombol hanya Selesai');
-/* simulasi muat ulang: cache dikosongkan, waktu tetap dari penyimpanan dan jam dinding */
-G('LKCT.m={}'); ctx.NOW += 30 * 1000;
-ok(G(`lkcGet(${m},'mt2').t0`) > 0 && G(`lkcGet(${m},'mt2').done`) === false, 'Ujian: muat ulang mempertahankan waktu mulai');
-G(`lkcGet(${m},'mt2').run=true`);
-ok(G(`lkcSecNow(${m},'mt2')`) === 120, 'Ujian: setelah muat ulang waktu tetap berjalan (120 dtk)');
-G(`lkcStop(${m},'mt2',true)`);
-ok(G(`lkcGet(${m},'mt2').done`) === true && G(`lkcStart(${m},'mt2')`) === false, 'Ujian: setelah Selesai tidak bisa dimulai lagi');
-ctx.NOW += 600 * 1000;
-ok(G(`lkcSecNow(${m},'mt2')`) === 120, 'Ujian: waktu berhenti setelah Selesai');
-ok(G(`lkcStart(${m},'mt3')`) === true, 'Ujian: kartu 2 bisa mulai setelah kartu 1 selesai');
+ok(G(`lkcRO(${m},'mt2')`) === true, 'Ujian: kolom waktu readonly');
+buka('mt3');
+ok(jalan('mt2') === false && jalan('mt3') === true, 'pindah ke kartu 2: kartu 1 berhenti, kartu 2 jalan');
+ok(G(`lkcGet(${m},'mt2').sec`) === 90, 'waktu kartu 1 tersimpan saat ditutup (90 dtk)');
 ctx.NOW += 60 * 1000;
-ok(G(`lktSec()`) === 180, 'total waktu kiriman = jumlah semua kartu (180 dtk)');
+ok(G(`lkcSecNow(${m},'mt2')`) === 90 && G(`lkcSecNow(${m},'mt3')`) === 60, 'kartu yang tertutup tidak bertambah');
+G(`LK2.kartu=''`); G('lkcSelaras()');
+ok(jalan('mt3') === false && G(`lkcGet(${m},'mt3').sec`) === 60, 'kartu ditutup: pewaktu berhenti, waktu tersimpan');
+buka('mt2');
+ok(jalan('mt2') === true, 'kartu dibuka lagi: pewaktu jalan');
+ctx.NOW += 30 * 1000;
+ok(G(`lkcSecNow(${m},'mt2')`) === 120, 'dilanjutkan dari waktu terakhir (90 + 30 = 120 dtk)');
+ok(G(`lkcMin(90)`) === '2' && G(`lkcMin(20)`) === '1' && G(`lkcMin(0)`) === '', 'menit dibulatkan, minimal 1, kosong bila 0');
+ok(G('lktSec()') === 180, 'total waktu kiriman = jumlah semua kartu (120 + 60 dtk)');
+/* pindah tab (kartu terlihat hilang dari layar) menghentikan pewaktu */
+ctx.ADA_CT = false; G('lkcSelaras()');
+ok(jalan('mt2') === false, 'pindah tab Materi: pewaktu berhenti');
+ctx.ADA_CT = true; G('lkcSelaras()');
+ok(jalan('mt2') === true, 'kembali ke Lembar Kerja dengan kartu masih terbuka: pewaktu jalan lagi');
+/* muat ulang: tidak ada kartu terbuka, waktu tetap dari penyimpanan */
+G('lkcStopAll("")'); G('LKCT.m={}'); G(`LK2={}`); G('lkcSelaras()');
+ok(jalan('mt2') === false && G(`lkcGet(${m},'mt2').sec`) === 120, 'muat ulang: pewaktu diam, waktu kartu 1 tetap 120 dtk');
+/* Kegiatan 3 dan 4 terpisah */
+buka('mtk3'); ok(jalan('mtk3') === true && jalan('mtk4') === false, 'Kegiatan 3 jalan, Kegiatan 4 tidak');
+buka('mtk4'); ok(jalan('mtk3') === false && jalan('mtk4') === true, 'Kegiatan 4 dibuka: Kegiatan 3 berhenti');
+buka('tidak-ada'); ok(jalan('mtk4') === false, 'kartu tanpa pewaktu: tidak ada yang jalan');
+/* Cetak tidak memulai */
+G(`LK2={cetak:true,kartu:'mt2'}`); G('lkcSelaras()'); ok(jalan('mt2') === false, 'mode cetak: pewaktu tidak jalan');
 G(`lkcClear(${m})`);
 ok(G(`lkcTotal(${m})`) === 0 && Object.keys(store).length === 0, 'setelah kirim semua pewaktu kartu dibersihkan');
 
 /* Latihan */
-G(`MODE='latihan'`); reset();
+G(`MODE='latihan'`); reset(); G(`LK2={}`);
 ok(G('lktLocked()') === false, 'Latihan: tidak terkunci');
-G(`lkcStart(${m},'mt2')`); G(`lkcGet(${m},'mt2').sec=45`);
-G(`lkcStop(${m},'mt2',false)`);
-ok(G(`lkcGet(${m},'mt2').run`) === false && G(`lkcGet(${m},'mt2').done`) === false && G(`lkcBtn(${m},'mt2')`) === 'Lanjut', 'Latihan: bisa dijeda dan dilanjutkan');
-G(`lkcStart(${m},'mt2')`);
-ok(G(`lkcStart(${m},'mt3')`) === true && G(`lkcGet(${m},'mt2').run`) === false && G(`lkcGet(${m},'mt3').run`) === true, 'Latihan: memulai kartu lain menjeda kartu sebelumnya');
+buka('mt2'); G(`lkcGet(${m},'mt2').sec=45`);
+buka('mt3');
+ok(jalan('mt2') === false && jalan('mt3') === true && G(`lkcGet(${m},'mt2').sec`) === 45, 'Latihan: pindah kartu menghentikan kartu lama dan menjalankan yang baru');
 ok(G(`lkcRO(${m},'mt3')`) === false, 'Latihan: kolom waktu boleh diedit');
-/* Pewaktu otomatis mulai saat kartu dipilih */
-G(`MODE='ujian';STAFF=false`); reset();
-ok(G(`lkcAutoMulai('mt2')`) === true && G(`lkcGet(${m},'mt2').run`) === true, 'Pilih kartu 1: pewaktu mulai otomatis');
-ok(G(`lkcAutoMulai('mt2')`) === false && G(`lkcGet(${m},'mt2').run`) === true, 'Pilih kartu yang sudah berjalan: tidak mulai ulang');
-ok(G(`lkcAutoMulai('mt3')`) === false && G(`lkcGet(${m},'mt3').run`) === false, 'Ujian: memilih kartu lain tidak memulai selama kartu berjalan');
-G(`lkcStop(${m},'mt2',true)`);
-ok(G(`lkcAutoMulai('mt2')`) === false, 'Ujian: kartu Selesai tidak mulai lagi saat dipilih');
-ok(G(`lkcAutoMulai('mtk3')`) === true && G(`lkcAutoMulai('mtk4')`) === false && G(`lkcGet(${m},'mtk3').run`) === true, 'Kegiatan 3 mulai otomatis, Kegiatan 4 menunggu');
-ok(G(`lkcAutoMulai('tidak-ada')`) === false, 'kartu tanpa pewaktu diabaikan');
-G(`MODE='latihan'`); reset();
-G(`lkcAutoMulai('mt2')`);
-ok(G(`lkcAutoMulai('mtk4')`) === true && G(`lkcGet(${m},'mt2').run`) === false && G(`lkcGet(${m},'mtk4').run`) === true, 'Latihan: memilih kartu lain menjeda kartu lama dan memulai kartu baru');
-G(`LK2.cetak=true`); reset();
-ok(G(`lkcAutoMulai('mt2')`) === false, 'mode cetak: pewaktu tidak mulai');
-G(`LK2.cetak=false`);
 /* guru */
 G(`MODE='ujian';STAFF=true`);
 ok(G('lktLocked()') === false, 'guru/pratinjau tidak dikunci');
 const kerja = G(`lk2Kerja(${m},{})`);
 ok((kerja.match(/data-ct="/g) || []).length === 4, 'Lembar Kerja memuat empat pewaktu kartu');
+ok(!/data-act="lkc-toggle"/.test(kerja), 'Lembar Kerja tanpa tombol pewaktu');
+/* Banner lipat dan overlay */
+const bn = (h) => (h.match(/<details class="lk2-bn" data-lk2d="bn-(\w+)"( open)?>/g) || []).map((x) => x.replace(/.*bn-(\w+)".*/, '$1') + (/ open>$/.test(x) ? '+' : ''));
+const kj = bn(kerja);
+ok(kj.join() === 'identitas,analisis,refleksi', 'Lembar Kerja: banner lipat Identitas, Analisis, Refleksi (tertutup): ' + kj.join());
+const mat = G(`lk2Materi(${m},{})`);
+const mt = bn(mat);
+ok(mt.join() === 'tujuan,rencana,teori,gate,k3', 'Materi: banner lipat Tujuan, Rencana, Teori singkat, Gerbang, K3 (tertutup): ' + mt.join());
+ok(/<h2>Teori singkat<\/h2>/.test(mat) && !/<h2>Memahami<\/h2>/.test(mat), 'Memahami diganti Teori singkat');
+G(`LK2.open={'bn-k3':true}`);
+ok(/data-lk2d="bn-k3" open/.test(G(`lk2Materi(${m},{})`)), 'status buka banner diingat');
+G(`LK2={cetak:true}`);
+ok(bn(G(`lk2Materi(${m},{})`)).every((x) => x.endsWith('+')), 'cetak membuka semua banner');
+G(`LK2={}`);
+const ov = G('lk2Ov()');
+ok(/data-v="materi"[^>]*>Materi &amp; Prosedur/.test(ov) && /data-v="kerja"[^>]*>Lembar Kerja/.test(ov) && /class="lk-ov"/.test(ov), 'overlay tombol Materi & Prosedur dan Lembar Kerja');
 /* Regresi: LKC dipakai lkpd-cetak.js (window.LKC); pewaktu memakai LKCT agar tidak saling menimpa di peramban. */
 ok(!/\bLKC\b/.test(fs.readFileSync(path.join(root, 'js', 'lkpd-timer.js'), 'utf8')), 'pewaktu tidak memakai nama global LKC (bentrok dengan lkpd-cetak.js)');
 console.log(`\nUji pewaktu per pertemuan: ${lulus} lulus, ${gagal} gagal`);
