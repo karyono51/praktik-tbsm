@@ -5,8 +5,10 @@
 - **Total praktik 20 menit untuk semua kegiatan**, dibagi per kegiatan (`praktik` pada pertemuan): jangka sorong 10, mikrometer 4, dial gauge 3, perawatan 3. Tiap langkah punya alokasi menit (`menit` pada `v2.langkah`): K1 2+6+2, K2 1+3, K3 1+2, K4 2+1; jumlahnya sama dengan target kegiatan (diuji). Menit pertemuan (135) tetap sebagai waktu belajar.
 - Kartu Lembar Kerja disusun sistematis: judul kegiatan, target menit, catatan "Alokasi praktik N dari total 20 menit", Langkah kerja (dengan menit tiap langkah), tabel data, Pemeriksaan dan bukti, lalu Waktu aktual per kegiatan. Judul ganda "Kegiatan 1 · Jangka sorong" dihapus.
 - Pewaktu bawah memakai total praktik (`lkmPraktik`): "Perkiraan/Target 20 menit praktik (semua kegiatan)". Rencana pertemuan, rekap waktu, rubrik Waktu dan efisiensi, serta cetak ikut menyesuaikan.
+- **Nol alat dicek 1 kali di awal:** tabel F1 dan F2 punya satu isian "Nol alat (cek 1 kali di awal, mm)" di atas tabel (`nolSekali:true`), bukan kolom per baris. Kunci data tetap `t_F1_0_nol` dan `t_F2_0_nol`, jadi draf lama tetap terbaca. Kelengkapan tabel, detail guru, dan cetak ikut (cetak: satu baris "Nol alat" di atas tabel).
+- **Hasil aktual terisi otomatis dari tabel** (`v2.cekAuto`, `lk2Auto`): posisi nol jangka sorong dan mikrometer dari isian nol; hasil ukur jangka sorong dan mikrometer dari rata-rata tabel; keolengan dari F3. Kolom hanya-baca, berubah langsung saat siswa mengetik di tabel, dan disimpan ke `actual<i>` seperti biasa. Dial gauge terpasang dan alat di kotak tetap diisi manual.
 - **Kunci hanya pada mode Latihan:** tombol Kunci tidak muncul di Ujian, dan catatan kunci lama tidak memaksa isian saat Ujian (`lkkLatihan`). Yang bisa dikunci hanya kegiatan yang kartunya tampil; tombol, pesan, status guru, dan panel Pengaturan memakai nama "Kegiatan N" (`lkkLabel`).
-- Uji baru: `tools/uji-lkpd-v2.mjs` 233 uji, `tools/uji-pandu.mjs` 103 uji.
+- Uji baru: `tools/uji-lkpd-v2.mjs` 248 uji, `tools/uji-pandu.mjs` 103 uji.
 
 ## Pembeda LKPD Latihan dan Ujian
 - **Latihan berpemandu, Ujian mandiri:** Latihan menampilkan kartu panduan dan membuka angka acuan lewat tombol Bantuan; Ujian menyembunyikan angka acuan, menampilkan kartu aturan "Ujian mandiri", dan (opsional) mewajibkan foto bukti pada semua komponen.

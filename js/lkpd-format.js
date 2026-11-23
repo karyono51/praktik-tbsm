@@ -137,9 +137,9 @@ function langkah(m,d,k){
  }).join('');
 }
 function tabelv2(m,t,d,calc){
- var head=[];t.kol.forEach(function(k,j){head.push(k.l);if(j===0&&t.labelBaris)head.push(t.labelBaris)});
+ var KOL=t.nolSekali?t.kol.filter(function(k){return k.k!=='nol'}):t.kol,head=[];KOL.forEach(function(k,j){head.push(k.l);if(j===0&&t.labelBaris)head.push(t.labelBaris)});
  var rows=t.baris.map(function(lb,r){
-  var c=[];t.kol.forEach(function(k,j){
+  var c=[];KOL.forEach(function(k,j){
    var v;
    if(k.t==='rata'||k.t==='selisih')v=calc&&calc[t.id]&&calc[t.id][r]&&typeof lk2Fmt==='function'?lk2Fmt(calc[t.id][r][k.k]):'';
    else v=d[typeof lk2K==='function'?lk2K(t.id,r,k.k):'t_'+t.id+'_'+r+'_'+k.k]||'';
@@ -148,7 +148,7 @@ function tabelv2(m,t,d,calc){
   });
   return '<tr class="tinggi">'+c.join('')+'</tr>';
  }).join('');
- return '<h3 class="lkf-h3">Tabel '+E(t.judul)+'</h3><table class="lkf-t"><thead><tr>'+head.map(function(x){return '<th>'+E(x)+'</th>'}).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>'+
+ return '<h3 class="lkf-h3">Tabel '+E(t.judul)+'</h3>'+(t.nolSekali?'<p class="lkf-wkt">Nol alat (cek 1 kali di awal): '+fill(d[typeof lk2K==='function'?lk2K(t.id,0,'nol'):'t_'+t.id+'_0_nol'],18)+' mm</p>':'')+'<table class="lkf-t"><thead><tr>'+head.map(function(x){return '<th>'+E(x)+'</th>'}).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>'+
   '<p class="lkf-note lkf-small">Rata-rata dan selisih dihitung dari angka yang diisi. '+(t.cat?E(t.cat):'')+'</p>';
 }
 function cekv2(m,d,i){

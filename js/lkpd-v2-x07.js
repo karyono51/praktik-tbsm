@@ -93,10 +93,12 @@
      o:['permukaan ukur diamplas halus agar mengilap, lalu poros dikunci rapat agar tidak bergerak di dalam kotak','alat diolesi oli tebal sampai seluruh permukaan tertutup, lalu poros dirapatkan dan dikunci pada landasan','alat dilap bersih, diolesi oli tipis, poros direnggangkan tanpa dikunci, lalu disimpan di kotak','alat dibiarkan terbuka di meja kerja agar kering oleh udara, tanpa dilap dan tanpa diolesi apa pun','alat dicuci dengan air dan sabun, dikeringkan di dekat mesin yang panas, lalu poros dikunci rapat'],a:2,
      e:'Lap bersih, oli tipis, poros direnggangkan (tidak dikunci rapat), simpan di kotak, tanpa amplas.'}
    ]},
+   /* Hasil aktual pada Pemeriksaan dan bukti terisi otomatis dari tabel (t = id tabel, f = kolom). Nol alat diperiksa 1 kali di awal tiap tabel (nolSekali). */
+   cekAuto:{0:{t:'F1',f:'nol'},1:{t:'F1',f:'rata'},2:{t:'F2',f:'nol'},3:{t:'F2',f:'rata'},5:{t:'F3',f:'olengan'}},
    tabel:[
-    {id:'F1',k:1,judul:'F1 · Jangka sorong (mm)',cat:'Bila nol alat menyimpang, koreksi tiap bacaan: hasil benar = bacaan − penyimpangan nol (contoh: nol +0,05 dan bacaan 22,40 menjadi 22,35 mm). Standar diisi dari manual atau guru.',baris:['Diameter luar','Diameter dalam','Kedalaman'],labelBaris:'Jenis ukur',
+    {id:'F1',k:1,nolSekali:true,judul:'F1 · Jangka sorong (mm)',cat:'Bila nol alat menyimpang, koreksi tiap bacaan: hasil benar = bacaan − penyimpangan nol (contoh: nol +0,05 dan bacaan 22,40 menjadi 22,35 mm). Standar diisi dari manual atau guru.',baris:['Diameter luar','Diameter dalam','Kedalaman'],labelBaris:'Jenis ukur',
      kol:[{k:'benda',l:'Benda',t:'teks'},{k:'nol',l:'Nol alat',t:'num'},{k:'u1',l:'1',t:'num'},{k:'u2',l:'2',t:'num'},{k:'u3',l:'3',t:'num'},{k:'rata',l:'Rata-rata',t:'rata',dari:['u1','u2','u3']}]},
-    {id:'F2',k:2,judul:'F2 · Mikrometer (mm)',cat:'Titik 1, 2, dan 3 diambil pada tempat berbeda di sepanjang benda. Koreksi hasil dengan penyimpangan nol bila alat tidak menunjuk nol.',baris:[''],
+    {id:'F2',k:2,nolSekali:true,judul:'F2 · Mikrometer (mm)',cat:'Titik 1, 2, dan 3 diambil pada tempat berbeda di sepanjang benda. Koreksi hasil dengan penyimpangan nol bila alat tidak menunjuk nol.',baris:[''],
      kol:[{k:'benda',l:'Benda',t:'teks'},{k:'nol',l:'Nol alat',t:'num'},{k:'u1',l:'1',t:'num'},{k:'u2',l:'2',t:'num'},{k:'u3',l:'3',t:'num'},{k:'rata',l:'Rata-rata',t:'rata',dari:['u1','u2','u3']},{k:'std',l:'Standar',t:'num'},{k:'status',l:'Status',t:'status'}]},
     {id:'F3',k:3,judul:'F3 · Dial gauge (mm)',baris:[''],
      kol:[{k:'benda',l:'Benda',t:'teks'},{k:'besar',l:'Terbesar',t:'num'},{k:'kecil',l:'Terkecil',t:'num'},{k:'olengan',l:'Keolengan',t:'selisih',a:'besar',b:'kecil'},{k:'batas',l:'Batas',t:'num'},{k:'status',l:'Status',t:'status'}]}

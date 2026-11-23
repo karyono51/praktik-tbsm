@@ -477,6 +477,7 @@ ok(/Benar \d+ dari 10/.test(kb) && !/NaN|undefined/.test(kb), 'latihan v2: pemba
 run(`function lkDraft(){return Object.assign({},DRAFT)}function lkKey(){return 'kunci-uji'}var LKM={edit:null,d:null};function uiOk(k,m,cb){return true}async function uiConfirm(){return true}`, 'stub-kunci');
 run(src('lkpd-kunci.js'), 'lkpd-kunci.js');
 const KM = 'LKPD_MODULES[0]';
+G(`var _cekAuto=${KM}.v2.cekAuto;delete ${KM}.v2.cekAuto`); /* uji kunci memakai isian manual; isi otomatis diuji di bagian lain */
 G(`STAFF=false;LK.preview=false;LK.module='${M.id}';LK.open=true;S.lkpdBukti=[];S.user={id:'u1',nama:'Budi',kelas:'X'};delete ${KM}.kunci;delete ${KM}.pertBuka;toasts=[];DRAFT={student:'Budi',actual0:'22.35',status0:'Sesuai',status1:'Belum diperiksa',actual2:'9.5',status2:'Baik',t_F1_0_nol:'0',t_F2_0_nol:'0.01',q0:2,q4:3,ana0:'sebab',safe0:true,q100:1,qsig:'x',school:'y'}`);
 const merged = () => G(`Object.keys(lkkMerged(${KM})).sort()`);
 ok(G(`lkkOn(${KM})`) === true, 'kunci: aktif bawaan untuk v2 enam pertemuan');
@@ -542,6 +543,39 @@ G(`delete ${KM}.kunci;STAFF=true`);
 ok(G('lkRead().actual2') === '99', 'kunci: tampilan guru tidak terkena penguncian');
 G(`STAFF=false;LK.preview=true`);
 ok(G('lkRead().actual2') === '99', 'kunci: pratinjau tidak terkena penguncian');
+
+G(`${KM}.v2.cekAuto=_cekAuto;delete globalThis.lkmCfg;LK.preview=false;STAFF=false;${KM}.kunci=false`);
+
+/* ---------- Hasil aktual otomatis dan nol alat 1 kali ---------- */
+{
+  const ml = G(`LKPD_MODULES.filter(function(x){return x.id==='LKPD-X-07'})[0]`);
+  const dtab = { t_F1_0_nol: '0,05', t_F1_0_u1: '22,40', t_F1_0_u2: '22,42', t_F1_0_u3: '22,44', t_F1_1_u1: '18,10', t_F1_1_u2: '18,10', t_F1_1_u3: '18,10', t_F2_0_nol: '0', t_F2_0_u1: '9,40', t_F2_0_u2: '9,42', t_F2_0_u3: '9,41', t_F3_0_besar: '0,32', t_F3_0_kecil: '0,10' };
+  G(`DRAFT=${JSON.stringify(dtab)};var _AM=LKPD_MODULES.filter(function(x){return x.id==='LKPD-X-07'})[0]`);
+  sama(G(`lk2Auto(_AM,0,DRAFT)`), '0,05 mm', 'hasil aktual otomatis: posisi nol jangka sorong = isian nol F1 (1 kali)');
+  sama(G(`lk2Auto(_AM,1,DRAFT)`), 'Diameter luar 22,42; Diameter dalam 18,1 mm', 'hasil aktual otomatis: rata-rata tiap jenis ukur yang sudah terisi');
+  sama(G(`lk2Auto(_AM,2,DRAFT)`), '0 mm', 'hasil aktual otomatis: posisi nol mikrometer');
+  sama(G(`lk2Auto(_AM,3,DRAFT)`), '9,41 mm', 'hasil aktual otomatis: rata-rata mikrometer');
+  sama(G(`lk2Auto(_AM,5,DRAFT)`), '0,22 mm', 'hasil aktual otomatis: keolengan dial gauge');
+  sama([G(`lk2Auto(_AM,4,DRAFT)`), G(`lk2Auto(_AM,6,DRAFT)`)], [null, null], 'komponen tanpa tabel tetap diisi manual');
+  sama(G(`lk2Auto(_AM,1,{})`), '', 'tabel kosong: hasil aktual kosong');
+  /* tampilan */
+  G(`STAFF=false;LK.preview=false;LK.module='LKPD-X-07';DRAFT=${JSON.stringify({ ...penuh, ...dtab })};LK.tab='kerja'`);
+  const kv = G('viewLKPD()');
+  ok((kv.match(/data-lk-field=\"t_F1_\d_nol\"/g) || []).length === 1 && /data-lk-field=\"t_F1_0_nol\"/.test(kv) && /Nol alat \(cek 1 kali di awal, mm\)/.test(kv), 'F1: Nol alat hanya satu isian (cek 1 kali di awal), bukan per baris');
+  ok((kv.match(/data-lk-field=\"t_F2_\d_nol\"/g) || []).length === 1, 'F2: Nol alat satu isian');
+  ok(!/<th>Nol alat<\/th>/.test(kv), 'kolom Nol alat tidak ada lagi di tabel');
+  ok(/data-lk-field=\"actual0\" readonly data-lk2-auto=\"0\" value=\"0,05 mm\"/.test(kv) && /data-lk-field=\"actual5\" readonly data-lk2-auto=\"5\" value=\"0,22 mm\"/.test(kv), 'Hasil aktual terisi otomatis dan tidak bisa diketik');
+  ok(/data-lk-field=\"actual4\" value=/.test(kv) && !/data-lk-field=\"actual4\" readonly/.test(kv), 'Hasil aktual dial gauge terpasang tetap manual');
+  ok((kv.match(/Terisi otomatis dari tabel/g) || []).length === 5, 'tiap hasil aktual otomatis diberi keterangan sumber tabel');
+  /* simpan dan kelengkapan */
+  G(`DRAFT=${JSON.stringify(dtab)}`);
+  const rd = G('lkRead()');
+  ok(rd.actual0 === '0,05 mm' && rd.actual3 === '9,41 mm' && rd.actual5 === '0,22 mm', 'lkRead mengisi hasil aktual dari tabel untuk disimpan');
+  const pct = G(`lk2TabelPct(_AM,{t_F1_0_nol:'0,05',t_F2_0_nol:'0'})`);
+  const total = G(`(function(){var n=0;_AM.v2.tabel.forEach(function(t){t.baris.forEach(function(b,r){t.kol.forEach(function(c){if(c.t==='rata'||c.t==='selisih')return;if(t.nolSekali&&c.k==='nol'&&r>0)return;n++})})});return n})()`);
+  ok(Math.abs(pct - 2 / total) < 1e-9, 'kelengkapan tabel: nol alat dihitung 1 kali per tabel');
+  G(`DRAFT={}`);
+}
 
 console.log(`\nUji LKPD v2: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);
