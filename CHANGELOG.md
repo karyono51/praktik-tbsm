@@ -1,3 +1,9 @@
+## Peta LKPD: estimasi minggu dan status dirapikan
+- Estimasi minggu tiap LKPD kini dihitung dari JP dibagi JP per minggu (X 12, XI 18, XII 22) dengan dua desimal. Sebelumnya dibulatkan satu desimal sehingga total Kelas XI tampak 35,8 minggu, bukan 36. Kartu kelas di Peta LKPD kini menampilkan total minggu per kelas.
+- `AKD_LKPD_TARGET.mg` diganti `jpm` (JP per minggu) agar tidak tertukar dengan `mg` per baris (jumlah minggu).
+- Status LKPD-X-07 pada matriks menjadi "Draft (master V2)" (sebelumnya "Belum dibuat"). `tools/matriks-lkpd.py` ikut diperbarui (`STATUS_APLIKASI`, hitung `mg` dari JP, kunci `jpm`) sehingga hasilnya sama bila matriks dibangun ulang dari xlsx.
+- `tools/uji-akademik.mjs` kini 146 uji. Tidak ada perubahan Appwrite.
+
 # Riwayat pembaruan dan rincian fitur per versi
 
 ## Kartu Lembar Kerja LKPD-X-07 disederhanakan

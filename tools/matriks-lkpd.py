@@ -5,6 +5,8 @@ import sys, re, json, openpyxl
 src = sys.argv[1]
 wb = openpyxl.load_workbook(src, data_only=True)
 ws = wb['Matriks LKPD']
+# Status yang diketahui dari aplikasi (kolom status xlsx tidak mengikuti aplikasi)
+STATUS_APLIKASI = {'LKPD-X-07': 'Draft (master V2)'}
 rows = []
 for r in ws.iter_rows(min_row=6, values_only=True):
     if not r[1]:
@@ -13,7 +15,7 @@ for r in ws.iter_rows(min_row=6, values_only=True):
     sk = sorted(set(re.findall(r'G\.45TSM01\.(\d{3})\.2', kode_unit)))
     d = {'k': r[1], 'kl': r[2], 'sm': r[3], 'el': r[4], 'tp': str(r[5] or ''), 'j': r[6], 'jn': r[7],
          'jp': float(r[8]) if float(r[8]) % 1 else int(r[8]), 'mg': float(r[9] or 0), 'sk': sk,
-         'st': r[12] or 'Belum dibuat'}
+         'st': STATUS_APLIKASI.get(r[1]) or r[12] or 'Belum dibuat'}
     if not sk and kode_unit.strip():
         d['skt'] = kode_unit.strip().split('\n')[0]
     if r[13]:
@@ -25,7 +27,9 @@ rg = wb['Ringkasan']
 target = {}
 for r in rg.iter_rows(values_only=True):
     if r[0] in ('X', 'XI', 'XII') and isinstance(r[6], (int, float)):
-        target[r[0]] = {'jp': int(r[6]), 'mg': int(r[8])}
+        target[r[0]] = {'jp': int(r[6]), 'jpm': int(r[8])}  # jpm = JP per minggu
+for d in rows:  # estimasi minggu dihitung dari JP agar total minggu tidak bergeser karena pembulatan
+    d['mg'] = round(d['jp'] / target[d['kl']]['jpm'], 2)
 catatan = ''
 for r in rg.iter_rows(values_only=True):
     if r[0] and str(r[0]).startswith('Catatan:'):

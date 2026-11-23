@@ -416,6 +416,9 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   T('matriks: JP per kelas sama dengan target (432, 648, 352)', jp('X') === 432 && jp('XI') === 648 && jp('XII') === 352 && ctx.AKD_LKPD_TARGET.X.jp === 432 && ctx.AKD_LKPD_TARGET.XI.jp === 648 && ctx.AKD_LKPD_TARGET.XII.jp === 352, [jp('X'), jp('XI'), jp('XII')]);
   T('matriks: kode LKPD unik dan berurutan per kelas', new Set(D.map((x) => x.k)).size === 62 && D.every((x) => x.k.indexOf('LKPD-' + x.kl + '-') === 0));
   T('matriks: catatan PKL 736 JP / 16 minggu ikut tersimpan', /736 JP/.test(ctx.AKD_LKPD_PKL) && /16 minggu/.test(ctx.AKD_LKPD_CATATAN));
+  const mgOk = D.every((x) => Math.abs(x.mg - x.jp / ctx.AKD_LKPD_TARGET[x.kl].jpm) < 0.006);
+  T('matriks: estimasi minggu = JP / JP per minggu (tanpa pembulatan kasar)', mgOk && ['X', 'XI', 'XII'].every((k) => Math.abs(jp(k) / ctx.AKD_LKPD_TARGET[k].jpm - D.filter((x) => x.kl === k).reduce((a, x) => a + x.mg, 0)) < 0.1));
+  T('matriks: status LKPD-X-07 mengikuti aplikasi (Draft master V2)', D.find((x) => x.k === 'LKPD-X-07').st === 'Draft (master V2)');
   const kode = new Set(D.map((x) => x.k));
   T('padanan: semua kode padanan ada di matriks', Object.keys(ctx.AKD_LKPD_PADAN).every((k) => kode.has(k)));
   T('padanan: setiap tingkat padanan sah (tepat, sebagian, kelas beda)', Object.values(ctx.AKD_LKPD_PADAN).every((L) => L.every((p) => ['tepat', 'sebagian', 'kelas beda'].includes(p[1]))));

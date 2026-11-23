@@ -520,7 +520,7 @@ function viewAkdLkpd(){
  var A=akLkpdAgg(),T=(typeof AKD_LKPD_TARGET!=='undefined'&&AKD_LKPD_TARGET)||{},h='';
  h+='<div class=\"stats\">'+['X','XI','XII'].map(function(k){
   var a=A[k]||{n:0,jp:0},t=T[k]&&T[k].jp,sel=t==null?'':(a.jp===t?'sesuai target '+t:'target '+t+', selisih '+(a.jp>t?'+':'-')+Math.abs(a.jp-t));
-  return '<div class=\"card\"><span class=\"label\">Kelas '+k+'</span><b class=\"mono\">'+a.jp+' JP</b><span class=\"note\">'+a.n+' LKPD'+(sel?' · '+sel:'')+'</span></div>'}).join('')+'</div>';
+  return '<div class=\"card\"><span class=\"label\">Kelas '+k+'</span><b class=\"mono\">'+a.jp+' JP</b><span class=\"note\">'+a.n+' LKPD'+(T[k]&&T[k].jpm?' · '+Math.round(a.jp/T[k].jpm*10)/10+' minggu':'')+(sel?' · '+sel:'')+'</span></div>'}).join('')+'</div>';
  h+='<div class=\"chips\">'+[['ALL','Semua'],['X','Kelas X'],['XI','Kelas XI'],['XII','Kelas XII'],['ada','Ada di aplikasi']].map(function(c){return '<button type=\"button\" data-akd=\"lf\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lf||'ALL')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
  h+='<div class=\"chips\"><span class=\"note\">Kelompokkan:</span>'+[['cp','Elemen CP'],['kelas','Kelas saja']].map(function(c){return '<button type=\"button\" data-akd=\"lg\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lg||'cp')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
  h+='<div class=\"card\"><label class=\"f\">Cari<input type=\"search\" data-akd=\"lq\" value=\"'+esc(AKD.lq)+'\" placeholder=\"Judul, kode LKPD, TP, atau elemen CP\"></label></div>';
