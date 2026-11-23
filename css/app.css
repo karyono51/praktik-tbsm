@@ -517,3 +517,5 @@ fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);out
 /* LKPD v2: kolom yang kurang setelah Kirim LKPD ditolak */
 .lk2-need{outline:2px solid #d32f2f;outline-offset:2px;border-radius:8px}
 .lk2-need select,.lk2-need input{border-color:#d32f2f}
+
+.lk-actions{gap:6px;padding-top:8px}.lk-lite{display:none}.lk-lite+.lk-actions{position:static;border-top:0;margin-top:12px}

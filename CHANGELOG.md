@@ -1,3 +1,9 @@
+## LKPD v2: pewaktu bisa dijeda, bilah bawah ringkas, Detail guru dilipat
+- **Pewaktu LKPD v2 boleh dijeda di mode Ujian.** Praktik v2 berlangsung beberapa pertemuan; jam dinding Ujian akan terus berjalan lintas hari. Untuk modul v2 pewaktu kini hanya menghitung waktu berjalan (`lktLocked` mengecualikan `m.v2.pertemuan`). LKPD lama (satu sesi) tetap terkunci.
+- **Bilah bawah tab Materi tidak lagi lengket dan tanpa "Kirim LKPD"** (siswa); hanya Simpan draf dan Cetak. Bilah di Lembar Kerja dirapatkan (`.lk-lite`, `.lk-actions` di `css/app.css`).
+- **Detail guru dilipat:** Gerbang masuk, Data hasil pengukuran, Hasil pemeriksaan dan foto bukti, Latihan membaca skala, serta Analisis dan refleksi kini bagian lipat (`lk2DetB`). Identitas, APD, Langkah (kontrol verifikasi), Waktu, dan Kartu nilai tetap terbuka. Cetak membuka semua.
+- Uji: `uji-lkpd-v2` 272, `uji-pandu-v2` 44, `uji-lkpd-format` 69, `uji-skala-tanpa-label` 14. Tidak ada perubahan Appwrite.
+
 ## LKPD-X-07: perbaikan dari evaluasi tim (alur siswa, waktu, nilai)
 - **Pesan Kirim LKPD menyebut kolomnya.** Bila Status pemeriksaan belum dipilih, pesan kini berbunyi mis. "Pemeriksaan dan bukti: pilih Status pada \u201cPosisi nol jangka sorong\u201d"; siswa dibawa ke tab yang tepat dan kolom yang kurang diberi garis merah (`lk2Kurang`, `LK2.tandai`, kelas `.lk2-need` di `css/app.css`).
 - **K3 wajib dicentang semua sebelum kirim** (sebelumnya lupa mencentang diam-diam memotong hingga 20 poin). Pesan menyebut nomor butir yang belum.

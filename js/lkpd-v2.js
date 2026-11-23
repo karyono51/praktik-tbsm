@@ -34,6 +34,7 @@ function lk2K(tid,r,k){return 't_'+tid+'_'+r+'_'+k}
 function lk2Dec(id){var m=lk2Cur(),t=m&&m.v2&&m.v2.tabel?m.v2.tabel.filter(function(x){return x.id===id})[0]:null;return t?t.dec:undefined}
 function lk2Txt(x){return String(x==null?'':x).trim()}
 /* Bagian lipat. Status buka/tutup diingat selama sesi; saat mencetak semua dibuka. */
+function lk2DetB(id,t,b){return lk2Det(id,t,'',b)}
 function lk2Det(id,ttl,sub,body){var op=LK2.cetak||(LK2.open&&LK2.open[id]);return '<details class="lk2-dt" data-lk2d="'+id+'"'+(op?' open':'')+'><summary><span class="lk2-ttl"><b>'+ttl+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span></summary><div class="lk2-bd">'+body+'</div></details>'}
 document.addEventListener('toggle',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.lk2d){LK2.open=LK2.open||{};LK2.open[t.dataset.lk2d]=t.open}},true);
 
@@ -318,7 +319,7 @@ function lk2View(m){
  var body=LK.tab==='materi'?lk2Materi(m,d):LK.tab==='kerja'?lk2Kerja(m,d):lk2Eval(m,d);
  return (LK.preview&&staff?'<div class="row"><button class="btn small" data-act="lk-preview-exit">Keluar pratinjau</button></div>':'')+
   '<div class="row sb"><div><span class="pill">Fase '+lkEsc(m.fase)+' · Kelas '+lkEsc(m.kelas)+'</span><h2>'+lkEsc(m.title)+'</h2><p class="note">'+lkEsc(m.unit)+' · '+m.v2.jp+' JP ('+m.duration+' menit, '+m.v2.pertemuan.length+' pertemuan)</p></div><span class="pill">'+lkEsc(/^LKPD/i.test(m.id)?m.id:'LKPD '+m.id)+' · v2</span></div>'+
-  nav+body+(LK.preview&&staff?'':'<div class="lk-actions"><div class="row"><button class="btn" data-act="lk-save">Simpan draf</button>'+(LK.tab==='evaluasi'&&!staff&&!LK.preview&&lk2Status(m).lulus?'<button class="btn primary" data-act="lk2-eval-kirim">Kirim Evaluasi</button>':'<button class="btn primary" data-act="lk-submit">Kirim LKPD</button>')+'<button class="btn" data-act="lk-print">Cetak</button>'+(staff&&m.v2&&m.v2.gate?'<button class="btn" data-act="lk-print-kunci">Cetak kunci</button>':'')+'</div><details class="lk2-more" data-lk2d="more"'+(LK2.open&&LK2.open.more?' open':'')+'><summary>'+(lk2Kunci(m)?'Kunci pertemuan dan progres':'Progres dan cadangan draf')+'</summary><div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div>'+lk2BkBlock(m)+'</details></div>');
+  nav+body+(LK.preview&&staff?'':(LK.tab==='materi'&&!staff?'<i class="lk-lite"></i>':'')+'<div class="lk-actions"><div class="row"><button class="btn" data-act="lk-save">Simpan draf</button>'+(LK.tab==='materi'&&!staff?'':LK.tab==='evaluasi'&&!staff&&!LK.preview&&lk2Status(m).lulus?'<button class="btn primary" data-act="lk2-eval-kirim">Kirim Evaluasi</button>':'<button class="btn primary" data-act="lk-submit">Kirim LKPD</button>')+'<button class="btn" data-act="lk-print">Cetak</button>'+(staff&&m.v2&&m.v2.gate?'<button class="btn" data-act="lk-print-kunci">Cetak kunci</button>':'')+'</div><details class="lk2-more" data-lk2d="more"'+(LK2.open&&LK2.open.more?' open':'')+'><summary>'+(lk2Kunci(m)?'Kunci pertemuan dan progres':'Progres dan cadangan draf')+'</summary><div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div>'+lk2BkBlock(m)+'</details></div>');
 }
 var _viewLKPD2=viewLKPD;
 viewLKPD=function(){
@@ -384,26 +385,26 @@ function lk2Detail(z,p,m){
   mark=function(ok){return ok?'<span class="lk2-ok">✓</span>':'<span class="note">belum</span>'};
  h+='<h3>Identitas</h3><div class="lk-kv">'+[['Sekolah',p.school],['Nama siswa',p.student],['Kelas',p.class],['Kelompok',p.group],['Tanggal',p.date],['Guru/instruktur',p.teacher],['Alat ukur',p.meter]].map(function(x){return '<div><span>'+x[0]+'</span><b>'+lkEsc(x[1]||'-')+'</b></div>'}).join('')+'</div>';
  var G=lk2Gate(m,p); /* gerbang dinilai otomatis (acuan TKA); guru melihat poin tiap soal, bukan lagi kotak Jawaban benar */
- h+='<div id="lk2-verif"><h3>Gerbang masuk</h3>'+V.gate.qs.map(function(x,i){
+ h+='<div id="lk2-verif">'+lk2DetB('dg','Gerbang masuk',''+V.gate.qs.map(function(x,i){
   var pg=lk2GPG(x),a=p[lk2GKey(i)],v=pg?lkqVerdict(x,a):null,txt=pg?lkqAnsText(x,a):(p['gate'+i]||'-');
   return '<p><b>'+(i+1)+'. '+lkEsc(x.q)+'</b>'+(x.lvl?' <span class="pill plain">'+lkEsc(x.lvl)+'</span>':'')+'<br><span class="lk-text">'+lkEsc(txt||'-')+'</span>'+(pg&&v[1]!=='Belum dijawab'?' · <b>'+lkEsc(v[1].toLowerCase())+'</b>':'')+
    (pg?'<br><small class="note">Poin: '+lkqFmt(lk2GPoin(x,i,p))+' dari 1</small>':'')+
    (staff?'<br><small class="lk2-key">Kunci: '+lkEsc(pg?lkqKeyText(x):x.kunci)+'</small>'+(pg&&x.e?'<br><small class="lk2-key">'+lkEsc(x.e)+'</small>':''):'')+'</p>';
- }).join('')+(G.auto?'<p class="note">Nilai gerbang (acuan TKA): <b>'+G.nilai+'</b> dari 100 · poin '+lkqFmt(G.poin)+' dari '+G.total+' · KKM '+G.kkm+': <b>'+(G.lulus?'lulus':'belum lulus')+'</b></p>':'<p class="note">Soal gerbang isian: '+G.n+' dari '+G.total+' terjawab. Penilaian otomatis tidak tersedia untuk bentuk soal ini.</p>');
+ }).join('')+(G.auto?'<p class="note">Nilai gerbang (acuan TKA): <b>'+G.nilai+'</b> dari 100 · poin '+lkqFmt(G.poin)+' dari '+G.total+' · KKM '+G.kkm+': <b>'+(G.lulus?'lulus':'belum lulus')+'</b></p>':'<p class="note">Soal gerbang isian: '+G.n+' dari '+G.total+' terjawab. Penilaian otomatis tidak tersedia untuk bentuk soal ini.</p>'));
  h+='<h3>Daftar APD</h3>'+V.apd.map(function(i){return '<div class="lk-check"><span>'+lkEsc(m.safety[i])+' · siswa: '+(p['safe'+i]?'ada':'belum')+'</span>'+(staff?'<label class="lk-check"><input type="checkbox" data-lk2v="a'+i+'" '+(va[i]?'checked':'')+'><span>Paraf guru</span></label>':' '+mark(va[i]))+'</div>'}).join('');
  h+='<h3>Langkah kerja</h3>'+V.langkah.map(function(l){
   var t=String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,'');
   return '<div class="lk-check"><span>K'+l.k+' · '+lkEsc(t)+' · siswa: '+(p['step'+l.i]?'selesai':'belum')+(l.saksi?' · <b>saksi guru</b>':'')+'</span>'+(l.saksi?(staff?'<label class="lk-check"><input type="checkbox" data-lk2v="s'+l.i+'" '+(vs[l.i]?'checked':'')+'><span>Disaksikan</span></label>':' '+mark(vs[l.i])):'')+'</div>';
  }).join('');
  h+='</div>';
- h+='<h3>Data hasil pengukuran</h3>'+V.tabel.map(function(t){
+ h+=lk2DetB('dd','Data hasil pengukuran',''+V.tabel.map(function(t){
   return '<h4>'+lkEsc(t.judul)+'</h4><div class="tablewrap"><table><thead><tr>'+t.kol.map(function(k,j){return '<th>'+lkEsc(k.l)+'</th>'+(j===0&&t.labelBaris?'<th>'+lkEsc(t.labelBaris)+'</th>':'')}).join('')+'</tr></thead><tbody>'+
    t.baris.map(function(lb,r){return '<tr>'+t.kol.map(function(k,j){var v=(k.t==='rata'||k.t==='selisih')?lk2Fmt(calc[t.id][r][k.k],t.dec):p[lk2K(t.id,(t.nolSekali&&k.k==='nol')?0:r,k.k)];return '<td data-label="'+lkEsc(k.l)+'">'+lkEsc(v||'-')+'</td>'+(j===0&&t.labelBaris?'<td data-label="'+lkEsc(t.labelBaris)+'">'+lkEsc(lb)+'</td>':'')}).join('')+'</tr>'}).join('')+'</tbody></table></div>';
- }).join('');
- h+='<h3>Hasil pemeriksaan dan foto bukti</h3><div class="tablewrap"><table><thead><tr><th>Komponen</th><th>Hasil aktual</th><th>Standar manual</th><th>Status</th><th>Catatan</th></tr></thead><tbody>'+m.checks.map(function(x,i){return '<tr><td data-label="Komponen">'+lkEsc(x[0])+(typeof ldDetailFoto==='function'?ldDetailFoto(z,i):'')+'</td><td data-label="Hasil aktual">'+lkEsc(p['actual'+i]||'-')+'</td><td data-label="Standar manual">'+lkEsc(p['standard'+i]||'-')+'</td><td data-label="Status">'+lkEsc(p['status'+i]||'Belum diperiksa')+'</td><td data-label="Catatan">'+lkEsc(p['note'+i]||'-')+'</td></tr>'}).join('')+'</tbody></table></div>';
+ }).join(''));
+ h+=lk2DetB('dh','Hasil pemeriksaan dan foto bukti','<div class="tablewrap"><table><thead><tr><th>Komponen</th><th>Hasil aktual</th><th>Standar manual</th><th>Status</th><th>Catatan</th></tr></thead><tbody>'+m.checks.map(function(x,i){return '<tr><td data-label="Komponen">'+lkEsc(x[0])+(typeof ldDetailFoto==='function'?ldDetailFoto(z,i):'')+'</td><td data-label="Hasil aktual">'+lkEsc(p['actual'+i]||'-')+'</td><td data-label="Standar manual">'+lkEsc(p['standard'+i]||'-')+'</td><td data-label="Status">'+lkEsc(p['status'+i]||'Belum diperiksa')+'</td><td data-label="Catatan">'+lkEsc(p['note'+i]||'-')+'</td></tr>'}).join('')+'</tbody></table></div>');
  h+='<h3>Waktu per kartu kegiatan</h3><p class="note">'+V.pertemuan.filter(function(q){return !q.sembunyi}).map(function(q){return lk2Kartu(V,q).map(function(c){return (c.k?'K'+c.k:(q.kartu&&q.kartu.judul&&q.kegiatan.length?'K'+q.kegiatan.join('+'):'P'+q.n))+': '+lkEsc(p[c.key]||'-')+' / '+c.menit+' menit'}).join(' · ')}).join(' · ')+'</p>';
- h+='<h3>Latihan membaca skala</h3>'+m.quiz.map(function(q,i){return lkqDetail(q,i,p['q'+i])+(staff?'<small class="lk2-key">Kunci: '+lkEsc(lkqKeyText(q))+(q.e?' · '+lkEsc(q.e):'')+'</small>':'')}).join('');
- h+='<h3>Analisis dan refleksi</h3>'+V.analisis.map(function(q,i){return '<p><b>'+(i+1)+'. '+lkEsc(q)+'</b><br><span class="lk-text">'+lkEsc(p['ana'+i]||'-')+'</span></p>'}).join('')+V.refleksi.map(function(q,i){return '<p><b>R'+(i+1)+'. '+lkEsc(q)+'</b><br><span class="lk-text">'+lkEsc(p['ref'+i]||'-')+'</span></p>'}).join('');
+ h+=lk2DetB('dl','Latihan membaca skala',''+m.quiz.map(function(q,i){return lkqDetail(q,i,p['q'+i])+(staff?'<small class="lk2-key">Kunci: '+lkEsc(lkqKeyText(q))+(q.e?' · '+lkEsc(q.e):'')+'</small>':'')}).join(''));
+ h+=lk2DetB('da','Analisis dan refleksi',''+V.analisis.map(function(q,i){return '<p><b>'+(i+1)+'. '+lkEsc(q)+'</b><br><span class="lk-text">'+lkEsc(p['ana'+i]||'-')+'</span></p>'}).join('')+V.refleksi.map(function(q,i){return '<p><b>R'+(i+1)+'. '+lkEsc(q)+'</b><br><span class="lk-text">'+lkEsc(p['ref'+i]||'-')+'</span></p>'}).join(''));
  h+=lk2NilaiCard(p,m,vf,staff);
  return h;
 }

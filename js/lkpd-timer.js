@@ -3,7 +3,7 @@
    - Mode Ujian (siswa): tombol Jeda dikunci. Timer berbasis jam dinding (waktu mulai disimpan), jadi terus berjalan
      walau halaman ditutup atau dimuat ulang, sampai LKPD dikirim. Guru dan admin (termasuk pratinjau) tidak dikunci. */
 var LKT={key:'',sec:0,running:false,iv:null,t0:0};
-function lktLocked(){var m=typeof lkmCur==='function'?lkmCur():null;return !!(m&&!isStaff()&&lkmCfg(m).mode==='ujian')}
+function lktLocked(){var m=typeof lkmCur==='function'?lkmCur():null;return !!(m&&!isStaff()&&lkmCfg(m).mode==='ujian'&&!(m.v2&&m.v2.pertemuan))}/* LKPD v2 berlangsung beberapa pertemuan: jam dinding akan berjalan lintas hari, jadi pewaktu hanya menghitung waktu berjalan dan boleh dijeda */
 function lktSec(){if(LKT.t0&&lktLocked())return Math.max(0,Math.floor((Date.now()-LKT.t0)/1000));return LKT.sec}
 function lktStore(){return 'tbsm-lkpd-timer-'+LKT.key}
 function lktSave(){try{if(LKT.key){var o={sec:LKT.sec,at:Date.now()};if(LKT.t0)o.t0=LKT.t0;localStorage.setItem(lktStore(),JSON.stringify(o))}}catch(e){}}
