@@ -1,8 +1,10 @@
-## LKPD v2: pewaktu bisa dijeda, bilah bawah ringkas, Detail guru dilipat
-- **Pewaktu LKPD v2 boleh dijeda di mode Ujian.** Praktik v2 berlangsung beberapa pertemuan; jam dinding Ujian akan terus berjalan lintas hari. Untuk modul v2 pewaktu kini hanya menghitung waktu berjalan (`lktLocked` mengecualikan `m.v2.pertemuan`). LKPD lama (satu sesi) tetap terkunci.
+## LKPD v2: pewaktu per pertemuan, bilah bawah ringkas, Detail guru dilipat
+- **Pewaktu per kartu pertemuan (LKPD v2).** Pewaktu tunggal di bilah bawah diganti pewaktu di tiap kartu Lembar Kerja (`lkcRow`, `lkc*` di `js/lkpd-timer.js`); LKPD lama tetap memakai pewaktu tunggal. Pewaktu mengisi kolom "Waktu aktual" otomatis (menit, dibulatkan, minimal 1) dan jumlah semua kartu menjadi waktu kiriman (`lktSec`).
+  - **Ujian: waktu tidak bisa dijeda.** Mulai lewat tombol atau otomatis saat kartu diisi; berbasis jam dinding sehingga tetap berjalan walau halaman ditutup atau dimuat ulang; hanya satu kartu berjalan; berhenti lewat Selesai (setelah itu tidak bisa dimulai lagi) atau saat Kirim. Kolom waktu terkunci (readonly) agar tidak diketik manual. Pewaktu tiap pertemuan terpisah, jadi jam dinding tidak lagi terus berjalan lintas hari.
+  - **Latihan:** Mulai/Jeda/Lanjut bebas, memulai kartu lain menjeda kartu sebelumnya, kolom boleh diedit. Setelah Kirim semua pewaktu kartu dibersihkan.
 - **Bilah bawah tab Materi tidak lagi lengket dan tanpa "Kirim LKPD"** (siswa); hanya Simpan draf dan Cetak. Bilah di Lembar Kerja dirapatkan (`.lk-lite`, `.lk-actions` di `css/app.css`).
 - **Detail guru dilipat:** Gerbang masuk, Data hasil pengukuran, Hasil pemeriksaan dan foto bukti, Latihan membaca skala, serta Analisis dan refleksi kini bagian lipat (`lk2DetB`). Identitas, APD, Langkah (kontrol verifikasi), Waktu, dan Kartu nilai tetap terbuka. Cetak membuka semua.
-- Uji: `uji-lkpd-v2` 272, `uji-pandu-v2` 44, `uji-lkpd-format` 69, `uji-skala-tanpa-label` 14. Tidak ada perubahan Appwrite.
+- Uji: `uji-lkpd-v2` 272, `uji-pandu-v2` 44, `uji-lkpd-format` 69, `uji-skala-tanpa-label` 14, uji baru `uji-pewaktu-pertemuan` 21. Tidak ada perubahan Appwrite.
 
 ## LKPD-X-07: perbaikan dari evaluasi tim (alur siswa, waktu, nilai)
 - **Pesan Kirim LKPD menyebut kolomnya.** Bila Status pemeriksaan belum dipilih, pesan kini berbunyi mis. "Pemeriksaan dan bukti: pilih Status pada \u201cPosisi nol jangka sorong\u201d"; siswa dibawa ke tab yang tepat dan kolom yang kurang diberi garis merah (`lk2Kurang`, `LK2.tandai`, kelas `.lk2-need` di `css/app.css`).

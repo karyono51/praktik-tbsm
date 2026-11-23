@@ -290,7 +290,7 @@ function lk2Kerja(m,d){
      '<h4>Pemeriksaan dan bukti</h4>'+V.cekK.map(function(kk,i){return kk===k?lk2CekHtml(m,i,d,c0):''}).join('');
    });
    if(!c.ks.length||c.ks[0]===(p.kegiatan||[])[0])h+=lk2Latihan(m,p,d);
-   h+='<label class="f">Waktu aktual '+(c.judul&&c.ks.length?'Kegiatan '+c.ks.join(' dan '):'pertemuan '+p.n)+' (menit)<input inputmode="numeric" data-lk-field="'+c.key+'" value="'+lkEsc(d[c.key]||'')+'"></label></section>';
+   h+=(typeof lkcRow==='function'&&!LK2.cetak?lkcRow(m,c):'')+'<label class="f">Waktu aktual '+(c.judul&&c.ks.length?'Kegiatan '+c.ks.join(' dan '):'pertemuan '+p.n)+' (menit)<input inputmode="numeric" data-lk-field="'+c.key+'" value="'+lkEsc(d[c.key]||'')+'"'+(typeof lkcRO==='function'&&lkcRO(m,c.key)?' readonly':'')+'></label></section>';
   });
  });
  h+='<section class="card"><h2>Analisis dan keputusan teknis</h2>'+V.analisis.map(function(q,i){return '<label class="f">'+(i+1)+'. '+lkEsc(q)+'<textarea data-lk-field="ana'+i+'">'+lkEsc(d['ana'+i]||'')+'</textarea></label>'}).join('')+'</section>'+
