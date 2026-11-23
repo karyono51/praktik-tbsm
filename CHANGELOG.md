@@ -1,3 +1,8 @@
+## LKPD v2 (X-07): kartu Lembar Kerja terbuka otomatis saat dipilih
+- Hanya satu kartu Lembar Kerja yang terbuka. Mengetuk judul kartu atau fokus ke isian di dalamnya membuka kartu itu dan menutup kartu sebelumnya; mengetuk judul kartu yang terbuka menutupnya (`lk2Buka`, `.lk2-p.is-open` di `js/lkpd-v2.js` dan `css/app.css`).
+- Saat Kirim LKPD menemukan isian kurang, kartu yang memuat isian merah pertama dibuka otomatis. Cetak tetap membuka semua kartu.
+- Uji tetap lulus (`uji-lkpd-v2` 274). Tidak ada perubahan Appwrite. Tema visual X-07 menunggu gambar acuan.
+
 ## LKPD v2: Kegiatan tidak digabung di Rencana pertemuan dan cetak
 - Aturan tetap: **Kegiatan tidak boleh disatukan.** Lembar Kerja sudah memisahkan kartu Kegiatan 3 dan 4; kini Rencana pertemuan dan cetak juga memisahkannya.
 - **Rencana pertemuan (Materi):** ringkasan menjadi "K1 25 + K2 20 + K3 20 + K4 15" (sebelumnya "K3+4 35"); Pertemuan 4 menyebut "target praktik K3 20 + K4 15 menit" dan menampilkan daftar langkah serta target menit tiap kegiatan sendiri (`lk2PraktikTeks` di `js/lkpd-v2.js`).
@@ -366,7 +371,3 @@ Siswa menyiapkan gambar soal sesi sebelum token dirilis. Berkas baru: `js/pra-un
 ## Format cetak PDF LKPD v2 dan gerbang PG
 Nama berkas PDF `LKPD <id> <judul> <sekolah>`, tabel hanya untuk rencana pertemuan, F1 sampai F3, dan tanda tangan, soal PG/kompleks/kategori dan status tercetak sebagai kotak pilihan, unsur khusus aplikasi dibuang, nomor halaman. Gerbang masuk LKPD-X-07 berbentuk 5 soal PG (HOTS, bentuk TKA). Kolom `peran` akun jadi 64 karakter (`tools/perbesar-peran.mjs`). Rincian di `docs-LKPD-V2.md` dan `docs-PERAN-GANDA.md`.
 
-
-## Banner gradien interaktif LKPD-X-07 (tab Lembar Kerja)
-- Kepala tiap kartu pertemuan/kegiatan kini berupa banner gradien: warna mengikuti kegiatan (jangka sorong hijau, mikrometer teal, dial gauge amber, perawatan merah), cincin dan bilah progres menghitung langkah kerja yang dicentang dan berubah langsung saat dicentang, ketuk banner untuk melipat/membuka isi kartu (isian tetap tersimpan). Gerak halus mengikuti pengaturan kurangi gerak perangkat; banner tidak muncul di cetak/PDF.
-- Berkas baru: `js/lkpd-v2-banner.js` (membungkus `lk2Kerja`, tanpa mengubah kunci isian, timer, atau sinkronisasi), uji `tools/uji-lkpd-banner.mjs`. Tidak ada perubahan Appwrite atau fungsi.

@@ -196,7 +196,7 @@ lkSubmit=function(){
  if(lk2Is(m)&&!LK.preview){
   var d0=lkRead(),g=lk2Gate(m,d0);
   if(!g.lulus){toast(g.auto?'Nilai gerbang masuk '+g.nilai+' belum mencapai KKM '+g.kkm+'. Perbaiki gerbang masuk dulu.':'Jawab semua pertanyaan gerbang masuk dulu ('+g.n+' dari '+g.total+')');LK.tab='materi';render();return}
-  if(!isStaff()){var kr=lk2Kurang(m,d0);if(kr.length){LK2.tandai=true;toast(kr[0].t+(kr.length>1?' (masih '+(kr.length-1)+' syarat lain)':''));LK.tab=kr[0].tab;render();return}}
+  if(!isStaff()){var kr=lk2Kurang(m,d0);if(kr.length){LK2.tandai=true;toast(kr[0].t+(kr.length>1?' (masih '+(kr.length-1)+' syarat lain)':''));LK.tab=kr[0].tab;render();if(typeof lk2BukaYangKurang==='function')lk2BukaYangKurang();return}}
   LK2.tandai=false;
  }
  return _lkSubmit2();
@@ -284,7 +284,7 @@ function lk2Kerja(m,d){
  V.pertemuan.forEach(function(p){
   if(p.sembunyi)return;
   lk2Kartu(V,p).forEach(function(c){
-   h+='<section class="card lk2-p"><div class="row sb"><h2>'+(c.judul?lkEsc(c.judul):'Pertemuan '+p.n)+'</h2><span class="pill">Target '+c.menit+' menit</span></div>'+(c.judul?'<p class="note">Alokasi praktik '+c.menit+' dari total '+lk2PraktikTotal(V)+' menit.</p>':'<p class="note">'+lkEsc(p.judul)+'</p>');
+   h+='<section class="card lk2-p'+(LK2.cetak||LK2.kartu===c.key?' is-open':'')+'" data-lk2k="'+c.key+'"><div class="row sb lk2-ph" role="button" tabindex="0" aria-expanded="'+(LK2.cetak||LK2.kartu===c.key?'true':'false')+'" data-act="lk2-kartu" data-key="'+c.key+'"><h2>'+(c.judul?lkEsc(c.judul):'Pertemuan '+p.n)+'</h2><span class="pill">Target '+c.menit+' menit</span></div><div class="lk2-pb">'+(c.judul?'<p class="note">Alokasi praktik '+c.menit+' dari total '+lk2PraktikTotal(V)+' menit.</p>':'<p class="note">'+lkEsc(p.judul)+'</p>');
    if(!c.ks.length)h+='<p class="note">'+(p.n===1?'Isi gerbang masuk dan daftar APD di tab Materi.':'Penilaian kinerja oleh guru. Lengkapi analisis dan refleksi di bawah.')+'</p>';
    c.ks.forEach(function(k){
     h+=(c.judul&&c.ks.length<2?'<h4>Langkah kerja</h4>':'<h3>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+(lk2KegMenit(V,k)?' · target '+lk2KegMenit(V,k)+' menit':'')+'</h3>')+
@@ -293,7 +293,7 @@ function lk2Kerja(m,d){
      '<h4>Pemeriksaan dan bukti</h4>'+V.cekK.map(function(kk,i){return kk===k?lk2CekHtml(m,i,d,c0):''}).join('');
    });
    if(!c.ks.length||c.ks[0]===(p.kegiatan||[])[0])h+=lk2Latihan(m,p,d);
-   h+=(typeof lkcRow==='function'&&!LK2.cetak?lkcRow(m,c):'')+'<label class="f">Waktu aktual '+(c.judul&&c.ks.length?'Kegiatan '+c.ks.join(' dan '):'pertemuan '+p.n)+' (menit)<input inputmode="numeric" data-lk-field="'+c.key+'" value="'+lkEsc(d[c.key]||'')+'"'+(typeof lkcRO==='function'&&lkcRO(m,c.key)?' readonly':'')+'></label></section>';
+   h+=(typeof lkcRow==='function'&&!LK2.cetak?lkcRow(m,c):'')+'<label class="f">Waktu aktual '+(c.judul&&c.ks.length?'Kegiatan '+c.ks.join(' dan '):'pertemuan '+p.n)+' (menit)<input inputmode="numeric" data-lk-field="'+c.key+'" value="'+lkEsc(d[c.key]||'')+'"'+(typeof lkcRO==='function'&&lkcRO(m,c.key)?' readonly':'')+'></label></div></section>';
   });
  });
  h+='<section class="card"><h2>Analisis dan keputusan teknis</h2>'+V.analisis.map(function(q,i){return '<label class="f">'+(i+1)+'. '+lkEsc(q)+'<textarea data-lk-field="ana'+i+'">'+lkEsc(d['ana'+i]||'')+'</textarea></label>'}).join('')+'</section>'+
@@ -500,3 +500,28 @@ document.addEventListener('change',function(e){
  r.readAsText(f);
 });
 
+
+/* Kartu Lembar Kerja: satu kartu terbuka. Terbuka otomatis saat dipilih (ketuk judul atau fokus ke isian di dalamnya), tertutup saat berpindah ke kartu lain. */
+function lk2Buka(key){
+ if(!key||LK2.kartu===key)return;
+ LK2.kartu=key;
+ document.querySelectorAll('.lk2-p[data-lk2k]').forEach(function(el){
+  var on=el.getAttribute('data-lk2k')===key;
+  el.classList.toggle('is-open',on);
+  var h=el.querySelector('.lk2-ph');if(h)h.setAttribute('aria-expanded',on?'true':'false');
+ });
+}
+function lk2KartuDari(t){var el=t&&t.closest?t.closest('.lk2-p[data-lk2k]'):null;return el?el.getAttribute('data-lk2k'):''}
+document.addEventListener('click',function(e){
+ var h=e.target.closest('[data-act="lk2-kartu"]');
+ if(h){var k=h.getAttribute('data-key'),el=h.closest('.lk2-p');
+  if(el&&el.classList.contains('is-open')){LK2.kartu='';el.classList.remove('is-open');h.setAttribute('aria-expanded','false')}else lk2Buka(k);
+  return}
+ var k2=lk2KartuDari(e.target);if(k2)lk2Buka(k2);
+});
+document.addEventListener('focusin',function(e){var k=lk2KartuDari(e.target);if(k)lk2Buka(k)});
+document.addEventListener('keydown',function(e){
+ if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-act="lk2-kartu"]')){e.preventDefault();e.target.click()}
+});
+/* Setelah render dengan penanda "kurang", buka kartu yang memuat isian merah pertama */
+function lk2BukaYangKurang(){var n=document.querySelector('.lk2-p .lk2-need');if(n)lk2Buka(lk2KartuDari(n))}

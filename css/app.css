@@ -519,3 +519,12 @@ fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);out
 .lk2-need select,.lk2-need input{border-color:#d32f2f}
 
 .lk-actions{gap:6px;padding-top:8px}.lk-lite{display:none}.lk-lite+.lk-actions{position:static;border-top:0;margin-top:12px}
+
+/* Kartu Lembar Kerja LKPD v2: satu kartu terbuka, lainnya hanya judul */
+.lk2-ph{cursor:pointer;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent}
+.lk2-ph h2{margin:0}
+.lk2-ph::after{content:'\25BE';margin-left:8px;transition:transform .15s}
+.lk2-p.is-open .lk2-ph::after{transform:rotate(180deg)}
+.lk2-p:not(.is-open) .lk2-pb{display:none}
+.lk2-p.is-open{border-color:var(--pri,#1b5e20)}
+@media print{.lk2-p .lk2-pb{display:block!important}.lk2-ph::after{display:none}}
