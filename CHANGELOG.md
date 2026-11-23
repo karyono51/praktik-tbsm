@@ -1,7 +1,9 @@
 ## LKPD v2 (X-07): kartu Lembar Kerja terbuka otomatis saat dipilih
 - Hanya satu kartu Lembar Kerja yang terbuka. Mengetuk judul kartu atau fokus ke isian di dalamnya membuka kartu itu dan menutup kartu sebelumnya; mengetuk judul kartu yang terbuka menutupnya (`lk2Buka`, `.lk2-p.is-open` di `js/lkpd-v2.js` dan `css/app.css`).
 - Saat Kirim LKPD menemukan isian kurang, kartu yang memuat isian merah pertama dibuka otomatis. Cetak tetap membuka semua kartu.
-- Uji tetap lulus (`uji-lkpd-v2` 274). Tidak ada perubahan Appwrite. Tema visual X-07 menunggu gambar acuan.
+- **Pewaktu pindah ke kepala kartu**: di bawah judul, di kanan pill Target (jam dan tombol Mulai/Jeda/Selesai), terlihat juga saat kartu tertutup (`lkcRow(m,c,true)`, `.lk2-pm` di `css/app.css`).
+- **Tidak meloncat**: saat kartu lain menutup, judul kartu yang dipilih dijaga di posisi layar semula (`lk2Buka`). Perbaikan juga untuk ketukan judul yang sempat membuka lalu langsung menutup (fokus ke judul diabaikan).
+- Uji tetap lulus (`uji-lkpd-v2` 274). Tidak ada perubahan Appwrite.
 
 ## LKPD v2: Kegiatan tidak digabung di Rencana pertemuan dan cetak
 - Aturan tetap: **Kegiatan tidak boleh disatukan.** Lembar Kerja sudah memisahkan kartu Kegiatan 3 dan 4; kini Rencana pertemuan dan cetak juga memisahkannya.

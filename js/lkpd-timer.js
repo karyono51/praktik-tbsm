@@ -105,9 +105,10 @@ function lkcTotal(m){return lkcCards(m).reduce(function(a,c){return a+lkcSecNow(
 function lkcSecNow(m,key){var o=lkcGet(m,key);if(o.run&&lktLocked()&&o.t0)return Math.max(0,Math.floor((Date.now()-o.t0)/1000));return o.sec}
 function lkcMin(sec){return sec>0?String(Math.max(1,Math.round(sec/60))):''}
 function lkcRunning(m){var r=null;lkcCards(m).forEach(function(c){if(lkcGet(m,c.key).run)r=c});return r}
-function lkcRow(m,c){
+function lkcRow(m,c,kecil){
  if(!c.ks||!c.ks.length)return '';
  var o=lkcGet(m,c.key);
+ if(kecil)return '<div class="lk-timer lk-ct lk-ct-s" data-ct="'+c.key+'" data-lim="'+(Number(c.menit)||0)*60+'"'+(lktLocked()?' title="Waktu tidak bisa dijeda"':'')+'><span class="mono lk-clock" data-ct-clock="'+c.key+'">'+lktMmss(lkcSecNow(m,c.key))+'</span><button type="button" class="btn small" data-act="lkc-toggle" data-key="'+c.key+'" data-ct-btn="'+c.key+'">'+lkcBtn(m,c.key)+'</button></div>';
  return '<div class="lk-timer lk-ct" data-ct="'+c.key+'" data-lim="'+(Number(c.menit)||0)*60+'"><div><div class="mono lk-clock" data-ct-clock="'+c.key+'">'+lktMmss(lkcSecNow(m,c.key))+'</div><div class="note">Pewaktu kartu ini · target '+lkEsc(c.menit)+' menit'+(lktLocked()?' · tidak bisa dijeda':'')+'</div></div><button type="button" class="btn small" data-act="lkc-toggle" data-key="'+c.key+'" data-ct-btn="'+c.key+'">'+lkcBtn(m,c.key)+'</button></div>'}
 function lkcBtn(m,key){
  var o=lkcGet(m,key);
