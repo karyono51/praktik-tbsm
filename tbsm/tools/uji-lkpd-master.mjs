@@ -75,7 +75,7 @@ klik('LKPD-X-07');
 const ed = G('LK.editor');
 ok(ed && ed.id === '' && ed.status === 'draft' && ed.active === false && ed.kelas === 'X' && /\(baru dari master\)/.test(ed.title), 'editor terbuka: ID kosong, draf, tidak aktif, judul penanda');
 ok(ed.src.v2.dari === 'LKPD-X-07' && ed.src.v2.peta === undefined, 'salinan mencatat asal master dan tidak membawa peta ke soal lama');
-ok(ed.src.v2.gate.qs.length === 5 && ed.src.v2.pertemuan.length === 6 && ed.src.quiz.length === 10, 'salinan membawa seluruh struktur master (6 pertemuan, 5 soal gerbang, 10 latihan)');
+ok(ed.src.v2.gate.qs.length === 5 && ed.src.v2.pertemuan.length === 5 && ed.src.quiz.length === 10, 'salinan membawa seluruh struktur master (5 pertemuan, 5 soal gerbang, 10 latihan)');
 ok(G('LK.tab') === 'editor' && G('LKA.id') === null, 'status editor dibuka');
 ok(JSON.stringify(master()) === sebelum, 'master tidak berubah oleh pembuatan salinan');
 ok(ctx.lkmsCek(ed.src).filter((x) => !x.ok).length === 0, 'salinan baru langsung lengkap sesuai master');

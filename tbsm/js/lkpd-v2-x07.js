@@ -18,7 +18,7 @@
  var m={
   id:'LKPD-X-07',version:2,kelas:'X',fase:'E',status:'draft',active:false,
   title:'Penggunaan dan Perawatan Alat Ukur (Jangka Sorong, Mikrometer, Dial Gauge)',
-  unit:'Alat ukur: jangka sorong, mikrometer, dial gauge',duration:810,
+  unit:'Alat ukur: jangka sorong, mikrometer, dial gauge',duration:900,
   skkni:'G.45TSM01.020.2; .027.2; .030.2; .031.2; .012.2 (usulan, verifikasi)',
   objectives:['Menyebut bagian, fungsi, dan ketelitian ketiga alat.','Memeriksa kondisi alat dan posisi nol sebelum mengukur.','Mengukur dan membaca skala jangka sorong, mikrometer, dan dial gauge dengan benar.','Mencatat hasil dan membandingkannya dengan standar dari guru.','Membersihkan, melumasi tipis, dan menyimpan alat dengan benar.'],
   theory:[
@@ -59,14 +59,13 @@
   rubric:{steps:30,safety:20,checks:25,analysis:25,practiceWeight:85,theoryWeight:15},
   validation:{vehicle:false,evidence:false,cause:false,conclusion:false,atLeastOneCheck:true},
   v2:{
-   ver:2,jenis:'jobsheet',jp:18,tp:'X.4.2',cp:'Peralatan dan Perlengkapan Tempat Kerja',
+   ver:2,jenis:'jobsheet',jp:20,tp:'X.4.2',cp:'Peralatan dan Perlengkapan Tempat Kerja',
    pertemuan:[
-    {n:1,jp:3,menit:135,judul:'Pemantik, materi, gerbang masuk, APD, cek alat',kegiatan:[],sembunyi:true},
-    {n:2,jp:3,menit:135,judul:'Kegiatan 1 jangka sorong, latihan soal 1–4',kegiatan:[1],latihan:['J1','J2','J3','J4'],praktik:10,kartu:{judul:'Kegiatan 1 jangka Sorong'}},
-    {n:3,jp:3,menit:135,judul:'Kegiatan 2 mikrometer, latihan soal 5–8',kegiatan:[2],latihan:['M1','M2','M3','M4'],praktik:4,kartu:{judul:'Kegiatan 2 mikrometer'}},
-    {n:4,jp:3,menit:135,judul:'Kegiatan 3 dial gauge, latihan soal 9–10',kegiatan:[3],latihan:['D1','D2'],praktik:3,kartu:{judul:'Kegiatan 3 dial gauge'}},
-    {n:5,jp:3,menit:135,judul:'Kegiatan 4 perawatan, analisis',kegiatan:[4],praktik:3,kartu:{judul:'Kegiatan 4 perawatan'}},
-    {n:6,jp:3,menit:135,judul:'Penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[],sembunyi:true}
+    {n:1,jp:4,menit:180,judul:'Pemantik, materi, gerbang masuk, APD, cek alat',kegiatan:[],sembunyi:true},
+    {n:2,jp:4,menit:180,judul:'Kegiatan 1 jangka sorong, latihan soal 1–4',kegiatan:[1],latihan:['J1','J2','J3','J4'],praktik:10,kartu:{judul:'Kegiatan 1 jangka Sorong'}},
+    {n:3,jp:4,menit:180,judul:'Kegiatan 2 mikrometer, latihan soal 5–8',kegiatan:[2],latihan:['M1','M2','M3','M4'],praktik:4,kartu:{judul:'Kegiatan 2 mikrometer'}},
+    {n:4,jp:4,menit:180,judul:'Kegiatan 3 dial gauge dan Kegiatan 4 perawatan, latihan soal 9–10, analisis',kegiatan:[3,4],latihan:['D1','D2'],praktik:6,kartu:{judul:'Kegiatan 3 dial gauge dan 4 perawatan'}},
+    {n:5,jp:4,menit:180,judul:'Penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[],sembunyi:true}
    ],
    kegiatan:kegiatan,judulPendek:'Alat Ukur',
    peta:[['Dua pengukuran jangka sorong selain diameter luar','1 (bagian jangka sorong menurut jenis ukur)'],['Ketelitian mikrometer dan satu putaran bidal','2 (bukaan dari putaran dan bagian bidal)'],['Yang dilakukan pada alat sebelum mengukur','3 (periksa nol dan koreksi penyimpangan nol)'],['Alasan pemutar gelitik dipakai','4 (tekanan ukur dan akibat memaksa bidal)'],['Dua hal yang tidak boleh dilakukan pada alat presisi','5 (perawatan dan penyimpanan yang benar)']],

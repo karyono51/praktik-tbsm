@@ -107,7 +107,7 @@ G(`var _g0=lk2Gate,FORCE=true;lk2Gate=function(m,d){var g=_g0(m,d);if(FORCE)g.lu
 ok(G(`lkmLock(LKPD_MODULES[0])`) === '', 'siswa baru tidak terkunci: langsung bisa berlatih');
 let dh = G(`lkListView()`);
 ok((dh.match(/<article class="card job/g) || []).length === 1, 'daftar siswa: hanya satu kartu LKPD (tidak membingungkan)');
-ok(/18 JP · 6 pertemuan/.test(dh) && !/810 menit/.test(dh), 'kartu LKPD-X-07 asli: 18 JP · 6 pertemuan, bukan 810 menit');
+ok(/20 JP · 5 pertemuan/.test(dh) && !/900 menit/.test(dh), 'kartu LKPD-X-07 asli: 20 JP · 5 pertemuan, bukan 900 menit');
 ok(/Tahap 1: Latihan 0\/2/.test(dh) && />Latihan<\/span>/.test(dh) && /Mulai latihan/.test(dh) && !/Mulai praktik/.test(dh), 'kartu siswa: label Latihan, Tahap 1 0/2, tombol Mulai latihan');
 ok(!/Kesempatan 0\/1/.test(dh), 'kartu siswa tahap Latihan: kesempatan Ujian belum ditampilkan sebagai batas latihan');
 h = G(`viewLKPD()`);
