@@ -36,22 +36,40 @@ function lkkNums(L){return Object.keys(L).map(Number).sort(function(a,b){return 
 function lkkMerged(m){var L=lkkLocks(m),f={};lkkNums(L).forEach(function(n){Object.keys(L[n].f).forEach(function(k){if(!(k in f))f[k]=L[n].f[k]})});return f}
 /* Yang bisa dikunci siswa: pertemuan yang kartunya tampil dan punya kegiatan (pertemuan awal dan akhir tidak). */
 function lkkPert(m,n){return m.v2.pertemuan.filter(function(p){return p.n===n})[0]||null}
-function lkkIsLockable(m,n){var p=lkkPert(m,n);return !!p&&!p.sembunyi&&(p.kegiatan||[]).length>0&&n>1&&n<lkkTotal(m)}
-function lkkLockable(m){var a=[];for(var n=1;n<=lkkTotal(m);n++)if(lkkIsLockable(m,n))a.push(n);return a}
+/* Satuan kunci = satu kartu Lembar Kerja. Pertemuan biasa: satu satuan bernomor n. Pertemuan yang kartunya dipisah per kegiatan (kartu.per): satu satuan tiap kegiatan;
+   kegiatan pertama memakai nomor n (sama seperti sebelumnya), berikutnya n*100+k (mis. Kegiatan 4 di Pertemuan 4 = 404). */
+function lkkUnits(m){
+ var out=[];
+ m.v2.pertemuan.forEach(function(p){
+  var ks=p.kegiatan||[];if(!ks.length)return;
+  if(p.kartu&&p.kartu.per&&ks.length>1)ks.forEach(function(k,i){out.push({u:i?p.n*100+k:p.n,n:p.n,ks:[k],p:p})});
+  else out.push({u:p.n,n:p.n,ks:ks,p:p})});
+ return out}
+function lkkUnit(m,u){return lkkUnits(m).filter(function(x){return x.u===u})[0]||null}
+function lkkIsLockable(m,u){var x=lkkUnit(m,u);return !!x&&!x.p.sembunyi&&x.n>1&&x.n<lkkTotal(m)}
+function lkkLockable(m){return lkkUnits(m).filter(function(x){return lkkIsLockable(m,x.u)}).map(function(x){return x.u})}
+/* Batas buka guru (m.pertBuka) memakai nomor satuan; satuan di atas batas belum dibuka. */
+function lkkDibuka(m,u){
+ var pb=parseInt(m.pertBuka,10)||0;if(pb<=0)return true;
+ var U=lkkUnits(m),a=U.filter(function(x){return x.u===u})[0],b=U.filter(function(x){return x.u===pb})[0];
+ if(!a)return false;return b?U.indexOf(a)<=U.indexOf(b):a.n<=pb}
 /* Nama pendek untuk tombol dan pesan: "Kegiatan 1" bila kartu bernama kegiatan, selain itu "Pertemuan N". */
-function lkkLabel(m,n){var p=lkkPert(m,n);return p&&p.kartu&&(p.kegiatan||[]).length?'Kegiatan '+p.kegiatan.join(' dan '):'Pertemuan '+n}
+function lkkLabel(m,u){var x=lkkUnit(m,u);return x&&x.p.kartu&&x.ks.length?'Kegiatan '+x.ks.join(' dan '):'Pertemuan '+(x?x.n:u)}
 /* Peta isian -> nomor pertemuan, dari data pertemuan modul (kegiatan, latihan, judul analisis). Isian tanpa pertemuan tidak dikunci siswa. */
 function lkkKeyMap(m){
  var V=m.v2,P=V.pertemuan,mp={};
- function pK(k){for(var i=0;i<P.length;i++)if((P[i].kegiatan||[]).indexOf(k)>=0)return P[i].n;return 0}
- function pQ(id){for(var i=0;i<P.length;i++)if((P[i].latihan||[]).indexOf(id)>=0)return P[i].n;return 0}
+ var U=lkkUnits(m);
+ function pK(k){for(var i=0;i<U.length;i++)if(U[i].ks.indexOf(k)>=0)return U[i].u;return 0}
+ function uP(n,akhir){var a=U.filter(function(x){return x.n===n});return a.length?a[akhir?a.length-1:0].u:n}
+ function pQ(id){for(var i=0;i<P.length;i++)if((P[i].latihan||[]).indexOf(id)>=0)return uP(P[i].n);return 0}
  (V.langkah||[]).forEach(function(l){var n=pK(l.k);if(n)mp['step'+l.i]=n});
  (V.tabel||[]).forEach(function(t){var n=pK(t.k);if(!n)return;t.baris.forEach(function(b,r){t.kol.forEach(function(c){mp[lk2K(t.id,r,c.k)]=n})})});
  (V.cekK||[]).forEach(function(k,i){var n=pK(k);if(n)['actual','standard','status','note'].forEach(function(f){mp[f+i]=n})});
  (m.quiz||[]).forEach(function(q,i){var n=pQ(q.id);if(n)mp['q'+i]=n});
  var an=P.filter(function(p){return /analisis/i.test(p.judul)})[0];
- if(an)(V.analisis||[]).forEach(function(x,i){mp['ana'+i]=an.n});
+ if(an)(V.analisis||[]).forEach(function(x,i){mp['ana'+i]=uP(an.n,true)});
  P.forEach(function(p){mp['mt'+p.n]=p.n});
+ U.forEach(function(x){if(x.p.kartu&&x.p.kartu.per&&x.p.kegiatan.length>1)mp['mtk'+x.ks[0]]=x.u});
  return mp}
 function lkkSig(m){return lkkNums(lkkLocks(m)).join(',')}
 
@@ -94,7 +112,7 @@ function lkkBlock(m){
  var L=lkkLocks(m),ns=lkkNums(L),tot=lkkTotal(m),buka=lkkBuka(m),opts=lkkLockable(m),sisa=opts.filter(function(n){return !L[n]}),st;
  if(!opts.length)st='<p class="note">Tidak ada pertemuan yang bisa dikunci siswa pada LKPD ini.</p>';
  else if(!sisa.length)st='<p class="note">Semua kegiatan yang bisa dikunci sudah terkunci. Kirim LKPD bila sudah selesai.</p>';
- else st='<div class="row" style="gap:6px;flex-wrap:wrap">'+sisa.map(function(n){return n<=buka?'<button type="button" class="btn small primary" data-act="lkk-lock" data-n="'+n+'">Kunci '+lkkLabel(m,n)+'</button>':'<button type="button" class="btn small" disabled title="Belum dibuka guru">Kunci '+lkkLabel(m,n)+'</button>'}).join('')+'</div>'+(sisa.some(function(n){return n>buka})?'<p class="note">Pertemuan yang belum dibuka guru belum bisa dikunci.</p>':'');
+ else st='<div class="row" style="gap:6px;flex-wrap:wrap">'+sisa.map(function(n){return lkkDibuka(m,n)?'<button type="button" class="btn small primary" data-act="lkk-lock" data-n="'+n+'">Kunci '+lkkLabel(m,n)+'</button>':'<button type="button" class="btn small" disabled title="Belum dibuka guru">Kunci '+lkkLabel(m,n)+'</button>'}).join('')+'</div>'+(sisa.some(function(n){return !lkkDibuka(m,n)})?'<p class="note">Kegiatan yang belum dibuka guru belum bisa dikunci.</p>':'');
  return '<div class="lk2-kb"><b>Kunci hasil pertemuan</b><p class="note">'+(ns.length?'Terkunci: '+ns.map(function(n){return lkkLabel(m,n)}).join(', ')+'. ':'Belum ada yang dikunci. ')+'Kunci kegiatan yang sudah selesai (urutan bebas). Isiannya tersimpan di server dan tidak bisa diubah lagi kecuali guru membuka kunci.</p>'+st+'</div>'}
 
 function lkkFlush(){setTimeout(function(){try{if(Cloud.on)Cloud.flush()}catch(e){}},300)}
@@ -104,7 +122,7 @@ function lkkLock(n){
  n=parseInt(n,10)||0;
  if(!lkkIsLockable(m,n)){toast('Bagian ini tidak dikunci oleh siswa');return}
  if(lkkLocks(m)[n]){toast(lkkLabel(m,n)+' sudah dikunci');return}
- if(n>lkkBuka(m)){toast('Guru belum membuka '+lkkLabel(m,n)+' untuk dikunci');return}
+ if(!lkkDibuka(m,n)){toast('Guru belum membuka '+lkkLabel(m,n)+' untuk dikunci');return}
  var d=lkRead(),have=lkkMerged(m),mp=lkkKeyMap(m),f={},add=0;
  Object.keys(d).forEach(function(k){
   if(LKK_SKIP[k]||/^row\d/.test(k)||mp[k]!==n||Object.prototype.hasOwnProperty.call(have,k))return;

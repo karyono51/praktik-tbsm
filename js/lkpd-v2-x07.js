@@ -14,6 +14,7 @@
   {k:4,m:3,t:'Bersihkan semua alat, olesi oli tipis, renggangkan poros mikrometer (jangan dikunci rapat), simpan di kotak',p:'Tanpa amplas; oli tipis saja',saksi:1},
   {k:4,m:1,t:'Rapikan area (5R), pisahkan limbah B3',p:'Majun kotor ke wadah khusus'}
  ];
+ /* Kartu kegiatan tidak digabung: pertemuan yang memuat dua kegiatan memakai kartu:{per:{k:judul}} sehingga tiap kegiatan punya kartu, waktu aktual (mtk<k>), dan kunci sendiri. */
  /* Menit tiap kegiatan = jumlah menit langkahnya; angka pada rubrik dan target pertemuan dicocokkan dengan ini (diuji). */
  function jumMenit(ks){return langkah.filter(function(x){return ks.indexOf(x.k)>-1}).reduce(function(t,x){return t+x.m},0)}
  var kegiatan=['Jangka sorong','Mikrometer','Dial gauge','Perawatan dan penyimpanan'];
@@ -66,7 +67,7 @@
     {n:1,jp:4,menit:180,judul:'Pemantik, materi, gerbang masuk, APD, cek alat',kegiatan:[],sembunyi:true},
     {n:2,jp:4,menit:180,judul:'Kegiatan 1 jangka sorong, latihan soal 1–4',kegiatan:[1],latihan:['J1','J2','J3','J4'],praktik:9,kartu:{judul:'Kegiatan 1 jangka Sorong'}},
     {n:3,jp:4,menit:180,judul:'Kegiatan 2 mikrometer, latihan soal 5–8',kegiatan:[2],latihan:['M1','M2','M3','M4'],praktik:4,kartu:{judul:'Kegiatan 2 mikrometer'}},
-    {n:4,jp:4,menit:180,judul:'Kegiatan 3 dial gauge dan Kegiatan 4 perawatan, latihan soal 9–10, analisis',kegiatan:[3,4],latihan:['D1','D2'],praktik:7,kartu:{judul:'Kegiatan 3 dial gauge dan 4 perawatan'}},
+    {n:4,jp:4,menit:180,judul:'Kegiatan 3 dial gauge dan Kegiatan 4 perawatan, latihan soal 9–10, analisis',kegiatan:[3,4],latihan:['D1','D2'],praktik:7,kartu:{judul:'Kegiatan 3 dial gauge dan 4 perawatan',per:{3:'Kegiatan 3 dial gauge',4:'Kegiatan 4 perawatan'}}},
     {n:5,jp:4,menit:180,judul:'Penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[],sembunyi:true}
    ],
    kegiatan:kegiatan,judulPendek:'Alat Ukur',

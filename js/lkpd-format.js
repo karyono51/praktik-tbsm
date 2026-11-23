@@ -109,6 +109,7 @@ function materi(m,skip){
 function alat(m){return '<h2 class="lkf-h">Alat dan bahan</h2><ul class="lkf-ul">'+(m.tools||[]).map(function(x){return '<li>'+E(x)+'</li>'}).join('')+'</ul>'}
 function k3Item(m,d,i,apd){return '<p class="lkf-o">'+box(!!d['safe'+i])+' '+E(m.safety[i])+(apd?' &nbsp; Paraf: '+fill('',16):'')+'</p>'}
 function waktu(d,n){return '<p class="lkf-wkt">Waktu aktual pertemuan '+n+': '+fill(d['mt'+n],18)+' menit</p>'}
+function waktuK(d,k){return '<p class="lkf-wkt">Waktu aktual Kegiatan '+k+': '+fill(d['mtk'+k],18)+' menit</p>'}
 
 /* ---------- v2 ---------- */
 function gerbang(m,d){
@@ -207,7 +208,7 @@ function bangunV2(m,H){
    if(V.tindak)h+='<h3 class="lkf-h3">Tindak lanjut</h3><p>'+E(V.tindak.remedial||'')+'</p><p>'+E(V.tindak.pengayaan||'')+'</p>';
    if(V.obs&&V.obs.aspek)h+=penilaian(m);
   }
-  h+=waktu(d,p.n);
+  if(p.kartu&&p.kartu.per&&ks.length>1)ks.forEach(function(k){h+=waktuK(d,k)});else h+=waktu(d,p.n);
  });
  return h;
 }

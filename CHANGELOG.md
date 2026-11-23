@@ -1,3 +1,10 @@
+## LKPD-X-07: kartu kegiatan tidak digabung
+- Aturan: **kartu kegiatan tidak boleh digabung.** Pertemuan 4 (4 JP) tetap memuat Kegiatan 3 dan 4, tetapi Lembar Kerja kini punya **4 kartu**: Kegiatan 1 jangka sorong (9 menit), Kegiatan 2 mikrometer (4), Kegiatan 3 dial gauge (3), Kegiatan 4 perawatan (4).
+- Data: `kartu:{judul, per:{3:'...',4:'...'}}` pada pertemuan yang memuat beberapa kegiatan memisahkan kartunya (`lk2Kartu`, `lk2Pisah` di `js/lkpd-v2.js`).
+- Waktu aktual: kartu terpisah memakai `mtk3` dan `mtk4` (bukan `mt4` gabungan). Detail guru dan cetak menampilkan waktu per kegiatan.
+- Kunci hasil: satuan kunci kini satu kartu kegiatan. Kegiatan 3 memakai nomor 4 dan Kegiatan 4 nomor **404** (`lkkUnits`, `lkkDibuka` di `js/lkpd-kunci.js`). Tombol: Kunci Kegiatan 1, 2, 3, 4. Pengaturan guru "Sampai Kegiatan N" ikut memisahkan Kegiatan 3 dan 4. Latihan skala dial gauge ikut Kegiatan 3; analisis ikut Kegiatan 4.
+- LKPD-X-07 masih Draft, jadi belum ada kunci atau waktu aktual siswa yang terpengaruh. Uji: `uji-lkpd-v2` 252, `uji-lkpd-format` 69. Tidak ada perubahan Appwrite.
+
 ## LKPD-X-07: proporsi praktik 20 menit disesuaikan
 - Total praktik tetap **20 menit**, kini dibagi menurut beban kerja: jangka sorong **9** (9 pembacaan + cek nol), mikrometer **4** (3 titik + cek nol), dial gauge **3**, perawatan dan penyimpanan **4** (3 alat + 5R). Sebelumnya 10 / 4 / 3 / 3, perawatan terlalu singkat untuk tiga alat.
 - Menit langkah: K1 2+5+2, K2 1+3, K3 1+2, K4 3+1. Target kartu Lembar Kerja: P2 9, P3 4, P4 7 (Kegiatan 3 3 + Kegiatan 4 4).

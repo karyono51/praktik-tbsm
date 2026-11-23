@@ -104,7 +104,8 @@ ok(/1\. Jangka sorong 0,05 mm.*?Jawab:\s*mm\s+Cara hitung:/.test(T) && /4\. Jang
 ok((kosong.match(/<svg/g) || []).length === 10 && (kosong.match(/class="skg"/g) || []).length === 10, 'cetak: tiap 10 soal latihan memuat gambar skala (SVG)');
 ok(!/\b[JMD][1-4]\b/.test(T.replace(/[A-Z]\d{2}-/g, '')), 'cetak: kode soal latihan tidak tampil');
 ok(/Hitung dari soal, lalu isi hasilnya/.test(T), 'petunjuk latihan');
-sama((T.match(/Waktu aktual pertemuan \d: /g) || []).length, 5, 'baris waktu aktual 5 pertemuan');
+sama((T.match(/Waktu aktual pertemuan \d: /g) || []).length, 4, 'baris waktu aktual 4 pertemuan (Pertemuan 4 memakai satu baris per kegiatan)');
+sama((T.match(/Waktu aktual Kegiatan \d: /g) || []).length, 2, 'baris waktu aktual Kegiatan 3 dan Kegiatan 4 terpisah');
 /* penilaian */
 ok(/Persiapan dan K3/.test(T) && /Bobot Skor \(1–4\) Nilai/.test(T) && /Jumlah 100%/.test(T) && /Skor 1 pada Persiapan dan K3 berarti praktik dihentikan/.test(T), 'tabel penilaian kinerja');
 /* isi siswa dari draf tercetak, kosong untuk guru */
