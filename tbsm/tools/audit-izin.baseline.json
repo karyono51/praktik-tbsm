@@ -1,0 +1,10 @@
+{
+  "catatan": "Risiko yang sudah diketahui dan diterima. Ubah hanya setelah ditinjau.",
+  "diterima": [
+    "BACA-USERS:akun",
+    "DOCSEC-MATI:akun",
+    "NILAI-PALSU:hasil",
+    "NILAI-PALSU:lkpd",
+    "PERAN-PALSU:akun"
+  ]
+}
