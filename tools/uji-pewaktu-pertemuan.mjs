@@ -80,6 +80,21 @@ ok(G(`lkcGet(${m},'mt2').run`) === false && G(`lkcGet(${m},'mt2').done`) === fal
 G(`lkcStart(${m},'mt2')`);
 ok(G(`lkcStart(${m},'mt3')`) === true && G(`lkcGet(${m},'mt2').run`) === false && G(`lkcGet(${m},'mt3').run`) === true, 'Latihan: memulai kartu lain menjeda kartu sebelumnya');
 ok(G(`lkcRO(${m},'mt3')`) === false, 'Latihan: kolom waktu boleh diedit');
+/* Pewaktu otomatis mulai saat kartu dipilih */
+G(`MODE='ujian';STAFF=false`); reset();
+ok(G(`lkcAutoMulai('mt2')`) === true && G(`lkcGet(${m},'mt2').run`) === true, 'Pilih kartu 1: pewaktu mulai otomatis');
+ok(G(`lkcAutoMulai('mt2')`) === false && G(`lkcGet(${m},'mt2').run`) === true, 'Pilih kartu yang sudah berjalan: tidak mulai ulang');
+ok(G(`lkcAutoMulai('mt3')`) === false && G(`lkcGet(${m},'mt3').run`) === false, 'Ujian: memilih kartu lain tidak memulai selama kartu berjalan');
+G(`lkcStop(${m},'mt2',true)`);
+ok(G(`lkcAutoMulai('mt2')`) === false, 'Ujian: kartu Selesai tidak mulai lagi saat dipilih');
+ok(G(`lkcAutoMulai('mtk3')`) === true && G(`lkcAutoMulai('mtk4')`) === false && G(`lkcGet(${m},'mtk3').run`) === true, 'Kegiatan 3 mulai otomatis, Kegiatan 4 menunggu');
+ok(G(`lkcAutoMulai('tidak-ada')`) === false, 'kartu tanpa pewaktu diabaikan');
+G(`MODE='latihan'`); reset();
+G(`lkcAutoMulai('mt2')`);
+ok(G(`lkcAutoMulai('mtk4')`) === true && G(`lkcGet(${m},'mt2').run`) === false && G(`lkcGet(${m},'mtk4').run`) === true, 'Latihan: memilih kartu lain menjeda kartu lama dan memulai kartu baru');
+G(`LK2.cetak=true`); reset();
+ok(G(`lkcAutoMulai('mt2')`) === false, 'mode cetak: pewaktu tidak mulai');
+G(`LK2.cetak=false`);
 /* guru */
 G(`MODE='ujian';STAFF=true`);
 ok(G('lktLocked()') === false, 'guru/pratinjau tidak dikunci');

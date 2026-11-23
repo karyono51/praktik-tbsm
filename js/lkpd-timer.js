@@ -131,6 +131,12 @@ function lkcStart(m,key){
  o.run=true;if(lktLocked())o.t0=Date.now()-o.sec*1000;lkcSave(m,key);
  if(!LKCT.iv)LKCT.iv=setInterval(function(){var mm=lkcMod();if(!mm){clearInterval(LKCT.iv);LKCT.iv=null;return}lkcCards(mm).forEach(function(c){var q=lkcGet(mm,c.key);if(q.run){if(!lktLocked())q.sec++;else q.sec=lkcSecNow(mm,c.key)}});lkcPaint();if(!lkcRunning(mm)){clearInterval(LKCT.iv);LKCT.iv=null}},1000);
  return true}
+/* Kartu dipilih (lk2Buka): pewaktu kartu itu mulai sendiri. Tidak mulai bila sudah berjalan, sudah Selesai (Ujian), mode cetak, atau ada kartu lain yang berjalan di Ujian (lkcStart memberi pesan). */
+function lkcAutoMulai(key){
+ var m=lkcMod();if(!m||!m.v2||!m.v2.pertemuan||(typeof LK2!=='undefined'&&LK2.cetak))return false;
+ var ada=lkcCards(m).some(function(c){return c.key===key});if(!ada)return false;
+ var o=lkcGet(m,key);if(o.run||(o.done&&lktLocked()))return false;
+ var ok=lkcStart(m,key);lkcPaint();return ok}
 function lkcSync(){
  var m=lkcMod();if(!m||!m.v2||!m.v2.pertemuan||!document.querySelector('[data-ct]'))return;
  /* Ujian: pewaktu yang sudah dimulai tetap berjalan setelah halaman dimuat ulang. */

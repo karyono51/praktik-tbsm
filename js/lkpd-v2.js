@@ -503,7 +503,7 @@ document.addEventListener('change',function(e){
 
 /* Kartu Lembar Kerja: satu kartu terbuka. Terbuka otomatis saat dipilih (ketuk judul atau fokus ke isian di dalamnya), tertutup saat berpindah ke kartu lain. */
 function lk2Gulung(){var e=document.scrollingElement||document.documentElement;return e}
-function lk2Buka(key){
+function lk2Buka(key,diam){
  if(!key||LK2.kartu===key)return;
  var tj=document.querySelector('.lk2-p[data-lk2k="'+key+'"] .lk2-ph'),y0=tj?tj.getBoundingClientRect().top:0;
  LK2.kartu=key;
@@ -514,11 +514,13 @@ function lk2Buka(key){
  });
  /* Kartu sebelumnya menutup dan menggeser isi halaman; judul kartu yang dipilih dijaga tetap di posisi layar semula agar tidak meloncat. */
  if(tj){var d=tj.getBoundingClientRect().top-y0;if(d)lk2Gulung().scrollTop+=d}
+ /* Kartu dipilih = pewaktunya mulai otomatis (berlaku untuk semua kartu Kegiatan). diam=true: dibuka oleh tombol pewaktu atau penanda isian kurang, jadi tidak memulai sendiri. */
+ if(!diam&&typeof lkcAutoMulai==='function')lkcAutoMulai(key);
 }
 function lk2KartuDari(t){var el=t&&t.closest?t.closest('.lk2-p[data-lk2k]'):null;return el?el.getAttribute('data-lk2k'):''}
 document.addEventListener('click',function(e){
  var tw=e.target.closest('[data-act="lkc-toggle"]');
- if(tw){var kt=lk2KartuDari(tw);if(kt)lk2Buka(kt);return}
+ if(tw){var kt=lk2KartuDari(tw);if(kt)lk2Buka(kt,true);return}
  var h=e.target.closest('[data-act="lk2-kartu"]');
  if(h){var k=h.getAttribute('data-key'),el=h.closest('.lk2-p');
   if(el&&el.classList.contains('is-open')){LK2.kartu='';el.classList.remove('is-open');h.setAttribute('aria-expanded','false')}else lk2Buka(k);
@@ -532,4 +534,4 @@ document.addEventListener('keydown',function(e){
  if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-act="lk2-kartu"]')){e.preventDefault();e.target.click()}
 });
 /* Setelah render dengan penanda "kurang", buka kartu yang memuat isian merah pertama */
-function lk2BukaYangKurang(){var n=document.querySelector('.lk2-p .lk2-need');if(n)lk2Buka(lk2KartuDari(n))}
+function lk2BukaYangKurang(){var n=document.querySelector('.lk2-p .lk2-need');if(n)lk2Buka(lk2KartuDari(n),true)}

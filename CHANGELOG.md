@@ -1,3 +1,10 @@
+## LKPD v2: pewaktu kartu Kegiatan mulai otomatis saat kartu dipilih
+- Berlaku untuk **semua kartu Kegiatan** yang punya pewaktu (Kegiatan 1 sampai 4, dan modul v2 lain). Mengetuk judul kartu atau fokus ke isian di dalamnya membuka kartu **dan** memulai pewaktunya (`lkcAutoMulai` di `js/lkpd-timer.js`, dipanggil dari `lk2Buka` di `js/lkpd-v2.js`).
+- **Ujian:** tidak mulai bila kartu itu sudah Selesai, atau bila kartu lain masih berjalan (muncul pesan "Selesaikan dulu pewaktu ..."; waktu tidak bisa dijeda).
+- **Latihan:** memilih kartu lain menjeda kartu sebelumnya lalu memulai kartu yang dipilih.
+- Tidak mulai sendiri bila kartu dibuka lewat tombol pewaktu (agar tidak bentrok dengan Mulai/Selesai), lewat penanda isian kurang saat Kirim, atau pada mode cetak.
+- Uji `uji-pewaktu-pertemuan` 30 (9 baru); `uji-lkpd-v2`, `uji-pandu-v2`, `uji-lkpd-format`, `uji-lkpd-semua` tetap lulus. Tidak ada perubahan Appwrite.
+
 ## LKPD v2 (X-07): kartu Lembar Kerja terbuka otomatis saat dipilih
 - Hanya satu kartu Lembar Kerja yang terbuka. Mengetuk judul kartu atau fokus ke isian di dalamnya membuka kartu itu dan menutup kartu sebelumnya; mengetuk judul kartu yang terbuka menutupnya (`lk2Buka`, `.lk2-p.is-open` di `js/lkpd-v2.js` dan `css/app.css`).
 - Saat Kirim LKPD menemukan isian kurang, kartu yang memuat isian merah pertama dibuka otomatis. Cetak tetap membuka semua kartu.
