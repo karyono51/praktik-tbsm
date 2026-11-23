@@ -100,7 +100,7 @@ ok(/Poin kritis: Catat penyimpangan nol/.test(T) && (T.match(/☐ Paraf guru/g) 
 ok((T.match(/☐ Foto bukti sudah diambil/g) || []).length === M.fotoWajib.length, 'kotak foto hanya pada item foto wajib');
 ok(/Posisi nol jangka sorong[^☐]*☐ Foto bukti sudah diambil ☐ Sesuai standar ☐ Tidak sesuai Catatan:/.test(T), 'pemeriksaan: foto, sesuai, tidak sesuai, catatan');
 ok(/Hasil ukur jangka sorong[^☐]*☐ Sesuai standar ☐ Tidak sesuai/.test(T) && !/Hasil ukur jangka sorong[^☐]*☐ Foto/.test(T), 'item tanpa foto wajib tidak punya kotak foto');
-ok(/1\. Jangka sorong 0,05 mm.*?Jawab:\s*mm\s+Cara hitung:/.test(T) && /4\. Jangka sorong 0,05 mm; skala utama 45/.test(T) && /8\. Mikrometer: selubung 9 mm/.test(T) && /10\. Keolengan/.test(T), 'latihan 10 soal (J, M, D) bernomor dengan baris Jawab dan Cara hitung');
+ok(/1\. Jangka sorong ketelitian 0,05 mm\. Baca ukuran.*?Jawab:\s*mm\s+Cara hitung:/.test(T) && /4\. Jangka sorong ketelitian 0,05 mm/.test(T) && /8\. Mikrometer ketelitian 0,01 mm/.test(T) && /10\. Dial gauge ketelitian 0,01 mm\. Jarum biru/.test(T), 'latihan 10 soal (J, M, D) bernomor dengan baris Jawab dan Cara hitung');
 ok((kosong.match(/<svg/g) || []).length === 10 && (kosong.match(/class="skg"/g) || []).length === 10, 'cetak: tiap 10 soal latihan memuat gambar skala (SVG)');
 ok(!/\b[JMD][1-4]\b/.test(T.replace(/[A-Z]\d{2}-/g, '')), 'cetak: kode soal latihan tidak tampil');
 ok(/Hitung dari soal, lalu isi hasilnya/.test(T), 'petunjuk latihan');
@@ -142,7 +142,7 @@ ok(/No Bentuk Level Kunci Pembahasan/.test(KT), 'kunci: kepala tabel');
 ok(/1 PG Aplikasi B /.test(KT) && /2 PG Aplikasi D /.test(KT) && /3 PG kompleks Penalaran A dan C /.test(KT) && /5 PG Aplikasi C /.test(KT), 'kunci: kunci PG dan PG kompleks sesuai data');
 ok(/4 PG kategori Penalaran 1 Benar 2 Salah 3 Benar 4 Salah 5 Benar/.test(KT), 'kunci: PG kategori per pernyataan');
 ok(/C memakai ketelitian 0,1 mm/.test(KT) && /Rata-rata tidak menghilangkan/.test(KT), 'kunci: pembahasan dari data modul');
-ok(/Peta ke soal lama/.test(KT) && /Soal lama \(isian\) Soal baru/.test(KT) && /5\. Dua hal yang tidak boleh dilakukan pada alat presisi 5 \(perawatan/.test(KT), 'kunci: peta ke soal lama');
+ok(!/Peta ke soal lama/.test(KT) && !/Soal lama \(isian\)/.test(KT), 'kunci: tanpa peta ke soal lama (artefak migrasi tidak dicetak)');
 ok(/Kunci jawaban latihan \(untuk guru\) 1 2 3 4 5 6 7 8 9 10 24,35 31,28 12,45 45,55 7,78 12,35 5,63 9,41 2,45 0,22/.test(KT), 'kunci: jawaban latihan 10 soal sama dengan versi guru');
 ok(/Satuan: mm\./.test(KT) && /10 = 0,32 − 0,10/.test(KT) && /5 = 7 \+ 0,5 \+ 28 × 0,01/.test(KT), 'kunci: rumus latihan dari data');
 ok(/@bottom-left\{content:"Kunci gerbang masuk · LKPD Alat Ukur · SMKS Medina Bandung \(khusus guru\)"/.test(KH) && /Halaman " counter\(page\) " dari " counter\(pages\)/.test(KH), 'kunci: footer khusus guru dan nomor halaman');

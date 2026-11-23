@@ -140,7 +140,7 @@ ok(/Jawaban J1|data-lk-field="q0"/.test(G(`lkqRender(LKPD_MODULES[0].quiz[0],0,{
 const penuh = {};
 M.steps.forEach((s, i) => (penuh['step' + i] = true));
 M.safety.forEach((s, i) => (penuh['safe' + i] = true));
-M.checks.forEach((c, i) => { penuh['row' + i] = true; penuh['actual' + i] = '1'; });
+M.checks.forEach((c, i) => { penuh['row' + i] = true; penuh['actual' + i] = '1'; penuh['status' + i] = 'Baik'; });
 Object.assign(penuh, gKunci);
 M.v2.analisis.forEach((q, i) => (penuh['ana' + i] = 'analisis yang cukup panjang'));
 M.v2.tabel.forEach((t) => t.baris.forEach((b, r) => t.kol.forEach((k) => { if (k.t !== 'rata' && k.t !== 'selisih') penuh[`t_${t.id}_${r}_${k.k}`] = k.t === 'status' ? 'Sesuai' : '1'; })));
@@ -168,19 +168,19 @@ ok(!/Lembar Kerja terkunci/.test(kerja) && /data-lk-field="t_F1_0_u1"/.test(kerj
 ok(/data-lk2-calc="F1\|0\|rata"/.test(kerja) && /data-lk2-calc="F3\|0\|olengan"/.test(kerja), 'sel rata-rata/keolengan berupa teks hitung otomatis');
 ok(/Kegiatan 1 jangka Sorong/.test(kerja) && /Kegiatan 2 mikrometer/.test(kerja) && /<h2>Kegiatan 3 dial gauge<\/h2>/.test(kerja) && /<h2>Kegiatan 4 perawatan<\/h2>/.test(kerja) && !/dial gauge dan 4 perawatan/.test(kerja), 'Lembar Kerja: empat kartu berjudul kegiatan (Kegiatan 3 dan 4 tidak digabung)');
 ok((kerja.match(/class="card lk2-p"/g) || []).length === 4 && !/<h2>Pertemuan \d/.test(kerja) && !/data-lk-field="mt1"/.test(kerja) && !/data-lk-field="mt5"/.test(kerja), 'Lembar Kerja: kartu Pertemuan 1 dan 5 tidak tampil, tersisa 4 kartu kegiatan');
-sama([...kerja.matchAll(/Target (\d+) menit/g)].map((x) => +x[1]), [9, 4, 3, 4], 'Lembar Kerja: target tiap kartu 9 + 4 + 3 + 4 menit');
-ok(!/Target 180 menit/.test(kerja) && (kerja.match(/dari total 20 menit/g) || []).length === 4, 'Lembar Kerja: tiap kartu menyebut bagiannya dari total praktik 20 menit');
+sama([...kerja.matchAll(/Target (\d+) menit/g)].map((x) => +x[1]), [25, 20, 20, 15], 'Lembar Kerja: target tiap kartu 25 + 20 + 20 + 15 menit');
+ok(!/Target 180 menit/.test(kerja) && (kerja.match(/dari total 80 menit/g) || []).length === 4, 'Lembar Kerja: tiap kartu menyebut bagiannya dari total praktik 80 menit');
 ok((kerja.match(/<h3>Kegiatan \d ·/g) || []).length === 0 && (kerja.match(/<h4>Langkah kerja<\/h4>/g) || []).length === 4 && /Waktu aktual Kegiatan 1 \(menit\)/.test(kerja) && /Waktu aktual Kegiatan 3 \(menit\)/.test(kerja) && /Waktu aktual Kegiatan 4 \(menit\)/.test(kerja) && !/Kegiatan 3 dan 4/.test(kerja), 'Lembar Kerja: tiap kartu satu kegiatan memakai Langkah kerja dan waktu aktual sendiri');
-sama([...kerja.matchAll(/class=\"lk2-mnt\">(\d+) menit/g)].map((x) => +x[1]), [2, 5, 2, 1, 3, 1, 2, 3, 1], 'Lembar Kerja: menit tiap langkah tampil');
+sama([...kerja.matchAll(/class=\"lk2-mnt\">(\d+) menit/g)].map((x) => +x[1]), [4, 15, 6, 6, 14, 8, 12, 10, 5], 'Lembar Kerja: menit tiap langkah tampil');
 {
   const per = M.v2.pertemuan.filter((p) => p.kegiatan.length), jum = (ks) => M.v2.langkah.filter((l) => ks.includes(l.k)).reduce((t, l) => t + l.menit, 0);
-  ok(per.every((p) => jum(p.kegiatan) === p.praktik) && per.reduce((t, p) => t + p.praktik, 0) === 20, 'waktu praktik: menit langkah tiap kegiatan = target kegiatan; total semua kegiatan 20 menit');
+  ok(per.every((p) => jum(p.kegiatan) === p.praktik) && per.reduce((t, p) => t + p.praktik, 0) === 80, 'waktu praktik: menit langkah tiap kegiatan = target kegiatan; total semua kegiatan 80 menit');
 }
 {
   const km = (k) => M.v2.langkah.filter((l) => l.k === k).reduce((t, l) => t + l.menit, 0);
-  sama([1, 2, 3, 4].map(km), [9, 4, 3, 4], 'proporsi praktik 20 menit: jangka sorong 9, mikrometer 4, dial gauge 3, perawatan 4');
+  sama([1, 2, 3, 4].map(km), [25, 20, 20, 15], 'standar waktu pemula 80 menit: jangka sorong 25, mikrometer 20, dial gauge 20, perawatan 15');
   const w = M.v2.obs.aspek.find((x) => x.id === 'waktu').ket;
-  ok(/total praktik 20 menit/.test(w) && /jangka sorong 9, mikrometer 4, dial gauge 3, perawatan 4/.test(w), 'rubrik Waktu memakai angka yang sama dengan menit langkah');
+  ok(/total praktik 80 menit/.test(w) && /jangka sorong 25, mikrometer 20, dial gauge 20, perawatan 15/.test(w), 'rubrik Waktu memakai angka yang sama dengan menit langkah');
   ok(/data-lk-field="mtk3"/.test(kerja) && /data-lk-field="mtk4"/.test(kerja) && !/data-lk-field="mt4"/.test(kerja), 'kartu Kegiatan 3 dan 4 punya kolom waktu aktual sendiri (mtk3 dan mtk4)');
 }
 G(`STAFF=true;LK.preview=false;DRAFT={}`);
@@ -214,14 +214,14 @@ ok(G('toasts').some((t) => /KKM 75/.test(t)), 'pesan menyebut KKM 75');
 G(`SUBMITTED=0;DRAFT=${JSON.stringify(penuh)}`);
 G('lkSubmit()');
 const rd = G('lkRead()');
-ok(rd.v2 && rd.v2.ver === 2 && rd.v2.gate === 5 && rd.v2.gerbang && rd.v2.gerbang.nilai === 100 && rd.v2.gerbang.lulus === true && rd.v2.gerbang.kkm === 75 && rd.v2.tabel === 100 && Math.abs(rd.v2.calc.F1[0].rata - 1) < 1e-9, 'payload memuat v2.calc, gerbang, dan kelengkapan tabel');
+ok(rd.v2 && rd.v2.ver === 2 && rd.v2.gate === 5 && rd.v2.gerbang && rd.v2.gerbang.nilai === 100 && rd.v2.gerbang.lulus === true && rd.v2.gerbang.kkm === 75 && rd.v2.tabel === 100 && Math.abs(rd.v2.calc.F1[0].rata - 0) < 1e-9, 'payload memuat v2.calc (rata-rata sudah dikurangi nol alat 1), gerbang, dan kelengkapan tabel');
 
 /* ---------- Detail dan verifikasi guru ---------- */
 const payload = Object.assign({}, penuh, rd, { student: 'Budi', school: 'SMKS Medina' });
 G(`STAFF=true`);
 const det = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(payload)})`);
 ok(/Gerbang masuk/.test(det) && !/data-lk2v="g0"/.test(det) && /data-lk2v="s2"/.test(det) && /data-lk2v="a0"/.test(det) && /lk2-verif/.test(det), 'Detail guru memuat verifikasi saksi dan APD (gerbang dinilai otomatis, tanpa kotak Jawaban benar)');
-ok(/Waktu per kartu kegiatan/.test(det) && /K3: [^<]* \/ 3 menit/.test(det) && /K4: [^<]* \/ 4 menit/.test(det) && !/K3\+4/.test(det), 'Detail guru: waktu aktual dicatat terpisah untuk Kegiatan 3 dan Kegiatan 4');
+ok(/Waktu per kartu kegiatan/.test(det) && /K3: [^<]* \/ 20 menit/.test(det) && /K4: [^<]* \/ 15 menit/.test(det) && !/K3\+4/.test(det), 'Detail guru: waktu aktual dicatat terpisah untuk Kegiatan 3 dan Kegiatan 4');
 ok(/Kunci: B\. rahang bawah, rahang atas, batang kedalaman/.test(det) && /Kunci: C\. dan |Kunci: A\./.test(det), 'kunci gerbang PG tampil untuk guru');
 ok(/Penalaran/.test(det) && /Aplikasi/.test(det), 'Detail guru menampilkan level soal gerbang');
 const detAuto = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, payload, { v2: { ver: 2 } }))})`);
@@ -447,7 +447,7 @@ const ev = G('viewLKPD()');
 ok((ev.match(/data-lk2d="a[a-z0-9]+"/g) || []).length === 6, 'penilaian kinerja: 6 aspek lipat');
 ok(/Bobot 20% · aspek penghenti/.test(ev) && /Bobot 30%/.test(ev) && /Bobot 25%/.test(ev) && /Bobot 10%/.test(ev) && /Bobot 5%/.test(ev), 'bobot dan penanda aspek penghenti tampil');
 ok(/Skor 4<\/b> \(Sangat baik\)/.test(ev) && /Skor 1<\/b> \(Kurang\)/.test(ev), 'arti skor 4 sampai 1 tampil pada tiap aspek');
-ok(/Yang dinilai: APD terpasang benar/.test(ev) && /Yang dinilai: jujur mencatat/.test(ev) && /total praktik 20 menit/.test(ev), 'poin yang dinilai tiap aspek tampil');
+ok(/Yang dinilai: APD terpasang benar/.test(ev) && /Yang dinilai: jujur mencatat/.test(ev) && /total praktik 80 menit/.test(ev), 'poin yang dinilai tiap aspek tampil');
 ok(/Syarat kompeten/.test(ev) && (ev.match(/Bukti: /g) || []).length === 8, 'syarat kompeten: 8 indikator beserta buktinya');
 ok(/Yang diamati dan kesalahan umum/.test(ev) && /Kesalahan umum:/.test(ev) && /3 ÷ 4 × 30 = 22,5/.test(ev), 'panduan diamati dan contoh hitung nilai tampil');
 G(`LK2.open={ak3:true}`);
@@ -561,7 +561,7 @@ G(`${KM}.v2.cekAuto=_cekAuto;delete globalThis.lkmCfg;LK.preview=false;STAFF=fal
   const dtab = { t_F1_0_nol: '0,05', t_F1_0_u1: '22,40', t_F1_0_u2: '22,42', t_F1_0_u3: '22,44', t_F1_1_u1: '18,10', t_F1_1_u2: '18,10', t_F1_1_u3: '18,10', t_F2_0_nol: '0', t_F2_0_u1: '9,40', t_F2_0_u2: '9,42', t_F2_0_u3: '9,41', t_F3_0_besar: '0,32', t_F3_0_kecil: '0,10' };
   G(`DRAFT=${JSON.stringify(dtab)};var _AM=LKPD_MODULES.filter(function(x){return x.id==='LKPD-X-07'})[0]`);
   sama(G(`lk2Auto(_AM,0,DRAFT)`), '0,05 mm', 'hasil aktual otomatis: posisi nol jangka sorong = isian nol F1 (1 kali)');
-  sama(G(`lk2Auto(_AM,1,DRAFT)`), 'Diameter luar 22,42; Diameter dalam 18,1 mm', 'hasil aktual otomatis: rata-rata tiap jenis ukur yang sudah terisi');
+  sama(G(`lk2Auto(_AM,1,DRAFT)`), 'Diameter luar 22,37; Diameter dalam 18,05 mm', 'hasil aktual otomatis: rata-rata tiap jenis ukur dikurangi nol alat (0,05), dibulatkan 2 desimal');
   sama(G(`lk2Auto(_AM,2,DRAFT)`), '0 mm', 'hasil aktual otomatis: posisi nol mikrometer');
   sama(G(`lk2Auto(_AM,3,DRAFT)`), '9,41 mm', 'hasil aktual otomatis: rata-rata mikrometer');
   sama(G(`lk2Auto(_AM,5,DRAFT)`), '0,22 mm', 'hasil aktual otomatis: keolengan dial gauge');
@@ -583,6 +583,51 @@ G(`${KM}.v2.cekAuto=_cekAuto;delete globalThis.lkmCfg;LK.preview=false;STAFF=fal
   const pct = G(`lk2TabelPct(_AM,{t_F1_0_nol:'0,05',t_F2_0_nol:'0'})`);
   const total = G(`(function(){var n=0;_AM.v2.tabel.forEach(function(t){t.baris.forEach(function(b,r){t.kol.forEach(function(c){if(c.t==='rata'||c.t==='selisih')return;if(t.nolSekali&&c.k==='nol'&&r>0)return;n++})})});return n})()`);
   ok(Math.abs(pct - 2 / total) < 1e-9, 'kelengkapan tabel: nol alat dihitung 1 kali per tabel');
+  G(`DRAFT={}`);
+}
+
+/* ---------- Perbaikan dari evaluasi tim (X-07): koreksi nol, pesan kirim, K3, Latihan di Lembar Kerja ---------- */
+{
+  const AM = `LKPD_MODULES.filter(function(x){return x.id==='LKPD-X-07'})[0]`;
+  /* 1. rata-rata memakai bacaan dikurangi nol alat, dibulatkan 2 desimal (bukan 3 desimal mentah) */
+  G(`DRAFT={t_F1_0_nol:'0,05',t_F1_0_u1:'22,40',t_F1_0_u2:'22,45',t_F1_0_u3:'22,40'}`);
+  sama(G(`lk2Auto(${AM},1,DRAFT)`), 'Diameter luar 22,37 mm', 'koreksi nol: 22,40/22,45/22,40 dengan nol 0,05 menjadi 22,37 (bukan 22,417)');
+  G(`DRAFT={t_F2_0_nol:'-0,02',t_F2_0_u1:'9,40',t_F2_0_u2:'9,41',t_F2_0_u3:'9,42'}`);
+  sama(G(`lk2Auto(${AM},3,DRAFT)`), '9,43 mm', 'koreksi nol: nol negatif (-0,02) menambah hasil');
+  G(`DRAFT={t_F1_0_u1:'22,40',t_F1_0_u2:'22,40',t_F1_0_u3:'22,40'}`);
+  sama(G(`lk2Auto(${AM},1,DRAFT)`), 'Diameter luar 22,4 mm', 'koreksi nol: nol kosong dianggap 0');
+  ok(M.v2.tabel.every((t) => t.dec === 2), 'semua tabel X-07 dibulatkan 2 desimal');
+  const F1 = M.v2.tabel.find((t) => t.id === 'F1');
+  ok(F1.kol.some((k) => k.k === 'std') && F1.kol.some((k) => k.t === 'status'), 'F1 punya kolom Standar dan Status seperti F2 dan F3');
+  /* 2. nilai otomatis yang sama untuk Detail guru dan pemeriksaan integritas */
+  sama([G(`lk2ScoreFor(${AM},${JSON.stringify(penuh)}).final`), G(`lk2ScoreFor(${AM},${JSON.stringify(penuh)}).work`)], [100, M.steps.length], 'lk2ScoreFor: nilai v2 tersedia untuk pemeriksaan integritas');
+  /* 3. Kirim LKPD ditolak dengan pesan yang menyebut kolomnya */
+  G(`STAFF=false;LK.preview=false;LK.module='LKPD-X-07';SUBMITTED=0;toasts.length=0`);
+  const tanpaStatus = { ...penuh }; M.checks.forEach((c, i) => { delete tanpaStatus['status' + i]; });
+  G(`DRAFT=${JSON.stringify(tanpaStatus)};LK.tab='materi'`); G('lkSubmit()');
+  sama(G('SUBMITTED'), 0, 'kirim ditolak bila Status pemeriksaan belum dipilih');
+  ok(G('toasts').some((t) => /pilih Status pada/.test(t) && /Posisi nol jangka sorong/.test(t)), 'pesan menyebut kolom Status dan nama komponen');
+  sama(G('LK.tab'), 'kerja', 'siswa dibawa ke tab Lembar Kerja');
+  const mrk = G('viewLKPD()');
+  ok(/lk2-need/.test(mrk), 'kolom Status yang kurang ditandai setelah kirim ditolak');
+  const tanpaK3 = { ...penuh }; delete tanpaK3.safe3; delete tanpaK3.safe5;
+  G(`SUBMITTED=0;toasts.length=0;DRAFT=${JSON.stringify(tanpaK3)};LK.tab='kerja'`); G('lkSubmit()');
+  sama(G('SUBMITTED'), 0, 'kirim ditolak bila K3 belum dicentang semua');
+  ok(G('toasts').some((t) => /K3: centang butir 4, 6 di tab Materi/.test(t)), 'pesan menyebut butir K3 yang belum');
+  sama(G('LK.tab'), 'materi', 'siswa dibawa ke tab Materi untuk K3');
+  G(`SUBMITTED=0;toasts.length=0;DRAFT=${JSON.stringify(penuh)}`); G('lkSubmit()');
+  sama(G('SUBMITTED'), 1, 'kirim lolos bila K3 lengkap dan status dipilih');
+  /* 4. Latihan membaca skala ada di Lembar Kerja, per pertemuan */
+  G(`SUBMITTED=0;LK.tab='kerja';DRAFT=${JSON.stringify(penuh)}`);
+  const kv2 = G('viewLKPD()');
+  sama((kv2.match(/<h4>Latihan membaca skala<\/h4>/g) || []).length, 3, 'Lembar Kerja: blok Latihan ada di Pertemuan 2, 3, dan 4');
+  sama(M.quiz.map((q, i) => (kv2.match(new RegExp('data-lk-field="q' + i + '"', 'g')) || []).length), M.quiz.map(() => 1), 'Lembar Kerja: ke-10 soal latihan muncul tepat sekali (kunci jawaban q0 sampai q9)');
+  const iJ = (id) => M.quiz.findIndex((q) => q.id === id);
+  ok(kv2.indexOf('data-lk-field="q' + iJ('J1') + '"') < kv2.indexOf('Waktu aktual Kegiatan 2') && kv2.indexOf('data-lk-field="q' + iJ('M1') + '"') > kv2.indexOf('Waktu aktual Kegiatan 1') && kv2.indexOf('data-lk-field="q' + iJ('D1') + '"') < kv2.indexOf('Waktu aktual Kegiatan 3'), 'Latihan J di kartu jangka sorong, M di kartu mikrometer, D di kartu dial gauge');
+  ok(M.quiz.every((q) => !/skala utama \d|nonius ke-\d|selubung \d|bidal \d|garis ke-\d|terbesar \d|terkecil \d/i.test(q.q)), 'soal latihan tidak memberi angka bacaan; angka dibaca dari gambar');
+  ok(!/Ubah soal/.test(M.quiz.map((q) => q.e || '').join(' ')), 'pembahasan soal tidak memuat catatan internal guru');
+  /* 5. bawaan terbit Latihan lalu Ujian */
+  ok(M.tahap === true && M.mode === 'ujian', 'bawaan X-07: bertahap (Latihan lalu Ujian)');
   G(`DRAFT={}`);
 }
 

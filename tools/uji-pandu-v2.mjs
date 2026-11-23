@@ -139,6 +139,13 @@ G(`LK.tab='kerja'`); h = G(`viewLKPD()`);
 ok(/Lembar Kerja terkunci/.test(h), 'Latihan: gerbang masuk tetap mengunci Lembar Kerja sampai lulus');
 G(`LK.tab='evaluasi'`); h = G(`viewLKPD()`);
 ok(/Evaluasi hanya dikerjakan pada tahap Ujian/.test(h) && !/Pembahasan latihan|Periksa jawaban/.test(h), 'Latihan: isi Evaluasi dan pembahasan tidak tampil');
+/* Mode Latihan v2: pembahasan ada di bagian bawah Lembar Kerja (tab Evaluasi tidak ada di Latihan) */
+G(`(function(){var m=LKPD_MODULES[0],d={};m.v2.gate.qs.forEach(function(q,i){var k='q'+(100+i);if(q.t==='pg')d[k]=q.a;else if(q.t==='kompleks')d[k]=q.a.slice();else{var o={};q.rows.forEach(function(r,j){o[j]=r[1]});d[k]=o}});DRAFT=d;m.tahap=false;m.mode='latihan';m.showKey=true})()`);
+G(`LK.tab='kerja'`); h = G(`viewLKPD()`);
+ok(/Latihan membaca skala/.test(h) && /Pembahasan latihan/.test(h) && /bagian bawah Lembar Kerja/.test(h) && !/pembahasan bisa dilihat di tab Evaluasi/.test(h), 'Latihan v2: pembahasan tampil di Lembar Kerja dan spanduk menunjuk tempat yang benar');
+G(`LK.tab='materi'`); h = G(`viewLKPD()`);
+ok(!/Pembahasan latihan/.test(h), 'Latihan v2: pembahasan tidak muncul di tab Materi');
+G(`(function(){var m=LKPD_MODULES[0];m.tahap=true;m.mode='ujian';DRAFT={}})()`);
 /* Naik ke Ujian */
 G(`S.lkpd.push({moduleId:'LKPD-X-07',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})})`);
 G(`LK.tab='materi'`); h = G(`viewLKPD()`);

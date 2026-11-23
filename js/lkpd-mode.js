@@ -165,7 +165,7 @@ viewLKPD=function(){
  if(LK.detail||LK.editor||['materi','kerja','evaluasi'].indexOf(LK.tab)<0)return h;
  var m=lkmCur();if(!m)return h;
  var c=lkmCfg(m),lock=lkmLock(m),t;
- if(c.mode==='latihan')t='<b>Mode Latihan</b> Boleh diulang tanpa batas, nilai tidak masuk rekap'+(c.showKey?', pembahasan bisa dilihat di tab Evaluasi.':'.');
+ if(c.mode==='latihan')t='<b>Mode Latihan</b> Boleh diulang tanpa batas, nilai tidak masuk rekap'+(c.showKey?', pembahasan bisa dilihat di '+(typeof lk2Is==='function'&&lk2Is(m)?'bagian bawah Lembar Kerja.':'tab Evaluasi.'):'.');
  else t='<b>Mode Ujian</b> Nilai masuk rekap dan dikoreksi guru'+(c.maxTry?'. Kesempatan mengirim '+c.maxTry+' kali'+(isStaff()?'':' (terpakai '+lkmUsed(m)+')'):'')+(c.tutup?'. Ditutup '+lkEsc(lkmFmt(c.tutup)):'')+'.';
  if(typeof lkpBannerTahap==='function')t+=lkpBannerTahap(m,c);
  if(lock)t+=' <b>'+lkEsc(lock)+'.</b>';
@@ -174,7 +174,8 @@ viewLKPD=function(){
  else if(c.mode==='ujian')t+=' Siswa melihat versi ringkas (teori, penjelasan langkah, dan petunjuk komponen dapat disembunyikan). Pakai Pratinjau untuk melihatnya.';
  var ban='<div class="card lkm-banner" data-m="'+c.mode+'">'+t+'</div>',i=h.indexOf('<div class="chips">');
  h=i>-1?h.slice(0,i)+ban+h.slice(i):ban+h;
- if(LK.tab==='evaluasi'&&c.mode==='latihan'&&c.showKey&&!(typeof lk2Is==='function'&&lk2Is(m))){
+ var v2m=typeof lk2Is==='function'&&lk2Is(m);
+ if(c.mode==='latihan'&&c.showKey&&(v2m?(LK.tab==='kerja'&&h.indexOf('class="card lk2-p"')>-1):LK.tab==='evaluasi')){
   var blk=lkmKeyBlock(m),j=h.indexOf('<div class="lk-actions">');
   h=j>-1?h.slice(0,j)+blk+h.slice(j):h+blk;
  }

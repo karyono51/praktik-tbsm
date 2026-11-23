@@ -9,6 +9,7 @@ var LKI={f:'ALL'};
 function lkiPay(x){try{return typeof x.payload==='string'?JSON.parse(x.payload||'{}'):(x.payload||{})}catch(e){return {}}}
 function lkiNorm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
 function lkiScoreFor(m,d){
+ if(typeof lk2Is==='function'&&lk2Is(m)&&typeof lk2ScoreFor==='function')return lk2ScoreFor(m,d);
  var r=m.rubric||{steps:30,safety:20,checks:25,analysis:25,practiceWeight:85,theoryWeight:15},
   safe=m.safety.filter(function(x,i){return d['safe'+i]}).length,work=m.steps.filter(function(x,i){return d['step'+i]}).length,
   rows=m.checks.filter(function(x,i){return lkRowOk(d,i)}).length,correct=0;

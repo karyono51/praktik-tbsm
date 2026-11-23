@@ -4,22 +4,22 @@
    Rujukan SKKNI 147/2019 hanya usulan pemetaan dan perlu diverifikasi sebelum dipakai untuk asesmen. */
 (function(){
  var langkah=[
-  {k:1,m:2,t:'Bersihkan rahang dan benda; rapatkan rahang dan periksa nol',p:'Catat penyimpangan nol (foto)'},
-  {k:1,m:5,t:'Ukur diameter luar, diameter dalam, dan kedalaman, masing-masing 3 kali',p:'Rahang tegak lurus, tekanan ringan'},
-  {k:1,m:2,t:'Kunci, baca, catat pada tabel F1',p:'Baca tegak lurus skala',saksi:1},
-  {k:2,m:1,t:'Bersihkan landasan dan poros; tutup dengan pemutar gelitik; periksa nol',p:'Selalu pakai gelitik'},
-  {k:2,m:3,t:'Ukur diameter benda pada 3 titik; baca selubung lalu bidal',p:'Benda tidak miring',saksi:1},
-  {k:3,m:1,t:'Pasang pada dudukan magnet, letakkan benda di blok V, beri pratekan, nolkan bezel',p:'Poros ukur tegak lurus, dudukan stabil'},
-  {k:3,m:2,t:'Putar benda perlahan satu putaran; catat bacaan terbesar dan terkecil; hitung keolengan',p:'Putar perlahan, jangan terbentur',saksi:1},
-  {k:4,m:3,t:'Bersihkan semua alat, olesi oli tipis, renggangkan poros mikrometer (jangan dikunci rapat), simpan di kotak',p:'Tanpa amplas; oli tipis saja',saksi:1},
-  {k:4,m:1,t:'Rapikan area (5R), pisahkan limbah B3',p:'Majun kotor ke wadah khusus'}
+  {k:1,m:4,t:'Bersihkan rahang dan benda; rapatkan rahang dan periksa nol',p:'Catat penyimpangan nol (foto)'},
+  {k:1,m:15,t:'Ukur diameter luar, diameter dalam, dan kedalaman, masing-masing 3 kali',p:'Rahang tegak lurus, tekanan ringan'},
+  {k:1,m:6,t:'Kunci, baca, catat pada tabel F1',p:'Baca tegak lurus skala',saksi:1},
+  {k:2,m:6,t:'Bersihkan landasan dan poros; tutup dengan pemutar gelitik; periksa nol',p:'Selalu pakai gelitik'},
+  {k:2,m:14,t:'Ukur diameter benda pada 3 titik; baca selubung lalu bidal',p:'Benda tidak miring',saksi:1},
+  {k:3,m:8,t:'Pasang pada dudukan magnet, letakkan benda di blok V, beri pratekan, nolkan bezel',p:'Poros ukur tegak lurus, dudukan stabil'},
+  {k:3,m:12,t:'Putar benda perlahan satu putaran; catat bacaan terbesar dan terkecil; hitung keolengan',p:'Putar perlahan, jangan terbentur',saksi:1},
+  {k:4,m:10,t:'Bersihkan semua alat, olesi oli tipis, renggangkan poros mikrometer (jangan dikunci rapat), simpan di kotak',p:'Tanpa amplas; oli tipis saja',saksi:1},
+  {k:4,m:5,t:'Rapikan area (5R), pisahkan limbah B3',p:'Majun kotor ke wadah khusus'}
  ];
  /* Kartu kegiatan tidak digabung: pertemuan yang memuat dua kegiatan memakai kartu:{per:{k:judul}} sehingga tiap kegiatan punya kartu, waktu aktual (mtk<k>), dan kunci sendiri. */
  /* Menit tiap kegiatan = jumlah menit langkahnya; angka pada rubrik dan target pertemuan dicocokkan dengan ini (diuji). */
  function jumMenit(ks){return langkah.filter(function(x){return ks.indexOf(x.k)>-1}).reduce(function(t,x){return t+x.m},0)}
  var kegiatan=['Jangka sorong','Mikrometer','Dial gauge','Perawatan dan penyimpanan'];
  var m={
-  id:'LKPD-X-07',version:2,kelas:'X',fase:'E',status:'draft',active:false,
+  id:'LKPD-X-07',version:2,kelas:'X',fase:'E',status:'draft',active:false,tahap:true,mode:'ujian',
   title:'Penggunaan dan Perawatan Alat Ukur (Jangka Sorong, Mikrometer, Dial Gauge)',
   unit:'Alat ukur: jangka sorong, mikrometer, dial gauge',duration:900,
   skkni:'G.45TSM01.020.2; .027.2; .030.2; .031.2; .012.2 (usulan, verifikasi)',
@@ -48,16 +48,16 @@
   fotoWajib:[0,2,3,4,6],
   symptoms:[],
   quiz:[
-   {t:'isian',id:'J1',q:'Jangka sorong 0,05 mm; skala utama 24 mm; garis nonius ke-7 berimpit',kunci:24.35,tol:0.005,u:'mm',e:'24 + 7 × 0,05',g:{k:'jangka',res:0.05,main:24,n:7}},
-   {t:'isian',id:'J2',q:'Jangka sorong 0,02 mm; skala utama 31 mm; garis nonius ke-14 berimpit',kunci:31.28,tol:0.005,u:'mm',e:'31 + 14 × 0,02',g:{k:'jangka',res:0.02,main:31,n:14}},
-   {t:'isian',id:'J3',q:'Jangka sorong 0,05 mm; skala utama 12 mm; garis nonius ke-9 berimpit',kunci:12.45,tol:0.005,u:'mm',e:'12 + 9 × 0,05',g:{k:'jangka',res:0.05,main:12,n:9}},
-   {t:'isian',id:'J4',q:'Jangka sorong 0,05 mm; skala utama 45 mm; garis nonius ke-11 berimpit',kunci:45.55,tol:0.005,u:'mm',e:'45 + 11 × 0,05',g:{k:'jangka',res:0.05,main:45,n:11}},
-   {t:'isian',id:'M1',q:'Mikrometer 0,01 mm; selubung 7 mm, garis 0,5 mm terlihat; bidal 28',kunci:7.78,tol:0.005,u:'mm',e:'7 + 0,5 + 28 × 0,01 = 7,5 + 0,28',g:{k:'mikro',sel:7,half:true,bidal:28}},
-   {t:'isian',id:'M2',q:'Mikrometer: selubung 12 mm, garis 0,5 mm belum terlihat; bidal 35',kunci:12.35,tol:0.005,u:'mm',e:'12 + 35 × 0,01 = 12 + 0,35',g:{k:'mikro',sel:12,half:false,bidal:35}},
-   {t:'isian',id:'M3',q:'Mikrometer: selubung 5 mm, garis 0,5 mm terlihat; bidal 13',kunci:5.63,tol:0.005,u:'mm',e:'5 + 0,5 + 13 × 0,01 = 5,5 + 0,13',g:{k:'mikro',sel:5,half:true,bidal:13}},
-   {t:'isian',id:'M4',q:'Mikrometer: selubung 9 mm, garis 0,5 mm belum terlihat; bidal 41',kunci:9.41,tol:0.005,u:'mm',e:'9 + 41 × 0,01 = 9 + 0,41',g:{k:'mikro',sel:9,half:false,bidal:41}},
-   {t:'isian',id:'D1',q:'Dial gauge 0,01 mm, 1 putaran jarum besar = 1 mm; jarum kecil 2, jarum besar garis ke-45',kunci:2.45,tol:0.005,u:'mm',e:'2 putaran = 2 mm; garis ke-45 × 0,01 = 0,45; 2 + 0,45. Ubah soal bila dial gauge sekolah berbeda.',g:{k:'dial',rev:2,b:45}},
-   {t:'isian',id:'D2',q:'Keolengan: bacaan terbesar 0,32 mm, terkecil 0,10 mm',kunci:0.22,tol:0.005,u:'mm',e:'0,32 − 0,10',g:{k:'olengan',max:32,min:10}}
+   {t:'isian',id:'J1',q:'Jangka sorong ketelitian 0,05 mm. Baca ukuran yang ditunjukkan gambar.',kunci:24.35,tol:0.005,u:'mm',e:'24 + 7 × 0,05',g:{k:'jangka',res:0.05,main:24,n:7}},
+   {t:'isian',id:'J2',q:'Jangka sorong ketelitian 0,02 mm. Baca ukuran yang ditunjukkan gambar.',kunci:31.28,tol:0.005,u:'mm',e:'31 + 14 × 0,02',g:{k:'jangka',res:0.02,main:31,n:14}},
+   {t:'isian',id:'J3',q:'Jangka sorong ketelitian 0,05 mm. Baca ukuran yang ditunjukkan gambar.',kunci:12.45,tol:0.005,u:'mm',e:'12 + 9 × 0,05',g:{k:'jangka',res:0.05,main:12,n:9}},
+   {t:'isian',id:'J4',q:'Jangka sorong ketelitian 0,05 mm. Baca ukuran yang ditunjukkan gambar.',kunci:45.55,tol:0.005,u:'mm',e:'45 + 11 × 0,05',g:{k:'jangka',res:0.05,main:45,n:11}},
+   {t:'isian',id:'M1',q:'Mikrometer ketelitian 0,01 mm. Baca ukuran yang ditunjukkan gambar.',kunci:7.78,tol:0.005,u:'mm',e:'7 + 0,5 + 28 × 0,01 = 7,5 + 0,28',g:{k:'mikro',sel:7,half:true,bidal:28}},
+   {t:'isian',id:'M2',q:'Mikrometer ketelitian 0,01 mm. Baca ukuran yang ditunjukkan gambar.',kunci:12.35,tol:0.005,u:'mm',e:'12 + 35 × 0,01 = 12 + 0,35',g:{k:'mikro',sel:12,half:false,bidal:35}},
+   {t:'isian',id:'M3',q:'Mikrometer ketelitian 0,01 mm. Baca ukuran yang ditunjukkan gambar.',kunci:5.63,tol:0.005,u:'mm',e:'5 + 0,5 + 13 × 0,01 = 5,5 + 0,13',g:{k:'mikro',sel:5,half:true,bidal:13}},
+   {t:'isian',id:'M4',q:'Mikrometer ketelitian 0,01 mm. Baca ukuran yang ditunjukkan gambar.',kunci:9.41,tol:0.005,u:'mm',e:'9 + 41 × 0,01 = 9 + 0,41',g:{k:'mikro',sel:9,half:false,bidal:41}},
+   {t:'isian',id:'D1',q:'Dial gauge ketelitian 0,01 mm; satu putaran jarum besar = 1 mm, jarum kecil menghitung putaran penuh. Baca ukuran yang ditunjukkan gambar.',kunci:2.45,tol:0.005,u:'mm',e:'2 putaran = 2 mm; garis ke-45 × 0,01 = 0,45; 2 + 0,45.',g:{k:'dial',rev:2,b:45}},
+   {t:'isian',id:'D2',q:'Dial gauge ketelitian 0,01 mm. Jarum biru menunjuk bacaan terkecil dan jarum merah bacaan terbesar. Hitung keolengan.',kunci:0.22,tol:0.005,u:'mm',e:'0,32 − 0,10',g:{k:'olengan',max:32,min:10}}
   ],
   rubric:{steps:30,safety:20,checks:25,analysis:25,practiceWeight:85,theoryWeight:15},
   validation:{vehicle:false,evidence:false,cause:false,conclusion:false,atLeastOneCheck:true},
@@ -65,9 +65,9 @@
    ver:2,jenis:'jobsheet',jp:20,tp:'X.4.2',cp:'Peralatan dan Perlengkapan Tempat Kerja',
    pertemuan:[
     {n:1,jp:4,menit:180,judul:'Pemantik, materi, gerbang masuk, APD, cek alat',kegiatan:[],sembunyi:true},
-    {n:2,jp:4,menit:180,judul:'Kegiatan 1 jangka sorong, latihan soal 1–4',kegiatan:[1],latihan:['J1','J2','J3','J4'],praktik:9,kartu:{judul:'Kegiatan 1 jangka Sorong'}},
-    {n:3,jp:4,menit:180,judul:'Kegiatan 2 mikrometer, latihan soal 5–8',kegiatan:[2],latihan:['M1','M2','M3','M4'],praktik:4,kartu:{judul:'Kegiatan 2 mikrometer'}},
-    {n:4,jp:4,menit:180,judul:'Kegiatan 3 dial gauge dan Kegiatan 4 perawatan, latihan soal 9–10, analisis',kegiatan:[3,4],latihan:['D1','D2'],praktik:7,kartu:{judul:'Kegiatan 3 dial gauge dan 4 perawatan',per:{3:'Kegiatan 3 dial gauge',4:'Kegiatan 4 perawatan'}}},
+    {n:2,jp:4,menit:180,judul:'Kegiatan 1 jangka sorong, latihan soal 1–4',kegiatan:[1],latihan:['J1','J2','J3','J4'],praktik:25,kartu:{judul:'Kegiatan 1 jangka Sorong'}},
+    {n:3,jp:4,menit:180,judul:'Kegiatan 2 mikrometer, latihan soal 5–8',kegiatan:[2],latihan:['M1','M2','M3','M4'],praktik:20,kartu:{judul:'Kegiatan 2 mikrometer'}},
+    {n:4,jp:4,menit:180,judul:'Kegiatan 3 dial gauge dan Kegiatan 4 perawatan, latihan soal 9–10, analisis',kegiatan:[3,4],latihan:['D1','D2'],praktik:35,kartu:{judul:'Kegiatan 3 dial gauge dan 4 perawatan',per:{3:'Kegiatan 3 dial gauge',4:'Kegiatan 4 perawatan'}}},
     {n:5,jp:4,menit:180,judul:'Penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[],sembunyi:true}
    ],
    kegiatan:kegiatan,judulPendek:'Alat Ukur',
@@ -98,11 +98,11 @@
    /* Hasil aktual pada Pemeriksaan dan bukti terisi otomatis dari tabel (t = id tabel, f = kolom). Nol alat diperiksa 1 kali di awal tiap tabel (nolSekali). */
    cekAuto:{0:{t:'F1',f:'nol'},1:{t:'F1',f:'rata'},2:{t:'F2',f:'nol'},3:{t:'F2',f:'rata'},5:{t:'F3',f:'olengan'}},
    tabel:[
-    {id:'F1',k:1,nolSekali:true,judul:'F1 · Jangka sorong (mm)',cat:'Bila nol alat menyimpang, koreksi tiap bacaan: hasil benar = bacaan − penyimpangan nol (contoh: nol +0,05 dan bacaan 22,40 menjadi 22,35 mm). Standar diisi dari manual atau guru.',baris:['Diameter luar','Diameter dalam','Kedalaman'],labelBaris:'Jenis ukur',
-     kol:[{k:'benda',l:'Benda',t:'teks'},{k:'nol',l:'Nol alat',t:'num'},{k:'u1',l:'1',t:'num'},{k:'u2',l:'2',t:'num'},{k:'u3',l:'3',t:'num'},{k:'rata',l:'Rata-rata',t:'rata',dari:['u1','u2','u3']}]},
-    {id:'F2',k:2,nolSekali:true,judul:'F2 · Mikrometer (mm)',cat:'Titik 1, 2, dan 3 diambil pada tempat berbeda di sepanjang benda. Koreksi hasil dengan penyimpangan nol bila alat tidak menunjuk nol.',baris:[''],
+    {id:'F1',k:1,nolSekali:true,dec:2,judul:'F1 · Jangka sorong (mm)',cat:'Isi bacaan apa adanya. Rata-rata dihitung otomatis dan sudah dikurangi nol alat (hasil benar = bacaan − penyimpangan nol; contoh: nol +0,05 dan bacaan 22,40 menjadi 22,35 mm), dibulatkan 2 desimal. Standar diisi dari manual atau guru.',baris:['Diameter luar','Diameter dalam','Kedalaman'],labelBaris:'Jenis ukur',
      kol:[{k:'benda',l:'Benda',t:'teks'},{k:'nol',l:'Nol alat',t:'num'},{k:'u1',l:'1',t:'num'},{k:'u2',l:'2',t:'num'},{k:'u3',l:'3',t:'num'},{k:'rata',l:'Rata-rata',t:'rata',dari:['u1','u2','u3']},{k:'std',l:'Standar',t:'num'},{k:'status',l:'Status',t:'status'}]},
-    {id:'F3',k:3,judul:'F3 · Dial gauge (mm)',baris:[''],
+    {id:'F2',k:2,nolSekali:true,dec:2,judul:'F2 · Mikrometer (mm)',cat:'Titik 1, 2, dan 3 diambil pada tempat berbeda di sepanjang benda. Isi bacaan apa adanya. Rata-rata dihitung otomatis dan sudah dikurangi penyimpangan nol alat, dibulatkan 2 desimal.',baris:[''],
+     kol:[{k:'benda',l:'Benda',t:'teks'},{k:'nol',l:'Nol alat',t:'num'},{k:'u1',l:'1',t:'num'},{k:'u2',l:'2',t:'num'},{k:'u3',l:'3',t:'num'},{k:'rata',l:'Rata-rata',t:'rata',dari:['u1','u2','u3']},{k:'std',l:'Standar',t:'num'},{k:'status',l:'Status',t:'status'}]},
+    {id:'F3',k:3,dec:2,judul:'F3 · Dial gauge (mm)',baris:[''],
      kol:[{k:'benda',l:'Benda',t:'teks'},{k:'besar',l:'Terbesar',t:'num'},{k:'kecil',l:'Terkecil',t:'num'},{k:'olengan',l:'Keolengan',t:'selisih',a:'besar',b:'kecil'},{k:'batas',l:'Batas',t:'num'},{k:'status',l:'Status',t:'status'}]}
    ],
    analisis:[

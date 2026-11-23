@@ -7,7 +7,7 @@ Tambahan aditif: LKPD dan observasi lama tidak diubah. Pilot: LKPD-X-07 (Penggun
 - `js/lkpd-v2.js`: mesin v2.
 - `js/lkpd-v2-soal.js`: tipe soal isian angka (`t:'isian'`, `kunci`, `tol`).
 - `js/observasi-v2.js`: Observasi LKPD Praktik v2 (rubrik diambil dari `m.v2.obs` tiap LKPD).
-- `tools/uji-lkpd-v2.mjs`: uji tanpa peramban (`node tools/uji-lkpd-v2.mjs`, 171 uji).
+- `tools/uji-lkpd-v2.mjs`: uji tanpa peramban (`node tools/uji-lkpd-v2.mjs`, 272 uji).
 
 ## 2. Alur siswa
 Urutan tab: Materi, Lembar Kerja, Evaluasi.
@@ -22,7 +22,9 @@ Urutan tab: Materi, Lembar Kerja, Evaluasi.
 - **Langkah:** langkah bertanda saksi guru diverifikasi guru di Detail pengumpulan (`payload.v2.verif`), begitu juga paraf APD.
 - **Tabel data:** rata-rata dan selisih dihitung otomatis; kelengkapan tabel ikut nilai. Tabel F1 dan F2 memuat catatan koreksi nol (`cat` pada data tabel).
 - **Soal isian angka:** dinilai otomatis (koma atau titik, toleransi `tol`).
-- **Latihan membaca skala:** tidak lagi berlabel F4; kunci data `q0` sampai `q7` tetap.
+- **Latihan membaca skala:** dikerjakan di Lembar Kerja pada pertemuan yang memuatnya (`pertemuan[].latihan`), gambar skala tanpa label jawaban dan soal tanpa angka bacaan; kunci data `q0` sampai `q9` tetap dan soal yang sama dipakai tab Evaluasi. Pembahasan di mode Latihan ada di bagian bawah Lembar Kerja.
+- **Koreksi nol alat:** rata-rata tabel = rata-rata bacaan dikurangi nol alat (`nol`, kosong dianggap 0), dibulatkan sesuai `dec` pada data tabel (2 desimal).
+- **Syarat kirim:** semua butir K3 dicentang, dan Pemeriksaan dan bukti punya minimal satu komponen dengan hasil aktual dan Status. Pesan menyebut kolom yang kurang.
 - **Foto wajib:** memakai `m.fotoWajib` yang sudah ada.
 
 ## 3. Penilaian
@@ -139,7 +141,7 @@ Tab Evaluasi (soal latihan membaca skala) terbuka bagi siswa bila **nilai prakti
 
 
 ## Format cetak PDF LKPD (js/lkpd-format.js)
-Tombol Cetak menyusun lembar dari **data modul**, bukan dari tampilan layar, dengan format acuan PDF LKPD SMKS Medina Bandung. Uji: `node tools/uji-lkpd-format.mjs` (45 uji; `LKPD_HTML=/tmp/lkpd.html` menulis HTML cetak untuk diperiksa).
+Tombol Cetak menyusun lembar dari **data modul**, bukan dari tampilan layar, dengan format acuan PDF LKPD SMKS Medina Bandung. Uji: `node tools/uji-lkpd-format.mjs` (69 uji; `LKPD_HTML=/tmp/lkpd.html` menulis HTML cetak untuk diperiksa).
 - **Modul v2 (LKPD-X-07)**: kop sekolah, judul hijau, identitas dua kolom (alokasi waktu 5 pertemuan × 4 JP), Tujuan pembelajaran, tabel Rencana pertemuan, lalu satu banner hijau per pertemuan (`Pertemuan n · judul` dan `4 JP · target 180 menit`). Isi tiap pertemuan: pertanyaan pemantik, Materi, Gerbang masuk (PG, PG kompleks dengan kotak centang, PG kategori berupa tabel Benar/Salah, baris Skor gerbang dan Paraf guru), Alat dan bahan, K3 dan APD (paraf hanya pada butir APD), Cek kondisi alat, langkah dengan Poin kritis dan Paraf guru, tabel F1 sampai F3, Pemeriksaan dan bukti (Foto bukti hanya pada item foto wajib, Sesuai standar, Tidak sesuai, Catatan), Latihan membaca skala (Jawab dan Cara hitung), Analisis, Refleksi, Tindak lanjut, Penilaian kinerja oleh guru, baris Waktu aktual pertemuan, dan tanda tangan.
 - **Modul v1 dan LKPD buatan guru**: Tujuan, Materi, Alat dan bahan, Checklist K3, banner Prosedur praktik, Hasil pemeriksaan, Diagnosis dan analisis, Evaluasi pengetahuan, Bobot penilaian, dan tanda tangan.
 - Isian siswa dari draf tercetak pada garis isian dan kotak centang; cetakan guru, admin, dan pratinjau berupa lembar kosong. Isian di-escape.

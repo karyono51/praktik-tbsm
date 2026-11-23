@@ -513,3 +513,7 @@ fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);out
 .akd-ref summary .note{white-space:nowrap}
 .akd #akd-list{display:flex;flex-direction:column;gap:12px}
 .akd #akd-list .akd-grp{margin:2px 0 0}
+
+/* LKPD v2: kolom yang kurang setelah Kirim LKPD ditolak */
+.lk2-need{outline:2px solid #d32f2f;outline-offset:2px;border-radius:8px}
+.lk2-need select,.lk2-need input{border-color:#d32f2f}

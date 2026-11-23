@@ -1,3 +1,16 @@
+## LKPD-X-07: perbaikan dari evaluasi tim (alur siswa, waktu, nilai)
+- **Pesan Kirim LKPD menyebut kolomnya.** Bila Status pemeriksaan belum dipilih, pesan kini berbunyi mis. "Pemeriksaan dan bukti: pilih Status pada \u201cPosisi nol jangka sorong\u201d"; siswa dibawa ke tab yang tepat dan kolom yang kurang diberi garis merah (`lk2Kurang`, `LK2.tandai`, kelas `.lk2-need` di `css/app.css`).
+- **K3 wajib dicentang semua sebelum kirim** (sebelumnya lupa mencentang diam-diam memotong hingga 20 poin). Pesan menyebut nomor butir yang belum.
+- **Latihan membaca skala pindah ke Lembar Kerja**, per pertemuan (J di Pertemuan 2, M di Pertemuan 3, D di Pertemuan 4), kunci jawaban `q0` sampai `q9` tetap sama sehingga tab Evaluasi, Detail guru, dan cetak tidak berubah. Akibatnya nilai teori ikut terhitung pada kiriman pertama dan dialog kirim tidak lagi menyebut 10 soal "belum dijawab" yang memang terkunci.
+- **Gambar latihan tanpa label dan soal tanpa angka bacaan.** `skgSvg(g, true)` menggambar skala tanpa penanda jawaban (garis berimpit tidak merah, tanpa "bidal 28", "garis ke-45", "0,32 mm"). Soal latihan hanya menyebut ketelitian alat. Pembahasan, Detail guru, dan Kunci cetak tetap memakai gambar berlabel.
+- **Koreksi nol alat di hitungan otomatis.** Rata-rata F1 dan F2 kini = rata-rata bacaan dikurangi nol alat (kosong dianggap 0), dibulatkan 2 desimal (`dec:2` pada data tabel; sebelumnya tiga desimal mentah, mis. 22,417). F1 kini punya kolom Standar dan Status seperti F2 dan F3.
+- **Standar waktu pemula 25 / 20 / 20 / 15 menit (total 80 menit)** menggantikan 9 / 4 / 3 / 4 (20 menit). Menit langkah K1 4+15+6, K2 6+14, K3 8+12, K4 10+5; target Pertemuan 2, 3, 4 = 25, 20, 35. Teks rubrik Waktu mengikuti otomatis.
+- **Bawaan terbit Latihan lalu Ujian** (`tahap:true`, `mode:'ujian'` pada data X-07). Pengaturan yang sudah disimpan guru lewat Kelola LKPD tetap menang atas bawaan ini.
+- **Pembahasan mode Latihan v2 muncul di bagian bawah Lembar Kerja** (sebelumnya spanduk menjanjikan tab Evaluasi yang tidak ada pada tahap Latihan). Spanduk ikut diubah.
+- **Alarm palsu "Cek nilai" pada LKPD v2 diperbaiki.** Pemeriksaan integritas menghitung ulang nilai dengan rumus LKPD lama; kini memakai `lk2ScoreFor` (rumus v2) sehingga nilai tersimpan dan hitung ulang sama.
+- **Catatan guru tidak bocor ke siswa/kunci:** kalimat "Ubah soal bila dial gauge sekolah berbeda" dihapus dari pembahasan D1, dan tabel "Peta ke soal lama" (artefak migrasi) tidak lagi dicetak di Kunci.
+- Uji: `uji-lkpd-v2` 272, `uji-pandu-v2` 44, `uji-lkpd-format` 69, berkas baru `uji-skala-tanpa-label` 14. Tidak ada perubahan Appwrite.
+
 ## LKPD-X-07: kartu kegiatan tidak digabung
 - Aturan: **kartu kegiatan tidak boleh digabung.** Pertemuan 4 (4 JP) tetap memuat Kegiatan 3 dan 4, tetapi Lembar Kerja kini punya **4 kartu**: Kegiatan 1 jangka sorong (9 menit), Kegiatan 2 mikrometer (4), Kegiatan 3 dial gauge (3), Kegiatan 4 perawatan (4).
 - Data: `kartu:{judul, per:{3:'...',4:'...'}}` pada pertemuan yang memuat beberapa kegiatan memisahkan kartunya (`lk2Kartu`, `lk2Pisah` di `js/lkpd-v2.js`).

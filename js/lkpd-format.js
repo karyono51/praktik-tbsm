@@ -142,7 +142,7 @@ function tabelv2(m,t,d,calc){
  var rows=t.baris.map(function(lb,r){
   var c=[];KOL.forEach(function(k,j){
    var v;
-   if(k.t==='rata'||k.t==='selisih')v=calc&&calc[t.id]&&calc[t.id][r]&&typeof lk2Fmt==='function'?lk2Fmt(calc[t.id][r][k.k]):'';
+   if(k.t==='rata'||k.t==='selisih')v=calc&&calc[t.id]&&calc[t.id][r]&&typeof lk2Fmt==='function'?lk2Fmt(calc[t.id][r][k.k],t.dec):'';
    else v=d[typeof lk2K==='function'?lk2K(t.id,r,k.k):'t_'+t.id+'_'+r+'_'+k.k]||'';
    c.push('<td'+(k.t==='teks'?'':' class="k"')+'>'+E(v)+'</td>');
    if(j===0&&t.labelBaris)c.push('<td>'+E(lb)+'</td>');
@@ -165,7 +165,7 @@ function latihan(m,d,ids,nama,pertama){
  ids.forEach(function(id){
   var i=-1;(m.quiz||[]).forEach(function(q,j){if(q.id===id)i=j});if(i<0)return;
   var q=m.quiz[i],tk=String(q.q).replace(new RegExp('^'+id+'\\s*·\\s*'),'');
-  h+='<div class="lkf-q"><p><b>'+(i+1)+'.</b> '+E(tk)+'</p>'+(typeof skgBox==='function'?skgBox(q):'')+'<p>Jawab: '+fill(d['q'+i],34)+' '+E(q.u||'')+' &nbsp; Cara hitung: '+fill('',70)+'</p></div>';
+  h+='<div class="lkf-q"><p><b>'+(i+1)+'.</b> '+E(tk)+'</p>'+(typeof skgBox==='function'?skgBox(q,true):'')+'<p>Jawab: '+fill(d['q'+i],34)+' '+E(q.u||'')+' &nbsp; Cara hitung: '+fill('',70)+'</p></div>';
  });
  return h;
 }
@@ -278,7 +278,6 @@ function kunciBangun(m){
        :'<li><b>Penskoran (acuan TKA):</b> '+skor+' Nilai teori = rata-rata skor soal × 100.</li>')+
   '</ul><h2 class="lkf-h">Kunci</h2><table class="lkf-t"><thead><tr><th style="width:9mm">No</th><th style="width:22mm">Bentuk</th>'+(adaLvl?'<th style="width:20mm">Level</th>':'')+'<th style="width:26mm">Kunci</th><th>Pembahasan</th></tr></thead><tbody>'+
   qs.map(function(q,i){var t=tipeSoal(q),bahas=q.e!==undefined&&q.e!==''?q.e:(q.bahas||'');return '<tr><td class="k">'+(i+1)+'</td><td>'+E(BENTUK[t]||t)+'</td>'+(adaLvl?'<td>'+E(q.lvl||'')+'</td>':'')+'<td><b>'+kunciSoal(q)+'</b></td><td>'+E(bahas)+'</td></tr>'}).join('')+'</tbody></table>';
- if(gate&&V.peta&&V.peta.length)h+='<h2 class="lkf-h">Peta ke soal lama</h2><table class="lkf-t"><thead><tr><th>Soal lama (isian)</th><th>Soal baru</th></tr></thead><tbody>'+V.peta.map(function(x,i){return '<tr><td>'+(i+1)+'. '+E(x[0])+'</td><td>'+E(x[1])+'</td></tr>'}).join('')+'</tbody></table>';
  var lat=gate?(m.quiz||[]).filter(function(q){return q.id&&q.kunci!==undefined&&q.kunci!==null&&q.kunci!==''}):[];
  if(lat.length){
   var satuan=lat[0].u||'';

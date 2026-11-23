@@ -16,7 +16,7 @@ function skgL(x1,y1,x2,y2,c,w){return '<line x1="'+skgN(x1)+'" y1="'+skgN(y1)+'"
 function skgSvgWrap(vb,alt,inner){return '<svg viewBox="0 0 '+vb+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="'+alt+'" font-family="system-ui,Arial,sans-serif">'+inner+'</svg>'}
 
 /* ---------- Jangka sorong: skala utama di atas, nonius di bawah ---------- */
-function skgJangka(g){
+function skgJangka(g,bl){
  var N=Math.round(1/g.res),sp=(N-1)/N,len=N*sp,span=len+2,pad=10,px=(320-2*pad)/span,start=g.main-1;
  var X=function(mm){return pad+(mm-start)*px},total=g.main+g.n*g.res,x0=X(total),yb=50,h='';
  h+='<rect x="2" y="12" width="316" height="'+(yb-12)+'" rx="3" fill="'+SKG.body+'" stroke="'+SKG.mute+'"/>';
@@ -31,20 +31,20 @@ function skgJangka(g){
  var every=N/10;
  for(var k=0;k<=N;k++){
   var xk=x0+k*sp*px,long=(k%every===0);
-  h+=skgL(xk,yb,xk,yb+(long?11:7),k===g.n?SKG.red:SKG.ink,k===g.n?2:1);
+  h+=skgL(xk,yb,xk,yb+(long?11:7),(!bl&&k===g.n)?SKG.red:SKG.ink,(!bl&&k===g.n)?2:1);
   if(long)h+=skgT(xk,yb+22,k/every,{s:8.5});
  }
  /* garis berimpit: dari garis utama (main+n) ke garis nonius ke-n */
  var xc=x0+g.n*sp*px;
- h+=skgL(xc,yb-14,xc,yb+14,SKG.red,2);
+ if(!bl)h+=skgL(xc,yb-14,xc,yb+14,SKG.red,2);
  h+=skgL(x0,yb-16,x0,yb+16,SKG.blue,1.6);
  h+=skgT(x0,yb+36,'0',{s:9,c:SKG.blue,b:1});
- h+=skgT(160,112,'garis nonius ke-'+g.n+' berimpit dengan garis skala utama',{s:9,c:SKG.red,b:1});
- return skgSvgWrap('320 120','Skala jangka sorong ketelitian '+skgF(g.res)+' mm, garis nonius ke-'+g.n+' berimpit',h);
+ if(!bl)h+=skgT(160,112,'garis nonius ke-'+g.n+' berimpit dengan garis skala utama',{s:9,c:SKG.red,b:1});else h+=skgT(160,112,'Cari garis nonius yang berimpit dengan garis skala utama',{s:9,c:SKG.mute});
+ return skgSvgWrap('320 120',bl?'Skala jangka sorong ketelitian '+skgF(g.res)+' mm':'Skala jangka sorong ketelitian '+skgF(g.res)+' mm, garis nonius ke-'+g.n+' berimpit',h);
 }
 
 /* ---------- Mikrometer sekrup: selubung (kiri) dan bidal (kanan) ---------- */
-function skgMikro(g){
+function skgMikro(g,bl){
  var total=g.sel+(g.half?0.5:0)+g.bidal*0.01,px=26,xe=236,yb=68,h='';
  var X=function(mm){return xe-(total-mm)*px};
  h+='<rect x="2" y="36" width="'+(xe-2)+'" height="56" rx="3" fill="'+SKG.body+'" stroke="'+SKG.mute+'"/>';
@@ -62,10 +62,10 @@ function skgMikro(g){
   if(m5&&j!==0)h+=skgT(xe+17,y+3,((d%50)+50)%50,{s:8.5,a:'start'});
  }
  h+=skgL(xe-60,yb,xe+30,yb,SKG.red,2);
- h+=skgT(xe+36,yb-4,'bidal '+g.bidal,{s:9,a:'start',c:SKG.red,b:1});
+ if(!bl)h+=skgT(xe+36,yb-4,'bidal '+g.bidal,{s:9,a:'start',c:SKG.red,b:1});
  h+=skgT(30,104,'selubung',{s:9,c:SKG.mute});
  h+=skgT(xe+42,122,'bidal',{s:9,c:SKG.mute});
- return skgSvgWrap('320 128','Skala mikrometer: selubung '+g.sel+' mm, garis 0,5 mm '+(g.half?'terlihat':'belum terlihat')+', bidal '+g.bidal,h);
+ return skgSvgWrap('320 128',bl?'Skala mikrometer ketelitian 0,01 mm':'Skala mikrometer: selubung '+g.sel+' mm, garis 0,5 mm '+(g.half?'terlihat':'belum terlihat')+', bidal '+g.bidal,h);
 }
 
 /* ---------- Dial gauge ---------- */
@@ -83,7 +83,7 @@ function skgNeedle(cx,cy,len,deg,c,w){
  var p=skgPol(cx,cy,len,deg),t=skgPol(cx,cy,-10,deg);
  return skgL(t[0],t[1],p[0],p[1],c,w);
 }
-function skgDial(g){
+function skgDial(g,bl){
  var cx=100,cy=96,r=86,h=skgFace(cx,cy,r),sx=cx,sy=62,sr=24;
  h+='<circle cx="'+sx+'" cy="'+sy+'" r="'+sr+'" fill="#f6faf7" stroke="'+SKG.mute+'"/>';
  for(var k=0;k<10;k++){
@@ -94,6 +94,13 @@ function skgDial(g){
  h+=skgNeedle(sx,sy,sr-4,g.rev*36,SKG.blue,1.8);
  h+='<circle cx="'+sx+'" cy="'+sy+'" r="2" fill="'+SKG.blue+'"/>';
  h+=skgNeedle(cx,cy,r-14,g.b*3.6,SKG.red,2.2)+'<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="'+SKG.red+'"/>';
+ if(bl){
+  h+=skgT(206,62,'Jarum kecil (biru)',{s:10,a:'start',c:SKG.blue,b:1});
+  h+=skgT(206,78,'= putaran penuh',{s:8.5,a:'start',c:SKG.mute});
+  h+=skgT(206,110,'Jarum besar (merah)',{s:10,a:'start',c:SKG.red,b:1});
+  h+=skgT(206,125,'= per 0,01 mm',{s:8.5,a:'start',c:SKG.mute});
+  return skgSvgWrap('320 190','Dial gauge ketelitian 0,01 mm',h);
+ }
  h+=skgT(206,62,'Jarum kecil: '+g.rev,{s:10,a:'start',c:SKG.blue,b:1});
  h+=skgT(206,78,'(putaran penuh)',{s:8.5,a:'start',c:SKG.mute});
  h+=skgT(206,110,'Jarum besar:',{s:10,a:'start',c:SKG.red,b:1});
@@ -102,7 +109,7 @@ function skgDial(g){
 }
 
 /* ---------- Keolengan: dua bacaan ekstrem pada satu dial ---------- */
-function skgOlengan(g){
+function skgOlengan(g,bl){
  var cx=100,cy=96,r=86,h=skgFace(cx,cy,r),R=r-34;
  var a=skgPol(cx,cy,R,g.min*3.6),b=skgPol(cx,cy,R,g.max*3.6);
  h+='<path d="M'+skgN(a[0])+' '+skgN(a[1])+' A'+R+' '+R+' 0 0 1 '+skgN(b[0])+' '+skgN(b[1])+'" fill="none" stroke="#f9a825" stroke-width="6" stroke-linecap="round" opacity=".55"/>';
@@ -110,24 +117,26 @@ function skgOlengan(g){
  h+=skgNeedle(cx,cy,r-14,g.max*3.6,SKG.red,2.2);
  h+='<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="'+SKG.ink+'"/>';
  h+=skgT(206,60,'Terbesar',{s:10,a:'start',c:SKG.red,b:1});
- h+=skgT(206,75,skgF2(g.max)+' mm',{s:10,a:'start',c:SKG.red,b:1});
+ if(!bl)h+=skgT(206,75,skgF2(g.max)+' mm',{s:10,a:'start',c:SKG.red,b:1});
  h+=skgT(206,108,'Terkecil',{s:10,a:'start',c:SKG.blue,b:1});
- h+=skgT(206,123,skgF2(g.min)+' mm',{s:10,a:'start',c:SKG.blue,b:1});
+ if(!bl)h+=skgT(206,123,skgF2(g.min)+' mm',{s:10,a:'start',c:SKG.blue,b:1});
  h+=skgT(206,155,'Keolengan = ?',{s:10,a:'start',c:SKG.ink,b:1});
+ if(bl)return skgSvgWrap('320 190','Dial gauge ketelitian 0,01 mm dengan dua jarum: terbesar (merah) dan terkecil (biru)',h);
  return skgSvgWrap('320 190','Dial gauge dengan bacaan terbesar '+skgF2(g.max)+' mm dan terkecil '+skgF2(g.min)+' mm',h);
 }
 
-function skgSvg(g){
+/* bl=true: gambar untuk siswa tanpa label jawaban (angka dibaca dari skala). Pembahasan dan kunci memakai gambar berlabel. */
+function skgSvg(g,bl){
  if(!g)return '';
  try{
-  if(g.k==='jangka')return skgJangka(g);
-  if(g.k==='mikro')return skgMikro(g);
-  if(g.k==='dial')return skgDial(g);
-  if(g.k==='olengan')return skgOlengan(g);
+  if(g.k==='jangka')return skgJangka(g,bl);
+  if(g.k==='mikro')return skgMikro(g,bl);
+  if(g.k==='dial')return skgDial(g,bl);
+  if(g.k==='olengan')return skgOlengan(g,bl);
  }catch(e){}
  return '';
 }
-function skgBox(q){var s=q&&q.g?skgSvg(q.g):'';return s?'<div class="skg">'+s+'</div>':''}
+function skgBox(q,bl){var s=q&&q.g?skgSvg(q.g,bl):'';return s?'<div class="skg">'+s+'</div>':''}
 
 /* Tampil di bawah teks soal (isian) dan di pembahasan. */
 (function(){
@@ -135,7 +144,7 @@ function skgBox(q){var s=q&&q.g?skgSvg(q.g):'';return s?'<div class="skg">'+s+'<
   var _r=lkqRender;
   lkqRender=function(q,i,d){
    var h=_r(q,i,d);
-   if(q&&q.g){var k=h.indexOf('</b>');if(k>-1)h=h.slice(0,k+4)+skgBox(q)+h.slice(k+4)}
+   if(q&&q.g){var k=h.indexOf('</b>');if(k>-1)h=h.slice(0,k+4)+skgBox(q,true)+h.slice(k+4)}
    return h;
   };
  }
