@@ -1,3 +1,14 @@
+## LKPD-X-07 disesuaikan ke 5 pertemuan × 4 JP
+- Modul LKPD-X-07 (master V2) kini **20 JP = 5 pertemuan × 4 JP (180 menit), total 900 menit**, sebelumnya 18 JP = 6 pertemuan × 3 JP (810 menit). Sesuai Peta LKPD (X-07 20 JP) dan aturan Kelas X 4 JP per pertemuan.
+- Susunan: P1 (awal: pemantik, materi, gerbang masuk, APD, cek alat), P2 Kegiatan 1 jangka sorong, P3 Kegiatan 2 mikrometer, **P4 Kegiatan 3 dial gauge dan Kegiatan 4 perawatan (latihan 9–10 dan analisis)**, P5 (akhir: penilaian kinerja, refleksi, remedial atau pengayaan). Target praktik tetap 20 menit (10 + 4 + 6). Soal gerbang, latihan, langkah, tabel, dan rubrik tidak berubah.
+- Lembar Kerja kini 3 kartu (Kegiatan 1, Kegiatan 2, Kegiatan 3 dan 4). Kartu yang memuat dua kegiatan memberi judul tiap kegiatan, waktu aktual dicatat per kartu (`mt4` untuk Kegiatan 3 dan 4). Kunci hasil: siswa bisa mengunci P2 sampai P4; Kegiatan 3 dan 4 terkunci bersama. Keterangan penilaian guru mengikuti jumlah pertemuan (Pertemuan 2–4).
+- **Perhatian:** kunci waktu aktual `mt5` (Kegiatan 4 lama) dan `mt6` tidak dipakai lagi. LKPD-X-07 masih Draft dan belum aktif, jadi belum ada kiriman siswa yang terpengaruh; kiriman lama (bila ada) tetap terbaca tetapi `mt5` tidak tampil.
+- Uji disesuaikan: `uji-lkpd-v2` 248, `uji-lkpd-format` 68, `uji-lkpd-master` 39, `uji-pandu-v2` 42. Tidak ada perubahan Appwrite.
+
+## Peta LKPD: JP per pertemuan
+- Satu pertemuan: **Kelas X 4 JP, Kelas XI dan XII 6 JP** (`AKD_LKPD_TARGET.*.jpp`). Peta LKPD dan ekspor Excel kini menampilkan rincian pertemuan tiap LKPD (mis. `6 × 6 JP`, atau `3 × 6 JP + 1 × 4 JP (sisa)`).
+- Kelas XI semuanya pas. Kelas XII pas kecuali LKPD-XII-10 (22 JP, ada satu pertemuan 4 JP karena total 352 JP bukan kelipatan 6). Kelas X: 12 LKPD disesuaikan ke kelipatan 4 JP dengan total tetap 432 JP (X-01 16, X-03 20, X-04 16, X-05 32, X-06 20, X-07 20, X-11 16, X-12 16, X-13 28, X-17 20, X-18 8, X-24 8). Catatan penyesuaian ada pada tiap baris. Susunan modul LKPD-X-07 di aplikasi (6 pertemuan × 3 JP) tidak diubah.
+
 ## Peta LKPD: estimasi minggu dan status dirapikan
 - Estimasi minggu tiap LKPD kini dihitung dari JP dibagi JP per minggu (X 12, XI 18, XII 22) dengan dua desimal. Sebelumnya dibulatkan satu desimal sehingga total Kelas XI tampak 35,8 minggu, bukan 36. Kartu kelas di Peta LKPD kini menampilkan total minggu per kelas.
 - `AKD_LKPD_TARGET.mg` diganti `jpm` (JP per minggu) agar tidak tertukar dengan `mg` per baris (jumlah minggu).

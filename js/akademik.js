@@ -477,6 +477,7 @@ function akMapelCards(){
 
 /* ---------- Peta LKPD: matriks LKPD per kelas (hanya lihat; sumber Matriks_LKPD_TSM_Kelas_X-XII_SKKNI_revisi2.xlsx) ---------- */
 function akLkpdData(){return typeof AKD_LKPD_MATRIKS!=='undefined'?AKD_LKPD_MATRIKS:[]}
+function akPertemuan(x){var T=(typeof AKD_LKPD_TARGET!=='undefined'&&AKD_LKPD_TARGET)||{},p=T[x.kl]&&T[x.kl].jpp;if(!p)return '';var n=Math.floor(x.jp/p),r=x.jp%p;return n+' × '+p+' JP'+(r?' + 1 × '+r+' JP (sisa)':'')}
 function akLkpdPadan(k){return (typeof AKD_LKPD_PADAN!=='undefined'&&AKD_LKPD_PADAN[k])||[]}
 function akLkpdModul(id){var L=(typeof LKPD_MODULES!=='undefined'&&LKPD_MODULES)||[];for(var i=0;i<L.length;i++)if(L[i].id===id)return L[i];return null}
 function akLkpdAgg(){var o={};akLkpdData().forEach(function(x){var a=o[x.kl]=o[x.kl]||{n:0,jp:0};a.n++;a.jp+=x.jp});return o}
@@ -491,7 +492,7 @@ function akLkpdCard(x){
  var ada=pd.map(function(p){var m=akLkpdModul(p[0]);return '<div class=\"note\"><span class=\"mono\">'+esc(p[0])+'</span> '+esc(m?m.title:'(modul tidak ditemukan)')+' · '+esc(p[1])+'</div>'}).join('');
  return '<div class=\"card\"><div class=\"row sb\"><b>'+esc(x.j)+'</b><span class=\"mono note\">'+esc(x.k)+'</span></div>'+
   '<div class=\"row\">'+akPill(x.jn)+akPill(x.sm)+akPill(x.jp+' JP','ok')+akPill(x.st,'plain')+(pd.length?akPill('Ada di aplikasi','ok'):'')+'</div>'+
-  '<div class=\"note\">'+esc(x.el)+' · TP '+esc(x.tp)+' · ± '+x.mg+' minggu</div>'+
+  '<div class=\"note\">'+esc(x.el)+' · TP '+esc(x.tp)+' · ± '+x.mg+' minggu · '+akPertemuan(x)+'</div>'+
   (sk?'<div class=\"note\">'+esc(sk)+'</div>':'')+
   (pd.length?'<details><summary class=\"note\">Modul di aplikasi ('+pd.length+')</summary>'+ada+'</details>':'')+
   ((x.ct||x.us)?'<details><summary class=\"note\">Catatan dan usulan</summary>'+(x.ct?'<div class=\"note\">'+esc(x.ct)+'</div>':'')+(x.us?'<div class=\"note\">'+esc(x.us)+'</div>':'')+'</details>':'')+'</div>';
@@ -726,7 +727,7 @@ function akEkspor(){
  sh('Rombel',akKelasAll().map(function(k){return {Rombel:k.nama,Tingkat:k.tingkat,Sekolah:akSekLabel(k.sekolah),'Tahun ajaran':(akById('tahun',k.tahunId)||{}).nama||'','Wali kelas':k.waliId?akNamaUser(k.waliId):'','Jumlah siswa':akSiswaRombel(k).length,Status:k.aktif===false?'Arsip':'Aktif'}}));
  sh('Mata pelajaran',akMapelAll().map(function(m){var ind=m.induk&&akById('mapel',m.induk);return {Kode:m.kode||'','Mata pelajaran':m.nama,Produktif:akProduktif(m)?'Ya':'Tidak',Kelompok:m.kelompok,Komponen:m.komponen||'','Elemen dari':ind?ind.nama:'',Fase:m.fase||'',Tingkat:(m.tingkat||[]).join(', '),JP:m.jp||'','Unit SKKNI':(m.skkni||[]).map(akSkkniKode).join(', '),Sumber:m.sumber||'',Status:m.aktif===false?'Arsip':'Aktif'}}));
  sh('Tugas mengajar',AKD.D.tugas.filter(function(t){var k=akById('kelas',t.kelasId);return !k||akOk(k)}).map(function(t){return {Guru:akNamaUser(t.guruId),'Mata pelajaran':(akById('mapel',t.mapelId)||{}).nama||'',Rombel:(akById('kelas',t.kelasId)||{}).nama||'','Tahun ajaran':akTahunNama(t.tahunId||(akById('kelas',t.kelasId)||{}).tahunId),'JP per minggu':+t.jp||0,Status:akBerlaku(t)?'Berlaku':'Tidak berlaku'}}));
- sh('Peta LKPD',akLkpdData().map(function(x){var pd=akLkpdPadan(x.k);return {'Kode LKPD':x.k,Kelas:x.kl,Semester:x.sm,'Elemen CP':x.el,'Kode TP':x.tp,'Judul LKPD':x.j,'Jenis LKPD':x.jn,JP:x.jp,'Estimasi minggu':x.mg,'Unit SKKNI':x.sk.length?x.sk.map(akSkkniKode).join(', '):(x.skt||''),'Status matriks':x.st,'Modul di aplikasi':pd.map(function(p){return p[0]+' ('+p[1]+')'}).join('; ')}}));
+ sh('Peta LKPD',akLkpdData().map(function(x){var pd=akLkpdPadan(x.k);return {'Kode LKPD':x.k,Kelas:x.kl,Semester:x.sm,'Elemen CP':x.el,'Kode TP':x.tp,'Judul LKPD':x.j,'Jenis LKPD':x.jn,JP:x.jp,'Estimasi minggu':x.mg,Pertemuan:akPertemuan(x),'Unit SKKNI':x.sk.length?x.sk.map(akSkkniKode).join(', '):(x.skt||''),'Status matriks':x.st,'Modul di aplikasi':pd.map(function(p){return p[0]+' ('+p[1]+')'}).join('; ')}}));
  XLSX.writeFile(wb,'administrasi-akademik-'+(schKode()||'semua').toLowerCase()+'-'+ymd(Date.now())+'.xlsx');
 }
 

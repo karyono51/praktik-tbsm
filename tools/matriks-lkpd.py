@@ -6,6 +6,10 @@ src = sys.argv[1]
 wb = openpyxl.load_workbook(src, data_only=True)
 ws = wb['Matriks LKPD']
 # Status yang diketahui dari aplikasi (kolom status xlsx tidak mengikuti aplikasi)
+# JP satu pertemuan: Kelas X 4 JP, Kelas XI dan XII 6 JP
+JP_PERTEMUAN = {'X': 4, 'XI': 6, 'XII': 6}
+# Penyesuaian JP Kelas X agar kelipatan 4 JP per pertemuan (total tetap 432 JP)
+JP_SESUAI = {"LKPD-X-01": 16, "LKPD-X-03": 20, "LKPD-X-04": 16, "LKPD-X-05": 32, "LKPD-X-06": 20, "LKPD-X-07": 20, "LKPD-X-11": 16, "LKPD-X-12": 16, "LKPD-X-13": 28, "LKPD-X-17": 20, "LKPD-X-18": 8, "LKPD-X-24": 8}
 STATUS_APLIKASI = {'LKPD-X-07': 'Draft (master V2)'}
 rows = []
 for r in ws.iter_rows(min_row=6, values_only=True):
@@ -27,7 +31,12 @@ rg = wb['Ringkasan']
 target = {}
 for r in rg.iter_rows(values_only=True):
     if r[0] in ('X', 'XI', 'XII') and isinstance(r[6], (int, float)):
-        target[r[0]] = {'jp': int(r[6]), 'jpm': int(r[8])}  # jpm = JP per minggu
+        target[r[0]] = {'jp': int(r[6]), 'jpm': int(r[8]), 'jpp': JP_PERTEMUAN[r[0]]}  # jpm = JP per minggu, jpp = JP per pertemuan
+for d in rows:  # penyesuaian JP ke kelipatan JP pertemuan
+    if d['k'] in JP_SESUAI and d['jp'] != JP_SESUAI[d['k']]:
+        n = 'JP disesuaikan dari %d ke %d agar kelipatan 4 JP per pertemuan (total Kelas X tetap 432 JP).' % (d['jp'], JP_SESUAI[d['k']])
+        d['ct'] = (d['ct'] + ' ' if d.get('ct') else '') + n
+        d['jp'] = JP_SESUAI[d['k']]
 for d in rows:  # estimasi minggu dihitung dari JP agar total minggu tidak bergeser karena pembulatan
     d['mg'] = round(d['jp'] / target[d['kl']]['jpm'], 2)
 catatan = ''

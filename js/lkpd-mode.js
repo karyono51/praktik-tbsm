@@ -20,7 +20,7 @@ function lkmCfg(m){
  }
  return c;
 }
-/* Waktu LKPD. m.duration = alokasi total pembelajaran (LKPD v2: seluruh pertemuan, mis. 18 JP = 810 menit), bukan waktu satu kali mengerjakan.
+/* Waktu LKPD. m.duration = alokasi total pembelajaran (LKPD v2: seluruh pertemuan, mis. 20 JP = 900 menit), bukan waktu satu kali mengerjakan.
    Waktu satu sesi (target pewaktu dan pemeriksaan integritas) = menit per pertemuan. */
 function lkmPraktik(m){var P=m&&m.v2&&Array.isArray(m.v2.pertemuan)?m.v2.pertemuan:[];return P.reduce(function(a,p){return p&&!p.sembunyi?a+(Number(p.praktik)||0):a},0)}
 function lkmSesiMenit(m){

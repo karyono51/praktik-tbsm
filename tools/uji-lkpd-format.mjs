@@ -72,17 +72,17 @@ ok(typeof ctx.lkfBangun === 'function', 'lkfBangun tersedia');
 ok(/LEMBAR KERJA PESERTA DIDIK \(LKPD\) PRAKTIK/.test(T), 'judul lembar');
 ok(/SMKS Medina Bandung/.test(T) && /class="lkf-kop"/.test(kosong), 'kop sekolah');
 ok(/Judul\/Materi : Penggunaan dan Perawatan Alat Ukur/.test(T) && /Mata pelajaran : Dasar-Dasar Teknik Otomotif \(DDPK\)/.test(T) && /Kelas\/Semester : X \/ Ganjil 2026\/2027/.test(T) && /Fase\/Kurikulum : Fase E \/ Kurikulum Merdeka/.test(T), 'identitas kolom kiri');
-ok(/Alokasi waktu : 6 pertemuan × 3 JP \(6 × 135 menit = 810 menit\)/.test(T), 'alokasi waktu 6 x 135 = 810');
+ok(/Alokasi waktu : 5 pertemuan × 4 JP \(5 × 180 menit = 900 menit\)/.test(T), 'alokasi waktu 5 x 180 = 900');
 ok(/Nama siswa : Budi/.test(T) && /Kelas \/ Kelompok/.test(T) && /Tanggal : 21\/11\/2026/.test(T) && /Asal komponen/.test(T) && /Guru\/Instruktur : Karyono, S.T./.test(T), 'identitas kolom kanan');
 ok(/Tujuan pembelajaran Setelah menyelesaikan LKPD ini, kamu mampu:/.test(T), 'tujuan pembelajaran');
-ok(/Rencana pertemuan Pertemuan JP Menit Kegiatan 1 3 135/.test(T), 'tabel rencana pertemuan');
+ok(/Rencana pertemuan Pertemuan JP Menit Kegiatan 1 4 180/.test(T), 'tabel rencana pertemuan');
 const ban = kosong.match(/class="lkf-ban"/g) || [];
-sama(ban.length, 6, 'enam banner pertemuan');
-ok(/Pertemuan 1 · Pemantik, materi, gerbang masuk, APD, cek alat/.test(T) && /3 JP · target 135 menit/.test(T), 'banner pertemuan 1');
-ok(/Pertemuan 2 · Kegiatan 1: Jangka sorong/.test(T) && /Pertemuan 4 · Kegiatan 3: Dial gauge/.test(T) && /Pertemuan 5 · Kegiatan 4:/.test(T), 'banner pertemuan berkegiatan');
-ok(/Pertemuan 6 · /.test(T), 'banner pertemuan 6');
+sama(ban.length, 5, 'lima banner pertemuan');
+ok(/Pertemuan 1 · Pemantik, materi, gerbang masuk, APD, cek alat/.test(T) && /4 JP · target 180 menit/.test(T), 'banner pertemuan 1');
+ok(/Pertemuan 2 · Kegiatan 1: Jangka sorong/.test(T) && /Pertemuan 4 · Kegiatan 3: Dial gauge; 4: Perawatan dan penyimpanan/.test(T), 'banner pertemuan berkegiatan (Pertemuan 4 memuat Kegiatan 3 dan 4)');
+ok(/Pertemuan 5 · /.test(T), 'banner pertemuan 5');
 /* urutan bagian seperti PDF acuan */
-const urut = ['Pertanyaan pemantik', 'Materi', 'Gerbang masuk praktik', 'Alat dan bahan', 'Keselamatan dan kesehatan kerja (K3) dan APD', 'Cek kondisi alat sebelum dipakai', 'Pertemuan 2 ·', 'Tabel F1', 'Latihan membaca skala jangka sorong', 'Pertemuan 3 ·', 'Tabel F2', 'Pertemuan 4 ·', 'Tabel F3', 'Latihan membaca skala dial gauge', 'Pertemuan 5 ·', 'Analisis dan keputusan teknis', 'Pertemuan 6 ·', 'Refleksi', 'Tindak lanjut', 'Penilaian kinerja oleh guru', 'TTD'];
+const urut = ['Pertanyaan pemantik', 'Materi', 'Gerbang masuk praktik', 'Alat dan bahan', 'Keselamatan dan kesehatan kerja (K3) dan APD', 'Cek kondisi alat sebelum dipakai', 'Pertemuan 2 ·', 'Tabel F1', 'Latihan membaca skala jangka sorong', 'Pertemuan 3 ·', 'Tabel F2', 'Pertemuan 4 ·', 'Tabel F3', 'Latihan membaca skala dial gauge', 'Analisis dan keputusan teknis', 'Pertemuan 5 ·', 'Refleksi', 'Tindak lanjut', 'Penilaian kinerja oleh guru', 'TTD'];
 let pos = -1, urutOk = true; urut.forEach((u) => { const i = T.indexOf(u, pos + 1); if (i < 0) { urutOk = false; console.log('  tidak ditemukan/berurutan: ' + u); } else pos = i; });
 ok(urutOk, 'urutan bagian sama dengan PDF acuan');
 /* gerbang masuk */
@@ -104,7 +104,7 @@ ok(/1\. Jangka sorong 0,05 mm.*?Jawab:\s*mm\s+Cara hitung:/.test(T) && /4\. Jang
 ok((kosong.match(/<svg/g) || []).length === 10 && (kosong.match(/class="skg"/g) || []).length === 10, 'cetak: tiap 10 soal latihan memuat gambar skala (SVG)');
 ok(!/\b[JMD][1-4]\b/.test(T.replace(/[A-Z]\d{2}-/g, '')), 'cetak: kode soal latihan tidak tampil');
 ok(/Hitung dari soal, lalu isi hasilnya/.test(T), 'petunjuk latihan');
-sama((T.match(/Waktu aktual pertemuan \d: /g) || []).length, 6, 'baris waktu aktual 6 pertemuan');
+sama((T.match(/Waktu aktual pertemuan \d: /g) || []).length, 5, 'baris waktu aktual 5 pertemuan');
 /* penilaian */
 ok(/Persiapan dan K3/.test(T) && /Bobot Skor \(1–4\) Nilai/.test(T) && /Jumlah 100%/.test(T) && /Skor 1 pada Persiapan dan K3 berarti praktik dihentikan/.test(T), 'tabel penilaian kinerja');
 /* isi siswa dari draf tercetak, kosong untuk guru */

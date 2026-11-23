@@ -39,7 +39,7 @@ function lkkPert(m,n){return m.v2.pertemuan.filter(function(p){return p.n===n})[
 function lkkIsLockable(m,n){var p=lkkPert(m,n);return !!p&&!p.sembunyi&&(p.kegiatan||[]).length>0&&n>1&&n<lkkTotal(m)}
 function lkkLockable(m){var a=[];for(var n=1;n<=lkkTotal(m);n++)if(lkkIsLockable(m,n))a.push(n);return a}
 /* Nama pendek untuk tombol dan pesan: "Kegiatan 1" bila kartu bernama kegiatan, selain itu "Pertemuan N". */
-function lkkLabel(m,n){var p=lkkPert(m,n);return p&&p.kartu&&(p.kegiatan||[]).length?'Kegiatan '+p.kegiatan[0]:'Pertemuan '+n}
+function lkkLabel(m,n){var p=lkkPert(m,n);return p&&p.kartu&&(p.kegiatan||[]).length?'Kegiatan '+p.kegiatan.join(' dan '):'Pertemuan '+n}
 /* Peta isian -> nomor pertemuan, dari data pertemuan modul (kegiatan, latihan, judul analisis). Isian tanpa pertemuan tidak dikunci siswa. */
 function lkkKeyMap(m){
  var V=m.v2,P=V.pertemuan,mp={};

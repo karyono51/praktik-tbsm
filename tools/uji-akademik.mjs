@@ -419,6 +419,10 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   const mgOk = D.every((x) => Math.abs(x.mg - x.jp / ctx.AKD_LKPD_TARGET[x.kl].jpm) < 0.006);
   T('matriks: estimasi minggu = JP / JP per minggu (tanpa pembulatan kasar)', mgOk && ['X', 'XI', 'XII'].every((k) => Math.abs(jp(k) / ctx.AKD_LKPD_TARGET[k].jpm - D.filter((x) => x.kl === k).reduce((a, x) => a + x.mg, 0)) < 0.1));
   T('matriks: status LKPD-X-07 mengikuti aplikasi (Draft master V2)', D.find((x) => x.k === 'LKPD-X-07').st === 'Draft (master V2)');
+  const sisa = (k) => D.filter((x) => x.kl === k && x.jp % ctx.AKD_LKPD_TARGET[k].jpp).map((x) => x.k);
+  T('pertemuan: X 4 JP, XI dan XII 6 JP; total pertemuan X dan XI 108', ctx.AKD_LKPD_TARGET.X.jpp === 4 && ctx.AKD_LKPD_TARGET.XI.jpp === 6 && ctx.AKD_LKPD_TARGET.XII.jpp === 6 && jp('X') / 4 === 108 && jp('XI') / 6 === 108);
+  T('pertemuan: semua LKPD Kelas X habis dibagi 4 JP dan Kelas XI habis dibagi 6 JP; Kelas XII hanya LKPD-XII-10 yang bersisa (22 JP = 3 x 6 + 4)', sisa('X').length === 0 && sisa('XI').length === 0 && JSON.stringify(sisa('XII')) === '["LKPD-XII-10"]', [sisa('X'), sisa('XI'), sisa('XII')]);
+  T('pertemuan: teks tampil (LKPD-XII-10, LKPD-XI-02)', ctx.akPertemuan(D.find((x) => x.k === 'LKPD-XII-10')) === '3 × 6 JP + 1 × 4 JP (sisa)' && ctx.akPertemuan(D.find((x) => x.k === 'LKPD-XI-02')) === '6 × 6 JP');
   const kode = new Set(D.map((x) => x.k));
   T('padanan: semua kode padanan ada di matriks', Object.keys(ctx.AKD_LKPD_PADAN).every((k) => kode.has(k)));
   T('padanan: setiap tingkat padanan sah (tepat, sebagian, kelas beda)', Object.values(ctx.AKD_LKPD_PADAN).every((L) => L.every((p) => ['tepat', 'sebagian', 'kelas beda'].includes(p[1]))));

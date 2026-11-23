@@ -178,7 +178,7 @@ lkSubmit=function(){
 function lk2Chk(d,key,label){return '<label class="lk-check"><input type="checkbox" data-lk-check="'+key+'" '+(d[key]?'checked':'')+'><span>'+label+'</span></label>'}
 /* Waktu praktik: total semua kegiatan dibagi per kegiatan (p.praktik). Menit langkah (v2.langkah[].menit) menjumlah ke target kegiatannya. */
 function lk2PraktikTotal(V){return V.pertemuan.reduce(function(t,p){return t+(p.sembunyi?0:Number(p.praktik)||0)},0)}
-function lk2PraktikRingkas(V){var a=V.pertemuan.filter(function(p){return !p.sembunyi&&p.praktik});return a.length?' Praktik '+lk2PraktikTotal(V)+' menit ('+a.map(function(p){return (p.kegiatan.length?'K'+p.kegiatan[0]:'P'+p.n)+' '+p.praktik}).join(' + ')+').':''}
+function lk2PraktikRingkas(V){var a=V.pertemuan.filter(function(p){return !p.sembunyi&&p.praktik});return a.length?' Praktik '+lk2PraktikTotal(V)+' menit ('+a.map(function(p){return (p.kegiatan.length?'K'+p.kegiatan.join('+'):'P'+p.n)+' '+p.praktik}).join(' + ')+').':''}
 function lk2Rencana(m){
  var V=m.v2,tot=V.pertemuan.reduce(function(t,p){return t+p.menit},0),jp=V.pertemuan.reduce(function(t,p){return t+p.jp},0);
  return '<section class="card"><h2>Rencana pertemuan</h2><p class="note">'+V.pertemuan.length+' pertemuan · '+jp+' JP · '+tot+' menit.'+lk2PraktikRingkas(V)+' Ketuk satu pertemuan untuk melihat kegiatannya.</p>'+V.pertemuan.map(function(p){
@@ -242,12 +242,12 @@ function lk2Kerja(m,d){
   h+='<section class="card lk2-p"><div class="row sb"><h2>'+(kt.judul?lkEsc(kt.judul):'Pertemuan '+p.n)+'</h2><span class="pill">Target '+(p.praktik||p.menit)+' menit</span></div>'+(kt.judul?'<p class="note">Alokasi praktik '+(p.praktik||p.menit)+' dari total '+lk2PraktikTotal(V)+' menit.</p>':'<p class="note">'+lkEsc(p.judul)+'</p>');
   if(!p.kegiatan.length)h+='<p class="note">'+(p.n===1?'Isi gerbang masuk dan daftar APD di tab Materi.':'Penilaian kinerja oleh guru. Lengkapi analisis dan refleksi di bawah.')+'</p>';
   p.kegiatan.forEach(function(k){
-   h+=(kt.judul?'<h4>Langkah kerja</h4>':'<h3>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+'</h3>')+
+   h+=(kt.judul&&p.kegiatan.length<2?'<h4>Langkah kerja</h4>':'<h3>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+'</h3>')+
     V.langkah.filter(function(l){return l.k===k}).map(function(l){return lk2StepHtml(m,l.i,d)}).join('')+
     V.tabel.filter(function(t){return t.k===k}).map(function(t){return lk2TabelHtml(m,t,d,c)}).join('')+
     '<h4>Pemeriksaan dan bukti</h4>'+V.cekK.map(function(kk,i){return kk===k?lk2CekHtml(m,i,d,c):''}).join('');
   });
-  h+='<label class="f">Waktu aktual '+(kt.judul&&p.kegiatan.length?'Kegiatan '+p.kegiatan[0]:'pertemuan '+p.n)+' (menit)<input inputmode="numeric" data-lk-field="mt'+p.n+'" value="'+lkEsc(d['mt'+p.n]||'')+'"></label></section>';
+  h+='<label class="f">Waktu aktual '+(kt.judul&&p.kegiatan.length?'Kegiatan '+p.kegiatan.join(' dan '):'pertemuan '+p.n)+' (menit)<input inputmode="numeric" data-lk-field="mt'+p.n+'" value="'+lkEsc(d['mt'+p.n]||'')+'"></label></section>';
  });
  h+='<section class="card"><h2>Analisis dan keputusan teknis</h2>'+V.analisis.map(function(q,i){return '<label class="f">'+(i+1)+'. '+lkEsc(q)+'<textarea data-lk-field="ana'+i+'">'+lkEsc(d['ana'+i]||'')+'</textarea></label>'}).join('')+'</section>'+
   '<section class="card"><h2>Refleksi</h2>'+V.refleksi.map(function(q,i){return '<label class="f">'+(i+1)+'. '+lkEsc(q)+'<textarea data-lk-field="ref'+i+'">'+lkEsc(d['ref'+i]||'')+'</textarea></label>'}).join('')+'</section>'+
@@ -262,7 +262,7 @@ function lk2Eval(m,d){
   }).join(''),
   pg=(O.panduan||[]).map(function(x,i){return lk2Det('g'+i,lkEsc(x.k),'',(x.lihat?'<p><b>Yang diamati:</b> '+lkEsc(x.lihat)+'</p>':'')+(x.salah?'<p><b>Kesalahan umum:</b> '+lkEsc(x.salah)+'</p>':''))}).join('');
  return lk2EvalSoal(m,d)+
-  '<section class="card"><h2>Penilaian kinerja oleh guru</h2><p class="note">Guru menilai selama praktik (Pertemuan 2–5) dan menyaksikan langkah bertanda saksi guru. Tiap aspek diberi skor 1–4. Ketuk aspek untuk melihat poin yang dinilai dan arti tiap skor.</p>'+asp+
+  '<section class="card"><h2>Penilaian kinerja oleh guru</h2><p class="note">Guru menilai selama praktik (Pertemuan 2–'+(m.v2.pertemuan.length-1)+') dan menyaksikan langkah bertanda saksi guru. Tiap aspek diberi skor 1–4. Ketuk aspek untuk melihat poin yang dinilai dan arti tiap skor.</p>'+asp+
   '<p class="note"><b>Cara hitung:</b> nilai = jumlah dari (skor ÷ 4 × bobot), maksimum 100. Contoh: skor 3 pada Prosedur kerja (30%) memberi 3 ÷ 4 × 30 = 22,5.</p></section>'+
   '<section class="card"><h2>Syarat kompeten</h2><p class="note">Kompeten bila semua indikator di bawah tercapai, semua aspek sudah dinilai, dan skor Persiapan dan K3 bukan 1. Ketuntasan nilai mengikuti KKTP sekolah.</p><ul class="plain">'+O.indikator.map(function(x){return '<li><b>'+lkEsc(x.t)+'</b><br><small class="note">Bukti: '+lkEsc(x.bukti)+'</small></li>'}).join('')+'</ul></section>'+
   (pg?'<section class="card"><h2>Yang diamati dan kesalahan umum</h2><p class="note">Pelajari sebelum praktik agar kesalahan umum bisa dihindari.</p>'+pg+'</section>':'')+

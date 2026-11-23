@@ -31,9 +31,9 @@ Soal yang sama di dua tahap hanya menguji hafalan, jadi dipisah menurut mode yan
 - Gerbang masuk tidak menampilkan kunci atau pembahasan kepada siswa. Pembahasan hanya ada di blok "Pembahasan latihan" milik soal Evaluasi, yang kini tidak tampil di Latihan.
 
 ## 2c. Waktu: alokasi total berbeda dari waktu satu sesi
-- `duration` LKPD v2 adalah **alokasi pembelajaran total** (LKPD-X-07: 18 JP x 45 menit = 810 menit, 6 pertemuan x 135 menit), bukan waktu sekali mengerjakan.
-- Kartu dan daftar LKPD v2 kini menampilkan "18 JP · 6 pertemuan", bukan "810 menit". LKPD tanpa pertemuan tetap menampilkan menit.
-- **Pewaktu:** target = menit per pertemuan (135). Ujian: merah bila melewati 135 menit, tidak bisa dijeda. Latihan: "Perkiraan 135 menit per pertemuan · waktu bebas", tidak pernah merah.
+- `duration` LKPD v2 adalah **alokasi pembelajaran total** (LKPD-X-07: 20 JP x 45 menit = 900 menit, 5 pertemuan x 180 menit), bukan waktu sekali mengerjakan.
+- Kartu dan daftar LKPD v2 kini menampilkan "20 JP · 5 pertemuan", bukan "900 menit". LKPD tanpa pertemuan tetap menampilkan menit.
+- **Pewaktu:** target = menit per pertemuan (180). Ujian: merah bila melewati 180 menit, tidak bisa dijeda. Latihan: "Perkiraan 180 menit per pertemuan · waktu bebas", tidak pernah merah.
 - **Pemeriksaan integritas:** peringatan "dikerjakan terlalu cepat" kini membandingkan dengan waktu satu pertemuan (bukan 810 menit). Sebelumnya setiap kiriman di bawah sekitar 202 menit terkena peringatan.
 - Pewaktu adalah penghitung maju, bukan batas keras: LKPD tidak otomatis tertutup saat waktu lewat.
 
