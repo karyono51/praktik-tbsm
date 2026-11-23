@@ -366,3 +366,7 @@ Siswa menyiapkan gambar soal sesi sebelum token dirilis. Berkas baru: `js/pra-un
 ## Format cetak PDF LKPD v2 dan gerbang PG
 Nama berkas PDF `LKPD <id> <judul> <sekolah>`, tabel hanya untuk rencana pertemuan, F1 sampai F3, dan tanda tangan, soal PG/kompleks/kategori dan status tercetak sebagai kotak pilihan, unsur khusus aplikasi dibuang, nomor halaman. Gerbang masuk LKPD-X-07 berbentuk 5 soal PG (HOTS, bentuk TKA). Kolom `peran` akun jadi 64 karakter (`tools/perbesar-peran.mjs`). Rincian di `docs-LKPD-V2.md` dan `docs-PERAN-GANDA.md`.
 
+
+## Banner gradien interaktif LKPD-X-07 (tab Lembar Kerja)
+- Kepala tiap kartu pertemuan/kegiatan kini berupa banner gradien: warna mengikuti kegiatan (jangka sorong hijau, mikrometer teal, dial gauge amber, perawatan merah), cincin dan bilah progres menghitung langkah kerja yang dicentang dan berubah langsung saat dicentang, ketuk banner untuk melipat/membuka isi kartu (isian tetap tersimpan). Gerak halus mengikuti pengaturan kurangi gerak perangkat; banner tidak muncul di cetak/PDF.
+- Berkas baru: `js/lkpd-v2-banner.js` (membungkus `lk2Kerja`, tanpa mengubah kunci isian, timer, atau sinkronisasi), uji `tools/uji-lkpd-banner.mjs`. Tidak ada perubahan Appwrite atau fungsi.
