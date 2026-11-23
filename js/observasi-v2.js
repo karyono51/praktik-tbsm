@@ -10,7 +10,7 @@
    Indikator format lama (kotak centang, i<n>=1) tetap terbaca. Indikator tidak memengaruhi nilai akhir, hanya keputusan Kompeten.
    Catatan format lama (payload.nilai[id aspek] = skor 1-4 tanpa kunci l_) tetap terbaca di detail, PDF, dan Excel dengan hitungan lama:
    nilai = jumlah(skor ÷ 4 × bobot). Bila diubah, aspeknya diisi ulang dengan skala dan nilai.
-   Formulir lama dan datanya tidak diubah; PDF dan Excel untuk catatan v2 belum tersedia (gunakan Cetak). */
+   Formulir lama dan datanya tidak diubah; PDF (ob2Pdf) dan Excel (obsXls) untuk catatan v2 tersedia. */
 (function(){var st=document.createElement('style');st.textContent=
 '.ob2-opt{display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.35}'+
 '.ob2-opt b{flex:none;min-width:18px}.ob2-opt[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--onc)}'+

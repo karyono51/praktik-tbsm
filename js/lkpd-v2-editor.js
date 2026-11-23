@@ -138,7 +138,7 @@ document.addEventListener('click',function(e){
   var b='<div class="lke-qb">'+
    '<label class="f">Pertanyaan<textarea rows="3" data-lke="quiz.'+i+'.q" placeholder="Tulis pertanyaan">'+esc(q.q)+'</textarea></label>'+
    (typeof lkgBox==='function'?lkgBox(q,i,'q'):'')+
-   (q.g?'<p class="note">Gambar skala dibuat otomatis dari angka soal. Foto yang ditambahkan tampil di bawahnya.</p>':'')+
+   (q.g?'<p class="note">Gambar skala dibuat otomatis dari data gambar soal ini (siswa melihatnya tanpa label jawaban). Nilai pada gambar tidak diubah di editor; bila kunci diganti, pastikan sesuai dengan gambar. Foto yang ditambahkan tampil di bawahnya.</p>':'')+
    '<div class="two"><label class="f">Kunci jawaban (angka)<input inputmode="decimal" data-lke="quiz.'+i+'.kunci" value="'+esc(q.kunci)+'" placeholder="contoh: 45,55"></label>'+
    '<label class="f">Toleransi<input inputmode="decimal" data-lke="quiz.'+i+'.tol" value="'+esc(q.tol===undefined?'':q.tol)+'" placeholder="contoh: 0,01"></label></div>'+
    '<label class="f">Satuan (opsional)<input data-lke="quiz.'+i+'.u" value="'+esc(q.u||'')+'" placeholder="contoh: mm"></label>'+
