@@ -40,7 +40,7 @@ run(src('lkpd-v2.js'), 'v2');
 run(src('lkpd-v2-soal.js'), 'v2soal');
 run(src('lkpd-timer.js'), 'timer');
 const G = (e) => vm.runInContext(e, ctx);
-const reset = () => { for (const k of Object.keys(store)) delete store[k]; G('LKC.m={}'); };
+const reset = () => { for (const k of Object.keys(store)) delete store[k]; G('LKCT.m={}'); };
 
 const keys = G('lkcCards(LKPD_MODULES[0]).map(function(c){return c.key})');
 ok(keys.length === 4 && keys.join() === 'mt2,mt3,mtk3,mtk4', 'empat kartu kegiatan punya pewaktu sendiri: ' + keys.join());
@@ -57,7 +57,7 @@ ok(G(`lkcSecNow(${m},'mt2')`) === 90, 'Ujian: waktu dari jam dinding (90 dtk)');
 ok(G(`lkcMin(90)`) === '2' && G(`lkcMin(20)`) === '1' && G(`lkcMin(0)`) === '', 'menit dibulatkan, minimal 1, kosong bila 0');
 ok(G(`lkcRO(${m},'mt2')`) === true && G(`lkcBtn(${m},'mt2')`) === 'Selesai kegiatan', 'Ujian: kolom waktu readonly, tombol hanya Selesai');
 /* simulasi muat ulang: cache dikosongkan, waktu tetap dari penyimpanan dan jam dinding */
-G('LKC.m={}'); ctx.NOW += 30 * 1000;
+G('LKCT.m={}'); ctx.NOW += 30 * 1000;
 ok(G(`lkcGet(${m},'mt2').t0`) > 0 && G(`lkcGet(${m},'mt2').done`) === false, 'Ujian: muat ulang mempertahankan waktu mulai');
 G(`lkcGet(${m},'mt2').run=true`);
 ok(G(`lkcSecNow(${m},'mt2')`) === 120, 'Ujian: setelah muat ulang waktu tetap berjalan (120 dtk)');
@@ -85,5 +85,7 @@ G(`MODE='ujian';STAFF=true`);
 ok(G('lktLocked()') === false, 'guru/pratinjau tidak dikunci');
 const kerja = G(`lk2Kerja(${m},{})`);
 ok((kerja.match(/data-ct="/g) || []).length === 4, 'Lembar Kerja memuat empat pewaktu kartu');
+/* Regresi: LKC dipakai lkpd-cetak.js (window.LKC); pewaktu memakai LKCT agar tidak saling menimpa di peramban. */
+ok(!/\bLKC\b/.test(fs.readFileSync(path.join(root, 'js', 'lkpd-timer.js'), 'utf8')), 'pewaktu tidak memakai nama global LKC (bentrok dengan lkpd-cetak.js)');
 console.log(`\nUji pewaktu per pertemuan: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);

@@ -91,12 +91,12 @@ function lktSync(){
    Ujian (siswa): mulai otomatis saat kartu pertama diisi atau lewat Mulai; tidak bisa dijeda; berbasis jam dinding sehingga tetap berjalan
    walau halaman ditutup; berhenti hanya lewat Selesai (atau saat Kirim) dan setelah itu tidak bisa dimulai lagi. Hanya satu kartu berjalan.
    Kolom waktu terkunci (readonly) agar tidak diketik manual. Latihan: Mulai/Jeda/Lanjut bebas dan kolom boleh diedit. */
-var LKC={iv:null,m:{}};
+var LKCT={iv:null,m:{}};
 function lkcMod(){return typeof lkmCur==='function'?lkmCur():null}
 function lkcSk(m,key){return 'tbsm-lkpd-ct-'+(S.user?S.user.id:'')+'|'+m.id+'|'+key}
 function lkcGet(m,key){
- var k=lkcSk(m,key),o=LKC.m[k];
- if(!o){o={sec:0,t0:0,run:false,done:false};try{var j=JSON.parse(localStorage.getItem(k)||'null');if(j){o.sec=j.sec||0;o.t0=j.t0||0;o.done=!!j.done}}catch(e){}LKC.m[k]=o}
+ var k=lkcSk(m,key),o=LKCT.m[k];
+ if(!o){o={sec:0,t0:0,run:false,done:false};try{var j=JSON.parse(localStorage.getItem(k)||'null');if(j){o.sec=j.sec||0;o.t0=j.t0||0;o.done=!!j.done}}catch(e){}LKCT.m[k]=o}
  return o}
 function lkcSave(m,key){try{var o=lkcGet(m,key);localStorage.setItem(lkcSk(m,key),JSON.stringify({sec:o.sec,t0:o.t0,done:o.done,at:Date.now()}))}catch(e){}}
 function lkcCards(m){var out=[];if(!m||!m.v2||!m.v2.pertemuan||typeof lk2Kartu!=='function')return out;m.v2.pertemuan.forEach(function(p){if(p.sembunyi)return;lk2Kartu(m.v2,p).forEach(function(c){if(c.ks&&c.ks.length)out.push(c)})});return out}
@@ -123,20 +123,20 @@ function lkcPaint(){
  })}
 function lkcStop(m,key,fin){
  var o=lkcGet(m,key);o.sec=lkcSecNow(m,key);o.run=false;if(fin)o.done=true;lkcSave(m,key);
- if(!lkcRunning(m)&&LKC.iv){clearInterval(LKC.iv);LKC.iv=null}}
+ if(!lkcRunning(m)&&LKCT.iv){clearInterval(LKCT.iv);LKCT.iv=null}}
 function lkcStart(m,key){
  var o=lkcGet(m,key);if(o.run||o.done&&lktLocked())return false;
  var r=lkcRunning(m);if(r&&r.key!==key){if(lktLocked()){toast('Selesaikan dulu pewaktu '+(r.judul||'kartu sebelumnya'));return false}lkcStop(m,r.key,false)}
  o.run=true;if(lktLocked())o.t0=Date.now()-o.sec*1000;lkcSave(m,key);
- if(!LKC.iv)LKC.iv=setInterval(function(){var mm=lkcMod();if(!mm){clearInterval(LKC.iv);LKC.iv=null;return}lkcCards(mm).forEach(function(c){var q=lkcGet(mm,c.key);if(q.run){if(!lktLocked())q.sec++;else q.sec=lkcSecNow(mm,c.key)}});lkcPaint();if(!lkcRunning(mm)){clearInterval(LKC.iv);LKC.iv=null}},1000);
+ if(!LKCT.iv)LKCT.iv=setInterval(function(){var mm=lkcMod();if(!mm){clearInterval(LKCT.iv);LKCT.iv=null;return}lkcCards(mm).forEach(function(c){var q=lkcGet(mm,c.key);if(q.run){if(!lktLocked())q.sec++;else q.sec=lkcSecNow(mm,c.key)}});lkcPaint();if(!lkcRunning(mm)){clearInterval(LKCT.iv);LKCT.iv=null}},1000);
  return true}
 function lkcSync(){
  var m=lkcMod();if(!m||!m.v2||!m.v2.pertemuan||!document.querySelector('[data-ct]'))return;
  /* Ujian: pewaktu yang sudah dimulai tetap berjalan setelah halaman dimuat ulang. */
  lkcCards(m).forEach(function(c){var o=lkcGet(m,c.key);if(lktLocked()&&o.t0&&!o.done&&!o.run&&o.sec>0){o.run=true}});
- if(lkcRunning(m)&&!LKC.iv){var r=lkcRunning(m);var o2=lkcGet(m,r.key);o2.run=false;lkcStart(m,r.key)}
+ if(lkcRunning(m)&&!LKCT.iv){var r=lkcRunning(m);var o2=lkcGet(m,r.key);o2.run=false;lkcStart(m,r.key)}
  lkcPaint()}
-function lkcClear(m){lkcCards(m).forEach(function(c){var k=lkcSk(m,c.key);delete LKC.m[k];try{localStorage.removeItem(k)}catch(e){}});if(LKC.iv){clearInterval(LKC.iv);LKC.iv=null}}
+function lkcClear(m){lkcCards(m).forEach(function(c){var k=lkcSk(m,c.key);delete LKCT.m[k];try{localStorage.removeItem(k)}catch(e){}});if(LKCT.iv){clearInterval(LKCT.iv);LKCT.iv=null}}
 (function(){
  document.addEventListener('click',function(e){
   var b=e.target.closest('[data-act="lkc-toggle"]');if(!b)return;

@@ -1,3 +1,7 @@
+## Perbaikan: Lembar Kerja tidak bisa dibuka (bentrok nama global LKC)
+- **Penyebab:** pewaktu per pertemuan (`js/lkpd-timer.js`) dan `js/lkpd-cetak.js` sama-sama memakai variabel global `LKC`. Di peramban yang terakhir dimuat menimpa yang lain, sehingga membuka tab Lembar Kerja menimbulkan galat ("Cannot read properties of undefined") dan siswa tetap di Materi.
+- **Perbaikan:** variabel pewaktu diganti menjadi `LKCT`. Uji pewaktu mendapat pemeriksaan agar nama itu tidak dipakai lagi; diuji juga di Chromium (gerbang dijawab, Lembar Kerja terbuka, pewaktu kartu berjalan, tanpa galat).
+
 ## Editor LKPD v2: nilai gambar skala bisa diubah, kunci disamakan; Kompeten Observasi v2 mengikuti KKM
 - **Kolom nilai gambar skala di Editor** (soal isian bergambar): jangka sorong (ketelitian, skala utama, garis nonius), mikrometer (selubung, garis 0,5 mm, bidal), dial gauge (putaran, garis jarum besar), keolengan (garis terbesar dan terkecil). Gambar menampilkan bacaan hasil hitungan (`skgHitung` di `js/lkpd-skala-gambar.js`, `lkeGBox` di `js/lkpd-v2-editor.js`).
 - **Peringatan bila kunci tidak cocok dengan gambar**, dengan tombol **Samakan kunci** yang mengisi kunci dari gambar. Peringatan tidak menghalangi simpan.
