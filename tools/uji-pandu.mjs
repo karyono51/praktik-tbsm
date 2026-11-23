@@ -18,9 +18,9 @@ const listeners = [];
 const el = () => ({ style: {}, dataset: {}, appendChild() {}, setAttribute() {}, classList: { toggle() {}, contains() { return false } } });
 const ctx = vm.createContext({
   console, Math, JSON, Object, Array, Date, String, Number, isFinite, parseInt, setTimeout() {}, 
-  document: { createElement: el, head: el(), addEventListener(t, f, c) { listeners.push({ t, f, c }) } },
+  document: { createElement: el, head: el(), getElementById: (i) => ctx.__ids[i] || null, addEventListener(t, f, c) { listeners.push({ t, f, c }) } },
 });
-ctx.window = ctx; ctx.scrollTo = () => {};
+ctx.__ids = {}; ctx.window = ctx; ctx.scrollTo = () => {};
 const run = (code, name) => vm.runInContext(code, ctx, { filename: name });
 const G = (code) => run(code, 'uji');
 
@@ -204,6 +204,47 @@ G(`LKPD_MODULES.push(mk('ABCDEFGHIJKLMNOPQRSTUVWXYZ-0123456789','ujian'));LKM.ed
 klik('lkp-salin');
 ok(/^[A-Za-z0-9_-]{2,32}$/.test(G(`STORED[STORED.length-1].id`)), 'id salinan dari ID panjang tetap sah (maks 32)');
 G(`STAFF=false`); const nS = G(`STORED.length`); klik('lkp-salin'); ok(G(`STORED.length`) === nS, 'siswa tidak bisa membuat salinan');
+
+
+/* Penataan panel: bagian bernomor mengikuti mode, ringkasan efek untuk siswa */
+const bagian = (h) => [...h.matchAll(/<span class="lkp-no">(\d+)<\/span>([^<]*)<\/h4>/g)].map((x) => x[1] + ' ' + x[2]);
+reset(); G(`LKM.edit='U';LKM.d={tampil:true,mode:'ujian',maxTry:1,showKey:false,hideTeori:true,hideLangkah:true,hidePetunjuk:true,gerbang:'L',gKali:2,fotoUjian:true,pandu:true,buka:'',tutup:'',semua:false,fotoWajib:[0]}`);
+let pu = G(`lkmPanel()`);
+sama(bagian(pu), ['1 Paket dan mode', '2 Aturan Ujian', '3 Prasyarat Latihan', '4 Jadwal dan kunci pertemuan', '5 Foto bukti per komponen', '6 Terapkan dan simpan'], 'panel Ujian: enam bagian bernomor berurutan');
+G(`LKM.d.mode='latihan'`);
+let pl = G(`lkmPanel()`);
+sama(bagian(pl), ['1 Paket dan mode', '2 Aturan Latihan', '3 Jadwal dan kunci pertemuan', '4 Foto bukti per komponen', '5 Terapkan dan simpan'], 'panel Latihan: lima bagian, tanpa aturan Ujian dan prasyarat');
+ok(!/data-lkm="maxTry"|data-lkm="hideTeori"|data-lkm="gerbang"|data-lkm="fotoUjian"/.test(pl), 'panel Latihan tidak memuat kontrol khusus Ujian');
+ok(/data-lkm="showKey"/.test(pl) && /data-lkm="pandu"/.test(pl) && !/data-lkm="showKey"/.test(pu), 'kontrol khusus Latihan hanya di panel Latihan');
+ok((pu.match(/Foto bukti wajib per komponen<\/span>/g) || []).length === 0, 'label ganda di dalam bagian foto dibuang');
+for (const k of ['tampil', 'buka', 'tutup', 'semua', 'maxTry', 'hideTeori', 'hideLangkah', 'hidePetunjuk', 'fotoUjian', 'gerbang', 'gKali']) ok(new RegExp('data-lkm="' + k + '"').test(pu), 'panel Ujian tetap memuat data-lkm=' + k);
+ok(/data-act="lkm-mode" data-v="latihan"/.test(pu) && /data-act="lkm-save"/.test(pu) && /data-act="lkm-clear"/.test(pu) && /data-lkm-foto="0"/.test(pu), 'tombol Mode, Simpan, Kosongkan jadwal, dan centang foto tetap ada');
+ok(pu.indexOf('lkp-ring') < pu.indexOf('lkp-sec'), 'ringkasan berada di atas bagian bernomor');
+if (process.env.DUMP_PANEL) { fs.writeFileSync(process.env.DUMP_PANEL + '-ujian.html', pu); fs.writeFileSync(process.env.DUMP_PANEL + '-latihan.html', pl); }
+/* Ringkasan */
+let rg = G(`lkpRingkas(LKPD_MODULES[0],LKM.d)`);
+ok(/tidak terbatas|Boleh diulang/.test(rg) && /tidak masuk<\/b> Rekap/.test(rg) && /Kunci dan pembahasan: <b>tidak tampil/.test(rg), 'ringkasan Latihan');
+G(`LKM.d.mode='ujian'`);
+rg = G(`lkpRingkas(LKPD_MODULES[0],LKM.d)`);
+ok(/1 kali<\/b>; nilai <b>masuk/.test(rg) && /Disembunyikan: <b>teori, penjelasan langkah, petunjuk komponen, angka acuan/.test(rg) && /wajib pada semua 3 komponen/.test(rg) && /LKPD L<\/b>?.*KKM 2 kali berturut-turut|LKPD L, KKM 2 kali berturut-turut/.test(rg), 'ringkasan Ujian: kesempatan, disembunyikan, foto, prasyarat: ' + rg);
+G(`LKM.d.maxTry=0;LKM.d.fotoUjian=false;LKM.d.fotoWajib=[];LKM.d.gerbang='';LKM.d.hideTeori=false;LKM.d.tampil=false`);
+rg = G(`lkpRingkas(LKPD_MODULES[0],LKM.d)`);
+ok(/tidak terbatas/.test(rg) && /foto bukti: <b>opsional|Foto bukti: <b>opsional/.test(rg) && /Prasyarat latihan: <b>tidak ada/.test(rg) && /draft/.test(rg) && !/<b>teori/.test(rg), 'ringkasan Ujian longgar: tanpa batas, foto opsional, tanpa prasyarat, draft');
+/* Ringkasan hidup: berubah saat pilihan diubah, tanpa menggambar ulang panel */
+const ring = { innerHTML: '' }; ctx.__ids['lkp-ring'] = ring;
+const ubah = (nama, val, tipe) => { const t = { dataset: { lkm: nama }, type: tipe || 'checkbox', checked: val, value: val, closest: () => null }; listeners.filter((l) => l.t === 'change').forEach((l) => l.f({ target: t })); };
+G(`LKM.d.mode='ujian';LKM.d.maxTry=0;LKM.d.fotoUjian=false;renders=0`);
+ubah('fotoUjian', true);
+ok(/wajib pada semua 3 komponen/.test(ring.innerHTML) && G(`renders`) === 0, 'ringkasan diperbarui saat opsi diubah tanpa render ulang');
+ubah('maxTry', '2', 'select-one');
+ok(/2 kali<\/b>/.test(ring.innerHTML), 'ringkasan mengikuti kesempatan mengirim');
+/* Memilih prasyarat menggambar ulang panel supaya kolom Syarat nilai muncul */
+G(`renders=0`); ubah('gerbang', 'L', 'select-one');
+ok(G(`renders`) === 1 && G(`LKM.d.gerbang`) === 'L', 'memilih prasyarat: panel digambar ulang (kolom syarat nilai tampil)');
+ok(/data-lkm="gKali"/.test(G(`lkmPanel()`)), 'setelah dipilih, kolom Syarat nilai tersedia');
+G(`renders=0`); ubah('gKali', '2', 'select-one');
+ok(G(`renders`) === 0 && G(`LKM.d.gKali`) === '2', 'mengubah syarat nilai tidak perlu render ulang');
+ok(!/Isi paket<\/summary>[\s\S]*Isi paket/.test(pu), 'keterangan paket diringkas dalam bagian lipat');
 
 /* Pengiriman dikunci gerbang */
 reset(); G(`LK.module='U';LK.tab='kerja'`);

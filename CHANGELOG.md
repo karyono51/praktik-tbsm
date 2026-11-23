@@ -3,8 +3,9 @@
 ## Pembeda LKPD Latihan dan Ujian
 - **Latihan berpemandu, Ujian mandiri:** Latihan menampilkan kartu panduan dan membuka angka acuan lewat tombol Bantuan; Ujian menyembunyikan angka acuan, menampilkan kartu aturan "Ujian mandiri", dan (opsional) mewajibkan foto bukti pada semua komponen.
 - **Prasyarat Latihan sebelum Ujian (gerbang):** Ujian terbuka setelah siswa mencapai KKM pada LKPD Latihan (1 kali atau 2 kali berturut-turut). Kartu menampilkan "Siap ujian" atau "Latih lagi n/N" dengan tombol ke Latihan; siswa yang belum kompeten pada Ujian wajib berlatih lagi (remedial) sebelum mengulang. Tombol "Buat salinan Latihan dari LKPD ini" mempermudah membuat pasangan Latihan.
+- **Panel Pengaturan disusun ulang:** Ringkasan untuk siswa di atas, lalu bagian bernomor yang mengikuti mode (Aturan Latihan atau Aturan Ujian dan Prasyarat). Memilih prasyarat langsung menampilkan kolom Syarat nilai.
 - **Paket cepat:** tombol Paket Latihan dan Paket Ujian di Pengaturan LKPD (tanpa sorotan mode; paket baru tersimpan setelah Simpan pengaturan).
-- Berkas baru `js/lkpd-pandu.js`, `docs-LATIHAN-UJIAN.md`, `tools/uji-pandu.mjs` (61 uji), `tools/uji-pandu-v2.mjs` (24 uji, render v2 asli). Tidak ada perubahan Appwrite. Rincian: `docs-LATIHAN-UJIAN.md`.
+- Berkas baru `js/lkpd-pandu.js`, `docs-LATIHAN-UJIAN.md`, `tools/uji-pandu.mjs` (88 uji), `tools/uji-pandu-v2.mjs` (24 uji, render v2 asli). Tidak ada perubahan Appwrite. Rincian: `docs-LATIHAN-UJIAN.md`.
 
 ## Observasi LKPD Praktik: peringatan kelas tidak sesuai
 - Bila Kelas daftar siswa berbeda dari kelas LKPD yang dipilih (mis. LKPD-X-07 dengan Kelas XII), muncul catatan merah di bawah pilihan LKPD. Catatan tidak menghalangi penyimpanan dan ikut berubah saat kelas atau LKPD diganti. `tools/uji-lkpd-v2.mjs` kini 224 uji.

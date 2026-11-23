@@ -8,7 +8,7 @@
 (function(){var st=document.createElement('style');st.textContent=
 '.lkp-pandu{border-left:4px solid var(--ok,#1b7f3b);font-size:13.5px;line-height:1.5}.lkp-mandiri{border-left:4px solid var(--warn,#b8860b);font-size:13.5px;line-height:1.5}'+
 '.lkp-pandu ul,.lkp-mandiri ul{margin:6px 0 0;padding-left:18px}.lkp-b{display:block;margin-top:4px}.lkp-b>summary{cursor:pointer;color:var(--accent);font-size:12.5px}'+
-'.lkp-paket{display:grid;gap:6px;border:1px dashed var(--line,#ccc);border-radius:12px;padding:10px}.job .pill{white-space:normal;max-width:100%}.lkp-gate{display:grid;gap:8px;border-top:1px solid var(--line,#ddd);padding-top:10px}';
+'.lkp-paket{display:grid;gap:6px}.job .pill{white-space:normal;max-width:100%}.lkp-sec{display:grid;gap:10px;border:1px solid var(--line,#ddd);border-radius:14px;padding:12px;min-width:0}.lkp-sec>h4{display:flex;gap:8px;align-items:center;margin:0;font-size:15px}.lkp-no{flex:none;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--onc,#fff);display:inline-grid;place-items:center;font-size:12px;font-weight:700}.lkp-ring{background:var(--bg,#f4f7f4);border:1px solid var(--line,#ddd);border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.5}.lkp-ring ul{margin:6px 0 0;padding-left:18px}';
 document.head.appendChild(st)})();
 
 function lkpKkm(){return Number(S.kkm)||75}
@@ -59,19 +59,77 @@ function lkpStaffTag(m,c){
  return '<span class="pill plain">Prasyarat: '+lkEsc(r?r.title:c.gerbang)+' ≥ KKM'+(c.gKali===2?' 2× berturut-turut':'')+'</span>';
 }
 
-/* ---- Paket cepat dan panel gerbang di Pengaturan ---- */
-function lkpPaket(d){
- return '<div class="lkp-paket"><span class="label">Paket cepat</span><div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small" data-act="lkp-paket" data-v="latihan">Paket Latihan</button><button type="button" class="btn small" data-act="lkp-paket" data-v="ujian">Paket Ujian</button></div>'+
-  '<p class="note"><b>Paket Latihan:</b> boleh diulang tanpa batas, kunci dan pembahasan tampil, panduan bertahap aktif, tanpa gerbang. <b>Paket Ujian:</b> 1 kesempatan, teori, penjelasan langkah, dan petunjuk disembunyikan, kunci tidak tampil, foto bukti wajib pada semua komponen. Jadwal dan status tampil tidak diubah. Paket baru tersimpan setelah Simpan pengaturan.</p></div>';
+/* ---- Panel Pengaturan: bagian bernomor yang mengikuti mode ---- */
+function lkpSec(no,judul,sub,isi){
+ return '<section class="lkp-sec"><h4><span class="lkp-no">'+no+'</span>'+judul+'</h4>'+(sub?'<p class="note">'+sub+'</p>':'')+isi+'</section>';
 }
-function lkpPanel(m,d){
- if(d.mode==='latihan')return '<label class="lk-check"><input type="checkbox" data-lkm="pandu"'+(d.pandu!==false?' checked':'')+'><span><b>Latihan berpemandu</b><small>Kartu panduan tampil, dan angka acuan di Lembar Kerja dibuka siswa lewat tombol Bantuan.</small></span></label>';
+function lkpCek(nama,jdl,ket,on){
+ return '<label class="lk-check"><input type="checkbox" data-lkm="'+nama+'"'+(on?' checked':'')+'><span><b>'+jdl+'</b><small>'+ket+'</small></span></label>';
+}
+/* Ringkasan efek untuk siswa, dihitung dari pilihan yang sedang diatur (belum tersimpan). */
+function lkpRingkas(m,d){
+ var li=[],r=lkpFind(d.gerbang),mx=parseInt(d.maxTry,10)||0,fw=Array.isArray(d.fotoWajib)?d.fotoWajib.length:0;
+ if(d.mode==='latihan'){
+  li.push('Boleh diulang tanpa batas; nilai <b>tidak masuk</b> Rekap nilai');
+  li.push('Kunci dan pembahasan: <b>'+(d.showKey?'tampil':'tidak tampil')+'</b>');
+  li.push('Panduan bertahap dan Bantuan angka acuan: <b>'+(d.pandu!==false?'aktif':'mati')+'</b>');
+ }else{
+  li.push('Kesempatan mengirim: <b>'+(mx?mx+' kali':'tidak terbatas')+'</b>; nilai <b>masuk</b> Rekap nilai dan dikoreksi guru');
+  var h=[d.hideTeori&&'teori',d.hideLangkah&&'penjelasan langkah',d.hidePetunjuk&&'petunjuk komponen','angka acuan'].filter(Boolean);
+  li.push('Disembunyikan: <b>'+h.join(', ')+'</b>');
+  li.push('Foto bukti: <b>'+(d.fotoUjian?'wajib pada semua '+m.checks.length+' komponen':fw?'wajib pada '+fw+' komponen':'opsional')+'</b>');
+  li.push('Prasyarat latihan: <b>'+(d.gerbang?(r?lkEsc(r.title):lkEsc(d.gerbang))+', KKM '+(+d.gKali===2?'2 kali berturut-turut':'1 kali'):'tidak ada')+'</b>');
+ }
+ li.push('Status: <b>'+(d.tampil?'tampil ke siswa':'draft (disembunyikan)')+'</b>'+((d.buka||d.tutup)?'; terjadwal':''));
+ return '<ul>'+li.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>';
+}
+function lkpRingUpdate(){
+ var box=document.getElementById&&document.getElementById('lkp-ring');if(!box||!LKM.d)return;
+ var m=lkpFind(LKM.edit);if(m)box.innerHTML=lkpRingkas(m,LKM.d);
+}
+function lkpPaket(d){
+ return '<div class="lkp-paket"><div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small" data-act="lkp-paket" data-v="latihan">Paket Latihan</button><button type="button" class="btn small" data-act="lkp-paket" data-v="ujian">Paket Ujian</button></div>'+
+  '<p class="note">Mengisi semua aturan di bagian bawah sekaligus. Jadwal dan status tampil tidak diubah. Tersimpan setelah Simpan pengaturan.</p>'+
+  '<details class="lkp-b"><summary>Isi paket</summary><p class="note"><b>Latihan:</b> tanpa batas kesempatan, kunci dan pembahasan tampil, panduan aktif, tanpa prasyarat. <b>Ujian:</b> 1 kesempatan, teori, penjelasan langkah, dan petunjuk disembunyikan, kunci tidak tampil, foto bukti wajib pada semua komponen.</p></details></div>';
+}
+function lkpAturanLatihan(d){
+ return lkpCek('showKey','Tampilkan kunci dan pembahasan','Siswa bisa memeriksa jawaban soal di tab Evaluasi.',d.showKey)+
+  lkpCek('pandu','Latihan berpemandu','Kartu panduan tampil, dan angka acuan di Lembar Kerja dibuka siswa lewat tombol Bantuan.',d.pandu!==false);
+}
+function lkpAturanUjian(d){
+ var tries=[[0,'Tidak terbatas'],[1,'1 kali'],[2,'2 kali'],[3,'3 kali']].map(function(o){return '<option value="'+o[0]+'"'+(+d.maxTry===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('');
+ return '<label class="f">Kesempatan mengirim<select data-lkm="maxTry">'+tries+'</select></label>'+
+  '<span class="label">Isi yang disembunyikan</span>'+
+  lkpCek('hideTeori','Teori ringkas','Siswa tidak melihat materi teori di tab Materi.',d.hideTeori)+
+  lkpCek('hideLangkah','Penjelasan langkah prosedur','Hanya judul dan durasi langkah yang tampil.',d.hideLangkah)+
+  lkpCek('hidePetunjuk','Petunjuk komponen di Lembar Kerja','Keterangan di bawah nama komponen disembunyikan.',d.hidePetunjuk)+
+  '<p class="note">Angka acuan standar selalu disembunyikan saat Ujian. Soal evaluasi, K3, alat dan bahan tetap tampil. Pratinjau menampilkan versi siswa.</p>'+
+  lkpCek('fotoUjian','Foto bukti wajib pada semua komponen','Siswa tidak bisa mengirim sebelum semua komponen pemeriksaan punya foto.',d.fotoUjian);
+}
+function lkpPrasyarat(m,d){
  var opts=lkpMods().filter(function(x){return x.id!==m.id&&x.kelas===m.kelas&&lkmCfg(x).mode==='latihan'}).map(function(x){return '<option value="'+lkEsc(x.id)+'"'+(d.gerbang===x.id?' selected':'')+'>'+lkEsc(x.title)+' ('+lkEsc(x.id)+')</option>'}).join('');
- return '<div class="lkp-gate"><span class="label">Prasyarat Latihan sebelum Ujian</span>'+
-  '<label class="f">Ujian baru terbuka setelah siswa lulus latihan<select data-lkm="gerbang"><option value="">Tanpa gerbang</option>'+opts+'</select></label>'+
-  (d.gerbang?'<label class="f">Syarat nilai latihan (KKM '+lkpKkm()+')<select data-lkm="gKali"><option value="1"'+(+d.gKali!==2?' selected':'')+'>Mencapai KKM 1 kali</option><option value="2"'+(+d.gKali===2?' selected':'')+'>Mencapai KKM 2 kali berturut-turut</option></select></label><p class="note">Siswa yang belum kompeten pada Ujian harus lulus gerbang lagi (nilai latihan sesudah Ujian terakhir) sebelum mengulang.</p>':'<p class="note">'+(opts?'Pilih LKPD Latihan sebagai prasyarat.':'Belum ada LKPD berstatus Latihan di kelas ini.')+' Tombol di bawah membuat salinan Latihan dari LKPD ini.</p>')+
-  '<div><button type="button" class="btn small" data-act="lkp-salin">Buat salinan Latihan dari LKPD ini</button></div></div>'+
-  '<label class="lk-check"><input type="checkbox" data-lkm="fotoUjian"'+(d.fotoUjian?' checked':'')+'><span><b>Foto bukti wajib pada semua komponen (Ujian)</b><small>Siswa tidak bisa mengirim sebelum semua komponen pemeriksaan punya foto. Angka acuan standar selalu disembunyikan saat Ujian.</small></span></label>';
+ return '<label class="f">LKPD Latihan prasyarat<select data-lkm="gerbang"><option value="">Tanpa prasyarat</option>'+opts+'</select></label>'+
+  (d.gerbang?'<label class="f">Syarat nilai latihan (KKM '+lkpKkm()+')<select data-lkm="gKali"><option value="1"'+(+d.gKali!==2?' selected':'')+'>Mencapai KKM 1 kali</option><option value="2"'+(+d.gKali===2?' selected':'')+'>Mencapai KKM 2 kali berturut-turut</option></select></label><p class="note">Siswa yang belum kompeten pada Ujian harus lulus prasyarat lagi (nilai latihan sesudah Ujian terakhir) sebelum mengulang.</p>':'<p class="note">'+(opts?'Pilih LKPD Latihan sebagai prasyarat.':'Belum ada LKPD berstatus Latihan di kelas ini.')+'</p>')+
+  '<div><button type="button" class="btn small" data-act="lkp-salin">Buat salinan Latihan dari LKPD ini</button></div>';
+}
+/* Label bawaan di dalam panel lama diganti judul bagian bernomor. */
+function lkpTanpaLabel(h){return String(h||'').replace(/^<div><span class="label">[^<]*<\/span>/,'<div>')}
+function lkpLayout(m,d){
+ var n=0,no=function(){return ++n},uj=d.mode==='ujian',
+  mode='<div><span class="label">Mode</span><div class="seg" role="group" aria-label="Mode LKPD"><button type="button" data-act="lkm-mode" data-v="latihan" aria-pressed="'+(d.mode==='latihan')+'">Latihan</button><button type="button" data-act="lkm-mode" data-v="ujian" aria-pressed="'+uj+'">Ujian</button></div></div>'+
+  '<p class="note">'+(uj?'Ujian: nilai masuk Rekap nilai dan dikoreksi guru. Gunakan Paket Ujian untuk mengisi aturan standar.':'Latihan: siswa boleh mengulang tanpa batas. Nilai tidak masuk Rekap nilai.')+'</p>',
+  h='<section class="card" id="lkm-panel"><div class="row sb"><h3 class="grow">Pengaturan: '+lkEsc(m.title)+'</h3><button type="button" class="btn small" data-act="lkm-cancel">Batal</button></div>'+
+  '<div class="lkp-ring"><b>Ringkasan untuk siswa</b><div id="lkp-ring">'+lkpRingkas(m,d)+'</div></div>';
+ h+=lkpSec(no(),'Paket dan mode','',lkpPaket(d)+lkpCek('tampil','Tampilkan ke siswa','Matikan untuk menyembunyikan LKPD (jadi draft).',d.tampil)+mode);
+ h+=uj?lkpSec(no(),'Aturan Ujian','',lkpAturanUjian(d))+lkpSec(no(),'Prasyarat Latihan','Ujian baru terbuka setelah siswa lulus latihan. Berbeda dengan Gerbang masuk soal di dalam LKPD.',lkpPrasyarat(m,d))
+  :lkpSec(no(),'Aturan Latihan','',lkpAturanLatihan(d));
+ var jadwal='<div class="two"><label class="f">Dibuka (opsional)<input type="datetime-local" data-lkm="buka" value="'+lkEsc(d.buka)+'"></label><label class="f">Ditutup (opsional)<input type="datetime-local" data-lkm="tutup" value="'+lkEsc(d.tutup)+'"></label></div>'+
+  '<div><button type="button" class="btn small" data-act="lkm-clear">Kosongkan jadwal</button></div>'+(typeof lkkPanel==='function'?lkpTanpaLabel(lkkPanel(m,d)):'');
+ h+=lkpSec(no(),'Jadwal dan kunci pertemuan','',jadwal);
+ h+=lkpSec(no(),'Foto bukti per komponen','Dipakai di Latihan maupun Ujian. Pada Ujian, opsi foto semua komponen di bagian Aturan Ujian menambah daftar ini.',lkpTanpaLabel(lkmFotoPanel(m,d)));
+ h+=lkpSec(no(),'Terapkan dan simpan','',lkpCek('semua','Terapkan mode, kesempatan, dan pembahasan ke semua LKPD '+lkEsc(lkcKelasInfo(S.kelas).judul),'Status tampil, jadwal, dan prasyarat tidak ikut diubah.',d.semua)+
+  '<div class="row"><button type="button" class="btn" data-act="lkm-cancel">Batal</button><button type="button" class="btn primary grow" data-act="lkm-save">Simpan pengaturan</button></div>');
+ return h+'</section>';
 }
 function lkpSalinId(base){
  var b=String(base).replace(/-L\d*$/,'').slice(0,28),id=b+'-L',n=2;
@@ -105,6 +163,13 @@ document.addEventListener('click',function(e){
  if(a==='lkp-paket'&&LKM.d){lkpTerapkanPaket(LKM.d,b.dataset.v);render();toast((b.dataset.v==='latihan'?'Paket Latihan':'Paket Ujian')+' diterapkan. Periksa lalu Simpan pengaturan.')}
  else if(a==='lkp-salin')lkpSalin();
 },true);
+
+/* Dipasang setelah pendengar lkpd-mode.js, jadi LKM.d sudah diperbarui saat ini dijalankan. */
+document.addEventListener('change',function(e){
+ var t=e.target;if(!LKM.d||!t||!t.dataset)return;
+ if(t.dataset.lkm==='gerbang'){render();return}
+ if(t.dataset.lkm!==undefined||t.dataset.lkmFoto!==undefined)lkpRingUpdate();
+});
 
 /* ---- Tampilan siswa: Latihan berpemandu ---- */
 function lkpPanduKartu(){

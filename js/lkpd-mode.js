@@ -67,21 +67,7 @@ function lkListView(){
 /* ---- Panel pengaturan (guru dan admin) ---- */
 function lkmPanel(){
  var d=LKM.d,m=LKPD_MODULES.find(function(x){return x.id===LKM.edit});if(!m||!d)return '';
- var tries=[[0,'Tidak terbatas'],[1,'1 kali'],[2,'2 kali'],[3,'3 kali']].map(function(o){return '<option value="'+o[0]+'"'+(+d.maxTry===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('');
- var info=d.mode==='latihan'?'Latihan: siswa boleh mengulang tanpa batas. Nilai tidak masuk Rekap nilai.':'Ujian: nilai masuk Rekap nilai dan dikoreksi guru.'+(+d.maxTry?' Pengiriman dibatasi '+(+d.maxTry)+' kali per siswa.':'');
- return '<section class="card" id="lkm-panel"><div class="row sb"><h3 class="grow">Pengaturan: '+lkEsc(m.title)+'</h3><button type="button" class="btn small" data-act="lkm-cancel">Batal</button></div>'+
-  (typeof lkpPaket==='function'?lkpPaket(d):'')+
-  '<label class="lk-check"><input type="checkbox" data-lkm="tampil"'+(d.tampil?' checked':'')+'><span><b>Tampilkan ke siswa</b><small>Matikan untuk menyembunyikan LKPD (jadi draft).</small></span></label>'+
-  '<div><span class="label">Mode</span><div class="seg" role="group" aria-label="Mode LKPD"><button type="button" data-act="lkm-mode" data-v="latihan" aria-pressed="'+(d.mode==='latihan')+'">Latihan</button><button type="button" data-act="lkm-mode" data-v="ujian" aria-pressed="'+(d.mode==='ujian')+'">Ujian</button></div></div>'+
-  '<p class="note">'+lkEsc(info)+'</p>'+
-  (d.mode==='ujian'?'<label class="f">Kesempatan mengirim<select data-lkm="maxTry">'+tries+'</select></label><span class="label">Isi yang disembunyikan saat Ujian</span>'+[['hideTeori','Teori ringkas','Siswa tidak melihat materi teori di tab Materi.'],['hideLangkah','Penjelasan langkah prosedur','Hanya judul dan durasi langkah yang tampil.'],['hidePetunjuk','Petunjuk komponen di Lembar Kerja','Keterangan di bawah nama komponen disembunyikan.']].map(function(o){return '<label class="lk-check"><input type="checkbox" data-lkm="'+o[0]+'"'+(d[o[0]]?' checked':'')+'><span><b>'+o[1]+'</b><small>'+o[2]+'</small></span></label>'}).join('')+'<p class="note">Soal evaluasi, K3, alat dan bahan, serta lembar kerja tetap tampil. Pratinjau menampilkan versi siswa.</p>':'<label class="lk-check"><input type="checkbox" data-lkm="showKey"'+(d.showKey?' checked':'')+'><span><b>Tampilkan kunci dan pembahasan</b><small>Siswa bisa memeriksa jawaban soal di tab Evaluasi.</small></span></label>')+
-  (typeof lkpPanel==='function'?lkpPanel(m,d):'')+
-  (typeof lkkPanel==='function'?lkkPanel(m,d):'')+
-  lkmFotoPanel(m,d)+
-  '<div class="two"><label class="f">Dibuka (opsional)<input type="datetime-local" data-lkm="buka" value="'+lkEsc(d.buka)+'"></label><label class="f">Ditutup (opsional)<input type="datetime-local" data-lkm="tutup" value="'+lkEsc(d.tutup)+'"></label></div>'+
-  '<div><button type="button" class="btn small" data-act="lkm-clear">Kosongkan jadwal</button></div>'+
-  '<label class="lk-check"><input type="checkbox" data-lkm="semua"'+(d.semua?' checked':'')+'><span><b>Terapkan mode, kesempatan, dan pembahasan ke semua LKPD '+lkEsc(lkcKelasInfo(S.kelas).judul)+'</b><small>Status tampil dan jadwal tidak ikut diubah.</small></span></label>'+
-  '<div class="row"><button type="button" class="btn" data-act="lkm-cancel">Batal</button><button type="button" class="btn primary grow" data-act="lkm-save">Simpan pengaturan</button></div></section>';
+ return lkpLayout(m,d);/* penataan bagian bernomor ada di lkpd-pandu.js */
 }
 function lkmFotoPanel(m,d){
  var w=Array.isArray(d.fotoWajib)?d.fotoWajib:[];

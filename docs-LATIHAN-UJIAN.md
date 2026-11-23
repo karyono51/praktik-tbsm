@@ -1,6 +1,12 @@
 # Pembeda LKPD mode Latihan dan mode Ujian
 
-Berkas: `js/lkpd-pandu.js` (logika baru), pengait kecil di `js/lkpd-mode.js`, `js/lkpd-staff.js`, `js/lkpd-editor.js`, `js/lkpd-drive.js`. Uji: `node tools/uji-pandu.mjs` (logika, 61 uji) dan `node tools/uji-pandu-v2.mjs` (render LKPD v2 asli dan daftar kartu, 24 uji). Tidak ada perubahan Appwrite: pengaturan baru disimpan pada objek LKPD seperti pengaturan mode yang sudah ada.
+Berkas: `js/lkpd-pandu.js` (logika baru), pengait kecil di `js/lkpd-mode.js`, `js/lkpd-staff.js`, `js/lkpd-editor.js`, `js/lkpd-drive.js`. Uji: `node tools/uji-pandu.mjs` (logika dan panel, 88 uji) dan `node tools/uji-pandu-v2.mjs` (render LKPD v2 asli dan daftar kartu, 24 uji). Tidak ada perubahan Appwrite: pengaturan baru disimpan pada objek LKPD seperti pengaturan mode yang sudah ada.
+
+## 0. Susunan panel Pengaturan
+Panel kini terdiri dari **Ringkasan untuk siswa** (daftar efek pilihan saat ini, ikut berubah saat opsi diubah) lalu bagian bernomor yang mengikuti mode:
+- **Mode Ujian:** 1 Paket dan mode, 2 Aturan Ujian (kesempatan, isi disembunyikan, foto semua komponen), 3 Prasyarat Latihan, 4 Jadwal dan kunci pertemuan, 5 Foto bukti per komponen, 6 Terapkan dan simpan.
+- **Mode Latihan:** 1 Paket dan mode, 2 Aturan Latihan (kunci dan pembahasan, berpemandu), 3 Jadwal dan kunci pertemuan, 4 Foto bukti per komponen, 5 Terapkan dan simpan.
+Kontrol khusus Ujian tidak tampil saat Latihan, dan sebaliknya. Memilih LKPD prasyarat langsung memunculkan kolom Syarat nilai.
 
 ## 1. Latihan berpemandu, Ujian mandiri
 - **Latihan** (opsi guru "Latihan berpemandu", bawaan aktif): tab Lembar Kerja diawali kartu panduan hijau. Petunjuk komponen dan poin kritis langkah tampil penuh. Angka acuan standar tidak langsung tampak: siswa membukanya lewat tombol **Bantuan: lihat angka acuan** setelah mencoba sendiri.
