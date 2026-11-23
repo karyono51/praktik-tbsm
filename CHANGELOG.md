@@ -1,3 +1,9 @@
+## Editor LKPD v2: nilai gambar skala bisa diubah, kunci disamakan; Kompeten Observasi v2 mengikuti KKM
+- **Kolom nilai gambar skala di Editor** (soal isian bergambar): jangka sorong (ketelitian, skala utama, garis nonius), mikrometer (selubung, garis 0,5 mm, bidal), dial gauge (putaran, garis jarum besar), keolengan (garis terbesar dan terkecil). Gambar menampilkan bacaan hasil hitungan (`skgHitung` di `js/lkpd-skala-gambar.js`, `lkeGBox` di `js/lkpd-v2-editor.js`).
+- **Peringatan bila kunci tidak cocok dengan gambar**, dengan tombol **Samakan kunci** yang mengisi kunci dari gambar. Peringatan tidak menghalangi simpan.
+- **Keputusan Kompeten di Observasi v2** kini juga mensyaratkan nilai akhir minimal KKM (`S.kkm`); catatan lama tidak berubah karena menyimpan hasilnya sendiri.
+- Uji baru `uji-editor-gambar` (20 pemeriksaan, termasuk 10 kunci X-07 sama dengan hitungan gambar). Uji lain tetap lulus. Tidak ada perubahan Appwrite.
+
 ## LKPD v2: pewaktu per pertemuan, bilah bawah ringkas, Detail guru dilipat
 - **Pewaktu per kartu pertemuan (LKPD v2).** Pewaktu tunggal di bilah bawah diganti pewaktu di tiap kartu Lembar Kerja (`lkcRow`, `lkc*` di `js/lkpd-timer.js`); LKPD lama tetap memakai pewaktu tunggal. Pewaktu mengisi kolom "Waktu aktual" otomatis (menit, dibulatkan, minimal 1) dan jumlah semua kartu menjadi waktu kiriman (`lktSec`).
   - **Ujian: waktu tidak bisa dijeda.** Mulai lewat tombol atau otomatis saat kartu diisi; berbasis jam dinding sehingga tetap berjalan walau halaman ditutup atau dimuat ulang; hanya satu kartu berjalan; berhenti lewat Selesai (setelah itu tidak bisa dimulai lagi) atau saat Kirim. Kolom waktu terkunci (readonly) agar tidak diketik manual. Pewaktu tiap pertemuan terpisah, jadi jam dinding tidak lagi terus berjalan lintas hari.

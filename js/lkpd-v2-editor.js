@@ -138,7 +138,7 @@ document.addEventListener('click',function(e){
   var b='<div class="lke-qb">'+
    '<label class="f">Pertanyaan<textarea rows="3" data-lke="quiz.'+i+'.q" placeholder="Tulis pertanyaan">'+esc(q.q)+'</textarea></label>'+
    (typeof lkgBox==='function'?lkgBox(q,i,'q'):'')+
-   (q.g?'<p class="note">Gambar skala dibuat otomatis dari data gambar soal ini (siswa melihatnya tanpa label jawaban). Nilai pada gambar tidak diubah di editor; bila kunci diganti, pastikan sesuai dengan gambar. Foto yang ditambahkan tampil di bawahnya.</p>':'')+
+   (q.g&&typeof lkeGBox==='function'?lkeGBox(q,i):'')+
    '<div class="two"><label class="f">Kunci jawaban (angka)<input inputmode="decimal" data-lke="quiz.'+i+'.kunci" value="'+esc(q.kunci)+'" placeholder="contoh: 45,55"></label>'+
    '<label class="f">Toleransi<input inputmode="decimal" data-lke="quiz.'+i+'.tol" value="'+esc(q.tol===undefined?'':q.tol)+'" placeholder="contoh: 0,01"></label></div>'+
    '<label class="f">Satuan (opsional)<input data-lke="quiz.'+i+'.u" value="'+esc(q.u||'')+'" placeholder="contoh: mm"></label>'+
@@ -401,3 +401,46 @@ document.addEventListener('click',function(e){
   return I;
  };
 })();
+
+/* ---------- Nilai gambar skala (LKPD v2) ---------- */
+var LKE_GF={
+ jangka:[['res','Ketelitian (mm)','sel',[['0.05','0,05'],['0.02','0,02']]],['main','Skala utama (mm)'],['n','Garis nonius berimpit']],
+ mikro:[['sel','Selubung (mm)'],['half','Garis 0,5 mm terlihat','sel',[['1','Ya'],['0','Tidak']]],['bidal','Bidal (0-49)']],
+ dial:[['rev','Putaran jarum kecil'],['b','Garis jarum besar (0-99)']],
+ olengan:[['max','Garis terbesar'],['min','Garis terkecil']]
+};
+function lkeGBox(q,i){
+ var g=q.g,f=LKE_GF[g&&g.k];
+ if(!f)return '';
+ var h='<div class="card" style="gap:6px"><b>Nilai pada gambar skala</b><div class="two">'+f.map(function(x){
+  var v=g[x[0]];
+  if(x[2]==='sel'){
+   var cur=x[0]==='half'?(v?'1':'0'):String(v);
+   return '<label class="f">'+x[1]+'<select data-lkg="'+i+'.'+x[0]+'">'+x[3].map(function(o){return '<option value="'+o[0]+'"'+(o[0]===cur?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label>';
+  }
+  return '<label class="f">'+x[1]+'<input inputmode="numeric" data-lkg="'+i+'.'+x[0]+'" value="'+esc(v===undefined?'':v)+'"></label>';
+ }).join('')+'</div>';
+ var hit=typeof skgHitung==='function'?skgHitung(g):NaN,kn=lkeNum(q.kunci);
+ if(isFinite(hit)){
+  h+='<p class="note">Gambar menunjukkan <b>'+String(hit).replace('.',',')+' mm</b>. Siswa melihatnya tanpa label jawaban.</p>';
+  if(!isFinite(kn)||Math.abs(kn-hit)>0.0000001)h+='<div class="lke-qerr">Kunci jawaban tidak cocok dengan gambar ('+String(hit).replace('.',',')+' mm). <button type="button" class="btn small" data-lke-a="q-samakan" data-i="'+i+'">Samakan kunci</button></div>';
+ }else h+='<div class="lke-qerr">Data gambar belum lengkap atau bukan angka.</div>';
+ return h+'</div>';
+}
+document.addEventListener('change',function(e){
+ var t=e.target,p=t.dataset&&t.dataset.lkg;
+ if(!p||!LK.editor||!LK.editor.S)return;
+ var a=p.split('.'),q=LK.editor.S.quiz[+a[0]],f=a[1];
+ if(!q||!q.g)return;
+ if(f==='half')q.g.half=t.value==='1';
+ else if(f==='res')q.g.res=Number(t.value);
+ else{var v=lkeNum(t.value);if(isFinite(v))q.g[f]=v}
+ lkeRe();
+});
+document.addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-lke-a="q-samakan"]');
+ if(!b||!LK.editor||!LK.editor.S)return;
+ var q=LK.editor.S.quiz[+b.dataset.i],h=q&&q.g?skgHitung(q.g):NaN;
+ if(!isFinite(h))return;
+ q.kunci=h;lkeRe();
+});

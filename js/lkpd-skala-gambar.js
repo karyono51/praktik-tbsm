@@ -136,6 +136,17 @@ function skgSvg(g,bl){
  }catch(e){}
  return '';
 }
+/* Bacaan (mm) yang ditunjukkan gambar; dipakai Editor untuk memeriksa dan menyamakan kunci jawaban. NaN bila data gambar tidak lengkap. */
+function skgHitung(g){
+ if(!g)return NaN;
+ var n=function(v){return typeof v==='number'&&isFinite(v)?v:NaN},r;
+ if(g.k==='jangka')r=n(g.main)+n(g.n)*n(g.res);
+ else if(g.k==='mikro')r=n(g.sel)+(g.half?0.5:0)+n(g.bidal)*0.01;
+ else if(g.k==='dial')r=n(g.rev)+n(g.b)*0.01;
+ else if(g.k==='olengan')r=(n(g.max)-n(g.min))/100;
+ else r=NaN;
+ return Math.round(r*100)/100;
+}
 function skgBox(q,bl){var s=q&&q.g?skgSvg(q.g,bl):'';return s?'<div class="skg">'+s+'</div>':''}
 
 /* Tampil di bawah teks soal (isian) dan di pembahasan. */
