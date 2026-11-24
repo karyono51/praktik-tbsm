@@ -179,3 +179,6 @@ Soal gerbang masuk dapat diedit penuh di Editor LKPD (`js/lkpd-v2-editor.js`), t
 - Pemeriksaan sebelum simpan (daftar masalah editor): pertanyaan, jumlah pilihan, kunci, pembahasan, level, dan minimal 3 soal; pesan berawalan "Gerbang masuk no. N".
 - Saat simpan, pilihan dan pernyataan kosong dibuang dan kunci mengikuti pilihan yang sama; soal yang tidak diubah tersimpan identik dengan aslinya. Hasil menjadi `v2.gate.qs`, sehingga **Cetak kunci**, penilaian gerbang (KKM), dan daftar periksa master otomatis mengikuti.
 - Catatan: jawaban siswa yang sudah tersimpan mengikuti nomor soal, jadi ubah soal gerbang sebelum LKPD dipakai siswa. Hanya Guru dan Admin.
+
+## LKPD-XI-18 (Transmisi dan CVT)
+Modul v2 kedua, dibuat dari struktur master LKPD-X-07. Berkas `js/lkpd-v2-xi18.js`, uji `node tools/uji-lkpd-xi18.mjs`. 6 pertemuan x 6 JP (270 menit); target praktik tiap kegiatan = jumlah menit langkahnya (K1 115, K2 85, K3 75, K4 55). Soal latihan T1 sampai T8 memakai isian angka; T8 memakai gambar keolengan (`g:{k:'olengan'}`). Standar, batas pakai, torsi, dan oli tidak diisi dan harus diisi guru dari manual servis. Status Draft: terbitkan lewat tombol Terbitkan setelah diperiksa.

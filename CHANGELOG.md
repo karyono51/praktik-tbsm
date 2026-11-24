@@ -1,3 +1,10 @@
+## LKPD v2: modul LKPD-XI-18 (Perawatan dan Perbaikan Sistem Transmisi, termasuk CVT), Draft
+- Berkas data baru `js/lkpd-v2-xi18.js` (dimuat setelah `lkpd-v2-x07.js`), Kelas XI Genap, TP XI.3.2, 36 JP = 6 pertemuan x 6 JP (270 menit). Pertemuan 1 (materi, gerbang masuk, APD) dan 6 (penilaian, refleksi) tanpa praktik; Kegiatan 1 transmisi manual, 2 V-belt dan roller CVT, 3 puli sekunder dan kopling sentrifugal, 4 perakitan dan uji fungsi masing-masing satu pertemuan dan satu kartu (tidak digabung).
+- Isi: gerbang masuk 5 soal (3 PG, 1 PG kompleks, 1 PG kategori; Aplikasi/Penalaran), 8 soal latihan isian berkunci (rasio gigi, rasio total, penyusutan belt, rasio CVT, rata-rata kampas, pegas, berat roller, keolengan puli), tabel F1 sampai F3 dengan 3 pengukuran, 8 komponen Pemeriksaan dan bukti, 10 butir K3 (4 APD), rubrik 6 aspek berbobot 100 dengan K3 sebagai aspek penghenti, 8 indikator.
+- Angka spesifikasi (standar, batas pakai, torsi, jenis dan jumlah oli) sengaja kosong: guru mengisinya dari manual servis. Rujukan SKKNI unit 027 dan 051 hanya usulan, perlu diverifikasi. Status Draft, tidak aktif; guru menerbitkan setelah diperiksa.
+- `js/akademik-data.js`: padanan `LKPD-XI-18` dan status matriks menjadi Draft (V2). `index.html` dan `service-worker.js` dirilis ulang (`node tools/rilis.mjs`). Tidak ada perubahan Appwrite.
+- Uji baru `tools/uji-lkpd-xi18.mjs` (55 uji: 14 butir master, hitungan kunci, menit langkah, rubrik); `tools/uji-lkpd-semua.mjs` kini memeriksa cetak dan kunci untuk X-07 dan XI-18 (56 uji).
+
 ## LKPD v2: ukuran huruf judul LKPD, Foto tambahan, dan Pembahasan latihan disamakan
 - Judul LKPD (mis. "Penggunaan dan Perawatan Alat Ukur ..."), **Foto tambahan**, dan **Pembahasan latihan** kini 17 px, sama dengan judul banner (`.lk-h2s` di `css/app.css`). Tidak ada perubahan Appwrite.
 
