@@ -74,7 +74,7 @@ function lkaView(){
   }).join(''):'<p class="muted">Tidak ada data soal yang bisa dihitung.</p>')+'</section>';
  h+='<section class="card"><h3>Langkah prosedur</h3><p class="note">Persentase siswa yang menyelesaikan.</p>'+s.steps.map(function(x){return lkaBar((x.i+1)+'. '+lkaCut(x.name,70),x.pct)}).join('')+'</section>'+
   '<section class="card"><h3>Checklist K3</h3>'+s.safe.map(function(x){return lkaBar((x.i+1)+'. '+lkaCut(x.name,70),x.pct)}).join('')+'</section>'+
-  '<section class="card"><h3>Komponen pemeriksaan</h3><p class="note">Terisi lengkap (centang dan hasil aktual).</p>'+s.checks.map(function(x){return lkaBar((x.i+1)+'. '+lkaCut(x.name,70),x.pct)}).join('')+lkaBar('Analisis (bukti, penyebab, kesimpulan)',s.ana)+'</section>';
+  '<section class="card"><h3>Komponen pemeriksaan</h3><p class="note">Terisi lengkap (hasil aktual dan status).</p>'+s.checks.map(function(x){return lkaBar((x.i+1)+'. '+lkaCut(x.name,70),x.pct)}).join('')+lkaBar('Analisis (bukti, penyebab, kesimpulan)',s.ana)+'</section>';
  h+='<section class="card"><h3>Perlu remedial (nilai di bawah '+s.kk+')</h3>'+(s.low.length?s.low.map(function(x){return '<div class="row sb"><span>'+lkEsc(x.r.siswa||'-')+'</span><b class="mono">'+x.r.score+'</b></div>'}).join(''):'<p class="muted">Semua siswa mencapai KKM.</p>')+'</section>'+lkaBelum(s);
  return h;
 }

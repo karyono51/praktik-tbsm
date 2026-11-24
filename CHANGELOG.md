@@ -1,3 +1,8 @@
+## LKPD: ceklis "Sudah terisi" pada Pemeriksaan dan bukti dihapus
+- `js/lkpd.js`: kolom **Terisi** (kartu "Sudah terisi" di HP) pada tabel Hasil pemeriksaan dihapus. `lkRowOk` kini menganggap komponen terisi bila **Hasil aktual berisi dan Status dipilih** (bukan "Belum diperiksa"), sama dengan aturan LKPD v2 (`lk2Simpan` sudah menurunkan `row<i>` dari dua isian itu). Penghitung Periksa, syarat kirim, dan Analisis memakai aturan yang sama; draf lama yang hanya diceklis tanpa Status dihitung belum terisi.
+- `js/lkpd-analisis.js`: keterangan "Terisi lengkap (centang dan hasil aktual)" menjadi "(hasil aktual dan status)".
+- Uji: xi18 100, v2 277, master 39, format 69, semua 83, cetak 52, gerbang 47, foto 68, akademik 149, pandu-v2 45, pewaktu 40 lulus.
+
 ## LKPD v2: tabel F dihapus, hanya Pemeriksaan dan bukti yang dipakai (X-06, XI-17, XI-18)
 - Tabel F1-F3 (kolom 1, 2, 3, Rata-rata, Standar, Status) dihapus dari LKPD-X-06, LKPD-XI-17, dan LKPD-XI-18 (`tabel:[]`, `cekAuto` dibuang). Hasil aktual, standar, status, dan foto kini hanya diisi di kartu **Pemeriksaan dan bukti** (Hasil aktual diisi manual, tidak lagi otomatis dari tabel).
 - `js/lkpd-v2.js`: `lk2TabelPct` mengembalikan `null` bila modul tanpa tabel; nilai praktik (verifikasi dan skor) memakai Pemeriksaan saja tanpa dibagi dua dengan tabel; chip "Tabel %", catatan "Tabel n%" di Penilaian guru, dan blok "Data hasil pengukuran" di Detail tidak tampil. `v2.tabel` di data kiriman menjadi `null`. Mesin tabel tetap ada untuk modul lain yang memakai tabel.
