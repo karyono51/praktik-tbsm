@@ -36,7 +36,7 @@ function ymd(){return '2026-11-20'}function schNama(){return 'SMKS Medina'}
 var STAFF=false;function isStaff(){return STAFF}
 function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function lkEsc(x){return esc(x)}
-var LK={module:'LKPD-X-07',tab:'materi',detail:null,editor:null,preview:false};
+var LK={module:'LKPD-X-06',tab:'materi',detail:null,editor:null,preview:false};
 var DRAFT={};function lkDraft(){return DRAFT}
 function lkRowOk(d,i){return !!d['row'+i]&&String(d['actual'+i]||'').trim()!==''}
 function lkScore(d){return {practice:-1,theory:-1,final:-1,answered:0,correct:0}}
@@ -50,7 +50,7 @@ var LKPD_MODULES=[];
 `, 'stub-lkpd');
 /* Fungsi soal asli (lkpd-soal.js, sebelum bagian pemasangan) dimuat apa adanya agar PG, kompleks, dan kategori dinilai seperti di aplikasi. */
 run(src('lkpd-soal.js').split('/* ---------- Pemasangan ke mesin LKPD ---------- */')[0], 'lkpd-soal-inti.js');
-run(src('lkpd-v2-x07.js'), 'lkpd-v2-x07.js');
+run(src('lkpd-v2-x06.js'), 'lkpd-v2-x06.js');
 run(`LKPD_MODULES=JSON.parse(JSON.stringify(LKPD_EXTRA_MODULES));`, 'jalur-modul');
 run(src('lkpd-v2.js'), 'lkpd-v2.js');
 run(src('lkpd-v2-soal.js'), 'lkpd-v2-soal.js');
@@ -150,25 +150,25 @@ ok(!/☐|☑|✔/.test(KT), 'kunci: tidak ada kotak isian siswa');
 /* tombol dan cetak: hanya staf, di samping Cetak */
 const v2js = src('lkpd-v2.js');
 ok((v2js.match(/data-act="lk-print-kunci"/g) || []).length === 2 && /data-act="lk-print">Cetak<\/button>'\+\(m\.v2&&m\.v2\.gate\?'<button data-act="lk-print-kunci">/.test(v2js), 'tombol Cetak kunci dipasang di samping Cetak (pratinjau dan baris aksi)');
-G(`STAFF=false;LK.module='LKPD-X-07';LK.tab='materi';LK.preview=false`);
+G(`STAFF=false;LK.module='LKPD-X-06';LK.tab='materi';LK.preview=false`);
 ok(G(`viewLKPD=viewLKPD;lk2View(LKPD_MODULES[0])`).indexOf('lk-print-kunci') < 0, 'siswa tidak melihat tombol Cetak kunci');
 G(`STAFF=true;LK.preview=true`);
 const vs = G(`lk2View(LKPD_MODULES[0])`);
 ok(/data-act="lk-print">Cetak<\/button><button data-act="lk-print-kunci">Cetak kunci<\/button>/.test(vs), 'guru: tombol Cetak kunci tepat di samping Cetak');
 G(`STAFF=true;LK.preview=false`);
 ok(/data-act="lk-print"[^>]*>Cetak<\/button><button class="btn" data-act="lk-print-kunci">Cetak kunci/.test(G(`lk2View(LKPD_MODULES[0])`)), 'guru (bukan pratinjau): tombol Cetak kunci di baris aksi');
-/* klik: siswa ditolak, guru mencetak dengan judul berkas "Kunci LKPD X-07 ..." dan pulih sesudah cetak */
+/* klik: siswa ditolak, guru mencetak dengan judul berkas "Kunci LKPD X-06 ..." dan pulih sesudah cetak */
 const log = { print: 0, toast: [] };
 run(`var _printed=0,_cls={},_elem=null;window.print=function(){_printed++};var _af=[];window.addEventListener=function(t,f){if(t==='afterprint')_af.push(f)};window.removeEventListener=function(){};
 document.body.classList.add=function(c){_cls[c]=1};document.body.classList.remove=function(c){delete _cls[c]};
 document.body.appendChild=function(e){_elem=e};document.getElementById=function(){return null};document.title='KBM Praktik TBSM';
-LKC={namaPdf:function(m){return 'LKPD X-07 '+m.title+' SMKS Medina Bandung'}};`, 'stub-cetak-kunci');
+LKC={namaPdf:function(m){return 'LKPD X-06 '+m.title+' SMKS Medina Bandung'}};`, 'stub-cetak-kunci');
 const klik = () => { const f = listeners.filter((l) => l.t === 'click' && l.c === true); f.forEach((l) => l.f({ target: { closest: (sel) => /lk-print-kunci/.test(sel) ? { dataset: {} } : null }, stopPropagation() {}, preventDefault() {} })); };
 G(`STAFF=false;_printed=0`); klik();
 ok(G('_printed') === 0, 'siswa: klik Cetak kunci tidak mencetak');
-G(`STAFF=true;LK.module='LKPD-X-07'`); klik();
+G(`STAFF=true;LK.module='LKPD-X-06'`); klik();
 ok(G('_printed') === 1 && G('_cls["lk-printing"]') === 1, 'guru: klik Cetak kunci mencetak');
-ok(G('document.title') === 'Kunci LKPD X-07 Penggunaan dan Perawatan Alat Ukur (Jangka Sorong, Mikrometer, Dial Gauge) SMKS Medina Bandung', 'nama berkas PDF kunci: ' + G('document.title'));
+ok(G('document.title') === 'Kunci LKPD X-06 Penggunaan dan Perawatan Alat Ukur (Jangka Sorong, Mikrometer, Dial Gauge) SMKS Medina Bandung', 'nama berkas PDF kunci: ' + G('document.title'));
 ok(/KUNCI DAN PEMBAHASAN/.test(G('_elem.innerHTML')), 'isi yang dicetak adalah kunci');
 G('_af.forEach(function(f){f()})');
 ok(G('document.title') === 'KBM Praktik TBSM' && G('_cls["lk-printing"]') === undefined, 'judul dan kelas cetak dipulihkan setelah cetak');

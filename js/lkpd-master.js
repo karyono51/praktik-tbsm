@@ -1,4 +1,4 @@
-/* lkpd-master.js: LKPD-X-07 (Penggunaan dan Perawatan Alat Ukur) menjadi MASTER LKPD V2.
+/* lkpd-master.js: LKPD-X-06 (Penggunaan dan Perawatan Alat Ukur) menjadi MASTER LKPD V2.
    Master = acuan struktur dan format untuk semua LKPD v2: pertemuan, gerbang masuk TKA, K3 dan APD, langkah bersaksi guru, tabel data,
    pemeriksaan dan bukti foto, latihan membaca skala, analisis, refleksi, tindak lanjut, penilaian kinerja, dan format cetak PDF.
    Berdiri sendiri: membungkus lksHub (lkpd-staff.js) tanpa mengubah berkasnya; dimuat setelah lkpd-v2-editor.js. Tanpa koleksi atau atribut baru.
@@ -7,7 +7,7 @@
    2. Tombol "Buat LKPD v2 dari master" pada master: membuka Editor LKPD dengan salinan master (draf, tidak aktif, ID kosong). Salinan memuat
       v2.dari = ID master dan tidak membawa peta ke soal lama milik master. Master sendiri tidak berubah.
    Master dikenali dari ID tetap LKMS.ID, jadi salinan tidak ikut menjadi master. */
-var LKMS={ID:'LKPD-X-07'};
+var LKMS={ID:'LKPD-X-06'};
 function lkmsMaster(m){return !!m&&m.id===LKMS.ID&&typeof lk2Is==='function'&&lk2Is(m)}
 function lkmsE(x){return typeof lkEsc==='function'?lkEsc(x):String(x==null?'':x)}
 
@@ -20,7 +20,7 @@ function lkmsCek(m){
  var ST=m.steps||[],SF=m.safety||[],CH=m.checks||[],QZ=m.quiz||[];
  add('Tujuan pembelajaran (minimal 3)',(m.objectives||[]).length>=3,'Tujuan kurang dari 3');
  add('Pertanyaan pemantik dan materi (minimal 4 topik)',(m.theory||[]).some(function(x){return /pemantik/i.test(x[0])})&&(m.theory||[]).length>=4,'Perlu pertanyaan pemantik dan minimal 4 topik teori');
- add('Rencana pertemuan: awal dan akhir tanpa kegiatan ukur, JP dan menit terisi',P.length>=3&&!(P[0].kegiatan||[]).length&&!(P[P.length-1].kegiatan||[]).length&&P.every(function(p){return p.jp>0&&p.menit>0}),'Minimal 3 pertemuan; pertemuan pertama dan terakhir tanpa kegiatan; JP dan menit harus terisi');
+ add('Rencana pertemuan: awal dan akhir tanpa kegiatan ukur (kecuali 3 pertemuan), JP dan menit terisi',P.length>=3&&(P.length===3||(!(P[0].kegiatan||[]).length&&!(P[P.length-1].kegiatan||[]).length))&&P.every(function(p){return p.jp>0&&p.menit>0}),'Minimal 3 pertemuan; bila 4 pertemuan atau lebih, pertemuan pertama dan terakhir tanpa kegiatan; JP dan menit harus terisi');
  add('Setiap kegiatan terpetakan ke pertemuan',KG.length>=1&&KG.every(function(x,i){return P.some(function(p){return (p.kegiatan||[]).indexOf(i+1)>-1})}),'Ada kegiatan yang belum masuk pertemuan mana pun');
  var gBad=[];G.forEach(function(q,i){
   var t=q.t||'pg',ok=!!q.e&&(q.lvl==='Aplikasi'||q.lvl==='Penalaran');

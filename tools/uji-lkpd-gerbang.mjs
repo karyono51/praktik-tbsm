@@ -41,12 +41,12 @@ const run = (code) => vm.runInContext(code, ctx);
 const lkpd = baca('js/lkpd.js');
 const vm0 = lkpd.split('\n').find((l) => l.startsWith('function lkValidateModule'));
 run(vm0);
-for (const f of ['js/banksoal.js', 'js/soal-gambar.js', 'js/lkpd-soal.js', 'js/lkpd-v2-soal.js', 'js/lkpd-editor.js', 'js/lkpd-gambar.js', 'js/lkpd-skala-gambar.js', 'js/soal-grup.js', 'js/lkpd-v2-x07.js', 'js/lkpd-v2-editor.js']) {
+for (const f of ['js/banksoal.js', 'js/soal-gambar.js', 'js/lkpd-soal.js', 'js/lkpd-v2-soal.js', 'js/lkpd-editor.js', 'js/lkpd-gambar.js', 'js/lkpd-skala-gambar.js', 'js/soal-grup.js', 'js/lkpd-v2-x06.js', 'js/lkpd-v2-editor.js']) {
   try { vm.runInContext(baca(f), ctx, { filename: f }); }
   catch (e) { ok('memuat ' + f, false, e.message); }
 }
-const x07 = run('LKPD_EXTRA_MODULES.filter(function(m){return m.id===\'LKPD-X-07\'})[0]');
-ok('modul X-07 termuat', !!x07 && x07.v2 && x07.v2.ver === 2);
+const x07 = run('LKPD_EXTRA_MODULES.filter(function(m){return m.id===\'LKPD-X-06\'})[0]');
+ok('modul X-06 termuat', !!x07 && x07.v2 && x07.v2.ver === 2);
 ctx.__x07 = x07; ctx.isStaff = () => STAFF; let STAFF = true;
 const klik = async (a, o = {}) => {
   LIS.filter((l) => l.t === 'click' && l.c === true).forEach((l) => l.f({ target: { closest: (sel) => (sel.indexOf('gq-') > -1 ? { disabled: false, dataset: Object.assign({ lkvA: a }, Object.fromEntries(Object.entries(o).map(([k, v]) => [k, String(v)]))) } : null) }, stopPropagation() {}, preventDefault() {} }));
@@ -71,7 +71,7 @@ ok('tanpa perubahan: gerbang tersimpan identik dengan aslinya', G("JSON.stringif
 G("lkeSet('gate.0.q','Pertanyaan baru gerbang');lkeSet('gate.0.e','Pembahasan baru');lkeSet('gate.0.o.2','Pilihan C baru');var m1=lkeBuild(dg).v2.gate.qs;");
 ok('teks pertanyaan, pembahasan, dan pilihan terubah di simpanan', G("m1[0].q==='Pertanyaan baru gerbang'&&m1[0].e==='Pembahasan baru'&&m1[0].o[2]==='Pilihan C baru'&&m1[0].a===__x07.v2.gate.qs[0].a"));
 ok('soal lain tidak berubah', G("JSON.stringify(m1.slice(1))===JSON.stringify(__x07.v2.gate.qs.slice(1))"));
-ok('modul X-07 asli tidak termutasi', JSON.stringify(x07.v2.gate.qs) === orig);
+ok('modul X-06 asli tidak termutasi', JSON.stringify(x07.v2.gate.qs) === orig);
 ok('editor ditandai berubah', G("lkeDirty(dg)")===true);
 
 console.log('Jenis soal, kunci, level');
@@ -154,7 +154,7 @@ ok('minimal 3 soal: hapus ditolak', G("dg.S.gate.length")===3 && ctx.__toasts.so
 G("dg.S.gate=lkeCp(__x07.v2.gate.qs).slice(0,2)");
 ok('kurang dari 3 soal dilaporkan', G("lkeIssues(dg).some(function(x){return /Gerbang masuk minimal 3 soal/.test(x.msg)})"));
 G("dg.S.gate=lkeCp(__x07.v2.gate.qs)");
-ok('data asli X-07 tidak punya masalah gerbang', G("lkeIssues(dg).filter(function(x){return /^Gerbang masuk/.test(x.msg)}).length")===0);
+ok('data asli X-06 tidak punya masalah gerbang', G("lkeIssues(dg).filter(function(x){return /^Gerbang masuk/.test(x.msg)}).length")===0);
 
 console.log('Hak akses dan LKPD biasa');
 STAFF = false; G("dg.S.gate=lkeCp(__x07.v2.gate.qs)");

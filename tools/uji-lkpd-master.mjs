@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Uji Master LKPD V2 (js/lkpd-master.js): LKPD-X-07 sebagai master. node tools/uji-lkpd-master.mjs */
+/* Uji Master LKPD V2 (js/lkpd-master.js): LKPD-X-06 sebagai master. node tools/uji-lkpd-master.mjs */
 import fs from 'node:fs'; import path from 'node:path'; import vm from 'node:vm'; import { fileURLToPath } from 'node:url';
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 let lulus = 0, gagal = 0; const ok = (c, m) => { if (c) lulus++; else { gagal++; console.log('GAGAL: ' + m); } };
@@ -9,10 +9,10 @@ const ctx = vm.createContext({ console, JSON, Math, Object, Array, String, Numbe
 ctx.window = ctx; ctx.scrollTo = () => {};
 const src = (f) => fs.readFileSync(path.join(root, 'js', f), 'utf8');
 const run = (code, n) => vm.runInContext(code, ctx, { filename: n });
-run(src('lkpd-modul.js'), 'a'); run(src('lkpd-v2-x07.js'), 'b'); run(src('lkpd.js').split('\n').slice(0, 19).join('\n'), 'c');
+run(src('lkpd-modul.js'), 'a'); run(src('lkpd-v2-x06.js'), 'b'); run(src('lkpd.js').split('\n').slice(0, 19).join('\n'), 'c');
 run(`LKPD_MODULES=LKPD_MODULES.concat(LKPD_EXTRA_MODULES);
 function lk2Is(m){return !!(m&&m.v2&&m.v2.ver===2)}function lkEsc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-var STAFF=true;function isStaff(){return STAFF}var LKS={id:'LKPD-X-07'};function lksMod(){return LKPD_MODULES.find(function(x){return x.id===LKS.id})}
+var STAFF=true;function isStaff(){return STAFF}var LKS={id:'LKPD-X-06'};function lksMod(){return LKPD_MODULES.find(function(x){return x.id===LKS.id})}
 function lksHub(){return '<div class="row">kembali</div><section class="card lks-card">kartu</section><section class="card">tab</section>'}
 var LK={},LKA={},LKM={};function render(){}function toast(m){__toast.push(m)}
 function lkEditorDefaults(m){var d={id:m.id,title:m.title,kelas:m.kelas,status:'x',active:true};d.src=JSON.parse(JSON.stringify(m));return d}`, 'stub');
@@ -20,14 +20,14 @@ ctx.__toast = log.toast;
 run(src('lkpd-master.js'), 'lkpd-master.js');
 const G = (e) => vm.runInContext(e, ctx);
 const klik = (v) => hs.filter((h) => h.t === 'click' && h.c === true).forEach((h) => h.f({ target: { closest: (s) => /lkms-baru/.test(s) ? { dataset: { v } } : null }, stopPropagation() {}, preventDefault() {} }));
-const master = () => G('LKPD_MODULES.find(function(x){return x.id==="LKPD-X-07"})');
+const master = () => G('LKPD_MODULES.find(function(x){return x.id==="LKPD-X-06"})');
 const salin = () => JSON.parse(JSON.stringify(master()));
 
 /* master memenuhi semua butir */
 const cek = ctx.lkmsCek(master());
 ok(cek.length === 14, '14 butir daftar periksa (' + cek.length + ')');
-ok(cek.every((x) => x.ok), 'LKPD-X-07 memenuhi semua butir master: ' + cek.filter((x) => !x.ok).map((x) => x.k).join('; '));
-ok(ctx.lkmsMaster(master()) === true, 'LKPD-X-07 dikenali sebagai master');
+ok(cek.every((x) => x.ok), 'LKPD-X-06 memenuhi semua butir master: ' + cek.filter((x) => !x.ok).map((x) => x.k).join('; '));
+ok(ctx.lkmsMaster(master()) === true, 'LKPD-X-06 dikenali sebagai master');
 const v1 = salin(); delete v1.v2; v1.id = 'X-1'; /* LKPD v1 bawaan sudah dihapus: tiru bentuknya */
 ok(ctx.lkmsMaster(v1) === false && ctx.lkmsCek(v1)[0].ok === false, 'LKPD v1 bukan master dan bukan v2');
 /* salinan dengan id lain bukan master */
@@ -57,24 +57,24 @@ rusak((m) => { m.v2.obs.aspek.forEach((a) => { delete a.stop; }); }, 'Penilaian 
 rusak((m) => { m.v2.tindak = {}; }, 'Tindak lanjut', 'tanpa tindak lanjut');
 rusak((m) => { m.v2.cekAlat = []; }, 'Cek kondisi alat', 'tanpa cek alat');
 /* tampilan Kelola LKPD */
-G('STAFF=true;LKS.id="LKPD-X-07"');
+G('STAFF=true;LKS.id="LKPD-X-06"');
 let h = G('lksHub()');
-ok(/Master LKPD V2/.test(h) && /14\/14/.test(h) && /data-act="lkms-baru" data-v="LKPD-X-07">Buat LKPD v2 dari master/.test(h) && /Semua butir master terpenuhi/.test(h), 'master: kartu, 14/14, tombol Buat dari master');
+ok(/Master LKPD V2/.test(h) && /14\/14/.test(h) && /data-act="lkms-baru" data-v="LKPD-X-06">Buat LKPD v2 dari master/.test(h) && /Semua butir master terpenuhi/.test(h), 'master: kartu, 14/14, tombol Buat dari master');
 ok(h.indexOf('kartu</section><section class="lkms') < 0 && h.indexOf('</section><section class="card lkms">') > -1, 'kartu master dipasang tepat setelah kartu LKPD');
 G('STAFF=false'); ok(G('lksHub()').indexOf('lkms') < 0, 'siswa tidak melihat kartu master');
 G('STAFF=true;LKS.id="X-1"'); ok(G('lksHub()').indexOf('lkms') < 0, 'LKPD v1: tidak ada kartu master');
 /* LKPD v2 turunan: kelengkapan, tanpa tombol master */
-G(`var t=JSON.parse(JSON.stringify(LKPD_MODULES.find(function(x){return x.id==="LKPD-X-07"})));t.id="LKPD-X-09";t.v2.dari="LKPD-X-07";t.v2.tindak={};LKPD_MODULES.push(t);LKS.id="LKPD-X-09"`);
+G(`var t=JSON.parse(JSON.stringify(LKPD_MODULES.find(function(x){return x.id==="LKPD-X-06"})));t.id="LKPD-X-09";t.v2.dari="LKPD-X-06";t.v2.tindak={};LKPD_MODULES.push(t);LKS.id="LKPD-X-09"`);
 h = G('lksHub()');
-ok(/Kelengkapan sesuai master V2/.test(h) && /13\/14/.test(h) && /Turunan master LKPD-X-07/.test(h) && /Tindak lanjut remedial dan pengayaan<\/b>: Tindak lanjut belum lengkap/.test(h) && h.indexOf('lkms-baru') < 0, 'turunan: kelengkapan 13/14, asal master, butir kurang tampil, tanpa tombol');
+ok(/Kelengkapan sesuai master V2/.test(h) && /13\/14/.test(h) && /Turunan master LKPD-X-06/.test(h) && /Tindak lanjut remedial dan pengayaan<\/b>: Tindak lanjut belum lengkap/.test(h) && h.indexOf('lkms-baru') < 0, 'turunan: kelengkapan 13/14, asal master, butir kurang tampil, tanpa tombol');
 /* aksi Buat LKPD v2 dari master */
 const sebelum = JSON.stringify(master());
-G('STAFF=false;LK.editor=null'); klik('LKPD-X-07'); ok(G('LK.editor') === null, 'siswa: aksi ditolak');
+G('STAFF=false;LK.editor=null'); klik('LKPD-X-06'); ok(G('LK.editor') === null, 'siswa: aksi ditolak');
 G('STAFF=true'); klik('LKPD-X-09'); ok(G('LK.editor') === null && /tidak ditemukan/.test(log.toast.slice(-1)[0] || ''), 'bukan master: aksi ditolak dengan pesan');
-klik('LKPD-X-07');
+klik('LKPD-X-06');
 const ed = G('LK.editor');
 ok(ed && ed.id === '' && ed.status === 'draft' && ed.active === false && ed.kelas === 'X' && /\(baru dari master\)/.test(ed.title), 'editor terbuka: ID kosong, draf, tidak aktif, judul penanda');
-ok(ed.src.v2.dari === 'LKPD-X-07' && ed.src.v2.peta === undefined, 'salinan mencatat asal master dan tidak membawa peta ke soal lama');
+ok(ed.src.v2.dari === 'LKPD-X-06' && ed.src.v2.peta === undefined, 'salinan mencatat asal master dan tidak membawa peta ke soal lama');
 ok(ed.src.v2.gate.qs.length === 5 && ed.src.v2.pertemuan.length === 5 && ed.src.quiz.length === 10, 'salinan membawa seluruh struktur master (5 pertemuan, 5 soal gerbang, 10 latihan)');
 ok(G('LK.tab') === 'editor' && G('LKA.id') === null, 'status editor dibuka');
 ok(JSON.stringify(master()) === sebelum, 'master tidak berubah oleh pembuatan salinan');

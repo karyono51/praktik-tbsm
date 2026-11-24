@@ -34,7 +34,7 @@ function ymd(){return '2026-11-20'}function schNama(){return 'SMKS Medina'}
 var STAFF=false;function isStaff(){return STAFF}
 function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function lkEsc(x){return esc(x)}
-var LK={module:'LKPD-X-07',tab:'materi',detail:null,editor:null,preview:false};
+var LK={module:'LKPD-X-06',tab:'materi',detail:null,editor:null,preview:false};
 var DRAFT={};function lkDraft(){return DRAFT}
 function lkRowOk(d,i){return !!d['row'+i]&&String(d['actual'+i]||'').trim()!==''}
 function lkScore(d){return {practice:-1,theory:-1,final:-1,answered:0,correct:0}}
@@ -48,7 +48,7 @@ var LKPD_MODULES=[];
 `, 'stub-lkpd');
 /* Fungsi soal asli (lkpd-soal.js, sebelum bagian pemasangan) dimuat apa adanya agar PG, kompleks, dan kategori dinilai seperti di aplikasi. */
 run(src('lkpd-soal.js').split('/* ---------- Pemasangan ke mesin LKPD ---------- */')[0], 'lkpd-soal-inti.js');
-run(src('lkpd-v2-x07.js'), 'lkpd-v2-x07.js');
+run(src('lkpd-v2-x06.js'), 'lkpd-v2-x06.js');
 run(`LKPD_MODULES=JSON.parse(JSON.stringify(LKPD_EXTRA_MODULES));`, 'jalur-modul');
 run(src('lkpd-v2.js'), 'lkpd-v2.js');
 run(src('lkpd-v2-soal.js'), 'lkpd-v2-soal.js');
@@ -56,7 +56,7 @@ const G = (e) => vm.runInContext(e, ctx);
 
 /* ---------- Pemuatan modul ---------- */
 const M = G('LKPD_MODULES[0]');
-ok(M.id === 'LKPD-X-07' && M.v2 && M.v2.ver === 2, 'modul pilot termuat');
+ok(M.id === 'LKPD-X-06' && M.v2 && M.v2.ver === 2, 'modul pilot termuat');
 ok(M.status === 'draft' && M.active === false, 'pilot berstatus Draft (tidak terlihat siswa sebelum diterbitkan)');
 sama(M.v2.pertemuan.reduce((t, p) => t + p.menit, 0), 900, '5 pertemuan = 900 menit');
 sama(M.v2.pertemuan.reduce((t, p) => t + p.jp, 0), 20, '5 pertemuan = 20 JP (4 JP per pertemuan)');
@@ -158,7 +158,7 @@ G(`LKPD_MODULES[0].status='published';LKPD_MODULES[0].active=true`);
   G(`LK.tab='${tab}';DRAFT={}`);
   const h = G('viewLKPD()');
   ok(h.indexOf('<div class="chips">') > -1 && h.indexOf('<div class="lk-actions">') > -1, `tab ${tab}: penanda chips dan lk-actions ada (dipakai pembungkus banner/timer)`);
-  ok(h.indexOf('LKPD-X-07') > -1, `tab ${tab}: render v2 (bukan tampilan lama)`);
+  ok(h.indexOf('LKPD-X-06') > -1, `tab ${tab}: render v2 (bukan tampilan lama)`);
 });
 G(`LK.tab='kerja';DRAFT={}`);
 ok(/Lembar Kerja terkunci/.test(G('viewLKPD()')), 'Lembar Kerja terkunci sebelum gerbang selesai (siswa)');
@@ -189,14 +189,14 @@ sama([...kerja.matchAll(/class=\"lk2-mnt\">(\d+) menit/g)].map((x) => +x[1]), [4
 G(`STAFF=true;LK.preview=false;DRAFT={}`);
 ok(!/Lembar Kerja terkunci/.test(G('viewLKPD()')), 'guru melihat Lembar Kerja tanpa gerbang');
 G(`STAFF=false;LK.tab='materi'`);
-ok(G('viewLKPD()').indexOf('LKPD-X-07') > -1, 'siswa melihat modul bila terbit');
+ok(G('viewLKPD()').indexOf('LKPD-X-06') > -1, 'siswa melihat modul bila terbit');
 G(`LKPD_MODULES[0].status='draft';LKPD_MODULES[0].active=false`);
 ok(G('viewLKPD()') === 'ORIG-VIEW', 'siswa tidak melihat modul Draft (jatuh ke tampilan lama)');
 G(`LKPD_MODULES[0].status='published';LKPD_MODULES[0].active=true`);
 G(`LKPD_MODULES.push({id:'X-1',v2:undefined,status:'published',active:true});LK.module='X-1';LK.tab='materi'`);
 ok(G('viewLKPD()') === 'ORIG-VIEW', 'LKPD lama (tanpa v2) tetap lewat tampilan lama');
 sama(G(`lkScore({})`).practice, -1, 'LKPD lama tetap memakai penilaian lama');
-G(`LK.module='LKPD-X-07'`);
+G(`LK.module='LKPD-X-06'`);
 G(`LK.detail={id:'z'};LK.tab='materi'`);
 ok(G('viewLKPD()') === 'ORIG-VIEW', 'tampilan detail/riwayat tetap lewat jalur lama');
 G(`LK.detail=null`);
@@ -222,17 +222,17 @@ ok(rd.v2 && rd.v2.ver === 2 && rd.v2.gate === 5 && rd.v2.gerbang && rd.v2.gerban
 /* ---------- Detail dan verifikasi guru ---------- */
 const payload = Object.assign({}, penuh, rd, { student: 'Budi', school: 'SMKS Medina' });
 G(`STAFF=true`);
-const det = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(payload)})`);
+const det = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-06',payload:''},${JSON.stringify(payload)})`);
 ok(/Gerbang masuk/.test(det) && !/data-lk2v="g0"/.test(det) && /data-lk2v="s2"/.test(det) && /data-lk2v="a0"/.test(det) && /lk2-verif/.test(det), 'Detail guru memuat verifikasi saksi dan APD (gerbang dinilai otomatis, tanpa kotak Jawaban benar)');
 ok(/Waktu per kartu kegiatan/.test(det) && /K3: [^<]* \/ 20 menit/.test(det) && /K4: [^<]* \/ 15 menit/.test(det) && !/K3\+4/.test(det), 'Detail guru: waktu aktual dicatat terpisah untuk Kegiatan 3 dan Kegiatan 4');
 ok(/Kunci: B\. rahang bawah, rahang atas, batang kedalaman/.test(det) && /Kunci: C\. dan |Kunci: A\./.test(det), 'kunci gerbang PG tampil untuk guru');
 ok(/Penalaran/.test(det) && /Aplikasi/.test(det), 'Detail guru menampilkan level soal gerbang');
-const detAuto = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, payload, { v2: { ver: 2 } }))})`);
+const detAuto = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-06',payload:''},${JSON.stringify(Object.assign({}, payload, { v2: { ver: 2 } }))})`);
 ok(/Nilai gerbang \(acuan TKA\): <b>100<\/b> dari 100 · poin 5 dari 5 · KKM 75: <b>lulus/.test(detAuto) && /Poin: 1 dari 1/.test(detAuto), 'Detail menampilkan nilai gerbang otomatis 100 dan poin tiap soal');
-const detSalah = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, payload, { q100: 0, q104: 0, v2: { ver: 2 } }))})`);
+const detSalah = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-06',payload:''},${JSON.stringify(Object.assign({}, payload, { q100: 0, q104: 0, v2: { ver: 2 } }))})`);
 ok(/Nilai gerbang \(acuan TKA\): <b>60<\/b>[^<]*KKM 75: <b>belum lulus/.test(detSalah), '3 dari 5 benar = nilai 60 belum lulus');
 G(`STAFF=false`);
-const detS = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, payload, { v2: Object.assign({}, rd.v2, { verif: { g: { 0: 1, 1: 1, 2: 1, 3: 1 }, s: { 2: 1 }, a: {}, ts: 1, by: 'Guru' } }) }))})`);
+const detS = G(`lkDetailBody({id:'z',moduleId:'LKPD-X-06',payload:''},${JSON.stringify(Object.assign({}, payload, { v2: Object.assign({}, rd.v2, { verif: { g: { 0: 1, 1: 1, 2: 1, 3: 1 }, s: { 2: 1 }, a: {}, ts: 1, by: 'Guru' } }) }))})`);
 ok(!/data-lk2v/.test(detS) && !/Kunci: B\./.test(detS), 'siswa tidak melihat kunci dan kotak verifikasi');
 ok(/Nilai gerbang \(acuan TKA\): <b>100<\/b>[^<]*KKM 75: <b>lulus/.test(detS), 'siswa melihat nilai gerbang otomatis (lulus)');
 
@@ -252,7 +252,7 @@ sama(PV({}, { s: sA, a: aA, n: 100 }).praktik, 25, 'tanpa isian siswa, analisis 
 G(`S.kkm=80`); sama(PV(penuh, { s: sA, a: aA, n: 0 }).lulus, false, 'KKM 80: praktik 75 belum lulus'); G(`S.kkm=60`); sama(G('lk2KkmEvaluasi()'), 75, 'KKM evaluasi tidak pernah di bawah 75'); G(`S.kkm=75`);
 
 /* status siswa dan pembukaan Evaluasi */
-const kiriman = (vf, extra = {}, sid = 'u1') => ({ id: 'r' + Math.random(), moduleId: 'LKPD-X-07', sid, payload: JSON.stringify({ v2: Object.assign({ ver: 2 }, vf ? { verif: vf } : {}, extra) }) });
+const kiriman = (vf, extra = {}, sid = 'u1') => ({ id: 'r' + Math.random(), moduleId: 'LKPD-X-06', sid, payload: JSON.stringify({ v2: Object.assign({ ver: 2 }, vf ? { verif: vf } : {}, extra) }) });
 const lkpdAsli = G('S.lkpd');
 const ST = (list) => { G(`S.lkpd=${JSON.stringify(list)}`); return G('lk2Status(LKPD_MODULES[0])'); };
 sama(ST([]), { ada: false, verif: false, praktik: null, lulus: false, kkm: 75 }, 'status: belum kirim');
@@ -266,7 +266,7 @@ sama(ST([kiriman({ ts: 1, g: { 0: 1 } })]).verif, false, 'status: verifikasi lam
 G(`S.kkm=80`); sama(ST([kiriman({ ts: 1, praktik: 78 })]).lulus, false, 'status: KKM 80, praktik 78 tertutup'); G(`S.kkm=75`);
 
 /* tab Evaluasi: terkunci / terbuka */
-const viewEval = (list, staff = false) => { G(`S.lkpd=${JSON.stringify(list)};STAFF=${staff};LK.module='LKPD-X-07';LK.tab='evaluasi';LK.preview=false;DRAFT={}`); return G('viewLKPD()'); };
+const viewEval = (list, staff = false) => { G(`S.lkpd=${JSON.stringify(list)};STAFF=${staff};LK.module='LKPD-X-06';LK.tab='evaluasi';LK.preview=false;DRAFT={}`); return G('viewLKPD()'); };
 let hv = viewEval([]);
 ok(/Evaluasi terkunci/.test(hv) && /Kirim Lembar Kerja/.test(hv) && !/data-lk-field="q0"/.test(hv) && /data-act="lk-submit"/.test(hv) && !/lk2-eval-kirim/.test(hv), 'siswa belum kirim: soal Evaluasi terkunci, tombol Kirim LKPD');
 hv = viewEval([kiriman(null)]);
@@ -283,7 +283,7 @@ ok(/Penilaian kinerja oleh guru/.test(viewEval([])), 'rubrik penilaian kinerja t
 
 /* Kirim Evaluasi */
 const jawabBenar = (n) => { const d = {}; M.quiz.forEach((q, i) => { if (i < n) d['q' + i] = String(q.kunci).replace('.', ','); }); return d; };
-G(`S.lkpd=${JSON.stringify([kiriman({ ts: 1, praktik: 80 })])};S.results=[];STAFF=false;LK.module='LKPD-X-07';LK.tab='evaluasi';LK.preview=false;DRAFT=${JSON.stringify(jawabBenar(M.quiz.length))};toasts.length=0`);
+G(`S.lkpd=${JSON.stringify([kiriman({ ts: 1, praktik: 80 })])};S.results=[];STAFF=false;LK.module='LKPD-X-06';LK.tab='evaluasi';LK.preview=false;DRAFT=${JSON.stringify(jawabBenar(M.quiz.length))};toasts.length=0`);
 G('lk2KirimEvaluasi()');
 let lastRec = G('S.lkpd[S.lkpd.length-1]'), pe = JSON.parse(lastRec.payload);
 sama([G('S.lkpd.length'), lastRec.practice, lastRec.theory, lastRec.score, pe.v2.evaluasi, pe.v2.praktik], [2, 80, 100, 83, 1, 80], 'Kirim Evaluasi: praktik 80 + teori 100 = nilai 83 (80 x 85% + 100 x 15%)');
@@ -299,7 +299,7 @@ sama(G('S.lkpd.length'), 1, 'guru tidak mengirim Evaluasi'); G('STAFF=false');
 
 /* Detail guru: nilai analisis dan nilai praktik terverifikasi */
 G('STAFF=true');
-const detP = (vf) => G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(Object.assign({}, penuh, { v2: { ver: 2, verif: vf } }))})`);
+const detP = (vf) => G(`lkDetailBody({id:'z',moduleId:'LKPD-X-06',payload:''},${JSON.stringify(Object.assign({}, penuh, { v2: { ver: 2, verif: vf } }))})`);
 let dp = detP({});
 ok(/id="lk2-ana-n"/.test(dp) && /data-act="lk2-verif">Simpan verifikasi guru/.test(dp) && /Belum diverifikasi/.test(dp), 'Detail guru: kolom nilai analisis, tombol simpan, dan status belum diverifikasi');
 dp = detP({ ts: 1, by: 'Guru', s: sA, a: aA, n: 60, praktik: 90, lulus: true });
@@ -310,7 +310,7 @@ G('STAFF=false');
 dp = detP({ ts: 1, by: 'Guru', s: sA, a: aA, n: 60, praktik: 90, lulus: true });
 ok(!/id="lk2-ana-n"/.test(dp) && !/data-act="lk2-verif"/.test(dp) && /Nilai analisis: <b>60<\/b>/.test(dp), 'Detail siswa: nilai analisis hanya terbaca, tanpa kolom isian dan tombol simpan');
 const evRec = { student: 'Budi', 'class': 'X', date: '2026-11-22', v2: { ver: 2, evaluasi: 1, praktik: 80 }, q0: '24,35' };
-ok(/Evaluasi \(latihan membaca skala\)/.test(G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(evRec)})`)) && !/Gerbang masuk/.test(G(`lkDetailBody({id:'z',moduleId:'LKPD-X-07',payload:''},${JSON.stringify(evRec)})`)), 'Detail kiriman Evaluasi menampilkan jawaban latihan (bukan lembar kerja)');
+ok(/Evaluasi \(latihan membaca skala\)/.test(G(`lkDetailBody({id:'z',moduleId:'LKPD-X-06',payload:''},${JSON.stringify(evRec)})`)) && !/Gerbang masuk/.test(G(`lkDetailBody({id:'z',moduleId:'LKPD-X-06',payload:''},${JSON.stringify(evRec)})`)), 'Detail kiriman Evaluasi menampilkan jawaban latihan (bukan lembar kerja)');
 G(`S.lkpd=${JSON.stringify(lkpdAsli)};S.results=[];STAFF=false;LK.tab='materi'`);
 
 /* ---------- Observasi v2 (memakai observasi.js asli) ---------- */
@@ -349,12 +349,12 @@ const atas = G('obsFormSiswa()');
 ok(!/ob2-on/.test(html) && !/ob2-off/.test(html) && /ob2-rate/.test(html) && !/data-ob2mod/.test(html), 'observasi baru langsung memakai formulir v2; pemilih LKPD tidak lagi di blok penilaian');
 ok(/LKPD yang diobservasi/.test(atas) && /data-ob2mod/.test(atas) && /type="hidden" data-ob="mapel"/.test(atas) && !/Unit \/ pekerjaan praktik<input/.test(atas), 'pemilih LKPD v2 di atas formulir menggantikan kolom unit');
 G(`OB.d.kelas='XII'`);
-ok(/id="ob2kelas"[^>]*>LKPD ini untuk Kelas X, sedangkan daftar siswa yang dipilih Kelas XII/.test(G('obsFormSiswa()')) && G(`ob2KelasCatatan(ob2Mod('LKPD-X-07'),'X')`) === '', 'peringatan bila kelas siswa berbeda dari kelas LKPD, kosong bila sama');
+ok(/id="ob2kelas"[^>]*>LKPD ini untuk Kelas X, sedangkan daftar siswa yang dipilih Kelas XII/.test(G('obsFormSiswa()')) && G(`ob2KelasCatatan(ob2Mod('LKPD-X-06'),'X')`) === '', 'peringatan bila kelas siswa berbeda dari kelas LKPD, kosong bila sama');
 G(`OB.d.kelas='X'`);
-ok(/data-ob="materi" maxlength="200" value="LKPD-X-07"/.test(atas) && /<option value="X" selected>Kelas X/.test(atas), 'jobsheet terisi otomatis kode LKPD dan kelas mengikuti LKPD');
+ok(/data-ob="materi" maxlength="200" value="LKPD-X-06"/.test(atas) && /<option value="X" selected>Kelas X/.test(atas), 'jobsheet terisi otomatis kode LKPD dan kelas mengikuti LKPD');
 G(`document.dispatchLike=function(){}`);
 // pilih v2 lewat state langsung (jalur klik bergantung DOM)
-G(`OB.d.v2='LKPD-X-07';OB.d.per={};OB.d.nilai={};OB.d.cat={};OB.d.cur='';obsEnsure(OB.d)`);
+G(`OB.d.v2='LKPD-X-06';OB.d.per={};OB.d.nilai={};OB.d.cat={};OB.d.cur='';obsEnsure(OB.d)`);
 html = G('obsStuHtml(OB.d)');
 ok(/Yang diamati dan kesalahan umum/.test(html) && (html.match(/data-act="ob2-rate"/g) || []).length === (6 + 8) * 4 && (html.match(/class="obu-nil ob2-nil"/g) || []).length === 14 && !/data-ob2i=/.test(html) && /<span id="ob2prog2">0<\/span> \/ 14 terisi/.test(html), 'formulir v2: panduan, 6 aspek + 8 indikator masing-masing skala 1-4 + kolom nilai, bar 0 / 14 terisi');
 ok(!/Pakai formulir lama/.test(html), 'formulir v2 tidak lagi menawarkan kembali ke formulir lama');
@@ -366,7 +366,7 @@ G(`OB.d.nilai=${JSON.stringify(nb(4, 100))};obsFlush(OB.d);obsLoad(OB.d,'s2');OB
 const rec = G('S.observasi');
 sama(rec.length, 2, 'dua siswa tersimpan sebagai dua catatan');
 const p1 = JSON.parse(rec[0].payload), p2 = JSON.parse(rec[1].payload);
-ok(p1.v === 2 && p1.mod === 'LKPD-X-07' && rec[0].skor === 100 && p1.hasil.kompeten === true && rec[0].tipe === 'siswa' && rec[0].mapel === M.title, 'catatan v2: penanda versi, modul, skor, kompeten, mapel otomatis dari judul modul');
+ok(p1.v === 2 && p1.mod === 'LKPD-X-06' && rec[0].skor === 100 && p1.hasil.kompeten === true && rec[0].tipe === 'siswa' && rec[0].mapel === M.title, 'catatan v2: penanda versi, modul, skor, kompeten, mapel otomatis dari judul modul');
 ok(p2.hasil.stop === true && p2.hasil.kompeten === false && rec[1].kategori === 'Belum Kompeten', 'siswa dengan K3 skala 1 tersimpan sebagai dihentikan/tidak kompeten (Belum Kompeten)');
 // detail
 G(`OB.view=S.observasi[0];OB.mode='view'`);
@@ -379,7 +379,7 @@ G(`S.observasi.push({id:'lama',tipe:'siswa',guru:'Lama',mapel:'X',kelas:'X',tang
 ok(!/Detail observasi v2/.test(G('viewObservasi()')) && /Detail observasi/.test(G('viewObservasi()')), 'catatan formulir lama tetap memakai detail lama');
 // ubah catatan v2 membawa d.v2
 const dd = G(`obsDraftDari(S.observasi[0])`);
-ok(dd.v2 === 'LKPD-X-07' && dd.nilai.l_k3 === 4 && dd.nilai.k3 === 100 && dd.nilai._fi === 2, 'Ubah catatan v2 memulihkan modul, skala, dan nilai tiap aspek');
+ok(dd.v2 === 'LKPD-X-06' && dd.nilai.l_k3 === 4 && dd.nilai.k3 === 100 && dd.nilai._fi === 2, 'Ubah catatan v2 memulihkan modul, skala, dan nilai tiap aspek');
 // PDF v2: jsPDF palsu merekam isi
 run(`
 var __pdf={rows:[],texts:[],saved:'',heads:[]};
@@ -403,7 +403,7 @@ ok(/^Observasi_praktik_/.test(G('__pdf.saved')) && !/_v2_/.test(G('__pdf.saved')
 // Excel: lembar lama tanpa catatan v2, lembar v2 terpisah dengan kolom aspek
 G(`OB.tipe='siswa';__book=null;obsXls()`);
 const bk = G('__book');
-ok(bk && bk.pairs.length === 2 && bk.pairs[1][0] === 'Obs v2 LKPD-X-07', 'Excel: satu lembar lama + satu lembar v2 per LKPD', JSON.stringify(bk && bk.pairs.map((x) => x[0])));
+ok(bk && bk.pairs.length === 2 && bk.pairs[1][0] === 'Obs v2 LKPD-X-06', 'Excel: satu lembar lama + satu lembar v2 per LKPD', JSON.stringify(bk && bk.pairs.map((x) => x[0])));
 ok(bk.pairs[0][1].length === 2, 'Excel: lembar lama hanya memuat catatan formulir lama (tanpa baris v2)');
 ok(bk.pairs[1][1].length === 3 && bk.pairs[1][1][0].length === 7 + 6 + 8 && bk.pairs[1][1][1][bk.pairs[1][1][0].indexOf('Nilai')] === 100, 'Excel v2: 2 siswa, kolom 6 aspek, nilai tercatat');
 ok(G(`typeof obsVisible('siswa')`) === 'object' && G(`obsVisible('siswa').length`) === 3 && G(`book.name`) !== 'x', 'Excel: pengganti sementara obsVisible/book dikembalikan');
@@ -457,7 +457,7 @@ G(`LK2.open={ak3:true}`);
 ok(/data-lk2d="ak3" open/.test(G('viewLKPD()')), 'aspek yang dibuka tetap terbuka setelah render ulang');
 G(`LK2.open={};LK.tab='materi'`);
 
-/* ---------- Perbaikan evaluasi LKPD-X-07 ---------- */
+/* ---------- Perbaikan evaluasi LKPD-X-06 ---------- */
 const TH = M.theory.map((x) => x[0]);
 ok(TH.includes('Koreksi nol alat') && TH.includes('Perawatan dan penyimpanan'), 'materi memuat koreksi nol dan perawatan (dasar soal gerbang 3 dan 5)');
 const q5 = M.v2.gate.qs[4];
@@ -502,7 +502,7 @@ sama([km.step0, km.step3, km.step5, km.step7, km.t_F1_0_nol, km.t_F2_0_nol, km.a
 ok(km.safe0 === undefined && km.q100 === undefined && km.student === undefined && km.refleksi0 === undefined, 'kunci: gerbang, K3, dan identitas tidak terpetakan (tetap bebas)');
 /* kunci tidak berurutan: P3 lebih dulu */
 G(`lkkLock(3)`);
-sama(G('S.lkpdBukti.map(function(x){return x.label+"|"+x.lkpdId+"|"+x.sid})'), ['kunci|3|k|LKPD-X-07|u1'], 'kunci: P3 bisa dikunci lebih dulu (urutan bebas)');
+sama(G('S.lkpdBukti.map(function(x){return x.label+"|"+x.lkpdId+"|"+x.sid})'), ['kunci|3|k|LKPD-X-06|u1'], 'kunci: P3 bisa dikunci lebih dulu (urutan bebas)');
 sama(merged(), ['actual2', 'q4', 'status2', 't_F2_0_nol'], 'kunci: hanya isian Pertemuan 3 yang terkunci (isian P2, P4, K3, dan gerbang tidak ikut)');
 G(`DRAFT.actual2='99';DRAFT.actual0='11'`);
 ok(G('lkRead().actual2') === '9.5' && G('lkDraft().actual2') === '9.5', 'kunci: nilai terkunci tidak bisa diubah lewat isian');
@@ -560,9 +560,9 @@ G(`${KM}.v2.cekAuto=_cekAuto;delete globalThis.lkmCfg;LK.preview=false;STAFF=fal
 
 /* ---------- Hasil aktual otomatis dan nol alat 1 kali ---------- */
 {
-  const ml = G(`LKPD_MODULES.filter(function(x){return x.id==='LKPD-X-07'})[0]`);
+  const ml = G(`LKPD_MODULES.filter(function(x){return x.id==='LKPD-X-06'})[0]`);
   const dtab = { t_F1_0_nol: '0,05', t_F1_0_u1: '22,40', t_F1_0_u2: '22,42', t_F1_0_u3: '22,44', t_F1_1_u1: '18,10', t_F1_1_u2: '18,10', t_F1_1_u3: '18,10', t_F2_0_nol: '0', t_F2_0_u1: '9,40', t_F2_0_u2: '9,42', t_F2_0_u3: '9,41', t_F3_0_besar: '0,32', t_F3_0_kecil: '0,10' };
-  G(`DRAFT=${JSON.stringify(dtab)};var _AM=LKPD_MODULES.filter(function(x){return x.id==='LKPD-X-07'})[0]`);
+  G(`DRAFT=${JSON.stringify(dtab)};var _AM=LKPD_MODULES.filter(function(x){return x.id==='LKPD-X-06'})[0]`);
   sama(G(`lk2Auto(_AM,0,DRAFT)`), '0,05 mm', 'hasil aktual otomatis: posisi nol jangka sorong = isian nol F1 (1 kali)');
   sama(G(`lk2Auto(_AM,1,DRAFT)`), 'Diameter luar 22,37; Diameter dalam 18,05 mm', 'hasil aktual otomatis: rata-rata tiap jenis ukur dikurangi nol alat (0,05), dibulatkan 2 desimal');
   sama(G(`lk2Auto(_AM,2,DRAFT)`), '0 mm', 'hasil aktual otomatis: posisi nol mikrometer');
@@ -571,7 +571,7 @@ G(`${KM}.v2.cekAuto=_cekAuto;delete globalThis.lkmCfg;LK.preview=false;STAFF=fal
   sama([G(`lk2Auto(_AM,4,DRAFT)`), G(`lk2Auto(_AM,6,DRAFT)`)], [null, null], 'komponen tanpa tabel tetap diisi manual');
   sama(G(`lk2Auto(_AM,1,{})`), '', 'tabel kosong: hasil aktual kosong');
   /* tampilan */
-  G(`STAFF=false;LK.preview=false;LK.module='LKPD-X-07';DRAFT=${JSON.stringify({ ...penuh, ...dtab })};LK.tab='kerja'`);
+  G(`STAFF=false;LK.preview=false;LK.module='LKPD-X-06';DRAFT=${JSON.stringify({ ...penuh, ...dtab })};LK.tab='kerja'`);
   const kv = G('viewLKPD()');
   ok((kv.match(/data-lk-field=\"t_F1_\d_nol\"/g) || []).length === 1 && /data-lk-field=\"t_F1_0_nol\"/.test(kv) && /Nol alat \(cek 1 kali di awal, mm\)/.test(kv), 'F1: Nol alat hanya satu isian (cek 1 kali di awal), bukan per baris');
   ok((kv.match(/data-lk-field=\"t_F2_\d_nol\"/g) || []).length === 1, 'F2: Nol alat satu isian');
@@ -589,9 +589,9 @@ G(`${KM}.v2.cekAuto=_cekAuto;delete globalThis.lkmCfg;LK.preview=false;STAFF=fal
   G(`DRAFT={}`);
 }
 
-/* ---------- Perbaikan dari evaluasi tim (X-07): koreksi nol, pesan kirim, K3, Latihan di Lembar Kerja ---------- */
+/* ---------- Perbaikan dari evaluasi tim (X-06): koreksi nol, pesan kirim, K3, Latihan di Lembar Kerja ---------- */
 {
-  const AM = `LKPD_MODULES.filter(function(x){return x.id==='LKPD-X-07'})[0]`;
+  const AM = `LKPD_MODULES.filter(function(x){return x.id==='LKPD-X-06'})[0]`;
   /* 1. rata-rata memakai bacaan dikurangi nol alat, dibulatkan 2 desimal (bukan 3 desimal mentah) */
   G(`DRAFT={t_F1_0_nol:'0,05',t_F1_0_u1:'22,40',t_F1_0_u2:'22,45',t_F1_0_u3:'22,40'}`);
   sama(G(`lk2Auto(${AM},1,DRAFT)`), 'Diameter luar 22,37 mm', 'koreksi nol: 22,40/22,45/22,40 dengan nol 0,05 menjadi 22,37 (bukan 22,417)');
@@ -599,13 +599,13 @@ G(`${KM}.v2.cekAuto=_cekAuto;delete globalThis.lkmCfg;LK.preview=false;STAFF=fal
   sama(G(`lk2Auto(${AM},3,DRAFT)`), '9,43 mm', 'koreksi nol: nol negatif (-0,02) menambah hasil');
   G(`DRAFT={t_F1_0_u1:'22,40',t_F1_0_u2:'22,40',t_F1_0_u3:'22,40'}`);
   sama(G(`lk2Auto(${AM},1,DRAFT)`), 'Diameter luar 22,4 mm', 'koreksi nol: nol kosong dianggap 0');
-  ok(M.v2.tabel.every((t) => t.dec === 2), 'semua tabel X-07 dibulatkan 2 desimal');
+  ok(M.v2.tabel.every((t) => t.dec === 2), 'semua tabel X-06 dibulatkan 2 desimal');
   const F1 = M.v2.tabel.find((t) => t.id === 'F1');
   ok(F1.kol.some((k) => k.k === 'std') && F1.kol.some((k) => k.t === 'status'), 'F1 punya kolom Standar dan Status seperti F2 dan F3');
   /* 2. nilai otomatis yang sama untuk Detail guru dan pemeriksaan integritas */
   sama([G(`lk2ScoreFor(${AM},${JSON.stringify(penuh)}).final`), G(`lk2ScoreFor(${AM},${JSON.stringify(penuh)}).work`)], [100, M.steps.length], 'lk2ScoreFor: nilai v2 tersedia untuk pemeriksaan integritas');
   /* 3. Kirim LKPD ditolak dengan pesan yang menyebut kolomnya */
-  G(`STAFF=false;LK.preview=false;LK.module='LKPD-X-07';SUBMITTED=0;toasts.length=0`);
+  G(`STAFF=false;LK.preview=false;LK.module='LKPD-X-06';SUBMITTED=0;toasts.length=0`);
   const tanpaStatus = { ...penuh }; M.checks.forEach((c, i) => { delete tanpaStatus['status' + i]; });
   G(`DRAFT=${JSON.stringify(tanpaStatus)};LK.tab='materi'`); G('lkSubmit()');
   sama(G('SUBMITTED'), 0, 'kirim ditolak bila Status pemeriksaan belum dipilih');
@@ -630,7 +630,7 @@ G(`${KM}.v2.cekAuto=_cekAuto;delete globalThis.lkmCfg;LK.preview=false;STAFF=fal
   ok(M.quiz.every((q) => !/skala utama \d|nonius ke-\d|selubung \d|bidal \d|garis ke-\d|terbesar \d|terkecil \d/i.test(q.q)), 'soal latihan tidak memberi angka bacaan; angka dibaca dari gambar');
   ok(!/Ubah soal/.test(M.quiz.map((q) => q.e || '').join(' ')), 'pembahasan soal tidak memuat catatan internal guru');
   /* 5. bawaan terbit Latihan lalu Ujian */
-  ok(M.tahap === true && M.mode === 'ujian', 'bawaan X-07: bertahap (Latihan lalu Ujian)');
+  ok(M.tahap === true && M.mode === 'ujian', 'bawaan X-06: bertahap (Latihan lalu Ujian)');
   G(`DRAFT={}`);
 }
 

@@ -26,7 +26,7 @@ var S={user:{id:'u1',nama:'Budi',kelas:'X'},lkpd:[],observasi:[],users:[],result
 var Cloud={on:false};var toasts=[];function toast(m){toasts.push(m)}function render(){}function persist(){}function save(){}function uid(){return 'x'}
 function ymd(){return '2026-11-23'}function schNama(){return 'SMKS'}var STAFF=false;function isStaff(){return STAFF}
 function esc(x){return String(x==null?'':x)}function lkEsc(x){return esc(x)}
-var LK={module:'LKPD-X-07',tab:'kerja',detail:null,editor:null,preview:false};
+var LK={module:'LKPD-X-06',tab:'kerja',detail:null,editor:null,preview:false};
 function lkRowOk(){return false}function lkScore(){return {practice:0,theory:0,final:0,answered:0,correct:0}}function lkRead(){return {}}
 function lkProgress(){return ''}function lkSubmit(){}function viewLKPD(){return 'V'}function lkDetailBody(){return 'D'}
 function lkqQuizHtml(){return ''}function uiOk(k,m,f){return true}
@@ -34,7 +34,7 @@ var LKPD_MODULES=[];var MODE='ujian';
 function lkDraft(){return {}}function uiOk(){return true}function lkmCfg(){return {mode:MODE}}function lkmCur(){return LKPD_MODULES[0]}function lkmSesiMenit(){return 80}
 `, 'stub');
 run(src('lkpd-soal.js').split('/* ---------- Pemasangan ke mesin LKPD ---------- */')[0], 'soal-inti');
-run(src('lkpd-v2-x07.js'), 'x07');
+run(src('lkpd-v2-x06.js'), 'x07');
 run(`LKPD_MODULES=JSON.parse(JSON.stringify(LKPD_EXTRA_MODULES));`, 'modul');
 run(src('lkpd-v2.js'), 'v2');
 run(src('lkpd-v2-soal.js'), 'v2soal');

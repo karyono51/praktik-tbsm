@@ -1,4 +1,4 @@
-/* lkpd-v2.js: mesin LKPD v2 (aditif). Hanya aktif untuk modul yang memiliki objek `v2` (mis. LKPD-X-07); LKPD lama tidak berubah.
+/* lkpd-v2.js: mesin LKPD v2 (aditif). Hanya aktif untuk modul yang memiliki objek `v2` (mis. LKPD-X-06); LKPD lama tidak berubah.
    Dimuat tepat setelah lkpd.js, sebelum lkpd-kelas.js dan pembungkus lain, sehingga banner mode, timer, dan daftar kelas tetap bekerja.
    Tambahan v2:
    - Pertemuan: rencana per pertemuan (JP/menit) dan waktu aktual per pertemuan (isian menit).
@@ -213,6 +213,7 @@ lkSubmit=function(){
 /* ---------- Tampilan siswa ---------- */
 function lk2Chk(d,key,label){return '<label class="lk-check'+(LK2.tandai&&!d[key]?' lk2-need':'')+'"><input type="checkbox" data-lk-check="'+key+'" '+(d[key]?'checked':'')+'><span>'+label+'</span></label>'}
 /* Waktu praktik: total semua kegiatan dibagi per kegiatan (p.praktik). Menit langkah (v2.langkah[].menit) menjumlah ke target kegiatannya. */
+function lk2PertPraktik(V){var a=V.pertemuan.filter(function(p){return (p.kegiatan||[]).length}).map(function(p){return p.n});return a.length?(a[0]===a[a.length-1]?String(a[0]):a[0]+'–'+a[a.length-1]):''}
 function lk2PraktikTotal(V){return V.pertemuan.reduce(function(t,p){return t+(p.sembunyi?0:Number(p.praktik)||0)},0)}
 function lk2KegMenit(V,k){return V.langkah.filter(function(l){return l.k===k}).reduce(function(t,l){return t+(Number(l.menit)||0)},0)}
 /* Kartu Lembar Kerja: satu kartu per pertemuan, kecuali pertemuan dengan kartu:{per:{k:judul}} yang memuat beberapa kegiatan: satu kartu per kegiatan (tidak digabung).
@@ -318,7 +319,7 @@ function lk2Eval(m,d){
   }).join(''),
   pg=(O.panduan||[]).map(function(x,i){return lk2Det('g'+i,lkEsc(x.k),'',(x.lihat?'<p><b>Yang diamati:</b> '+lkEsc(x.lihat)+'</p>':'')+(x.salah?'<p><b>Kesalahan umum:</b> '+lkEsc(x.salah)+'</p>':''))}).join('');
  return lk2EvalSoal(m,d)+
-  '<section class="card"><h2>Penilaian kinerja oleh guru</h2><p class="note">Guru menilai selama praktik (Pertemuan 2–'+(m.v2.pertemuan.length-1)+') dan menyaksikan langkah bertanda saksi guru. Tiap aspek diberi skor 1–4. Ketuk aspek untuk melihat poin yang dinilai dan arti tiap skor.</p>'+asp+
+  '<section class="card"><h2>Penilaian kinerja oleh guru</h2><p class="note">Guru menilai selama praktik (Pertemuan '+lk2PertPraktik(m.v2)+') dan menyaksikan langkah bertanda saksi guru. Tiap aspek diberi skor 1–4. Ketuk aspek untuk melihat poin yang dinilai dan arti tiap skor.</p>'+asp+
   '<p class="note"><b>Cara hitung:</b> nilai = jumlah dari (skor ÷ 4 × bobot), maksimum 100. Contoh: skor 3 pada Prosedur kerja (30%) memberi 3 ÷ 4 × 30 = 22,5.</p></section>'+
   '<section class="card"><h2>Syarat kompeten</h2><p class="note">Kompeten bila semua indikator di bawah tercapai, semua aspek sudah dinilai, dan skor Persiapan dan K3 bukan 1. Ketuntasan nilai mengikuti KKTP sekolah.</p><ul class="plain">'+O.indikator.map(function(x){return '<li><b>'+lkEsc(x.t)+'</b><br><small class="note">Bukti: '+lkEsc(x.bukti)+'</small></li>'}).join('')+'</ul></section>'+
   (pg?'<section class="card"><h2>Yang diamati dan kesalahan umum</h2><p class="note">Pelajari sebelum praktik agar kesalahan umum bisa dihindari.</p>'+pg+'</section>':'')+

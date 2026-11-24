@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Uji nilai gambar skala di Editor LKPD v2: skgHitung cocok dengan kunci soal X-07, lkeGBox menampilkan kolom dan peringatan.
+/* Uji nilai gambar skala di Editor LKPD v2: skgHitung cocok dengan kunci soal X-06, lkeGBox menampilkan kolom dan peringatan.
    node tools/uji-editor-gambar.mjs */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,8 +22,8 @@ const akhir = src.indexOf('document.addEventListener', mulai);
 ok(mulai > -1 && akhir > mulai, 'blok nilai gambar ada di editor');
 vm.runInContext(src.slice(mulai, akhir), ctx);
 const G = (e) => vm.runInContext(e, ctx);
-// semua soal isian bergambar di data X-07: hitungan gambar = kunci
-const x07 = fs.readFileSync(path.join(root, 'js', 'lkpd-v2-x07.js'), 'utf8');
+// semua soal isian bergambar di data X-06: hitungan gambar = kunci
+const x07 = fs.readFileSync(path.join(root, 'js', 'lkpd-v2-x06.js'), 'utf8');
 const baris = x07.split('\n').filter(l => /t:'isian'/.test(l) && /g:\{/.test(l));
 ok(baris.length >= 10, 'ada 10 soal isian bergambar (' + baris.length + ')');
 for (const l of baris) {

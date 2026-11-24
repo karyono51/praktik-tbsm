@@ -8,14 +8,14 @@ const ctx = vm.createContext({ console, JSON, Math, Object, Array, String, Numbe
 ctx.window = ctx;
 const src = (f) => fs.readFileSync(path.join(root, 'js', f), 'utf8');
 const run = (code, n) => vm.runInContext(code, ctx, { filename: n });
-run(src('lkpd-modul.js'), 'a'); run(src('lkpd-v2-x07.js'), 'b'); run(src('lkpd-v2-xi17.js'), 'c1'); run(src('lkpd-v2-xi18.js'), 'c2'); run(src('lkpd.js').split('\n').slice(0, 19).join('\n'), 'd');
+run(src('lkpd-modul.js'), 'a'); run(src('lkpd-v2-x06.js'), 'b'); run(src('lkpd-v2-xi17.js'), 'c1'); run(src('lkpd-v2-xi18.js'), 'c2'); run(src('lkpd.js').split('\n').slice(0, 19).join('\n'), 'd');
 run(`function lk2Is(m){return !!(m&&m.v2&&m.v2.ver===2)}function lkEsc(x){return String(x==null?'':x)}
-var STAFF=true;function isStaff(){return STAFF}var LKS={id:'LKPD-X-07'};function lksMod(){return null}function lksHub(){return ''}
+var STAFF=true;function isStaff(){return STAFF}var LKS={id:'LKPD-X-06'};function lksMod(){return null}function lksHub(){return ''}
 var LK={},LKA={},LKM={};function render(){}function toast(){}function lkEditorDefaults(m){return {src:m}}`, 'stub');
 run(src('lkpd-master.js'), 'lkpd-master.js');
 const G = (e) => vm.runInContext(e, ctx);
 const near = (x, y) => Math.abs(x - y) < 1e-9;
-ok(G('LKPD_MODULES.some(function(x){return x.id==="LKPD-X-07"})'), 'LKPD-X-07 tetap ada');
+ok(G('LKPD_MODULES.some(function(x){return x.id==="LKPD-X-06"})'), 'LKPD-X-06 tetap ada');
 
 function uji(id, judul, skkni, kunciSoal, mengandung) {
   const m = G('LKPD_MODULES.find(function(x){return x.id==="' + id + '"})'); const T = (c, t) => ok(c, id + ': ' + t);
@@ -27,13 +27,13 @@ function uji(id, judul, skkni, kunciSoal, mengandung) {
   const cek = ctx.lkmsCek(m);
   T(cek.length === 14 && cek.every((x) => x.ok), 'memenuhi 14 butir master: ' + cek.filter((x) => !x.ok).map((x) => x.k + ' (' + x.t + ')').join('; '));
   const P = V.pertemuan;
-  T(P.length === 6 && P.every((p) => p.jp === 3 && p.menit === 135), '6 pertemuan x 3 JP x 135 menit');
+  T(P.length === 3 && P.every((p) => p.jp === 6 && p.menit === 270), '3 pertemuan x 6 JP x 270 menit (6 JP per pertemuan Kelas XI)');
   T(V.jp === 18 && P.reduce((t, p) => t + p.jp, 0) === 18, 'jumlah JP = 18 (sesuai matriks ringkas)');
   T(m.duration === P.reduce((t, p) => t + p.menit, 0), 'duration = jumlah menit pertemuan');
   const mk = (k) => V.langkah.filter((l) => l.k === k).reduce((t, l) => t + l.menit, 0);
   P.forEach((p) => { if (p.kegiatan.length) T(p.praktik === p.kegiatan.reduce((t, k) => t + mk(k), 0) && p.praktik > 0 && p.praktik < p.menit, 'P' + p.n + ' target praktik = jumlah menit langkah dan < menit pertemuan'); });
-  T(P.every((p) => p.kegiatan.length <= 1), 'kegiatan tidak digabung');
-  T(V.kegiatan.length === 4 && [1, 2, 3, 4].every((k) => P.some((p) => p.kegiatan.join() === String(k))), 'tiap kegiatan satu pertemuan sendiri');
+  T(P.every((p) => p.kegiatan.length >= 1) && P[1].kegiatan.join() === '2,3' && !!P[1].kartu.per, 'P1 Kegiatan 1, P2 Kegiatan 2 dan 3 (dua kartu), P3 Kegiatan 4');
+  T(V.kegiatan.length === 4 && [1, 2, 3, 4].every((k) => P.filter((p) => p.kegiatan.indexOf(k) > -1).length === 1), 'tiap kegiatan masuk tepat satu pertemuan');
   T(V.langkah.length === m.steps.length && V.langkah.every((l, i) => l.i === i && l.menit > 0), 'langkah sejajar steps');
   [1, 2, 3, 4].forEach((k) => T(V.langkah.some((l) => l.k === k && l.saksi), 'kegiatan ' + k + ' punya langkah bersaksi'));
   const a = V.obs.aspek; T(a.reduce((t, x) => t + x.b, 0) === 100 && a.filter((x) => x.stop).length === 1 && a.find((x) => x.stop).id === 'k3', 'rubrik 100, penghenti K3');

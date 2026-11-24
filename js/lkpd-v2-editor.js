@@ -1,4 +1,4 @@
-/* lkpd-v2-editor.js: Edit LKPD untuk LKPD v2 (pilot LKPD-X-07) dan tombol foto pada Materi dan Soal evaluasi.
+/* lkpd-v2-editor.js: Edit LKPD untuk LKPD v2 (pilot LKPD-X-06) dan tombol foto pada Materi dan Soal evaluasi.
    Berdiri sendiri: membungkus fungsi lkpd-editor.js, lkpd-gambar.js, lkpd-soal.js, dan lkpd.js tanpa mengubah berkasnya.
    Dimuat paling akhir di antara berkas LKPD (setelah lkpd-samakan.js dan soal-grup.js).
 

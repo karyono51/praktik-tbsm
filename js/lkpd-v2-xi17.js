@@ -1,9 +1,9 @@
 /* lkpd-v2-xi17.js: LKPD v2 LKPD-XI-17 (Perawatan dan Perbaikan Sistem Transmisi Manual), Kelas XI Genap, TP XI.3.2. Hanya DATA, ditambahkan ke LKPD_EXTRA_MODULES.
-   Mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas.xlsx: LKPD-XI-17 = pecahan transmisi manual dari LKPD-XI-18 revisi2, 18 JP (pembagian 18 + 18 JP adalah usulan), unit SKKNI 051 (level 3, di atas level 2).
-   Dimuat setelah lkpd-v2-x07.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-X-07). Status awal Draft.
+   Mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas_jam_revisi.xlsx: LKPD-XI-17 = pecahan transmisi manual dari LKPD-XI-18 revisi2, 18 JP (pembagian 18 + 18 JP adalah usulan), unit SKKNI 051 (level 3, di atas level 2).
+   Dimuat setelah lkpd-v2-x06.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-X-06). Status awal Draft.
    Angka spesifikasi komponen (standar, batas pakai, jenis dan jumlah oli) sengaja KOSONG: guru mengisinya dari manual servis. Angka pada soal hanya contoh hitung.
    Rujukan SKKNI 147/2019 hanya usulan pemetaan dan perlu diverifikasi sebelum dipakai untuk asesmen.
-   6 pertemuan x 3 JP (135 menit, 45 menit per JP) = 18 JP. Pertemuan 1 dan 6 tanpa praktik; Kegiatan 1 sampai 4 masing-masing satu pertemuan (kartu tidak digabung). */
+   3 pertemuan x 6 JP (270 menit, 45 menit per JP) = 18 JP, sesuai 6 JP per pertemuan Kelas XI. Pertemuan 1 = materi, gerbang, APD + Kegiatan 1; Pertemuan 2 = Kegiatan 2 dan 3 (dua kartu); Pertemuan 3 = Kegiatan 4, analisis, penilaian kinerja, refleksi. */
 (function(){
  var langkah=[
   {k:1,m:10,t:'Cek kondisi engine/trainer dan alat; kuras oli transmisi ke wadah, catat warna, kekentalan, dan ada tidaknya serbuk logam',p:'Engine dingin; oli bekas ke wadah limbah'},
@@ -64,12 +64,9 @@
   v2:{
    ver:2,jenis:'jobsheet',jp:18,tp:'XI.3.2',cp:'Perawatan dan perbaikan sistem pemindah tenaga',
    pertemuan:[
-    {n:1,jp:3,menit:135,judul:'Pemantik, materi transmisi manual, gerbang masuk, APD, cek alat',kegiatan:[],sembunyi:true},
-    {n:2,jp:3,menit:135,judul:'Kegiatan 1 pembongkaran dan pemeriksaan gigi, latihan soal 1–2',kegiatan:[1],latihan:['M1','M2'],praktik:jumMenit([1]),kartu:{judul:'Kegiatan 1 pembongkaran dan pemeriksaan gigi'}},
-    {n:3,jp:3,menit:135,judul:'Kegiatan 2 garpu pemilih, shift drum, dan bearing, latihan soal 3–4',kegiatan:[2],latihan:['M3','M4'],praktik:jumMenit([2]),kartu:{judul:'Kegiatan 2 garpu pemilih, shift drum, dan bearing'}},
-    {n:4,jp:3,menit:135,judul:'Kegiatan 3 keolengan poros dengan dial gauge, latihan soal 5',kegiatan:[3],latihan:['M5'],praktik:jumMenit([3]),kartu:{judul:'Kegiatan 3 keolengan poros dengan dial gauge'}},
-    {n:5,jp:3,menit:135,judul:'Kegiatan 4 perakitan, oli, dan uji fungsi, latihan soal 6, analisis',kegiatan:[4],latihan:['M6'],praktik:jumMenit([4]),kartu:{judul:'Kegiatan 4 perakitan, oli, dan uji fungsi'}},
-    {n:6,jp:3,menit:135,judul:'Penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[],sembunyi:true}
+    {n:1,jp:6,menit:270,judul:'Pemantik, materi transmisi manual, gerbang masuk, APD, cek alat; Kegiatan 1 pembongkaran dan pemeriksaan gigi, latihan soal 1–2',kegiatan:[1],latihan:['M1','M2'],praktik:jumMenit([1]),kartu:{judul:'Kegiatan 1 pembongkaran dan pemeriksaan gigi'}},
+    {n:2,jp:6,menit:270,judul:'Kegiatan 2 garpu pemilih, shift drum, dan bearing; Kegiatan 3 keolengan poros dengan dial gauge, latihan soal 3–5',kegiatan:[2,3],latihan:['M3','M4','M5'],praktik:jumMenit([2,3]),kartu:{judul:'Kegiatan 2 garpu pemilih dan 3 keolengan poros',per:{2:'Kegiatan 2 garpu pemilih, shift drum, dan bearing',3:'Kegiatan 3 keolengan poros dengan dial gauge'}}},
+    {n:3,jp:6,menit:270,judul:'Kegiatan 4 perakitan, oli, dan uji fungsi, latihan soal 6, analisis; penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[4],latihan:['M6'],praktik:jumMenit([4]),kartu:{judul:'Kegiatan 4 perakitan, oli, dan uji fungsi'}}
    ],
    kegiatan:kegiatan,judulPendek:'Transmisi Manual',
    cekAlat:['Jangka sorong: permukaan ukur bersih, nol tepat atau penyimpangan dicatat','Dial gauge: poros ukur bergerak lancar dan kembali, jarum tidak macet, dudukan magnet dan blok V stabil','Engine atau trainer: terpasang kuat, dingin, tidak ada kebocoran oli; baki komponen dan wadah oli bekas siap'],

@@ -31,7 +31,7 @@ function ymd(){return '2026-11-20'}function schNama(){return 'SMKS Medina'}
 var STAFF=false;function isStaff(){return STAFF}
 function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function lkEsc(x){return esc(x)}
-var LK={module:'LKPD-X-07',tab:'materi',detail:null,editor:null,preview:false};
+var LK={module:'LKPD-X-06',tab:'materi',detail:null,editor:null,preview:false};
 var DRAFT={};function lkDraft(){return DRAFT}
 function lkRowOk(d,i){return !!d['row'+i]&&String(d['actual'+i]||'').trim()!==''}
 function lkScore(d){return {practice:-1,theory:-1,final:-1,answered:0,correct:0}}
@@ -45,7 +45,7 @@ var LKPD_MODULES=[];
 `, 'stub-lkpd');
 /* Fungsi soal asli (lkpd-soal.js, sebelum bagian pemasangan) dimuat apa adanya agar PG, kompleks, dan kategori dinilai seperti di aplikasi. */
 run(src('lkpd-soal.js').split('/* ---------- Pemasangan ke mesin LKPD ---------- */')[0], 'lkpd-soal-inti.js');
-run(src('lkpd-v2-x07.js'), 'lkpd-v2-x07.js');
+run(src('lkpd-v2-x06.js'), 'lkpd-v2-x06.js');
 run(`LKPD_MODULES=JSON.parse(JSON.stringify(LKPD_EXTRA_MODULES));`, 'jalur-modul');
 run(src('lkpd-v2.js'), 'lkpd-v2.js');
 run(src('lkpd-v2-soal.js'), 'lkpd-v2-soal.js');

@@ -1,9 +1,9 @@
 /* lkpd-v2-xi18.js: LKPD v2 LKPD-XI-18 (Perawatan dan Perbaikan Sistem Transmisi Otomatis (CVT)), Kelas XI Genap, TP XI.3.2. Hanya DATA, ditambahkan ke LKPD_EXTRA_MODULES.
-   Mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas.xlsx: LKPD-XI-18 = pecahan CVT dari LKPD-XI-18 revisi2, 18 JP (pembagian 18 + 18 JP adalah usulan), unit SKKNI 027 (level 2). Transmisi manual ada di LKPD-XI-17.
-   Dimuat setelah lkpd-v2-xi17.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-X-07). Status awal Draft.
+   Mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas_jam_revisi.xlsx: LKPD-XI-18 = pecahan CVT dari LKPD-XI-18 revisi2, 18 JP (pembagian 18 + 18 JP adalah usulan), unit SKKNI 027 (level 2). Transmisi manual ada di LKPD-XI-17.
+   Dimuat setelah lkpd-v2-xi17.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-X-06). Status awal Draft.
    Angka spesifikasi komponen (standar, batas pakai, torsi, jenis dan jumlah oli) sengaja KOSONG: guru mengisinya dari manual servis. Angka pada soal hanya contoh hitung.
    Rujukan SKKNI 147/2019 hanya usulan pemetaan dan perlu diverifikasi sebelum dipakai untuk asesmen.
-   6 pertemuan x 3 JP (135 menit, 45 menit per JP) = 18 JP. Pertemuan 1 dan 6 tanpa praktik; Kegiatan 1 sampai 4 masing-masing satu pertemuan (kartu tidak digabung). */
+   3 pertemuan x 6 JP (270 menit, 45 menit per JP) = 18 JP, sesuai 6 JP per pertemuan Kelas XI. Pertemuan 1 = materi, gerbang, APD + Kegiatan 1; Pertemuan 2 = Kegiatan 2 dan 3 (dua kartu); Pertemuan 3 = Kegiatan 4, analisis, penilaian kinerja, refleksi. */
 (function(){
  var langkah=[
   {k:1,m:10,t:'Lepas cover CVT dan penutupnya sesuai manual servis; wadahi baut menurut letaknya',p:'Engine mati dan dingin'},
@@ -68,12 +68,9 @@
   v2:{
    ver:2,jenis:'jobsheet',jp:18,tp:'XI.3.2',cp:'Perawatan dan perbaikan sistem pemindah tenaga',
    pertemuan:[
-    {n:1,jp:3,menit:135,judul:'Pemantik, materi CVT, gerbang masuk, APD, cek alat',kegiatan:[],sembunyi:true},
-    {n:2,jp:3,menit:135,judul:'Kegiatan 1 pemeriksaan V-belt, latihan soal 1–2',kegiatan:[1],latihan:['C1','C2'],praktik:jumMenit([1]),kartu:{judul:'Kegiatan 1 pemeriksaan V-belt'}},
-    {n:3,jp:3,menit:135,judul:'Kegiatan 2 puli primer dan roller, latihan soal 3–4',kegiatan:[2],latihan:['C3','C4'],praktik:jumMenit([2]),kartu:{judul:'Kegiatan 2 puli primer dan roller'}},
-    {n:4,jp:3,menit:135,judul:'Kegiatan 3 puli sekunder dan kopling sentrifugal, latihan soal 5–6',kegiatan:[3],latihan:['C5','C6'],praktik:jumMenit([3]),kartu:{judul:'Kegiatan 3 puli sekunder dan kopling'}},
-    {n:5,jp:3,menit:135,judul:'Kegiatan 4 perakitan, oli, dan uji fungsi, analisis',kegiatan:[4],praktik:jumMenit([4]),kartu:{judul:'Kegiatan 4 perakitan, oli, dan uji fungsi'}},
-    {n:6,jp:3,menit:135,judul:'Penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[],sembunyi:true}
+    {n:1,jp:6,menit:270,judul:'Pemantik, materi CVT, gerbang masuk, APD, cek alat; Kegiatan 1 pemeriksaan V-belt, latihan soal 1–2',kegiatan:[1],latihan:['C1','C2'],praktik:jumMenit([1]),kartu:{judul:'Kegiatan 1 pemeriksaan V-belt'}},
+    {n:2,jp:6,menit:270,judul:'Kegiatan 2 puli primer dan roller; Kegiatan 3 puli sekunder dan kopling sentrifugal, latihan soal 3–6',kegiatan:[2,3],latihan:['C3','C4','C5','C6'],praktik:jumMenit([2,3]),kartu:{judul:'Kegiatan 2 puli primer dan 3 puli sekunder',per:{2:'Kegiatan 2 puli primer dan roller',3:'Kegiatan 3 puli sekunder dan kopling'}}},
+    {n:3,jp:6,menit:270,judul:'Kegiatan 4 perakitan, oli, dan uji fungsi, analisis; penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[4],praktik:jumMenit([4]),kartu:{judul:'Kegiatan 4 perakitan, oli, dan uji fungsi'}}
    ],
    kegiatan:kegiatan,judulPendek:'Transmisi Otomatis (CVT)',
    cekAlat:['SST penahan puli dan kompresor pegas puli sekunder: lengkap, tidak retak, pas pada puli','Jangka sorong dan timbangan: permukaan ukur bersih, nol tepat atau penyimpangan dicatat','Engine atau trainer: terpasang kuat, dingin, tidak ada kebocoran oli; baki komponen dan wadah oli bekas siap'],

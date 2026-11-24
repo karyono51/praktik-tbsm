@@ -85,7 +85,7 @@ function akhir(d){
 }
 
 /* Nama berkas PDF = judul halaman saat mencetak: "LKPD <id LKPD> <judul LKPD> <nama sekolah>",
-   mis. "LKPD X-07 Penggunaan dan Perawatan Alat Ukur (Jangka Sorong, Mikrometer, Dial Gauge) SMKS Medina Bandung".
+   mis. "LKPD X-06 Penggunaan dan Perawatan Alat Ukur (Jangka Sorong, Mikrometer, Dial Gauge) SMKS Medina Bandung".
    Id LKPD diambil dari id modul tanpa awalan "LKPD-". Karakter yang dilarang pada nama berkas dibuang. */
 function bersihNama(t){return String(t||'').replace(/[\\/:*?"<>|\u0000-\u001f]/g,' ').replace(/\s+/g,' ').trim()}
 function namaPdf(m){

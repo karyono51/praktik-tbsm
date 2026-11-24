@@ -407,51 +407,51 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   T('mapel resmi tidak ikut tersaring', ['Dasar-Dasar Teknik Otomotif', 'Teknik Sepeda Motor', 'Praktik Kerja Lapangan'].every((n) => !bukan(n)));
 }
 
-/* 15. Peta LKPD: matriks LKPD revisi2 (62 LKPD, JP per kelas sesuai target) */
+/* 15. Peta LKPD: matriks ringkas jam revisi (54 LKPD, JP per kelas sesuai target) */
 {
   const { ctx, AKD, log, klik } = boot();
   const D = ctx.AKD_LKPD_MATRIKS;
   const jp = (k) => D.filter((x) => x.kl === k).reduce((a, x) => a + x.jp, 0);
-  T('matriks: 62 LKPD (X 24, XI 25, XII 13)', D.length === 62 && D.filter((x) => x.kl === 'X').length === 24 && D.filter((x) => x.kl === 'XI').length === 25 && D.filter((x) => x.kl === 'XII').length === 13);
+  T('matriks: 54 LKPD (X 19, XI 23, XII 12)', D.length === 54 && D.filter((x) => x.kl === 'X').length === 19 && D.filter((x) => x.kl === 'XI').length === 23 && D.filter((x) => x.kl === 'XII').length === 12);
   T('matriks: JP per kelas sama dengan target (432, 648, 352)', jp('X') === 432 && jp('XI') === 648 && jp('XII') === 352 && ctx.AKD_LKPD_TARGET.X.jp === 432 && ctx.AKD_LKPD_TARGET.XI.jp === 648 && ctx.AKD_LKPD_TARGET.XII.jp === 352, [jp('X'), jp('XI'), jp('XII')]);
-  T('matriks: kode LKPD unik dan berurutan per kelas', new Set(D.map((x) => x.k)).size === 62 && D.every((x) => x.k.indexOf('LKPD-' + x.kl + '-') === 0));
+  T('matriks: kode LKPD unik dan berurutan per kelas', new Set(D.map((x) => x.k)).size === 54 && D.every((x) => x.k.indexOf('LKPD-' + x.kl + '-') === 0));
   T('matriks: catatan PKL 736 JP / 16 minggu ikut tersimpan', /736 JP/.test(ctx.AKD_LKPD_PKL) && /16 minggu/.test(ctx.AKD_LKPD_CATATAN));
   const mgOk = D.every((x) => Math.abs(x.mg - x.jp / ctx.AKD_LKPD_TARGET[x.kl].jpm) < 0.006);
   T('matriks: estimasi minggu = JP / JP per minggu (tanpa pembulatan kasar)', mgOk && ['X', 'XI', 'XII'].every((k) => Math.abs(jp(k) / ctx.AKD_LKPD_TARGET[k].jpm - D.filter((x) => x.kl === k).reduce((a, x) => a + x.mg, 0)) < 0.1));
-  T('matriks: status LKPD-X-07 mengikuti aplikasi (Draft master V2)', D.find((x) => x.k === 'LKPD-X-07').st === 'Draft (master V2)');
+  T('matriks: status LKPD-X-06 mengikuti aplikasi (Draft master V2)', D.find((x) => x.k === 'LKPD-X-06').st === 'Draft (master V2)');
   const sisa = (k) => D.filter((x) => x.kl === k && x.jp % ctx.AKD_LKPD_TARGET[k].jpp).map((x) => x.k);
   T('pertemuan: X 4 JP, XI dan XII 6 JP; total pertemuan X dan XI 108', ctx.AKD_LKPD_TARGET.X.jpp === 4 && ctx.AKD_LKPD_TARGET.XI.jpp === 6 && ctx.AKD_LKPD_TARGET.XII.jpp === 6 && jp('X') / 4 === 108 && jp('XI') / 6 === 108);
   T('pertemuan: semua LKPD Kelas X habis dibagi 4 JP dan Kelas XI habis dibagi 6 JP; Kelas XII hanya LKPD-XII-10 yang bersisa (22 JP = 3 x 6 + 4)', sisa('X').length === 0 && sisa('XI').length === 0 && JSON.stringify(sisa('XII')) === '["LKPD-XII-10"]', [sisa('X'), sisa('XI'), sisa('XII')]);
-  T('pertemuan: teks tampil (LKPD-XII-10, LKPD-XI-02)', ctx.akPertemuan(D.find((x) => x.k === 'LKPD-XII-10')) === '3 × 6 JP + 1 × 4 JP (sisa)' && ctx.akPertemuan(D.find((x) => x.k === 'LKPD-XI-02')) === '6 × 6 JP');
+  T('pertemuan: teks tampil (LKPD-XII-10, LKPD-XI-02)', ctx.akPertemuan(D.find((x) => x.k === 'LKPD-XII-10')) === '3 × 6 JP + 1 × 4 JP (sisa)' && ctx.akPertemuan(D.find((x) => x.k === 'LKPD-XI-02')) === '5 × 6 JP');
   const kode = new Set(D.map((x) => x.k));
   T('padanan: semua kode padanan ada di matriks', Object.keys(ctx.AKD_LKPD_PADAN).every((k) => kode.has(k)));
   T('padanan: setiap tingkat padanan sah (tepat, sebagian, kelas beda)', Object.values(ctx.AKD_LKPD_PADAN).every((L) => L.every((p) => ['tepat', 'sebagian', 'kelas beda'].includes(p[1]))));
-  ctx.LKPD_MODULES = [{ id: 'LKPD-X-07', title: 'Penggunaan dan Perawatan Alat Ukur', kelas: 'X' }, { id: 'XI-1', title: 'Tune-up', kelas: 'XI' }];
+  ctx.LKPD_MODULES = [{ id: 'LKPD-X-06', title: 'Penggunaan dan Perawatan Alat Ukur', kelas: 'X' }, { id: 'XI-1', title: 'Tune-up', kelas: 'XI' }];
   ctx.LKPD_DEFAULT_MODULES = ctx.LKPD_MODULES;
-  T('modul tanpa padanan: XI-1 terdaftar, LKPD-X-07 tidak', JSON.stringify(ctx.akLkpdTanpaPadan().map((m) => m.id)) === '["XI-1"]', ctx.akLkpdTanpaPadan().map((m) => m.id));
+  T('modul tanpa padanan: XI-1 terdaftar, LKPD-X-06 tidak', JSON.stringify(ctx.akLkpdTanpaPadan().map((m) => m.id)) === '["XI-1"]', ctx.akLkpdTanpaPadan().map((m) => m.id));
   ctx.S.tab = 'akd-lkpd';
   let h = ctx.viewAkdLkpd();
   T('halaman Peta LKPD: tiga kartu JP per kelas dengan keterangan sesuai target', /432 JP/.test(h) && /648 JP/.test(h) && /352 JP/.test(h) && (h.match(/sesuai target/g) || []).length === 3);
   T('halaman Peta LKPD: kelompok Kelas X, XI, XII dan kartu LKPD', /Kelas X<\/b>/.test(h) && /Kelas XI<\/b>/.test(h) && /Kelas XII<\/b>/.test(h) && /LKPD-XII-13/.test(h) && /Penggunaan dan Perawatan Alat Ukur/.test(h));
-  T('halaman Peta LKPD: padanan modul tampil (LKPD-X-07 tepat)', /Modul di aplikasi \(1\)/.test(h) && /LKPD-X-07<\/span> Penggunaan dan Perawatan Alat Ukur · tepat/.test(h));
+  T('halaman Peta LKPD: padanan modul tampil (LKPD-X-06 tepat)', /Modul di aplikasi \(1\)/.test(h) && /LKPD-X-06<\/span> Penggunaan dan Perawatan Alat Ukur · tepat/.test(h));
   AKD.lf = 'XII'; h = ctx.akLkpdCards();
-  T('filter Kelas XII: hanya 13 LKPD', (h.match(/LKPD-XII-\d+/g) || []).length >= 13 && !/LKPD-X-01/.test(h) && !/LKPD-XI-01/.test(h) && /13 LKPD · 352 JP/.test(h), h.match(/\d+ LKPD · \d+ JP/g));
+  T('filter Kelas XII: hanya 12 LKPD', (h.match(/LKPD-XII-\d+/g) || []).length >= 12 && !/LKPD-X-01/.test(h) && !/LKPD-XI-01/.test(h) && /12 LKPD · 352 JP/.test(h), h.match(/\d+ LKPD · \d+ JP/g));
   AKD.lf = 'ada'; h = ctx.akLkpdCards();
-  T('filter Ada di aplikasi: hanya LKPD yang punya padanan', !/LKPD-X-01</.test(h) && /LKPD-X-07/.test(h));
+  T('filter Ada di aplikasi: hanya LKPD yang punya padanan', !/LKPD-X-01</.test(h) && /LKPD-X-06/.test(h));
   AKD.lf = 'ALL'; AKD.lq = 'rantai'; h = ctx.akLkpdCards();
   T('pencarian rantai: menemukan LKPD-XI-20, XII-08, dan X-01 (Rantai Usaha) tetapi bukan X-02', /LKPD-XI-20/.test(h) && /LKPD-XII-08/.test(h) && /LKPD-X-01</.test(h) && !/LKPD-X-02</.test(h));
   AKD.lq = 'zzzz'; T('pencarian tanpa hasil: pesan kosong', /Belum ada LKPD yang cocok/.test(ctx.akLkpdCards()));
   AKD.lq = '';
   AKD.lf = 'ALL'; AKD.lg = 'cp'; h = ctx.akLkpdCards();
-  T('kelompok Elemen CP: subkelompok per elemen dengan jumlah LKPD dan JP', /Wawasan Dunia Otomotif<\/b><small class="note"> · 3 LKPD/.test(h) && /Dasar Sistem Hidrolik dan Pneumatik<\/b><small class="note"> · 2 LKPD/.test(h) && (h.match(/akd-sub/g) || []).length === 21, (h.match(/akd-sub/g) || []).length);
-  T('kelompok Elemen CP: total LKPD tetap 62', (h.match(/<span class="mono note">LKPD-/g) || []).length === 62, (h.match(/<span class="mono note">LKPD-/g) || []).length);
+  T('kelompok Elemen CP: subkelompok per elemen dengan jumlah LKPD dan JP', /Wawasan Dunia Otomotif<\/b><small class="note"> · 3 LKPD/.test(h) && /Dasar Sistem Hidrolik dan Pneumatik<\/b><small class="note"> · 1 LKPD/.test(h) && (h.match(/akd-sub/g) || []).length === 21, (h.match(/akd-sub/g) || []).length);
+  T('kelompok Elemen CP: total LKPD tetap 54', (h.match(/<span class="mono note">LKPD-/g) || []).length === 54, (h.match(/<span class="mono note">LKPD-/g) || []).length);
   AKD.lg = 'kelas'; h = ctx.akLkpdCards();
   T('kelompok Kelas saja: tanpa subkelompok', !/akd-sub/.test(h) && /LKPD-X-01/.test(h));
   AKD.lg = 'cp';
   /* ekspor */
   log.rows.length = 0; await klik('ekspor');
   const pl = log.rows.find((r) => r[0] && 'Kode LKPD' in r[0]);
-  T('ekspor Excel: lembar Peta LKPD memuat 62 baris dengan padanan modul', pl && pl.length === 62 && pl.find((r) => r['Kode LKPD'] === 'LKPD-X-07')['Modul di aplikasi'] === 'LKPD-X-07 (tepat)' && pl.every((r) => typeof r.JP === 'number'), pl && pl.length);
+  T('ekspor Excel: lembar Peta LKPD memuat 54 baris dengan padanan modul', pl && pl.length === 54 && pl.find((r) => r['Kode LKPD'] === 'LKPD-X-06')['Modul di aplikasi'] === 'LKPD-X-06 (tepat)' && pl.every((r) => typeof r.JP === 'number'), pl && pl.length);
 }
 
 console.log('\n' + pass + ' lulus, ' + fail + ' gagal');

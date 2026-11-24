@@ -72,7 +72,7 @@ Pengamanan lanjutan: `docs-PENGAMANAN-APPWRITE.md`, `docs-PENGAMANAN-V72.md`, `d
 - Versi cache dan `?v=` tiap berkas dibuat otomatis oleh `tools/rilis.mjs` (dijalankan `up.sh` dan GitHub Actions); tidak perlu mengubah `CACHE` di `service-worker.js` dengan tangan. Perangkat memuat versi baru setelah deploy hijau dan tombol Perbarui aplikasi diketuk.
 
 ### Modul LKPD modular
-Menu **LKPD praktik** memuat 21 modul bawaan (X-1 sampai XII-7) per kelas, ditambah pilot **LKPD v2** untuk LKPD-X-07 (lihat `docs-LKPD-V2.md`). Guru/Admin dapat membuka **Editor Guru** untuk membuat, mengubah, menduplikasi, menerbitkan, menonaktifkan, dan menghapus modul; siswa hanya melihat modul terbit. Editor mengelola tujuan, teori, alat-bahan, K3, langkah, tabel pemeriksaan, soal JSON, rubrik, dan validasi. Mode lokal memakai `localStorage`; mode Appwrite memakai koleksi terpisah `lkpd_modules` dengan document security dan label `lkpdeditor`. Pengumpulan tetap memakai koleksi `lkpd` dan masuk rekap `hasil`. PWA mengantrekan perubahan modul saat offline. Periksa `appwrite.json`, jalankan `appwrite push collections`, lalu buat label `lkpdeditor` dan berikan hanya kepada akun Guru/Admin yang berwenang. Lihat `docs-LKPD-MODULAR.md` untuk panduan editor, skema, izin, dan migrasi.
+Menu **LKPD praktik** memuat 21 modul bawaan (X-1 sampai XII-7) per kelas, ditambah pilot **LKPD v2** untuk LKPD-X-06 (lihat `docs-LKPD-V2.md`). Guru/Admin dapat membuka **Editor Guru** untuk membuat, mengubah, menduplikasi, menerbitkan, menonaktifkan, dan menghapus modul; siswa hanya melihat modul terbit. Editor mengelola tujuan, teori, alat-bahan, K3, langkah, tabel pemeriksaan, soal JSON, rubrik, dan validasi. Mode lokal memakai `localStorage`; mode Appwrite memakai koleksi terpisah `lkpd_modules` dengan document security dan label `lkpdeditor`. Pengumpulan tetap memakai koleksi `lkpd` dan masuk rekap `hasil`. PWA mengantrekan perubahan modul saat offline. Periksa `appwrite.json`, jalankan `appwrite push collections`, lalu buat label `lkpdeditor` dan berikan hanya kepada akun Guru/Admin yang berwenang. Lihat `docs-LKPD-MODULAR.md` untuk panduan editor, skema, izin, dan migrasi.
 
 ### Observasi guru
 Menu **Observasi guru** (Admin dan Guru) berisi formulir supervisi pembelajaran 16 butir, skor 1-4, nilai dan kategori otomatis, ekspor PDF per observasi dan Excel rekap. Admin melihat semua observasi, Guru hanya miliknya sendiri. Mode Appwrite memakai koleksi `observasi`: jalankan `appwrite push collections`. Panduan lengkap di `docs-OBSERVASI-GURU.md`.
@@ -131,7 +131,7 @@ Dijalankan dari folder proyek dengan Node.js (tanpa pustaka tambahan).
 
 ### Pembelajaran praktik: LKPD, observasi, akademik
 - `docs-LKPD-MODULAR.md`: Arsitektur LKPD modular dan Editor Guru
-- `docs-LKPD-V2.md`: LKPD v2 dan Observasi LKPD Praktik v2 (pilot LKPD-X-07)
+- `docs-LKPD-V2.md`: LKPD v2 dan Observasi LKPD Praktik v2 (pilot LKPD-X-06)
 - `docs-LKPD-SAMAKAN.md`: Edit LKPD disamakan dengan Edit UKK
 - `docs-TEST-EDITOR-LKPD.md`: Laporan verifikasi Editor LKPD Guru
 - `docs-REFRESH-DAN-LKPD-KELAS.md`: Refresh, rilis otomatis, LKPD per kelas, timer
