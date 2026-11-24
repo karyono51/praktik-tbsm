@@ -1,3 +1,8 @@
+## LKPD v2: tombol Kunci kegiatan sesuai jumlah kegiatan
+- `js/lkpd-kunci.js`: `lkkIsLockable` tidak lagi membatasi ke pertemuan tengah (`n>1 && n<total`). Setiap kegiatan yang kartunya tampil punya satu tombol kunci. Pada LKPD-XI-17 dan XI-18 (3 pertemuan) tombolnya kini **Kunci Kegiatan 1, 2, 3, 4** (sebelumnya hanya Kegiatan 2 dan 3). Pada modul 5 pertemuan (X-06) tidak berubah: pertemuan awal dan akhir tanpa kegiatan tetap tidak punya kunci. Pilihan "Sampai Kegiatan N" di Pengaturan guru ikut menampilkan semua kegiatan.
+- Isian yang ikut terkunci per kegiatan tetap sama (langkah, pemeriksaan, soal latihan, waktu aktual, analisis); gerbang, K3, dan refleksi tetap bebas. Analisis XI-18 ikut Kegiatan 4 karena berada di pertemuan 3.
+- Uji: `uji-lkpd-v2` 280 (ditambah 3 butir kunci XI-18), lainnya tetap lulus.
+
 ## LKPD: ceklis "Sudah terisi" pada Pemeriksaan dan bukti dihapus
 - `js/lkpd.js`: kolom **Terisi** (kartu "Sudah terisi" di HP) pada tabel Hasil pemeriksaan dihapus. `lkRowOk` kini menganggap komponen terisi bila **Hasil aktual berisi dan Status dipilih** (bukan "Belum diperiksa"), sama dengan aturan LKPD v2 (`lk2Simpan` sudah menurunkan `row<i>` dari dua isian itu). Penghitung Periksa, syarat kirim, dan Analisis memakai aturan yang sama; draf lama yang hanya diceklis tanpa Status dihitung belum terisi.
 - `js/lkpd-analisis.js`: keterangan "Terisi lengkap (centang dan hasil aktual)" menjadi "(hasil aktual dan status)".

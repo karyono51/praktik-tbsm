@@ -4,7 +4,7 @@
    dapat diubah. Siswa hanya boleh membuat catatan (tidak bisa mengubah atau menghapusnya di server). Guru/admin mengatur
    di Pengaturan LKPD: aktif atau tidak, pertemuan yang dibuka, dan membuka kembali kunci per siswa.
    Isian lama yang belum terkunci tetap bebas diedit. Kunci ini penegak di sisi aplikasi, bukan di server.
-   Aturan: siswa boleh mengunci pertemuan mana saja (urutan bebas), kecuali pertemuan awal dan akhir. Kunci Pertemuan N hanya mengunci isian yang
+   Aturan: siswa boleh mengunci kegiatan mana saja (urutan bebas); satu tombol untuk tiap kegiatan yang kartunya tampil. Kunci Pertemuan N hanya mengunci isian yang
    termasuk pertemuan N (langkah, tabel, pemeriksaan, soal latihan, dan analisis dipetakan lewat data pertemuan); isian lain (gerbang, K3, refleksi) tetap bebas.
    Tiap catatan hanya memuat isian barunya, jadi guru dapat membuka kunci pertemuan mana pun tanpa memengaruhi pertemuan lain. */
 var LKK={loaded:{},all:{},busy:false,msg:''};
@@ -34,7 +34,7 @@ function lkkLocks(m){
  return out}
 function lkkNums(L){return Object.keys(L).map(Number).sort(function(a,b){return a-b})}
 function lkkMerged(m){var L=lkkLocks(m),f={};lkkNums(L).forEach(function(n){Object.keys(L[n].f).forEach(function(k){if(!(k in f))f[k]=L[n].f[k]})});return f}
-/* Yang bisa dikunci siswa: pertemuan yang kartunya tampil dan punya kegiatan (pertemuan awal dan akhir tidak). */
+/* Yang bisa dikunci siswa: setiap kegiatan yang kartunya tampil (jumlah tombol = jumlah kegiatan). Pertemuan tanpa kegiatan (awal/akhir pada modul 5 pertemuan) tidak punya satuan kunci. */
 function lkkPert(m,n){return m.v2.pertemuan.filter(function(p){return p.n===n})[0]||null}
 /* Satuan kunci = satu kartu Lembar Kerja. Pertemuan biasa: satu satuan bernomor n. Pertemuan yang kartunya dipisah per kegiatan (kartu.per): satu satuan tiap kegiatan;
    kegiatan pertama memakai nomor n (sama seperti sebelumnya), berikutnya n*100+k (mis. Kegiatan 4 di Pertemuan 4 = 404). */
@@ -46,7 +46,7 @@ function lkkUnits(m){
   else out.push({u:p.n,n:p.n,ks:ks,p:p})});
  return out}
 function lkkUnit(m,u){return lkkUnits(m).filter(function(x){return x.u===u})[0]||null}
-function lkkIsLockable(m,u){var x=lkkUnit(m,u);return !!x&&!x.p.sembunyi&&x.n>1&&x.n<lkkTotal(m)}
+function lkkIsLockable(m,u){var x=lkkUnit(m,u);return !!x&&!x.p.sembunyi} /* semua kegiatan yang punya kartu; pertemuan tanpa kegiatan (awal/akhir) tidak punya satuan */
 function lkkLockable(m){return lkkUnits(m).filter(function(x){return lkkIsLockable(m,x.u)}).map(function(x){return x.u})}
 /* Batas buka guru (m.pertBuka) memakai nomor satuan; satuan di atas batas belum dibuka. */
 function lkkDibuka(m,u){
@@ -169,7 +169,7 @@ function lkkPanel(m,d){
  var sel=parseInt(d.pertBuka,10)||0,opt='<option value="0"'+(sel===0?' selected':'')+'>Semua kegiatan</option>';
  lkkLockable(m).forEach(function(i){opt+='<option value="'+i+'"'+(sel===i?' selected':'')+'>Sampai '+lkkLabel(m,i)+'</option>'});
  return '<div><span class="label">Kunci hasil per kegiatan</span>'+
-  '<label class="lk-check"><input type="checkbox" data-lkm="kunci"'+(d.kunci?' checked':'')+'><span><b>Aktifkan kunci per kegiatan</b><small>Hanya tampil saat mode Latihan. Siswa mengunci kegiatan yang sudah selesai (urutan bebas); pertemuan awal dan akhir tidak ada kuncinya. Hasil tersimpan di server dan tidak bisa diubah siswa, jadi tidak perlu cadangan berkas.</small></span></label>'+
+  '<label class="lk-check"><input type="checkbox" data-lkm="kunci"'+(d.kunci?' checked':'')+'><span><b>Aktifkan kunci per kegiatan</b><small>Hanya tampil saat mode Latihan. Siswa mengunci kegiatan yang sudah selesai (urutan bebas); satu tombol kunci untuk tiap kegiatan. Hasil tersimpan di server dan tidak bisa diubah siswa, jadi tidak perlu cadangan berkas.</small></span></label>'+
   '<label class="f">Kegiatan yang dibuka untuk dikunci<select data-lkm="pertBuka">'+opt+'</select></label>'+
   '<p class="note">"Semua kegiatan" = siswa bebas mengunci setiap kegiatan yang kartunya tampil. Batasi dengan "Sampai Kegiatan N" bila perlu, lalu naikkan tiap kegiatan selesai. Simpan pengaturan agar berlaku.</p>'+lkkStatus(m)+'</div>'}
 

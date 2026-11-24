@@ -49,6 +49,7 @@ var LKPD_MODULES=[];
 /* Fungsi soal asli (lkpd-soal.js, sebelum bagian pemasangan) dimuat apa adanya agar PG, kompleks, dan kategori dinilai seperti di aplikasi. */
 run(src('lkpd-soal.js').split('/* ---------- Pemasangan ke mesin LKPD ---------- */')[0], 'lkpd-soal-inti.js');
 run(src('lkpd-v2-x06.js'), 'lkpd-v2-x06.js');
+run(src('lkpd-v2-xi18.js'), 'lkpd-v2-xi18.js');
 run(`LKPD_MODULES=JSON.parse(JSON.stringify(LKPD_EXTRA_MODULES));`, 'jalur-modul');
 run(fs.readFileSync(path.join(root, 'tools', 'fixtur-tabel-x06.js'), 'utf8'), 'fixtur-tabel-x06.js');
 run(src('lkpd-v2.js'), 'lkpd-v2.js');
@@ -493,7 +494,7 @@ G(`var _cekAuto=${KM}.v2.cekAuto;delete ${KM}.v2.cekAuto`); /* uji kunci memakai
 G(`STAFF=false;LK.preview=false;LK.module='${M.id}';LK.open=true;S.lkpdBukti=[];S.user={id:'u1',nama:'Budi',kelas:'X'};delete ${KM}.kunci;delete ${KM}.pertBuka;toasts=[];DRAFT={student:'Budi',actual0:'22.35',status0:'Sesuai',status1:'Belum diperiksa',actual2:'9.5',status2:'Baik',t_F1_0_nol:'0',t_F2_0_nol:'0.01',q0:2,q4:3,ana0:'sebab',safe0:true,q100:1,qsig:'x',school:'y'}`);
 const merged = () => G(`Object.keys(lkkMerged(${KM})).sort()`);
 ok(G(`lkkOn(${KM})`) === true, 'kunci: aktif bawaan untuk v2 lima pertemuan');
-sama(G(`lkkLockable(${KM})`), [2, 3, 4, 404], 'kunci: siswa boleh mengunci Kegiatan 1 sampai 4, satu kunci per kartu (kecuali pertemuan awal dan akhir)');
+sama(G(`lkkLockable(${KM})`), [2, 3, 4, 404], 'kunci: siswa boleh mengunci Kegiatan 1 sampai 4, satu kunci per kartu (pertemuan tanpa kegiatan tidak punya kunci)');
 /* pertemuan awal dan akhir ditolak */
 G(`toasts=[];lkkLock(1)`); G(`lkkLock(5)`);
 ok(G('S.lkpdBukti.length') === 0 && G('toasts').filter((t) => /tidak dikunci oleh siswa/.test(t)).length === 2, 'kunci: Pertemuan 1 (awal) dan Pertemuan 5 (akhir) tidak bisa dikunci siswa');
@@ -541,7 +542,7 @@ G(`Cloud.on=false;S.users=[{id:'u1',nama:'Budi'}]`);
 const kst = G(`lkkStatus(${KM})`);
 ok(/Buka kunci Kegiatan 1/.test(kst) && /Buka kunci Kegiatan 2/.test(kst) && /Buka kunci Kegiatan 4/.test(kst) && !/Buka kunci Kegiatan 3/.test(kst) && /Budi/.test(kst), 'kunci: status guru memuat tombol buka kunci per pertemuan');
 const pn = G(`lkkPanel(${KM},{kunci:true,pertBuka:4})`);
-ok(/data-lkm="kunci" checked/.test(pn) && /<option value="4" selected>/.test(pn) && /pertemuan awal dan akhir tidak ada kuncinya/.test(pn) && /Hanya tampil saat mode Latihan/.test(pn) && !/<option value="1"/.test(pn) && !/<option value="5"/.test(pn) && /Status kunci siswa/.test(pn), 'kunci: panel guru menampilkan sakelar, batas pertemuan, dan aturan awal/akhir');
+ok(/data-lkm="kunci" checked/.test(pn) && /<option value="4" selected>/.test(pn) && /satu tombol kunci untuk tiap kegiatan/.test(pn) && /Hanya tampil saat mode Latihan/.test(pn) && !/<option value="1"/.test(pn) && !/<option value="5"/.test(pn) && /Status kunci siswa/.test(pn), 'kunci: panel guru menampilkan sakelar, batas pertemuan, dan aturan awal/akhir');
 /* kunci hanya pada mode Latihan */
 G(`var MODEX='ujian';var lkmCfg=function(){return {mode:MODEX}}`);
 ok(G(`lkkOn(${KM})`) === false && G('lkRead().actual2') === '99' && !/lkk-lock/.test(G(`lk2BkBlock(${KM})`)), 'kunci: mode Ujian tidak ada tombol kunci dan catatan kunci lama tidak memaksa isian');
@@ -642,5 +643,10 @@ ok(G('lk2Auto(_X,1,{})') === null, 'tanpa tabel: Hasil aktual tidak terisi otoma
 const dX = {}; M.checks.forEach((x, i) => { dX['actual' + i] = '1'; dX['status' + i] = 'Baik'; dX['row' + i] = true; });
 G(`DRAFT=${JSON.stringify(dX)};`);
 ok(!/Tabel \d+%/.test(G('lkProgress(_X,DRAFT)')), 'tanpa tabel: chip Tabel tidak tampil');
+/* Modul 3 pertemuan (LKPD-XI-18): tombol kunci = jumlah kegiatan (Kegiatan 1 sampai 4), bukan hanya pertemuan tengah. */
+G(`var _XI=LKPD_MODULES.find(function(x){return x.id==='LKPD-XI-18'})`);
+sama(G('lkkLockable(_XI)'), [1, 2, 203, 3], 'kunci XI-18: satu tombol tiap kegiatan (K1, K2, K3, K4)');
+sama(G('lkkLockable(_XI).map(function(u){return lkkLabel(_XI,u)})'), ['Kegiatan 1', 'Kegiatan 2', 'Kegiatan 3', 'Kegiatan 4'], 'kunci XI-18: label tombol Kegiatan 1 sampai 4');
+sama(G('lkkLockable(_XI).length'), G('_XI.v2.kegiatan.length'), 'kunci XI-18: jumlah tombol = jumlah kegiatan');
 console.log(`\nUji LKPD v2: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);
