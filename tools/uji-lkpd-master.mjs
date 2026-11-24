@@ -46,7 +46,7 @@ rusak((m) => { m.v2.gate.qs[3].lvl = 'Hafalan'; }, 'Gerbang masuk', 'level bukan
 rusak((m) => { m.v2.apd = []; }, 'K3 dan APD', 'tanpa APD');
 rusak((m) => { m.v2.k3grup[0].i = m.v2.k3grup[0].i.slice(1); }, 'K3 dan APD', 'butir K3 tak terkelompok');
 rusak((m) => { m.v2.langkah.forEach((l) => { l.saksi = false; }); }, 'Setiap kegiatan punya langkah', 'tanpa langkah bersaksi');
-rusak((m) => { m.v2.tabel = []; }, 'Tabel data', 'tanpa tabel');
+rusak((m) => { m.v2.tabel = [{ id: 'F1', k: 1, kol: [], baris: [] }]; }, 'Tabel data', 'tabel tanpa kolom dan baris');
 rusak((m) => { m.v2.cekK.pop(); }, 'Pemeriksaan dan bukti', 'cekK tak sepadan');
 rusak((m) => { m.fotoWajib = []; }, 'Pemeriksaan dan bukti', 'tanpa wajib foto');
 rusak((m) => { m.v2.pertemuan[1].latihan = ['ZZ']; }, 'Latihan membaca skala', 'id latihan tak ada');

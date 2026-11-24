@@ -41,8 +41,7 @@ function uji(id, judul, skkni, kunciSoal, mengandung) {
   T(w.indexOf('total praktik ' + [1, 2, 3, 4].reduce((t, k) => t + mk(k), 0) + ' menit') > -1 && [1, 2, 3, 4].every((k) => w.indexOf(' ' + mk(k)) > -1), 'angka waktu rubrik = menit langkah');
   T(V.obs.indikator.length === 8, '8 indikator');
   T(V.cekK.length === m.checks.length && V.cekK.every((k) => k >= 1 && k <= 4) && m.fotoWajib.every((i) => i < m.checks.length), 'cekK dan fotoWajib valid');
-  Object.keys(V.cekAuto).forEach((i) => { const c = V.cekAuto[i], t = V.tabel.find((x) => x.id === c.t); T(+i < m.checks.length && t && t.kol.some((k) => k.k === c.f) && t.k === V.cekK[i], 'cekAuto ' + i + ' menunjuk tabel kegiatan yang sama'); });
-  V.tabel.forEach((t) => T(t.baris.length >= 1 && t.kol.length >= 2, 'tabel ' + t.id + ' valid'));
+  T(Array.isArray(V.tabel) && V.tabel.length === 0 && !V.cekAuto, 'tanpa tabel F dan tanpa cekAuto: hasil aktual diisi manual di Pemeriksaan dan bukti');
   const cov = V.k3grup.reduce((t, g) => t.concat(g.i), []).sort((x, y) => x - y);
   T(cov.length === 10 && m.safety.length === 10 && cov.every((v, i) => v === i), '10 butir K3 masing-masing satu kelompok');
   /* soal latihan */
@@ -79,5 +78,12 @@ uji('LKPD-XI-18', 'Perawatan dan Perbaikan Sistem Transmisi Otomatis (CVT)', 'un
   T([13520, 2000, 5200, 3200, 65].every((v, i) => g[1].o[i] === String(v).replace(/(\d)(?=(\d{3})$)/, '$1.') + ' rpm') && near(5200 * 2.6, 13520) && near(5200 * 80 / 130, 3200) && near(5200 / 80, 65), 'pengecoh gerbang 2 sesuai pembahasan');
   T(g[2].a.join() === '0,2' && g[3].rows.map((r) => r[1]).join() === 'true,false,true,false,true', 'kunci kompleks dan kategori sesuai rancangan');
   T(!/transmisi manual|garpu|shift drum/i.test(JSON.stringify(m)), 'tidak memuat materi transmisi manual (ada di XI-17)');
+});
+/* Tabel F dihapus di X-06, XI-17, XI-18: tidak ada sisa rujukan tabel atau pengukuran berulang pada langkah, pemeriksaan, analisis, rubrik, indikator. */
+['LKPD-X-06', 'LKPD-XI-17', 'LKPD-XI-18'].forEach((id) => {
+  const m = G('LKPD_MODULES.find(function(x){return x.id===\"' + id + '\"})'); const V = m.v2;
+  ok(V.tabel.length === 0 && !V.cekAuto, id + ': tanpa tabel F');
+  const teks = JSON.stringify([m.steps, m.checks, V.analisis, V.obs, V.langkah]);
+  ok(!/[Tt]abel F|\bF[123]\b|3 kali|3 titik|dirata|Rata-rata/.test(teks), id + ': tidak ada rujukan tabel F atau pengukuran berulang: ' + (teks.match(/.{20}([Tt]abel F|\bF[123]\b|3 kali|3 titik|dirata|Rata-rata).{20}/) || [''])[0]);
 });
 console.log('\nUji LKPD-XI-17 dan XI-18: ' + lulus + ' lulus, ' + gagal + ' gagal'); process.exit(gagal ? 1 : 0);

@@ -50,6 +50,7 @@ var LKPD_MODULES=[];
 run(src('lkpd-soal.js').split('/* ---------- Pemasangan ke mesin LKPD ---------- */')[0], 'lkpd-soal-inti.js');
 run(src('lkpd-v2-x06.js'), 'lkpd-v2-x06.js');
 run(`LKPD_MODULES=JSON.parse(JSON.stringify(LKPD_EXTRA_MODULES));`, 'jalur-modul');
+run(fs.readFileSync(path.join(root, 'tools', 'fixtur-tabel-x06.js'), 'utf8'), 'fixtur-tabel-x06.js');
 run(src('lkpd-v2.js'), 'lkpd-v2.js');
 run(src('lkpd-v2-soal.js'), 'lkpd-v2-soal.js');
 const G = (e) => vm.runInContext(e, ctx);
@@ -634,5 +635,12 @@ G(`${KM}.v2.cekAuto=_cekAuto;delete globalThis.lkmCfg;LK.preview=false;STAFF=fal
   G(`DRAFT={}`);
 }
 
+/* Modul tanpa tabel F: kelengkapan tabel null, nilai pemeriksaan hanya dari Pemeriksaan dan bukti, tidak ada chip/teks Tabel. */
+G(`var _X=JSON.parse(JSON.stringify(LKPD_MODULES[0]));_X.v2.tabel=[];_X.v2.cekAuto={};`);
+ok(G('lk2TabelPct(_X,{})') === null, 'tanpa tabel: lk2TabelPct null');
+ok(G('lk2Auto(_X,1,{})') === null, 'tanpa tabel: Hasil aktual tidak terisi otomatis');
+const dX = {}; M.checks.forEach((x, i) => { dX['actual' + i] = '1'; dX['status' + i] = 'Baik'; dX['row' + i] = true; });
+G(`DRAFT=${JSON.stringify(dX)};`);
+ok(!/Tabel \d+%/.test(G('lkProgress(_X,DRAFT)')), 'tanpa tabel: chip Tabel tidak tampil');
 console.log(`\nUji LKPD v2: ${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);

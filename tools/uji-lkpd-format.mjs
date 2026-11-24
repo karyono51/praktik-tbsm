@@ -52,6 +52,7 @@ var LKPD_MODULES=[];
 run(src('lkpd-soal.js').split('/* ---------- Pemasangan ke mesin LKPD ---------- */')[0], 'lkpd-soal-inti.js');
 run(src('lkpd-v2-x06.js'), 'lkpd-v2-x06.js');
 run(`LKPD_MODULES=JSON.parse(JSON.stringify(LKPD_EXTRA_MODULES));`, 'jalur-modul');
+run(fs.readFileSync(path.join(root, 'tools', 'fixtur-tabel-x06.js'), 'utf8'), 'fixtur-tabel-x06.js');
 run(src('lkpd-v2.js'), 'lkpd-v2.js');
 run(src('lkpd-v2-soal.js'), 'lkpd-v2-soal.js');
 run(src('lkpd-skala-gambar.js'), 'lkpd-skala-gambar.js');

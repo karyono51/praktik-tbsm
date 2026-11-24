@@ -10,10 +10,10 @@
   {k:1,m:30,t:'Buka cover dan bongkar poros transmisi sesuai urutan manual servis; susun komponen berurutan di baki',p:'Foto sebelum dibongkar; jangan memukul poros',saksi:1},
   {k:1,m:20,t:'Bersihkan komponen dan periksa visual gigi (aus, retak, ujung gigi tumpul)',p:'Gigi dipegang dari sisi, jari tidak di antara gigi'},
   {k:2,m:15,t:'Periksa garpu pemilih, shift drum, dan bearing (aus, bengkok, alur, putaran bearing)',p:'Putar bearing dengan tangan; periksa ujung garpu'},
-  {k:2,m:30,t:'Ukur tebal ujung garpu pemilih dan lebar alur gigi geser, masing-masing 3 kali; catat pada tabel F1',p:'Rahang jangka sorong tegak lurus; nol alat dicek',saksi:1},
+  {k:2,m:30,t:'Ukur tebal ujung garpu pemilih dan lebar alur gigi geser, catat pada Pemeriksaan dan bukti',p:'Rahang jangka sorong tegak lurus; nol alat dicek',saksi:1},
   {k:2,m:15,t:'Bandingkan hasil dengan standar manual servis dan putuskan Sesuai atau Tidak sesuai',p:'Standar dari manual servis, bukan dugaan'},
   {k:3,m:10,t:'Pasang dial gauge pada dudukan, letakkan poros transmisi pada blok V, beri pratekan, nolkan bezel',p:'Poros ukur tegak lurus, dudukan stabil'},
-  {k:3,m:25,t:'Putar poros perlahan satu putaran; catat bacaan terbesar dan terkecil; hitung keolengan pada tabel F2',p:'Putar perlahan, jangan terbentur',saksi:1},
+  {k:3,m:25,t:'Putar poros perlahan satu putaran; catat bacaan terbesar dan terkecil; hitung keolengan; catat pada Pemeriksaan dan bukti',p:'Putar perlahan, jangan terbentur',saksi:1},
   {k:3,m:15,t:'Periksa alur spline dan bearing poros; putuskan setel, perbaiki, atau ganti',p:'Alasan keputusan dicatat pada analisis'},
   {k:4,m:25,t:'Pasang kembali poros dan cover berurutan kebalikan bongkar; periksa perpindahan gigi dengan tangan',p:'Urutan pasang kebalikan urutan bongkar',saksi:1},
   {k:4,m:10,t:'Isi oli transmisi sesuai jenis dan jumlah pada manual servis',p:'Jenis dan jumlah oli dari manual, bukan dugaan'},
@@ -34,7 +34,7 @@
    ['Fungsi dan rasio gigi','Transmisi memindahkan dan mengubah tenaga engine ke roda. Rasio gigi = jumlah gigi yang digerakkan ÷ jumlah gigi penggerak. Rasio total = rasio primer × rasio gigi × rasio akhir. Putaran roda = putaran engine ÷ rasio total.'],
    ['Komponen dan cara kerja','Pedal perseneling menggerakkan shift drum. Alur pada shift drum menggerakkan garpu pemilih, dan garpu menggeser gigi geser pada poros sehingga gigi yang dipilih terkunci dengan poros. Poros ditumpu bearing. Oli transmisi melumasi dan mendinginkan gigi.'],
    ['Gejala, penyebab, dan perawatan','Gigi loncat: garpu atau alur gigi geser aus. Susah masuk gigi: garpu bengkok atau oli tidak sesuai. Bunyi kasar: gigi atau bearing aus. Serbuk logam pada oli menandakan keausan. Jenis dan jumlah oli serta interval penggantian mengikuti manual servis.'],
-   ['Alat ukur pada praktik','Jangka sorong untuk tebal garpu dan lebar alur: periksa nol, rahang tegak lurus, ukur 3 kali. Dial gauge untuk keolengan poros: pasang stabil, beri pratekan, nolkan bezel, putar perlahan, keolengan = bacaan terbesar − terkecil.'],
+   ['Alat ukur pada praktik','Jangka sorong untuk tebal garpu dan lebar alur: periksa nol, rahang tegak lurus. Dial gauge untuk keolengan poros: pasang stabil, beri pratekan, nolkan bezel, putar perlahan, keolengan = bacaan terbesar − terkecil.'],
    ['Keselamatan dan kesehatan kerja (K3) pada praktik transmisi manual','Bahaya: gigi dan poros berat dan tajam, jari terjepit saat membongkar dan memasang, oli licin dan panas, percikan oli saat cover dibuka, bagian berputar saat uji fungsi. Pengendalian: engine dingin dan terpasang kuat, sarung tangan saat memegang gigi, kacamata saat membuka cover, oli tumpah segera dilap, uji fungsi hanya atas izin guru.']
   ],
   tools:['Kunci pas, kunci ring, kunci sok, obeng','Jangka sorong dan dial gauge dengan dudukan magnet, blok V','Engine atau trainer transmisi manual, baki komponen','Majun, pembersih, wadah oli bekas, oli sesuai manual servis'],
@@ -43,9 +43,9 @@
   checks:[
    ['Kondisi oli transmisi dan gigi','Warna, serbuk logam, aus atau tumpul dicatat; foto kondisi'],
    ['Kondisi garpu pemilih, shift drum, dan bearing','Aus, bengkok, atau longgar dicatat; foto kondisi'],
-   ['Ukuran garpu pemilih dan alur gigi geser','Rata-rata 3 kali (tabel F1) dibanding standar'],
+   ['Ukuran garpu pemilih dan alur gigi geser','Hasil ukur dibanding standar'],
    ['Dial gauge terpasang dengan pratekan','Poros ukur tegak lurus, dudukan stabil, bezel dinolkan'],
-   ['Keolengan poros transmisi','Terbesar dikurangi terkecil (tabel F2) dibanding batas'],
+   ['Keolengan poros transmisi','Terbesar dikurangi terkecil dibanding batas'],
    ['Perakitan dan pelumasan sesuai manual servis','Urutan benar, jenis dan jumlah oli sesuai manual; foto hasil'],
    ['Uji fungsi dan 5R','Gigi halus, tidak loncat, tidak berbunyi kasar; area bersih, limbah terpisah']
   ],
@@ -92,17 +92,10 @@
      o:['menunggu engine dingin, menampung oli ke wadah, dan membuang oli bekas ke wadah limbah','menguras langsung saat engine panas memakai tangan kosong agar oli keluar lebih cepat','menguras ke lantai bengkel lalu menyiram dengan air ke saluran pembuangan','menampung oli lalu membuangnya ke selokan di luar bengkel agar area kerja tetap bersih','membiarkan oli menetes di lantai tanpa wadah selama pembongkaran sedang berlangsung'],a:0,
      e:'Engine didinginkan dulu agar tidak melepuh, oli ditampung, dan oli bekas masuk wadah limbah. Pengecoh: engine panas berbahaya; oli ke lantai atau selokan mencemari dan membuat lantai licin.'}
    ]},
-   /* Hasil aktual pada Pemeriksaan dan bukti terisi otomatis dari tabel (t = id tabel, f = kolom). */
-   cekAuto:{2:{t:'F1',f:'rata'},4:{t:'F2',f:'olengan'}},
-   tabel:[
-    {id:'F1',k:2,dec:2,judul:'F1 · Garpu pemilih dan alur gigi geser (mm)',cat:'Isi bacaan apa adanya. Rata-rata dihitung otomatis dari 3 pengukuran dan dibulatkan 2 desimal. Standar diisi dari manual servis atau guru.',baris:['Tebal ujung garpu pemilih 1','Tebal ujung garpu pemilih 2','Lebar alur gigi geser'],labelBaris:'Bagian yang diukur',
-     kol:[{k:'benda',l:'Benda',t:'teks'},{k:'u1',l:'1',t:'num'},{k:'u2',l:'2',t:'num'},{k:'u3',l:'3',t:'num'},{k:'rata',l:'Rata-rata',t:'rata',dari:['u1','u2','u3']},{k:'std',l:'Standar',t:'num'},{k:'status',l:'Status',t:'status'}]},
-    {id:'F2',k:3,dec:2,judul:'F2 · Keolengan poros transmisi (mm)',baris:[''],
-     kol:[{k:'benda',l:'Benda',t:'teks'},{k:'besar',l:'Terbesar',t:'num'},{k:'kecil',l:'Terkecil',t:'num'},{k:'olengan',l:'Keolengan',t:'selisih',a:'besar',b:'kecil'},{k:'batas',l:'Batas',t:'num'},{k:'status',l:'Status',t:'status'}]}
-   ],
+   tabel:[],
    analisis:[
-    'Bandingkan hasil ukur tabel F1 dan F2 dengan standar manual servis. Bagian mana yang tidak sesuai dan apa dugaan penyebabnya?',
-    'Mengapa tiap komponen diukur 3 kali dan dirata-rata? Apa arti bila ketiganya sangat berbeda?',
+    'Bandingkan hasil ukur pada Pemeriksaan dan bukti dengan standar manual servis. Bagian mana yang tidak sesuai dan apa dugaan penyebabnya?',
+    'Mengapa nol alat ukur diperiksa dan rahang dipasang tegak lurus sebelum mengukur? Apa akibatnya pada keputusan Sesuai atau Tidak sesuai?',
     'Gejala apa (gigi loncat, susah masuk, bunyi kasar) yang berhubungan dengan temuan pada garpu, alur, atau bearing?',
     'Untuk komponen yang melebihi batas pakai, tindakan apa yang kamu pilih (setel, perbaiki, ganti) dan mengapa?',
     'Apa yang kamu periksa pada oli transmisi dan apa artinya bila ada serbuk logam?',
@@ -119,7 +112,7 @@
     aspek:[
      {id:'k3',ket:'Yang dinilai: APD terpasang benar (kacamata saat membuka cover), engine dingin dan terpasang kuat, jari tidak di antara gigi, tangan dijauhkan dari bagian berputar saat uji fungsi, larangan K3 dipatuhi.',n:'Persiapan dan K3',b:20,d:{4:'APD lengkap, area aman tanpa diingatkan',3:'Lengkap, diingatkan 1 kali',2:'APD kurang atau area belum aman, diingatkan lebih dari 1 kali',1:'Mengabaikan K3 (praktik dihentikan)'},stop:1},
      {id:'prosedur',ket:'Yang dinilai: urutan bongkar dan pasang sesuai manual servis, komponen disusun berurutan, penggunaan jangka sorong dan dial gauge, jenis dan jumlah oli sesuai manual servis.',n:'Prosedur kerja',b:30,d:{4:'Semua langkah urut, manual servis dipakai, tanpa bantuan',3:'Urut dengan 1–2 koreksi kecil',2:'Beberapa langkah terbalik atau terlewat',1:'Tidak mengikuti prosedur, berisiko merusak komponen'}},
-     {id:'hasil',ket:'Yang dinilai: bacaan ukur benar (tabel F1, F2, dan latihan hitung), rata-rata dan keolengan terhitung, keputusan Sesuai atau Tidak sesuai berdasarkan standar guru, foto bukti ada dan jelas, uji fungsi lulus.',n:'Hasil kerja dan data',b:25,d:{4:'Data akurat, keputusan sesuai standar, uji fungsi lulus',3:'Data akurat, 1 catatan perbaikan',2:'Data tidak lengkap atau keputusan kurang tepat',1:'Data salah atau tidak ada'}},
+     {id:'hasil',ket:'Yang dinilai: bacaan ukur benar (Pemeriksaan dan bukti dan latihan hitung), keolengan, keputusan Sesuai atau Tidak sesuai berdasarkan standar guru, foto bukti ada dan jelas, uji fungsi lulus.',n:'Hasil kerja dan data',b:25,d:{4:'Data akurat, keputusan sesuai standar, uji fungsi lulus',3:'Data akurat, 1 catatan perbaikan',2:'Data tidak lengkap atau keputusan kurang tepat',1:'Data salah atau tidak ada'}},
      {id:'waktu',ket:'Acuan waktu standar: total praktik '+jumMenit([1,2,3,4])+' menit, dibagi per kegiatan (pembongkaran '+jumMenit([1])+', garpu dan bearing '+jumMenit([2])+', keolengan poros '+jumMenit([3])+', perakitan dan uji fungsi '+jumMenit([4])+'). Isi waktu aktualmu di tiap kartu kegiatan pada Lembar Kerja.',n:'Waktu dan efisiensi',b:10,d:{4:'Dalam waktu standar',3:'Hingga 125%',2:'Hingga 150%',1:'Lebih dari 150%'}},
      {id:'5r',ket:'Yang dinilai: meja bersih, komponen dan alat kembali, oli bekas dan majun kotor dipisah ke wadah limbah.',n:'5R dan limbah',b:5,d:{4:'Area bersih, alat kembali, limbah terpisah',3:'Satu hal terlewat',2:'Dua hal terlewat',1:'Area dibiarkan kotor'}},
      {id:'sikap',ket:'Yang dinilai: jujur mencatat hasil sendiri (tidak menyalin data teman), aktif, membantu teman, mengikuti arahan guru.',n:'Sikap dan kerja sama',b:10,d:{4:'Aktif, jujur, membantu teman',3:'Aktif, sesekali diingatkan',2:'Pasif',1:'Mengganggu kegiatan'}}
@@ -127,16 +120,16 @@
     indikator:[
      {t:'Menjelaskan fungsi, rasio, dan cara kerja transmisi manual',bukti:'Gerbang masuk, latihan soal 1–2'},
      {t:'Membongkar transmisi dan memeriksa gigi sesuai manual servis',bukti:'Kondisi dicatat, foto, kegiatan 1 disaksikan'},
-     {t:'Mengukur garpu pemilih dan alur gigi geser dengan benar',bukti:'Tabel F1, latihan soal 3–4, disaksikan'},
+     {t:'Mengukur garpu pemilih dan alur gigi geser dengan benar',bukti:'Pemeriksaan dan bukti, latihan soal 3–4, disaksikan'},
      {t:'Memeriksa shift drum dan bearing',bukti:'Kondisi dicatat, foto'},
-     {t:'Mengukur keolengan poros dengan dial gauge',bukti:'Tabel F2, latihan soal 5, disaksikan'},
+     {t:'Mengukur keolengan poros dengan dial gauge',bukti:'Pemeriksaan dan bukti, latihan soal 5, disaksikan'},
      {t:'Menentukan tindakan setel, perbaiki, atau ganti',bukti:'Analisis 1 dan 4'},
      {t:'Merakit, mengisi oli, dan menguji fungsi sesuai manual servis',bukti:'Kegiatan 4 disaksikan, foto hasil'},
      {t:'K3, APD, 5R, dan limbah',bukti:'Daftar APD, kegiatan 4'}
     ],
     panduan:[
      {k:'Pembongkaran dan pemeriksaan gigi',lihat:'Urutan bongkar, komponen berurutan di baki, foto sebelum dibongkar',salah:'Komponen tercampur urutannya, poros dipukul, jari di antara gigi'},
-     {k:'Garpu pemilih, shift drum, dan bearing',lihat:'Nol alat dicek, rahang tegak lurus, ukur 3 kali',salah:'Lupa cek nol, rahang miring, tidak mengukur'},
+     {k:'Garpu pemilih, shift drum, dan bearing',lihat:'Nol alat dicek, rahang tegak lurus',salah:'Lupa cek nol, rahang miring, tidak mengukur'},
      {k:'Keolengan poros',lihat:'Dudukan stabil, pratekan, bezel dinolkan, poros diputar perlahan',salah:'Poros ukur tidak tegak lurus, tanpa pratekan, poros diputar cepat'},
      {k:'Perakitan dan uji fungsi',lihat:'Oli sesuai manual, tangan dijauhkan dari bagian berputar, atas izin guru',salah:'Oli diperkirakan, engine dihidupkan tanpa izin guru'}
     ],

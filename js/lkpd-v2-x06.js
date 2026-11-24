@@ -5,10 +5,10 @@
 (function(){
  var langkah=[
   {k:1,m:4,t:'Bersihkan rahang dan benda; rapatkan rahang dan periksa nol',p:'Catat penyimpangan nol (foto)'},
-  {k:1,m:15,t:'Ukur diameter luar, diameter dalam, dan kedalaman, masing-masing 3 kali',p:'Rahang tegak lurus, tekanan ringan'},
-  {k:1,m:6,t:'Kunci, baca, catat pada tabel F1',p:'Baca tegak lurus skala',saksi:1},
+  {k:1,m:15,t:'Ukur diameter luar, diameter dalam, dan kedalaman',p:'Rahang tegak lurus, tekanan ringan'},
+  {k:1,m:6,t:'Kunci, baca, catat pada Pemeriksaan dan bukti',p:'Baca tegak lurus skala',saksi:1},
   {k:2,m:6,t:'Bersihkan landasan dan poros; tutup dengan pemutar gelitik; periksa nol',p:'Selalu pakai gelitik'},
-  {k:2,m:14,t:'Ukur diameter benda pada 3 titik; baca selubung lalu bidal',p:'Benda tidak miring',saksi:1},
+  {k:2,m:14,t:'Ukur diameter benda; baca selubung lalu bidal',p:'Benda tidak miring',saksi:1},
   {k:3,m:8,t:'Pasang pada dudukan magnet, letakkan benda di blok V, beri pratekan, nolkan bezel',p:'Poros ukur tegak lurus, dudukan stabil'},
   {k:3,m:12,t:'Putar benda perlahan satu putaran; catat bacaan terbesar dan terkecil; hitung keolengan',p:'Putar perlahan, jangan terbentur',saksi:1},
   {k:4,m:10,t:'Bersihkan semua alat, olesi oli tipis, renggangkan poros mikrometer (jangan dikunci rapat), simpan di kotak',p:'Tanpa amplas; oli tipis saja',saksi:1},
@@ -38,11 +38,11 @@
   steps:langkah.map(function(x){return ['Kegiatan '+x.k+' · '+x.t,0,x.p]}),
   checks:[
    ['Posisi nol jangka sorong','Rahang rapat; catat penyimpangan nol'],
-   ['Hasil ukur jangka sorong','Rata-rata 3 kali (tabel F1)'],
+   ['Hasil ukur jangka sorong','Bacaan setelah dikoreksi nol alat'],
    ['Posisi nol mikrometer','Tutup dengan pemutar gelitik; catat penyimpangan nol'],
-   ['Bacaan mikrometer pada benda','Selubung lalu bidal, 3 titik (tabel F2)'],
+   ['Bacaan mikrometer pada benda','Selubung lalu bidal, setelah dikoreksi nol alat'],
    ['Dial gauge terpasang dengan pratekan','Poros ukur tegak lurus, dudukan stabil, bezel dinolkan'],
-   ['Keolengan hasil dial gauge','Terbesar dikurangi terkecil (tabel F3)'],
+   ['Keolengan hasil dial gauge','Terbesar dikurangi terkecil, tulis selisihnya'],
    ['Alat di kotak setelah perawatan (5R)','Bersih, oli tipis, poros mikrometer tidak terkunci']
   ],
   fotoWajib:[0,2,3,4,6],
@@ -95,19 +95,10 @@
      o:['permukaan ukur diamplas halus agar mengilap, lalu poros dikunci rapat agar tidak bergerak di dalam kotak','alat diolesi oli tebal sampai seluruh permukaan tertutup, lalu poros dirapatkan dan dikunci pada landasan','alat dilap bersih, diolesi oli tipis, poros direnggangkan tanpa dikunci, lalu disimpan di kotak','alat dibiarkan terbuka di meja kerja agar kering oleh udara, tanpa dilap dan tanpa diolesi apa pun','alat dicuci dengan air dan sabun, dikeringkan di dekat mesin yang panas, lalu poros dikunci rapat'],a:2,
      e:'Lap bersih, oli tipis, poros direnggangkan (tidak dikunci rapat), simpan di kotak, tanpa amplas.'}
    ]},
-   /* Hasil aktual pada Pemeriksaan dan bukti terisi otomatis dari tabel (t = id tabel, f = kolom). Nol alat diperiksa 1 kali di awal tiap tabel (nolSekali). */
-   cekAuto:{0:{t:'F1',f:'nol'},1:{t:'F1',f:'rata'},2:{t:'F2',f:'nol'},3:{t:'F2',f:'rata'},5:{t:'F3',f:'olengan'}},
-   tabel:[
-    {id:'F1',k:1,nolSekali:true,dec:2,judul:'F1 · Jangka sorong (mm)',cat:'Isi bacaan apa adanya. Rata-rata dihitung otomatis dan sudah dikurangi nol alat (hasil benar = bacaan − penyimpangan nol; contoh: nol +0,05 dan bacaan 22,40 menjadi 22,35 mm), dibulatkan 2 desimal. Standar diisi dari manual atau guru.',baris:['Diameter luar','Diameter dalam','Kedalaman'],labelBaris:'Jenis ukur',
-     kol:[{k:'benda',l:'Benda',t:'teks'},{k:'nol',l:'Nol alat',t:'num'},{k:'u1',l:'1',t:'num'},{k:'u2',l:'2',t:'num'},{k:'u3',l:'3',t:'num'},{k:'rata',l:'Rata-rata',t:'rata',dari:['u1','u2','u3']},{k:'std',l:'Standar',t:'num'},{k:'status',l:'Status',t:'status'}]},
-    {id:'F2',k:2,nolSekali:true,dec:2,judul:'F2 · Mikrometer (mm)',cat:'Titik 1, 2, dan 3 diambil pada tempat berbeda di sepanjang benda. Isi bacaan apa adanya. Rata-rata dihitung otomatis dan sudah dikurangi penyimpangan nol alat, dibulatkan 2 desimal.',baris:[''],
-     kol:[{k:'benda',l:'Benda',t:'teks'},{k:'nol',l:'Nol alat',t:'num'},{k:'u1',l:'1',t:'num'},{k:'u2',l:'2',t:'num'},{k:'u3',l:'3',t:'num'},{k:'rata',l:'Rata-rata',t:'rata',dari:['u1','u2','u3']},{k:'std',l:'Standar',t:'num'},{k:'status',l:'Status',t:'status'}]},
-    {id:'F3',k:3,dec:2,judul:'F3 · Dial gauge (mm)',baris:[''],
-     kol:[{k:'benda',l:'Benda',t:'teks'},{k:'besar',l:'Terbesar',t:'num'},{k:'kecil',l:'Terkecil',t:'num'},{k:'olengan',l:'Keolengan',t:'selisih',a:'besar',b:'kecil'},{k:'batas',l:'Batas',t:'num'},{k:'status',l:'Status',t:'status'}]}
-   ],
+   tabel:[],
    analisis:[
     'Bandingkan hasil ukur dengan standar. Bagian mana yang tidak sesuai dan apa dugaan penyebabnya?',
-    'Mengapa pengukuran dilakukan 3 kali dan dirata-rata? Apa arti bila ketiganya sangat berbeda?',
+    'Mengapa alat ukur harus dibaca tegak lurus dan tanpa dipaksa? Apa akibatnya pada hasil ukur?',
     'Bila nol alat tidak tepat, apa yang kamu lakukan pada hasil ukur?',
     'Bila komponen melebihi batas pakai, tindakan apa yang kamu pilih (setel, perbaiki, ganti) dan mengapa?',
     'Apa risiko bila alat ukur tidak dirawat atau salah baca?',
@@ -123,8 +114,8 @@
     judul:'Observasi LKPD-X-06 Alat Ukur',
     aspek:[
      {id:'k3',ket:'Yang dinilai: APD terpasang benar, meja dan area siap, alat diperiksa sebelum dipakai, larangan K3 dipatuhi, letak APAR dan P3K diketahui.',n:'Persiapan dan K3',b:20,d:{4:'APD lengkap, area aman, alat diperiksa tanpa diingatkan',3:'Lengkap, diingatkan 1 kali',2:'APD kurang atau area belum aman, diingatkan lebih dari 1 kali',1:'Mengabaikan K3 (praktik dihentikan)'},stop:1},
-     {id:'prosedur',ket:'Yang dinilai: urutan langkah (periksa nol dulu, ukur 3 kali, baca, catat), cara memegang alat, tidak memaksa atau menjatuhkan alat.',n:'Prosedur kerja',b:30,d:{4:'Semua langkah urut, nol alat diperiksa, tanpa bantuan',3:'Urut dengan 1–2 koreksi kecil',2:'Beberapa langkah terbalik atau terlewat',1:'Tidak mengikuti prosedur, berisiko merusak'}},
-     {id:'hasil',ket:'Yang dinilai: bacaan benar (latihan skala dan tabel F1–F3), rata-rata dan keolengan terhitung, keputusan Sesuai atau Tidak sesuai berdasarkan standar dari guru, foto bukti ada dan jelas.',n:'Hasil kerja dan data',b:25,d:{4:'Data akurat, bacaan benar semua, keputusan sesuai standar',3:'Data akurat, 1 catatan perbaikan',2:'Data tidak lengkap atau keputusan kurang tepat',1:'Data salah atau tidak ada'}},
+     {id:'prosedur',ket:'Yang dinilai: urutan langkah (periksa nol dulu, ukur, baca, catat), cara memegang alat, tidak memaksa atau menjatuhkan alat.',n:'Prosedur kerja',b:30,d:{4:'Semua langkah urut, nol alat diperiksa, tanpa bantuan',3:'Urut dengan 1–2 koreksi kecil',2:'Beberapa langkah terbalik atau terlewat',1:'Tidak mengikuti prosedur, berisiko merusak'}},
+     {id:'hasil',ket:'Yang dinilai: bacaan benar (latihan skala dan Pemeriksaan dan bukti), keolengan, keputusan Sesuai atau Tidak sesuai berdasarkan standar dari guru, foto bukti ada dan jelas.',n:'Hasil kerja dan data',b:25,d:{4:'Data akurat, bacaan benar semua, keputusan sesuai standar',3:'Data akurat, 1 catatan perbaikan',2:'Data tidak lengkap atau keputusan kurang tepat',1:'Data salah atau tidak ada'}},
      {id:'waktu',ket:'Acuan waktu standar: total praktik '+jumMenit([1,2,3,4])+' menit, dibagi per kegiatan (jangka sorong '+jumMenit([1])+', mikrometer '+jumMenit([2])+', dial gauge '+jumMenit([3])+', perawatan '+jumMenit([4])+'). Isi waktu aktualmu di tiap kartu kegiatan pada Lembar Kerja.',n:'Waktu dan efisiensi',b:10,d:{4:'Dalam waktu standar',3:'Hingga 125%',2:'Hingga 150%',1:'Lebih dari 150%'}},
      {id:'5r',ket:'Yang dinilai: meja bersih, alat dibersihkan lalu diolesi oli tipis dan kembali ke kotak, majun dan limbah oli dipisah.',n:'5R dan limbah',b:5,d:{4:'Area bersih, alat kembali, limbah terpisah',3:'Satu hal terlewat',2:'Dua hal terlewat',1:'Area dibiarkan kotor'}},
      {id:'sikap',ket:'Yang dinilai: jujur mencatat hasil sendiri (tidak menyalin data teman), aktif, membantu teman, mengikuti arahan guru.',n:'Sikap dan kerja sama',b:10,d:{4:'Aktif, jujur, membantu teman',3:'Aktif, sesekali diingatkan',2:'Pasif',1:'Mengganggu kegiatan'}}
@@ -132,10 +123,10 @@
     indikator:[
      {t:'Menyebut bagian, fungsi, ketelitian',bukti:'Gerbang masuk'},
      {t:'Memeriksa kondisi dan nol alat',bukti:'Foto nol, penyimpangan tercatat'},
-     {t:'Jangka sorong benar',bukti:'Tabel F1, latihan soal 1–4, disaksikan'},
-     {t:'Mikrometer benar',bukti:'Tabel F2, latihan soal 5–8, disaksikan'},
-     {t:'Dial gauge benar',bukti:'Tabel F3, latihan soal 9–10, disaksikan'},
-     {t:'Mencatat dan membandingkan dengan standar',bukti:'Tabel F1–F3, analisis 1'},
+     {t:'Jangka sorong benar',bukti:'Pemeriksaan dan bukti, latihan soal 1–4, disaksikan'},
+     {t:'Mikrometer benar',bukti:'Pemeriksaan dan bukti, latihan soal 5–8, disaksikan'},
+     {t:'Dial gauge benar',bukti:'Pemeriksaan dan bukti, latihan soal 9–10, disaksikan'},
+     {t:'Mencatat dan membandingkan dengan standar',bukti:'Pemeriksaan dan bukti, analisis 1'},
      {t:'Merawat dan menyimpan alat',bukti:'Kegiatan 4 disaksikan'},
      {t:'K3, APD, dan limbah',bukti:'Daftar APD, kegiatan 4'}
     ],

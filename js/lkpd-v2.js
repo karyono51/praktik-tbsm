@@ -77,6 +77,7 @@ function lk2Auto(m,i,d,c){
 }
 /* Kelengkapan tabel: bagian sel isian (bukan kolom hitung) yang terisi, 0..1. */
 function lk2TabelPct(m,d){
+ if(!m.v2.tabel||!m.v2.tabel.length)return null; /* tanpa tabel: nilai pemeriksaan hanya dari Pemeriksaan dan bukti */
  var tot=0,ok=0;
  m.v2.tabel.forEach(function(t){t.baris.forEach(function(lb,r){t.kol.forEach(function(c){if(c.t==='rata'||c.t==='selisih')return;if(t.nolSekali&&c.k==='nol'&&r>0)return;tot++;if(lk2Txt(d[lk2K(t.id,r,c.k)])!=='')ok++})})});
  return tot?ok/tot:0;
@@ -116,9 +117,9 @@ function lk2PraktikV(m,p,vf){
   sf=m.safety.filter(function(x,i){return p['safe'+i]&&(!apd[i]||va[i])}).length,
   rows=m.checks.filter(function(x,i){return lkRowOk(p,i)}).length,tb=lk2TabelPct(m,p),
   ana=(vf&&typeof vf.n==='number'&&isFinite(vf.n))?Math.max(0,Math.min(100,vf.n)):null,
-  chk=(rows/m.checks.length+tb)/2,kkm=lk2KkmEvaluasi(),
+  chk=tb===null?rows/m.checks.length:(rows/m.checks.length+tb)/2,kkm=lk2KkmEvaluasi(),
   praktik=Math.round(st/m.steps.length*r.steps+sf/m.safety.length*r.safety+chk*r.checks+(ana===null?0:ana/100)*r.analysis);
- return {praktik:praktik,kkm:kkm,lulus:praktik>=kkm,st:st,stN:m.steps.length,sf:sf,sfN:m.safety.length,rows:rows,rowsN:m.checks.length,tabel:Math.round(tb*100),ana:ana};
+ return {praktik:praktik,kkm:kkm,lulus:praktik>=kkm,st:st,stN:m.steps.length,sf:sf,sfN:m.safety.length,rows:rows,rowsN:m.checks.length,tabel:tb===null?null:Math.round(tb*100),ana:ana};
 }
 /* Status siswa yang sedang masuk: sudah mengirim, sudah diverifikasi, nilai praktik terverifikasi tertinggi, dan apakah Evaluasi terbuka. */
 function lk2Status(m){
@@ -164,7 +165,7 @@ function lk2ScoreFor(m,d){
  var r=m.rubric,safe=m.safety.filter(function(x,i){return d['safe'+i]}).length,work=m.steps.filter(function(x,i){return d['step'+i]}).length,
   rows=m.checks.filter(function(x,i){return lkRowOk(d,i)}).length,correct=0,answered=0;
  m.quiz.forEach(function(q,i){if(lkqAnswered(q,d['q'+i]))answered++;correct+=lkqPoint(q,d['q'+i])});
- var chk=(rows/m.checks.length+lk2TabelPct(m,d))/2,ana=lk2Ana(m,d)/m.v2.analisis.length;
+ var tp=lk2TabelPct(m,d),chk=tp===null?rows/m.checks.length:(rows/m.checks.length+tp)/2,ana=lk2Ana(m,d)/m.v2.analisis.length;
  var practice=Math.round(work/m.steps.length*r.steps+safe/m.safety.length*r.safety+chk*r.checks+ana*r.analysis),
   theory=m.quiz.length?Math.round(correct/m.quiz.length*100):0;
  return {practice:practice,theory:theory,final:Math.round(practice*(r.practiceWeight/100)+theory*(r.theoryWeight/100)),answered:answered,correct:correct,work:work,safe:safe};
@@ -176,14 +177,14 @@ lkScore=function(d){
 var _lkRead2=lkRead;
 lkRead=function(){
  var d=_lkRead2(),m=lk2Cur();
- if(lk2Is(m)){var c0=lk2Calc(m,d);m.checks.forEach(function(x,i){var au=lk2Auto(m,i,d,c0);if(au!==null&&au!=='')d['actual'+i]=au});m.checks.forEach(function(x,i){d['row'+i]=lk2Txt(d['actual'+i])!==''&&!!d['status'+i]&&d['status'+i]!=='Belum diperiksa'});var c=lk2Calc(m,d),g=lk2Gate(m,d);d.v2={ver:2,calc:c,gate:g.n,gerbang:{nilai:g.nilai,poin:g.poin,kkm:g.kkm,lulus:g.lulus},tabel:Math.round(lk2TabelPct(m,d)*100)}}
+ if(lk2Is(m)){var c0=lk2Calc(m,d);m.checks.forEach(function(x,i){var au=lk2Auto(m,i,d,c0);if(au!==null&&au!=='')d['actual'+i]=au});m.checks.forEach(function(x,i){d['row'+i]=lk2Txt(d['actual'+i])!==''&&!!d['status'+i]&&d['status'+i]!=='Belum diperiksa'});var c=lk2Calc(m,d),g=lk2Gate(m,d);d.v2={ver:2,calc:c,gate:g.n,gerbang:{nilai:g.nilai,poin:g.poin,kkm:g.kkm,lulus:g.lulus},tabel:lk2TabelPct(m,d)===null?null:Math.round(lk2TabelPct(m,d)*100)}}
  return d;
 };
 var _lkProgress2=lkProgress;
 lkProgress=function(m,d){
  var h=_lkProgress2(m,d);if(!lk2Is(m))return h;
- var g=lk2Gate(m,d),t=Math.round(lk2TabelPct(m,d)*100);
- return '<span class="lk-prog'+(g.lulus?' done':'')+'">Gerbang '+(g.auto?g.nilai+'/100':g.n+'/'+g.total)+'</span><span class="lk-prog'+(t===100?' done':'')+'">Tabel '+t+'%</span>'+h;
+ var g=lk2Gate(m,d),tp=lk2TabelPct(m,d),t=tp===null?null:Math.round(tp*100);
+ return '<span class="lk-prog'+(g.lulus?' done':'')+'">Gerbang '+(g.auto?g.nilai+'/100':g.n+'/'+g.total)+'</span>'+(t===null?'':'<span class="lk-prog'+(t===100?' done':'')+'">Tabel '+t+'%</span>')+h;
 };
 /* Syarat kirim yang belum terpenuhi, dengan nama kolomnya: K3 harus dicentang semua; Pemeriksaan dan bukti minimal satu komponen berisi hasil aktual dan status. */
 function lk2Kurang(m,d){
@@ -397,7 +398,7 @@ function lk2NilaiCard(p,m,vf,staff){
  var R=lk2PraktikV(m,p,vf),has=!!vf.ts&&typeof vf.n==='number',
   h='<div id="lk2-nilai"><h3>Penilaian praktik oleh guru</h3>';
  h+=staff?'<label class="f">Nilai analisis (0–100), dinilai guru dari jawaban analisis di atas<input id="lk2-ana-n" type="number" min="0" max="100" inputmode="numeric" value="'+(typeof vf.n==='number'?vf.n:'')+'"></label>':'<p>Nilai analisis: <b>'+(typeof vf.n==='number'?vf.n:'belum dinilai')+'</b></p>';
- if(has)h+='<p class="note">Langkah '+R.st+'/'+R.stN+' (langkah saksi dihitung bila disaksikan guru) · K3 '+R.sf+'/'+R.sfN+' (butir APD dihitung bila berparaf) · Pemeriksaan '+R.rows+'/'+R.rowsN+' · Tabel '+R.tabel+'% · Analisis '+R.ana+'.</p><p>Nilai praktik terverifikasi: <b class="mono">'+R.praktik+'</b> · KKM '+R.kkm+': <b>'+(R.lulus?'lulus, Evaluasi terbuka':'belum lulus, Evaluasi belum terbuka')+'</b></p>';
+ if(has)h+='<p class="note">Langkah '+R.st+'/'+R.stN+' (langkah saksi dihitung bila disaksikan guru) · K3 '+R.sf+'/'+R.sfN+' (butir APD dihitung bila berparaf) · Pemeriksaan '+R.rows+'/'+R.rowsN+(R.tabel===null||R.tabel===undefined?'':' · Tabel '+R.tabel+'%')+' · Analisis '+R.ana+'.</p><p>Nilai praktik terverifikasi: <b class="mono">'+R.praktik+'</b> · KKM '+R.kkm+': <b>'+(R.lulus?'lulus, Evaluasi terbuka':'belum lulus, Evaluasi belum terbuka')+'</b></p>';
  else h+='<p class="note">Belum diverifikasi. Nilai praktik terverifikasi dihitung setelah guru menyimpan verifikasi dan nilai analisis. Evaluasi terbuka bila nilainya minimal '+R.kkm+'.</p>';
  if(staff)h+='<div class="row"><button type="button" class="btn primary" data-act="lk2-verif">Simpan verifikasi guru</button></div>'+(vf.ts?'<p class="note">Terakhir diverifikasi '+lkEsc(vf.by||'-')+' · '+new Date(vf.ts).toLocaleString('id-ID')+'</p>':'');
  return h+'</div>';
@@ -421,7 +422,7 @@ function lk2Detail(z,p,m){
   return '<div class="lk-check"><span>K'+l.k+' · '+lkEsc(t)+' · siswa: '+(p['step'+l.i]?'selesai':'belum')+(l.saksi?' · <b>saksi guru</b>':'')+'</span>'+(l.saksi?(staff?'<label class="lk-check"><input type="checkbox" data-lk2v="s'+l.i+'" '+(vs[l.i]?'checked':'')+'><span>Disaksikan</span></label>':' '+mark(vs[l.i])):'')+'</div>';
  }).join('');
  h+='</div>';
- h+=lk2DetB('dd','Data hasil pengukuran',''+V.tabel.map(function(t){
+ if(V.tabel.length)h+=lk2DetB('dd','Data hasil pengukuran',''+V.tabel.map(function(t){
   return '<h4>'+lkEsc(t.judul)+'</h4><div class="tablewrap"><table><thead><tr>'+t.kol.map(function(k,j){return '<th>'+lkEsc(k.l)+'</th>'+(j===0&&t.labelBaris?'<th>'+lkEsc(t.labelBaris)+'</th>':'')}).join('')+'</tr></thead><tbody>'+
    t.baris.map(function(lb,r){return '<tr>'+t.kol.map(function(k,j){var v=(k.t==='rata'||k.t==='selisih')?lk2Fmt(calc[t.id][r][k.k],t.dec):p[lk2K(t.id,(t.nolSekali&&k.k==='nol')?0:r,k.k)];return '<td data-label="'+lkEsc(k.l)+'">'+lkEsc(v||'-')+'</td>'+(j===0&&t.labelBaris?'<td data-label="'+lkEsc(t.labelBaris)+'">'+lkEsc(lb)+'</td>':'')}).join('')+'</tr>'}).join('')+'</tbody></table></div>';
  }).join(''));

@@ -7,15 +7,15 @@
 (function(){
  var langkah=[
   {k:1,m:10,t:'Lepas cover CVT dan penutupnya sesuai manual servis; wadahi baut menurut letaknya',p:'Engine mati dan dingin'},
-  {k:1,m:25,t:'Periksa V-belt (retak, tepi aus, berminyak); ukur lebar V-belt pada 3 titik; catat pada tabel F1',p:'Belt tidak ditekuk tajam; jangan terkena oli',saksi:1},
+  {k:1,m:25,t:'Periksa V-belt (retak, tepi aus, berminyak); ukur lebar V-belt; catat pada Pemeriksaan dan bukti',p:'Belt tidak ditekuk tajam; jangan terkena oli',saksi:1},
   {k:1,m:10,t:'Periksa permukaan sisi puli (bersih, tanpa goresan dalam) dan catat kondisinya',p:'Tanpa amplas; bersihkan dengan majun dan pembersih yang disediakan'},
   {k:1,m:10,t:'Bandingkan lebar belt dengan standar manual servis dan putuskan Sesuai atau Tidak sesuai',p:'Standar dari manual servis, bukan dugaan'},
   {k:2,m:15,t:'Lepas puli primer dan roller; periksa roller (aus datar, retak) dan slider',p:'Roller disusun berurutan agar tidak tertukar'},
-  {k:2,m:25,t:'Ukur diameter dan panjang roller masing-masing 3 kali; catat pada tabel F2',p:'Ukur pada titik yang sama tiap roller; nol alat dicek',saksi:1},
+  {k:2,m:25,t:'Ukur diameter dan panjang roller catat pada Pemeriksaan dan bukti',p:'Ukur pada titik yang sama tiap roller; nol alat dicek',saksi:1},
   {k:2,m:15,t:'Bandingkan berat dan keausan roller sepaket dan putuskan tindakan',p:'Roller diganti sepaket'},
   {k:3,m:10,t:'Pasang SST penahan puli dan kopling; siapkan kacamata pelindung',p:'Puli ditahan dengan SST, bukan dengan obeng'},
   {k:3,m:25,t:'Tekan pegas puli sekunder dengan SST kompresor sebelum mengendurkan mur; lepas kopling sentrifugal dan puli sekunder',p:'Pegas tertekan menyimpan tenaga: kacamata wajib, mur dikendurkan perlahan',saksi:1},
-  {k:3,m:25,t:'Ukur tebal 3 kampas kopling, diameter dalam rumah kopling, dan panjang bebas pegas; catat pada tabel F3',p:'Ukur pada titik yang sama; nol alat dicek',saksi:1},
+  {k:3,m:25,t:'Ukur tebal 3 kampas kopling, diameter dalam rumah kopling, dan panjang bebas pegas; catat pada Pemeriksaan dan bukti',p:'Ukur pada titik yang sama; nol alat dicek',saksi:1},
   {k:3,m:10,t:'Periksa bearing, seal, dan gerak geser puli sekunder; periksa kampas dari oli',p:'Kampas berminyak berarti ada kebocoran seal yang harus dicari'},
   {k:4,m:20,t:'Pasang puli, roller, V-belt, dan kopling sentrifugal berurutan kebalikan bongkar; V-belt dipasang menurut arah putarnya',p:'Mur dikencangkan sesuai torsi pada manual servis',saksi:1},
   {k:4,m:10,t:'Isi atau ganti oli gigi reduksi sesuai jenis dan jumlah pada manual servis',p:'Jenis dan jumlah oli dari manual, bukan dugaan'},
@@ -37,7 +37,7 @@
    ['Rasio CVT','Rasio CVT = diameter efektif puli sekunder ÷ diameter efektif puli primer: tinggi saat berangkat, menurun saat melaju. Putaran puli sekunder = putaran puli primer ÷ rasio CVT.'],
    ['Kopling sentrifugal','Pada putaran rendah, pegas menahan kampas sehingga roda tidak ikut berputar. Pada putaran tertentu, gaya sentrifugal melawan pegas sehingga kampas menempel pada rumah kopling dan tenaga diteruskan ke roda. Kampas aus, berminyak, atau pegas lemah menyebabkan selip atau menghentak.'],
    ['Gejala, penyebab, dan perawatan','Tarikan berat atau ngempos: V-belt aus atau roller aus. Getaran: roller tidak sepaket atau puli kotor. Selip saat berangkat: kampas aus atau berminyak. Perawatan berkala dan jenis serta jumlah oli gigi reduksi mengikuti manual servis. V-belt tidak boleh terkena oli dan tidak boleh ditekuk tajam. Roller diganti sepaket.'],
-   ['Alat ukur dan SST pada praktik','Jangka sorong dipakai seperti pada praktik alat ukur: periksa nol, ukur 3 kali, baca tegak lurus. Special service tool (SST) wajib dipakai pada puli dan kopling karena pegas tertekan menyimpan tenaga.'],
+   ['Alat ukur dan SST pada praktik','Jangka sorong dipakai seperti pada praktik alat ukur: periksa nol, baca tegak lurus. Special service tool (SST) wajib dipakai pada puli dan kopling karena pegas tertekan menyimpan tenaga.'],
    ['Keselamatan dan kesehatan kerja (K3) pada praktik CVT','Bahaya: pegas puli sekunder terlontar saat mur dilepas tanpa SST, jari terjepit puli dan V-belt, bagian berputar saat uji fungsi, oli licin, dan engine panas. Pengendalian: SST kompresor, kacamata pelindung, engine dingin saat dibongkar, tangan dijauhkan dari bagian berputar saat uji fungsi, oli tumpah segera dilap, limbah ke wadah yang disediakan.']
   ],
   tools:['Kunci pas, kunci ring, kunci sok, obeng','SST penahan puli dan kompresor pegas puli sekunder','Jangka sorong dan timbangan','Engine atau trainer CVT, baki komponen','Majun, pembersih, wadah oli bekas, oli sesuai manual servis'],
@@ -45,11 +45,11 @@
   steps:langkah.map(function(x){return ['Kegiatan '+x.k+' · '+x.t,0,x.p]}),
   checks:[
    ['Kondisi V-belt','Retak, aus tepi, atau berminyak dicatat; foto kondisi'],
-   ['Lebar V-belt','Rata-rata 3 titik (tabel F1) dibanding standar'],
+   ['Lebar V-belt','Hasil ukur dibanding standar'],
    ['Kondisi roller dan slider','Aus datar atau retak dicatat; foto kondisi'],
-   ['Ukuran roller','Rata-rata 3 kali (tabel F2) dibanding standar'],
+   ['Ukuran roller','Hasil ukur dibanding standar'],
    ['Kondisi kampas dan rumah kopling sentrifugal','Aus, mengkilap, atau berminyak dicatat; foto kondisi'],
-   ['Ukuran kampas, rumah kopling, dan pegas','Rata-rata 3 kali (tabel F3) dibanding standar'],
+   ['Ukuran kampas, rumah kopling, dan pegas','Hasil ukur dibanding standar'],
    ['Perakitan dan pelumasan sesuai manual servis','Urutan benar, torsi dan oli sesuai manual; foto hasil'],
    ['Uji fungsi dan 5R','Tidak selip dan tidak ada bunyi kasar; area bersih, limbah terpisah']
   ],
@@ -96,19 +96,10 @@
      o:['menahan puli dengan obeng, lalu mengendurkan mur memakai kunci kejut sampai pegas lepas sendiri dari puli','memasang SST penahan dan kompresor pegas, memakai kacamata, lalu mengendurkan mur perlahan','mengendurkan mur dengan tang sampai pegas terlepas, lalu menangkap pegas dengan tangan kosong','memanaskan puli dengan blower agar pegas mengendur sehingga mur lepas tanpa alat khusus apa pun','menyemprot ulir dengan pelumas lalu melepas mur dengan sekali hentakan kuat tanpa penahan puli'],a:1,
      e:'Pegas puli sekunder menyimpan tenaga sehingga harus ditahan dan ditekan dengan SST, memakai kacamata, dan mur dikendurkan perlahan. Pengecoh: obeng dan tang tidak aman; pemanasan tidak melepas pegas; hentakan tanpa penahan membuat komponen terlontar.'}
    ]},
-   /* Hasil aktual pada Pemeriksaan dan bukti terisi otomatis dari tabel (t = id tabel, f = kolom). */
-   cekAuto:{1:{t:'F1',f:'rata'},3:{t:'F2',f:'rata'},5:{t:'F3',f:'rata'}},
-   tabel:[
-    {id:'F1',k:1,dec:2,judul:'F1 · V-belt (mm)',cat:'Ukur lebar V-belt pada 3 titik yang berbeda. Isi bacaan apa adanya. Rata-rata dihitung otomatis dan dibulatkan 2 desimal. Standar diisi dari manual servis atau guru.',baris:['Lebar V-belt'],labelBaris:'Bagian yang diukur',
-     kol:[{k:'benda',l:'Benda',t:'teks'},{k:'u1',l:'1',t:'num'},{k:'u2',l:'2',t:'num'},{k:'u3',l:'3',t:'num'},{k:'rata',l:'Rata-rata',t:'rata',dari:['u1','u2','u3']},{k:'std',l:'Standar',t:'num'},{k:'status',l:'Status',t:'status'}]},
-    {id:'F2',k:2,dec:2,judul:'F2 · Roller CVT (mm)',cat:'Ukur roller pada titik yang sama. Isi bacaan apa adanya. Rata-rata dihitung otomatis dan dibulatkan 2 desimal. Standar diisi dari manual servis atau guru.',baris:['Diameter roller','Panjang roller'],labelBaris:'Bagian yang diukur',
-     kol:[{k:'benda',l:'Benda',t:'teks'},{k:'u1',l:'1',t:'num'},{k:'u2',l:'2',t:'num'},{k:'u3',l:'3',t:'num'},{k:'rata',l:'Rata-rata',t:'rata',dari:['u1','u2','u3']},{k:'std',l:'Standar',t:'num'},{k:'status',l:'Status',t:'status'}]},
-    {id:'F3',k:3,dec:2,judul:'F3 · Kopling sentrifugal dan pegas (mm)',cat:'Ukur tebal pada tiap kampas. Isi bacaan apa adanya. Rata-rata dihitung otomatis dan dibulatkan 2 desimal. Standar diisi dari manual servis atau guru.',baris:['Tebal kampas kopling','Diameter dalam rumah kopling','Panjang bebas pegas kopling'],labelBaris:'Bagian yang diukur',
-     kol:[{k:'benda',l:'Benda',t:'teks'},{k:'u1',l:'1',t:'num'},{k:'u2',l:'2',t:'num'},{k:'u3',l:'3',t:'num'},{k:'rata',l:'Rata-rata',t:'rata',dari:['u1','u2','u3']},{k:'std',l:'Standar',t:'num'},{k:'status',l:'Status',t:'status'}]}
-   ],
+   tabel:[],
    analisis:[
-    'Bandingkan hasil ukur tabel F1 sampai F3 dengan standar manual servis. Bagian mana yang tidak sesuai dan apa dugaan penyebabnya?',
-    'Mengapa tiap komponen diukur 3 kali dan dirata-rata? Apa arti bila ketiganya sangat berbeda?',
+    'Bandingkan hasil ukur pada Pemeriksaan dan bukti dengan standar manual servis. Bagian mana yang tidak sesuai dan apa dugaan penyebabnya?',
+    'Mengapa nol alat ukur diperiksa dan alat dipegang dengan benar sebelum mengukur? Apa akibatnya pada keputusan Sesuai atau Tidak sesuai?',
     'Gejala apa yang muncul bila V-belt aus, roller menyusut, atau kampas kopling berminyak? Hubungkan dengan hasil periksamu.',
     'Untuk komponen yang melebihi batas pakai, tindakan apa yang kamu pilih (setel, perbaiki, ganti) dan mengapa?',
     'Mengapa pegas puli sekunder harus dilepas dengan SST? Apa risikonya bila tidak?',
@@ -125,23 +116,23 @@
     aspek:[
      {id:'k3',ket:'Yang dinilai: APD terpasang benar (kacamata pada pegas tertekan dan uji fungsi), engine dingin dan terpasang kuat, SST dipakai, tangan dijauhkan dari bagian berputar, larangan K3 dipatuhi.',n:'Persiapan dan K3',b:20,d:{4:'APD lengkap, SST dipakai, area aman tanpa diingatkan',3:'Lengkap, diingatkan 1 kali',2:'APD kurang atau area belum aman, diingatkan lebih dari 1 kali',1:'Mengabaikan K3 (praktik dihentikan)'},stop:1},
      {id:'prosedur',ket:'Yang dinilai: urutan bongkar dan pasang sesuai manual servis, penggunaan SST dan alat ukur, komponen disusun berurutan, torsi dan oli sesuai manual servis.',n:'Prosedur kerja',b:30,d:{4:'Semua langkah urut, SST dan manual dipakai, tanpa bantuan',3:'Urut dengan 1–2 koreksi kecil',2:'Beberapa langkah terbalik atau terlewat',1:'Tidak mengikuti prosedur, berisiko merusak komponen'}},
-     {id:'hasil',ket:'Yang dinilai: bacaan ukur benar (tabel F1–F3 dan latihan hitung), rata-rata terhitung, keputusan Sesuai atau Tidak sesuai berdasarkan standar guru, foto bukti ada dan jelas, uji fungsi lulus.',n:'Hasil kerja dan data',b:25,d:{4:'Data akurat, keputusan sesuai standar, uji fungsi lulus',3:'Data akurat, 1 catatan perbaikan',2:'Data tidak lengkap atau keputusan kurang tepat',1:'Data salah atau tidak ada'}},
+     {id:'hasil',ket:'Yang dinilai: bacaan ukur benar (Pemeriksaan dan bukti dan latihan hitung), keputusan Sesuai atau Tidak sesuai berdasarkan standar guru, foto bukti ada dan jelas, uji fungsi lulus.',n:'Hasil kerja dan data',b:25,d:{4:'Data akurat, keputusan sesuai standar, uji fungsi lulus',3:'Data akurat, 1 catatan perbaikan',2:'Data tidak lengkap atau keputusan kurang tepat',1:'Data salah atau tidak ada'}},
      {id:'waktu',ket:'Acuan waktu standar: total praktik '+jumMenit([1,2,3,4])+' menit, dibagi per kegiatan (V-belt '+jumMenit([1])+', puli primer dan roller '+jumMenit([2])+', puli sekunder dan kopling '+jumMenit([3])+', perakitan dan uji fungsi '+jumMenit([4])+'). Isi waktu aktualmu di tiap kartu kegiatan pada Lembar Kerja.',n:'Waktu dan efisiensi',b:10,d:{4:'Dalam waktu standar',3:'Hingga 125%',2:'Hingga 150%',1:'Lebih dari 150%'}},
      {id:'5r',ket:'Yang dinilai: meja bersih, komponen dan alat kembali, oli bekas dan majun kotor dipisah ke wadah limbah.',n:'5R dan limbah',b:5,d:{4:'Area bersih, alat kembali, limbah terpisah',3:'Satu hal terlewat',2:'Dua hal terlewat',1:'Area dibiarkan kotor'}},
      {id:'sikap',ket:'Yang dinilai: jujur mencatat hasil sendiri (tidak menyalin data teman), aktif, membantu teman, mengikuti arahan guru.',n:'Sikap dan kerja sama',b:10,d:{4:'Aktif, jujur, membantu teman',3:'Aktif, sesekali diingatkan',2:'Pasif',1:'Mengganggu kegiatan'}}
     ],
     indikator:[
      {t:'Menjelaskan fungsi, komponen, dan cara kerja CVT',bukti:'Gerbang masuk, latihan soal 1–2'},
-     {t:'Memeriksa V-belt dan mengukur lebarnya dengan benar',bukti:'Tabel F1, kegiatan 1 disaksikan'},
-     {t:'Memeriksa dan mengukur roller CVT',bukti:'Tabel F2, latihan soal 3–4, disaksikan'},
+     {t:'Memeriksa V-belt dan mengukur lebarnya dengan benar',bukti:'Pemeriksaan dan bukti, kegiatan 1 disaksikan'},
+     {t:'Memeriksa dan mengukur roller CVT',bukti:'Pemeriksaan dan bukti, latihan soal 3–4, disaksikan'},
      {t:'Melepas puli sekunder dan kopling sentrifugal dengan SST',bukti:'Kegiatan 3 disaksikan, APD kacamata'},
-     {t:'Mengukur kampas, rumah kopling, dan pegas',bukti:'Tabel F3, latihan soal 5–6, disaksikan'},
+     {t:'Mengukur kampas, rumah kopling, dan pegas',bukti:'Pemeriksaan dan bukti, latihan soal 5–6, disaksikan'},
      {t:'Menentukan tindakan setel, perbaiki, atau ganti',bukti:'Analisis 1 dan 4'},
      {t:'Merakit, mengisi oli, dan menguji fungsi sesuai manual servis',bukti:'Kegiatan 4 disaksikan, foto hasil'},
      {t:'K3, APD, 5R, dan limbah',bukti:'Daftar APD, kegiatan 4'}
     ],
     panduan:[
-     {k:'V-belt',lihat:'Belt tidak berminyak, lebar diukur 3 titik, nol alat dicek',salah:'Belt ditekuk tajam, tidak diukur, belt berminyak dipakai lagi'},
+     {k:'V-belt',lihat:'Belt tidak berminyak, lebar diukur dengan benar, nol alat dicek',salah:'Belt ditekuk tajam, tidak diukur, belt berminyak dipakai lagi'},
      {k:'Puli primer dan roller',lihat:'Roller diukur pada titik sama, roller sepaket dan berurutan',salah:'Roller tertukar urutan, hanya sebagian roller diganti'},
      {k:'Puli sekunder dan kopling sentrifugal',lihat:'SST dipakai, kacamata terpasang, mur dikendurkan perlahan',salah:'Puli ditahan obeng, pegas dilepas tanpa kompresor'},
      {k:'Perakitan dan uji fungsi',lihat:'Torsi dan oli sesuai manual, tangan dijauhkan dari bagian berputar',salah:'Torsi dan oli diperkirakan, engine dihidupkan tanpa izin guru'}
