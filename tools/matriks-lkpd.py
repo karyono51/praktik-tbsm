@@ -15,7 +15,8 @@ for k in ('XI', 'XII'):
                  4: 'Perawatan dan perbaikan sistem kelistrikan', 5: 'Perawatan dan perbaikan sepeda motor listrik dan hybrid',
                  6: 'Perawatan dan perbaikan engine management system (EMS)', 7: 'Pengelolaan bengkel sepeda motor'}.items():
         ELEMEN['%s.%d' % (k, n)] = e
-STATUS_APLIKASI = {'LKPD-X-06': 'Draft (master V2)', 'LKPD-XI-17': 'Draft (V2)', 'LKPD-XI-18': 'Draft (V2)'}
+STATUS_APLIKASI = {'LKPD-X-06': 'Draft (master V2)', 'LKPD-XI-17': 'Draft (V2)', 'LKPD-XI-18': 'Draft (V2)',
+                   'LKPD-X-12': 'Draft (V2)', 'LKPD-X-18': 'Draft (V2)'}
 rg = wb['Ringkasan']
 target = {}
 for r in rg.iter_rows(min_row=5, max_row=7, values_only=True):
