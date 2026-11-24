@@ -11,7 +11,7 @@ const ctx = vm.createContext({ console, JSON, Math, Object, Array, String, Numbe
 ctx.window = ctx;
 const src = (f) => fs.readFileSync(path.join(root, 'js', f), 'utf8');
 const run = (code, n) => vm.runInContext(code, ctx, { filename: n });
-run(src('lkpd-modul.js'), 'lkpd-modul.js'); run(src('lkpd-v2-x07.js'), 'lkpd-v2-x07.js'); run(src('lkpd-v2-xi18.js'), 'lkpd-v2-xi18.js');
+run(src('lkpd-modul.js'), 'lkpd-modul.js'); run(src('lkpd-v2-x07.js'), 'lkpd-v2-x07.js'); run(src('lkpd-v2-xi17.js'), 'lkpd-v2-xi17.js'); run(src('lkpd-v2-xi18.js'), 'lkpd-v2-xi18.js');
 run(src('lkpd.js').split('\n').slice(0, 19).join('\n'), 'lkpd-data.js');
 fs.readdirSync(path.join(root, 'js/soal-lkpd')).forEach((f) => run(src('soal-lkpd/' + f), f));
 run(src('lkpd-soal.js').split('/* ---------- Pemasangan ke mesin LKPD ---------- */')[0], 'lkpd-soal-inti.js');
@@ -23,7 +23,7 @@ run(src('lkpd-format.js'), 'lkpd-format.js');
 const G = (e) => vm.runInContext(e, ctx);
 G('LKPD_MODULES=LKPD_MODULES.concat(LKPD_EXTRA_MODULES)'); /* seperti lkpd.js baris 20 */
 const ALL = G('LKPD_MODULES.filter(function(m,i,a){return a.findIndex(function(x){return x.id===m.id})===i})');
-ok(ALL.length === 2 && ALL[0].id === 'LKPD-X-07' && ALL[1].id === 'LKPD-XI-18', 'hanya LKPD v2 (LKPD-X-07, LKPD-XI-18) yang bawaan (dapat ' + ALL.map((m) => m.id).join(',') + ')');
+ok(ALL.length === 3 && ALL.map((m) => m.id).join() === 'LKPD-X-07,LKPD-XI-17,LKPD-XI-18', 'hanya LKPD v2 (LKPD-X-07, LKPD-XI-17, LKPD-XI-18) yang bawaan (dapat ' + ALL.map((m) => m.id).join(',') + ')');
 const abc = (k) => String.fromCharCode(65 + k);
 const teks = (h) => h.replace(/<style>[\s\S]*?<\/style>/g, '').replace(/<br>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ');
 const H = (d) => ({ d: d || {}, pihak: { siswa: 'Budi', tanggal: '21/11/2026', guru: 'Karyono, S.T.' }, semester: 'Ganjil 2026/2027', mapel: 'Mapel', akhir: '<div>TTD</div>' });

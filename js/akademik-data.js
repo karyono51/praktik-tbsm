@@ -106,5 +106,6 @@ var AKD_LKPD_MATRIKS=[{"k":"LKPD-X-01","kl":"X","sm":"Ganjil","el":"Wawasan Duni
    'tepat' = cakupan sama, 'sebagian' = modul aplikasi hanya sebagian cakupan matriks, 'kelas beda' = topik sama tetapi tingkat kelas berbeda. */
 var AKD_LKPD_PADAN={
  'LKPD-X-07':[['LKPD-X-07','tepat']],
- 'LKPD-XI-18':[['LKPD-XI-18','tepat']]
+ 'LKPD-XI-17':[['LKPD-XI-18','sebagian']],
+ 'LKPD-XI-18':[['LKPD-XI-18','sebagian']]
 };
