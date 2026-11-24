@@ -143,6 +143,7 @@ ok(/Evaluasi hanya dikerjakan pada tahap Ujian/.test(h) && !/Pembahasan latihan|
 G(`(function(){var m=LKPD_MODULES[0],d={};m.v2.gate.qs.forEach(function(q,i){var k='q'+(100+i);if(q.t==='pg')d[k]=q.a;else if(q.t==='kompleks')d[k]=q.a.slice();else{var o={};q.rows.forEach(function(r,j){o[j]=r[1]});d[k]=o}});DRAFT=d;m.tahap=false;m.mode='latihan';m.showKey=true})()`);
 G(`LK.tab='kerja'`); h = G(`viewLKPD()`);
 ok(/Latihan membaca skala/.test(h) && /Pembahasan latihan/.test(h) && /bagian bawah Lembar Kerja/.test(h) && !/pembahasan bisa dilihat di tab Evaluasi/.test(h), 'Latihan v2: pembahasan tampil di Lembar Kerja dan spanduk menunjuk tempat yang benar');
+ok(h.indexOf('Pembahasan latihan') > -1 && h.indexOf('Pembahasan latihan') < h.indexOf('data-lk2d="bn-kunci"') && h.indexOf('data-lk2d="bn-kunci"') < h.indexOf('class="lk-actions"'), 'Latihan v2: Pembahasan di atas kartu Kunci pertemuan, kartu Kunci paling bawah sebelum bilah tombol');
 G(`LK.tab='materi'`); h = G(`viewLKPD()`);
 ok(!/Pembahasan latihan/.test(h), 'Latihan v2: pembahasan tidak muncul di tab Materi');
 G(`(function(){var m=LKPD_MODULES[0];m.tahap=true;m.mode='ujian';DRAFT={}})()`);

@@ -175,8 +175,10 @@ viewLKPD=function(){
  var ban='<div class="card lkm-banner" data-m="'+c.mode+'">'+t+'</div>',i=h.indexOf('<div class="chips">');
  h=i>-1?h.slice(0,i)+ban+h.slice(i):ban+h;
  var v2m=typeof lk2Is==='function'&&lk2Is(m);
- if(c.mode==='latihan'&&c.showKey&&(v2m?(LK.tab==='kerja'&&h.indexOf('class="card lk2-p"')>-1):LK.tab==='evaluasi')){
-  var blk=lkmKeyBlock(m),j=h.indexOf('<div class="lk-actions">');
+ if(c.mode==='latihan'&&c.showKey&&(v2m?(LK.tab==='kerja'&&h.indexOf('class="card lk2-p')>-1):LK.tab==='evaluasi')){
+  /* Pembahasan tampil sebelum kartu "Kunci pertemuan dan progres" (v2) agar kartu kunci tetap paling bawah; selain itu sebelum bilah tombol. */
+  var blk=lkmKeyBlock(m),j=h.indexOf('<section class="card lk2-bn-c"><details class="lk2-bn" data-lk2d="bn-kunci"');
+  if(j<0)j=h.indexOf('<div class="lk-actions">');
   h=j>-1?h.slice(0,j)+blk+h.slice(j):h+blk;
  }
  return h;

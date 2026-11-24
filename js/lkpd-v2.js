@@ -338,7 +338,7 @@ function lk2View(m){
   '<div class="chips">'+tabs.map(function(t){return '<button data-act="lk-tab" data-v="'+t[0]+'" aria-pressed="'+(LK.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>';
  var body=LK.tab==='materi'?lk2Materi(m,d):LK.tab==='kerja'?lk2Kerja(m,d):lk2Eval(m,d);
  return (LK.preview&&staff?'<div class="row"><button class="btn small" data-act="lk-preview-exit">Keluar pratinjau</button></div>':'')+
-  '<div class="row sb"><div><span class="pill">Fase '+lkEsc(m.fase)+' · Kelas '+lkEsc(m.kelas)+'</span><h2>'+lkEsc(m.title)+'</h2><p class="note">'+lkEsc(m.unit)+' · '+m.v2.jp+' JP ('+m.duration+' menit, '+m.v2.pertemuan.length+' pertemuan)</p></div><span class="pill">'+lkEsc(/^LKPD/i.test(m.id)?m.id:'LKPD '+m.id)+' · v2</span></div>'+
+  '<div class="row sb"><div><span class="pill">Fase '+lkEsc(m.fase)+' · Kelas '+lkEsc(m.kelas)+'</span><h2 class="lk-h2s">'+lkEsc(m.title)+'</h2><p class="note">'+lkEsc(m.unit)+' · '+m.v2.jp+' JP ('+m.duration+' menit, '+m.v2.pertemuan.length+' pertemuan)</p></div><span class="pill">'+lkEsc(/^LKPD/i.test(m.id)?m.id:'LKPD '+m.id)+' · v2</span></div>'+
   nav+body+(LK.preview&&staff?'':lk2BawahKartu(m,d))+
   (LK.preview&&staff?lk2Ov(false)+'<div class="lk-ovsp" aria-hidden="true"></div>':
    LK.tab==='materi'&&!staff?'<i class="lk-lite"></i>'+lk2Bar(m,staff,'')+lk2Ov(false)+'<div class="lk-ovsp" aria-hidden="true"></div>':
@@ -375,7 +375,7 @@ function lk2ModeFilter(h,c){
 }
 /* Pembahasan mode Latihan untuk soal v2 (termasuk isian angka dan PG kompleks/kategori); pembaca jawaban memakai fungsi soal bersama. */
 function lk2KeyBlock(m,d,on){
- var h='<section class="card" data-lkm="1"><h2>Pembahasan latihan</h2>';
+ var h='<section class="card" data-lkm="1"><h2 class="lk-h2s">Pembahasan latihan</h2>';
  if(!on)return h+'<p class="note">Jawab soal di atas, lalu periksa jawabanmu dan baca pembahasannya.</p><button type="button" class="btn small primary" data-act="lkm-reveal">Periksa jawaban</button></section>';
  var ok=0,rows=m.quiz.map(function(q,i){
   var a=d['q'+i],ans=lkqAnswered(q,a),good=ans&&lkqPoint(q,a)>=1;if(good)ok++;

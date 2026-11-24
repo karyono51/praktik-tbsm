@@ -1,3 +1,9 @@
+## LKPD v2: ukuran huruf judul LKPD, Foto tambahan, dan Pembahasan latihan disamakan
+- Judul LKPD (mis. "Penggunaan dan Perawatan Alat Ukur ..."), **Foto tambahan**, dan **Pembahasan latihan** kini 17 px, sama dengan judul banner (`.lk-h2s` di `css/app.css`). Tidak ada perubahan Appwrite.
+
+## Perbaikan: kartu Kunci pertemuan kembali paling bawah (di bawah Pembahasan latihan)
+- Pada mode Latihan, kartu Pembahasan latihan sempat tampil di bawah kartu Kunci pertemuan dan progres, dengan ruang kosong di antaranya. Kini Pembahasan disisipkan sebelum kartu Kunci (`js/lkpd-mode.js`), jadi kartu Kunci pertemuan dan progres menjadi kartu paling bawah dan ruang kosong hilang. Uji `uji-pandu-v2` 45 (1 baru). Tidak ada perubahan Appwrite.
+
 ## LKPD v2: Alat dan bahan lipat, kartu kegiatan seragam, kunci di kartu bawah dengan ikon gembok, overlay disesuaikan
 - **Alat dan bahan** kini banner lipat (tertutup bawaan) seperti bagian Materi lainnya.
 - **Kartu Kegiatan** memakai gaya banner Identitas praktik: judul 17 px (sebelumnya besar), latar gradasi dan garis hijau di kiri; isi kartu diberi bantalan sendiri (`.card.lk2-p` di `css/app.css`).
