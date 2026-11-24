@@ -26,6 +26,12 @@ function lk2BkBlock(m){
  if(lk2Kunci(m))return lkkBlock(m)+'<p class="note">Draf juga tersimpan otomatis di perangkat ini.</p>';
  return '<div class="lk2-bk"><button type="button" class="btn small" data-act="lk2-backup">Cadangkan draf (berkas)</button><label class="btn small" style="cursor:pointer">Pulihkan draf<input type="file" accept="application/json,.json" data-lk2-restore hidden></label></div><p class="note">Draf tersimpan di perangkat ini. Untuk LKPD beberapa pertemuan, cadangkan draf ke berkas setelah tiap pertemuan.</p>';
 }
+/* Kegiatan (kartu) yang sudah dikunci siswa (lkpd-kunci.js). Satuan kunci kartu dicari lewat peta isian: kunci kartu 'mt2' / 'mtk4' -> nomor satuan. */
+function lk2Terkunci(m,key){
+ try{if(typeof lkkOn!=='function'||!lkkOn(m)||!S.user)return false;var u=lkkKeyMap(m)[key];return !!(u&&lkkLocks(m)[u])}catch(e){return false}}
+function lk2KunciIkon(m,key){
+ if(LK2.cetak||!lk2Terkunci(m,key))return '';
+ return '<span class="lk2-lock" role="img" aria-label="Kegiatan ini sudah dikunci" title="Kegiatan ini sudah dikunci"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>'}
 function lk2Is(m){return !!(m&&m.v2&&m.v2.ver===2)}
 /* Angka dengan koma desimal ("24,35") atau titik. Tidak valid → NaN. */
 function lk2Num(s){if(typeof s==='number')return s;var t=String(s==null?'':s).trim().replace(/\s/g,'').replace(',','.');return /^[-+]?(\d+\.?\d*|\.\d+)$/.test(t)?Number(t):NaN}
@@ -243,7 +249,7 @@ function lk2Materi(m,d){
   lk2Bn('gate','Gerbang masuk praktik','<p class="note">'+(g.auto?'Jawab semua soal. Penilaian mengikuti soal TKA: pilihan ganda benar bernilai 1; PG kompleks dan PG kategori bernilai sebagian sesuai pilihan yang tepat. Lembar Kerja terbuka bila nilai gerbang minimal '+g.kkm+'.':'Jawab semua soal agar Lembar Kerja terbuka.')+'</p>'+
   V.gate.qs.map(function(x,i){if(lk2GPG(x))return lkqRender(x,LK2_GOFF+i,d).replace('<b>'+(LK2_GOFF+i+1)+'. ','<b>'+(i+1)+'. ');return '<label class="f">'+(i+1)+'. '+lkEsc(x.q)+'<textarea data-lk-field="gate'+i+'" rows="2">'+lkEsc(d['gate'+i]||'')+'</textarea></label>'}).join('')+
   '<p class="note">Terjawab '+g.n+' dari '+g.total+(g.auto?' · Nilai gerbang <b class="mono">'+g.nilai+'</b> (KKM '+g.kkm+'): '+(g.lulus?'lulus, Lembar Kerja terbuka.':'belum lulus, Lembar Kerja masih terkunci.'):(g.ok?'. Lembar Kerja terbuka.':'.'))+'</p>',' id="lk2-gate"','Terjawab '+g.n+' dari '+g.total+(g.auto?' · nilai '+g.nilai+' (KKM '+g.kkm+')':''))+
-  '<section class="card"><h2>Alat dan bahan</h2><ul class="plain">'+m.tools.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul></section>'+
+  lk2Bn('alat','Alat dan bahan','<ul class="plain">'+m.tools.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul>')+
   lk2K3(m,d);
 }
 function lk2StepHtml(m,i,d){
@@ -287,7 +293,7 @@ var h=lk2Bn('identitas','Identitas praktik','<div class="formgrid">'+[['school',
  V.pertemuan.forEach(function(p){
   if(p.sembunyi)return;
   lk2Kartu(V,p).forEach(function(c){
-   h+='<section class="card lk2-p'+(LK2.cetak||LK2.kartu===c.key?' is-open':'')+'" data-lk2k="'+c.key+'"><div class="lk2-ph" role="button" tabindex="0" aria-expanded="'+(LK2.cetak||LK2.kartu===c.key?'true':'false')+'" data-act="lk2-kartu" data-key="'+c.key+'"><h2>'+(c.judul?lkEsc(c.judul):'Pertemuan '+p.n)+'</h2><div class="lk2-pm"><span class="pill">Target '+c.menit+' menit</span>'+(typeof lkcRow==='function'&&!LK2.cetak?lkcRow(m,c,true):'')+'</div></div><div class="lk2-pb">'+(c.judul?'<p class="note">Alokasi praktik '+c.menit+' dari total '+lk2PraktikTotal(V)+' menit.</p>':'<p class="note">'+lkEsc(p.judul)+'</p>');
+   h+='<section class="card lk2-p'+(LK2.cetak||LK2.kartu===c.key?' is-open':'')+'" data-lk2k="'+c.key+'"><div class="lk2-ph" role="button" tabindex="0" aria-expanded="'+(LK2.cetak||LK2.kartu===c.key?'true':'false')+'" data-act="lk2-kartu" data-key="'+c.key+'"><h2>'+(c.judul?lkEsc(c.judul):'Pertemuan '+p.n)+'</h2><div class="lk2-pm"><span class="pill">Target '+c.menit+' menit</span>'+(typeof lkcRow==='function'&&!LK2.cetak?lkcRow(m,c,true):'')+lk2KunciIkon(m,c.key)+'</div></div><div class="lk2-pb">'+(c.judul?'<p class="note">Alokasi praktik '+c.menit+' dari total '+lk2PraktikTotal(V)+' menit.</p>':'<p class="note">'+lkEsc(p.judul)+'</p>');
    if(!c.ks.length)h+='<p class="note">'+(p.n===1?'Isi gerbang masuk dan daftar APD di tab Materi.':'Penilaian kinerja oleh guru. Lengkapi analisis dan refleksi di bawah.')+'</p>';
    c.ks.forEach(function(k){
     h+=(c.judul&&c.ks.length<2?'<h4>Langkah kerja</h4>':'<h3>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+(lk2KegMenit(V,k)?' · target '+lk2KegMenit(V,k)+' menit':'')+'</h3>')+
@@ -318,16 +324,14 @@ function lk2Eval(m,d){
   (pg?'<section class="card"><h2>Yang diamati dan kesalahan umum</h2><p class="note">Pelajari sebelum praktik agar kesalahan umum bisa dihindari.</p>'+pg+'</section>':'')+
   '<section class="card"><div class="note">Nilai otomatis di aplikasi hanya perkiraan awal dari kelengkapan pengisian. Nilai akhir ditentukan guru lewat Observasi LKPD Praktik v2 dan nilai guru yang diisi pada Detail pengumpulan (menggantikan nilai otomatis).</div></section>';
 }
-/* Overlay tombol (melayang di bawah layar): pindah antara Materi &amp; Prosedur dan Lembar Kerja tanpa menggulir ke atas. Posisinya naik di atas bilah tindakan bila bilah itu menempel di bawah (lk2OvUkur). */
-function lk2Ov(){return '<div class="lk-ovsp" aria-hidden="true"></div><div class="lk-ov" role="group" aria-label="Pindah bagian">'+[['materi','Materi &amp; Prosedur'],['kerja','Lembar Kerja']].map(function(t){return '<button type="button" data-act="lk-tab" data-v="'+t[0]+'" aria-pressed="'+(LK.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>'}
-function lk2OvUkur(){
- var ov=document.querySelector('.lk-ov');if(!ov)return;
- var b=document.querySelector('.lk-actions'),off=14;
- try{if(b&&getComputedStyle(b).position==='sticky')off=b.offsetHeight+10}catch(e){}
- ov.style.bottom=off+'px'}
-if(typeof render==='function'){var _render2=render;render=function(){_render2();lk2OvUkur()}}
-document.addEventListener('toggle',function(){lk2OvUkur()},true);
-if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('resize',function(){lk2OvUkur()});
+/* Overlay tombol Materi &amp; Prosedur dan Lembar Kerja. Menumpang: ikut bilah tombol bawah (melayang tepat di atasnya, posisi dari CSS tanpa hitungan skrip). Bila tidak ada bilah menempel (tab Materi siswa, pratinjau) melayang di bawah layar. */
+function lk2Ov(naik){return '<div class="lk-ov'+(naik?' lk-ov-bar':'')+'" role="group" aria-label="Pindah bagian">'+[['materi','Materi &amp; Prosedur'],['kerja','Lembar Kerja']].map(function(t){return '<button type="button" data-act="lk-tab" data-v="'+t[0]+'" aria-pressed="'+(LK.tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>'}
+/* Kartu paling bawah (banner lipat): Kunci pertemuan dan progres, atau Progres dan cadangan draf. */
+function lk2BawahKartu(m,d){
+ return lk2Bn('kunci',lk2Kunci(m)?'Kunci pertemuan dan progres':'Progres dan cadangan draf','<div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div>'+lk2BkBlock(m))}
+/* Bilah tombol bawah (menempel di bawah layar kecuali tab Materi siswa). ov = overlay yang menumpang di atas bilah. */
+function lk2Bar(m,staff,ov){
+ return '<div class="lk-actions">'+ov+'<div class="row"><button class="btn" data-act="lk-save">Simpan draf</button>'+(LK.tab==='materi'&&!staff?'':LK.tab==='evaluasi'&&!staff&&!LK.preview&&lk2Status(m).lulus?'<button class="btn primary" data-act="lk2-eval-kirim">Kirim Evaluasi</button>':'<button class="btn primary" data-act="lk-submit">Kirim LKPD</button>')+'<button class="btn" data-act="lk-print">Cetak</button>'+(staff&&m.v2&&m.v2.gate?'<button class="btn" data-act="lk-print-kunci">Cetak kunci</button>':'')+'</div></div>'}
 function lk2View(m){
  var d=lkDraft(),staff=isStaff(),tabs=[['evaluasi','Evaluasi'],['riwayat',staff?'Rekap LKPD':'Riwayat']];
  var nav=(staff?'<div class="chips"><button data-act="lk-tab" data-v="editor" aria-pressed="false">Editor Guru</button>'+(LK.preview?'<button data-act="lk-print">Cetak</button>'+(m.v2&&m.v2.gate?'<button data-act="lk-print-kunci">Cetak kunci</button>':''):'')+'</div>':'')+
@@ -335,7 +339,10 @@ function lk2View(m){
  var body=LK.tab==='materi'?lk2Materi(m,d):LK.tab==='kerja'?lk2Kerja(m,d):lk2Eval(m,d);
  return (LK.preview&&staff?'<div class="row"><button class="btn small" data-act="lk-preview-exit">Keluar pratinjau</button></div>':'')+
   '<div class="row sb"><div><span class="pill">Fase '+lkEsc(m.fase)+' · Kelas '+lkEsc(m.kelas)+'</span><h2>'+lkEsc(m.title)+'</h2><p class="note">'+lkEsc(m.unit)+' · '+m.v2.jp+' JP ('+m.duration+' menit, '+m.v2.pertemuan.length+' pertemuan)</p></div><span class="pill">'+lkEsc(/^LKPD/i.test(m.id)?m.id:'LKPD '+m.id)+' · v2</span></div>'+
-  nav+body+lk2Ov()+(LK.preview&&staff?'':(LK.tab==='materi'&&!staff?'<i class="lk-lite"></i>':'')+'<div class="lk-actions"><div class="row"><button class="btn" data-act="lk-save">Simpan draf</button>'+(LK.tab==='materi'&&!staff?'':LK.tab==='evaluasi'&&!staff&&!LK.preview&&lk2Status(m).lulus?'<button class="btn primary" data-act="lk2-eval-kirim">Kirim Evaluasi</button>':'<button class="btn primary" data-act="lk-submit">Kirim LKPD</button>')+'<button class="btn" data-act="lk-print">Cetak</button>'+(staff&&m.v2&&m.v2.gate?'<button class="btn" data-act="lk-print-kunci">Cetak kunci</button>':'')+'</div><details class="lk2-more" data-lk2d="more"'+(LK2.open&&LK2.open.more?' open':'')+'><summary>'+(lk2Kunci(m)?'Kunci pertemuan dan progres':'Progres dan cadangan draf')+'</summary><div class="lk-progress" id="lk-progress">'+lkProgress(m,d)+'</div>'+lk2BkBlock(m)+'</details></div>');
+  nav+body+(LK.preview&&staff?'':lk2BawahKartu(m,d))+
+  (LK.preview&&staff?lk2Ov(false)+'<div class="lk-ovsp" aria-hidden="true"></div>':
+   LK.tab==='materi'&&!staff?'<i class="lk-lite"></i>'+lk2Bar(m,staff,'')+lk2Ov(false)+'<div class="lk-ovsp" aria-hidden="true"></div>':
+   '<div class="lk-ovsp" aria-hidden="true"></div>'+lk2Bar(m,staff,lk2Ov(true)));
 }
 var _viewLKPD2=viewLKPD;
 viewLKPD=function(){

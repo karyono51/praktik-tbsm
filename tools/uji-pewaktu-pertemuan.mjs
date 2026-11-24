@@ -31,13 +31,14 @@ function lkRowOk(){return false}function lkScore(){return {practice:0,theory:0,f
 function lkProgress(){return ''}function lkSubmit(){}function viewLKPD(){return 'V'}function lkDetailBody(){return 'D'}
 function lkqQuizHtml(){return ''}function uiOk(k,m,f){return true}
 var LKPD_MODULES=[];var MODE='ujian';
-function lkmCfg(){return {mode:MODE}}function lkmCur(){return LKPD_MODULES[0]}function lkmSesiMenit(){return 80}
+function lkDraft(){return {}}function uiOk(){return true}function lkmCfg(){return {mode:MODE}}function lkmCur(){return LKPD_MODULES[0]}function lkmSesiMenit(){return 80}
 `, 'stub');
 run(src('lkpd-soal.js').split('/* ---------- Pemasangan ke mesin LKPD ---------- */')[0], 'soal-inti');
 run(src('lkpd-v2-x07.js'), 'x07');
 run(`LKPD_MODULES=JSON.parse(JSON.stringify(LKPD_EXTRA_MODULES));`, 'modul');
 run(src('lkpd-v2.js'), 'v2');
 run(src('lkpd-v2-soal.js'), 'v2soal');
+run(src('lkpd-kunci.js'), 'kunci');
 run(src('lkpd-timer.js'), 'timer');
 const G = (e) => vm.runInContext(e, ctx);
 const reset = () => { for (const k of Object.keys(store)) delete store[k]; G('LKCT.m={}'); };
@@ -111,15 +112,26 @@ const kj = bn(kerja);
 ok(kj.join() === 'identitas,analisis,refleksi', 'Lembar Kerja: banner lipat Identitas, Analisis, Refleksi (tertutup): ' + kj.join());
 const mat = G(`lk2Materi(${m},{})`);
 const mt = bn(mat);
-ok(mt.join() === 'tujuan,rencana,teori,gate,k3', 'Materi: banner lipat Tujuan, Rencana, Teori singkat, Gerbang, K3 (tertutup): ' + mt.join());
+ok(mt.join() === 'tujuan,rencana,teori,gate,alat,k3', 'Materi: banner lipat Tujuan, Rencana, Teori singkat, Gerbang, Alat dan bahan, K3 (tertutup): ' + mt.join());
 ok(/<h2>Teori singkat<\/h2>/.test(mat) && !/<h2>Memahami<\/h2>/.test(mat), 'Memahami diganti Teori singkat');
 G(`LK2.open={'bn-k3':true}`);
 ok(/data-lk2d="bn-k3" open/.test(G(`lk2Materi(${m},{})`)), 'status buka banner diingat');
 G(`LK2={cetak:true}`);
 ok(bn(G(`lk2Materi(${m},{})`)).every((x) => x.endsWith('+')), 'cetak membuka semua banner');
 G(`LK2={}`);
-const ov = G('lk2Ov()');
-ok(/data-v="materi"[^>]*>Materi &amp; Prosedur/.test(ov) && /data-v="kerja"[^>]*>Lembar Kerja/.test(ov) && /class="lk-ov"/.test(ov), 'overlay tombol Materi & Prosedur dan Lembar Kerja');
+const ov = G('lk2Ov(true)');
+ok(/data-v="materi"[^>]*>Materi &amp; Prosedur/.test(ov) && /data-v="kerja"[^>]*>Lembar Kerja/.test(ov) && /class="lk-ov lk-ov-bar"/.test(ov) && /class="lk-ov"/.test(G('lk2Ov(false)')), 'overlay tombol Materi & Prosedur dan Lembar Kerja (menumpang di bilah atau melayang)');
+/* Ikon kunci pada kartu kegiatan yang dikunci; kartu terkunci tidak dihitung waktunya */
+G(`S.lkpd=[];S.lkpdBukti=[{moduleId:LKPD_MODULES[0].id,sid:'u1',label:'kunci|2',data:JSON.stringify({n:2,f:{step0:'x'}}),ts:1}]`);
+G(`MODE='latihan';STAFF=false`);
+const terkunci = G(`lk2Terkunci(${m},'mt2')`);
+ok(terkunci === true && G(`lk2Terkunci(${m},'mt3')`) === false, 'kartu Kegiatan 1 terkunci, Kegiatan 2 belum');
+ok(/lk2-lock/.test(G(`lk2KunciIkon(${m},'mt2')`)) && G(`lk2KunciIkon(${m},'mt3')`) === '', 'ikon kunci hanya pada kartu yang dikunci');
+G(`LK2={kartu:'mt2'}`); G('lkcSelaras()');
+ok(G(`lkcGet(${m},'mt2').run`) === false, 'kartu terkunci dibuka: pewaktu tidak jalan');
+G(`LK2={kartu:'mt3'}`); G('lkcSelaras()');
+ok(G(`lkcGet(${m},'mt3').run`) === true, 'kartu belum terkunci: pewaktu jalan');
+G(`LK2={}`);
 /* Regresi: LKC dipakai lkpd-cetak.js (window.LKC); pewaktu memakai LKCT agar tidak saling menimpa di peramban. */
 ok(!/\bLKC\b/.test(fs.readFileSync(path.join(root, 'js', 'lkpd-timer.js'), 'utf8')), 'pewaktu tidak memakai nama global LKC (bentrok dengan lkpd-cetak.js)');
 console.log(`\nUji pewaktu per pertemuan: ${lulus} lulus, ${gagal} gagal`);

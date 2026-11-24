@@ -139,7 +139,9 @@ function lkcSelaras(){
  var m=lkcMod(),buka='';
  if(m&&m.v2&&m.v2.pertemuan&&document.querySelector('[data-ct]')&&!(typeof LK2!=='undefined'&&LK2.cetak)){
   var k=typeof LK2!=='undefined'?LK2.kartu:'';
-  if(k&&lkcCards(m).some(function(c){return c.key===k}))buka=k}
+  if(k&&lkcCards(m).some(function(c){return c.key===k}))buka=k;
+  /* Kegiatan yang sudah dikunci tidak lagi dihitung waktunya. */
+  if(buka&&typeof lk2Terkunci==='function'&&lk2Terkunci(m,buka))buka=''}
  lkcStopAll(buka?lkcSk(m,buka):'');
  if(buka)lkcStart(m,buka);
  lkcPaint()}

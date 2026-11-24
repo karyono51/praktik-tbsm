@@ -1,3 +1,11 @@
+## LKPD v2: Alat dan bahan lipat, kartu kegiatan seragam, kunci di kartu bawah dengan ikon gembok, overlay disesuaikan
+- **Alat dan bahan** kini banner lipat (tertutup bawaan) seperti bagian Materi lainnya.
+- **Kartu Kegiatan** memakai gaya banner Identitas praktik: judul 17 px (sebelumnya besar), latar gradasi dan garis hijau di kiri; isi kartu diberi bantalan sendiri (`.card.lk2-p` di `css/app.css`).
+- **Kunci pertemuan dan progres dipindah ke kartu paling bawah** (banner lipat, `lk2BawahKartu`), tidak lagi di dalam bilah tombol bawah, sehingga bilah hanya berisi Simpan draf, Kirim LKPD, Cetak.
+- **Ikon gembok** di kanan jam pewaktu pada kartu kegiatan yang sudah dikunci (`lk2Terkunci`, `lk2KunciIkon`). Kartu yang terkunci tidak dihitung waktunya (pewaktu tidak jalan walau kartu dibuka).
+- **Overlay Materi & Prosedur / Lembar Kerja** lebih kecil dan posisinya tidak lagi bergantung pada skrip: menumpang di atas bilah tombol bawah (`.lk-ov-bar`), atau melayang di dasar layar bila tidak ada bilah menempel (tab Materi siswa, pratinjau). Ruang kosong di akhir halaman agar isi tidak tertutup.
+- Uji `uji-pewaktu-pertemuan` 40 (gembok, banner Alat dan bahan, overlay dua mode); `uji-lkpd-v2` 274, `uji-pandu-v2` 44, `uji-lkpd-format` 69, `uji-pandu` 103 tetap lulus; diperiksa di Chromium tanpa galat. Tidak ada perubahan Appwrite.
+
 ## LKPD v2: pewaktu otomatis mengikuti kartu, banner lipat, overlay tombol Materi dan Lembar Kerja
 - **Pewaktu tanpa tombol.** Tombol Mulai/Jeda/Lanjut/Selesai dihapus; kepala kartu hanya menampilkan jam (titik berdenyut saat berjalan). Kartu Kegiatan **terbuka = pewaktu jalan, tertutup = berhenti** dan waktunya tersimpan; membuka lagi melanjutkan. Berlaku untuk semua kartu Kegiatan (1 sampai 4). Pindah ke kartu lain, pindah tab, keluar dari LKPD, atau muat ulang juga menghentikan pewaktu (`lkcSelaras` di `js/lkpd-timer.js`, dipanggil dari `lk2Buka` dan tiap render). Kirim membekukan waktu; setelah Kirim berhasil kartu ditutup.
   - Ujian tetap berbasis jam dinding dan kolom waktu terkunci, tetapi waktu **bisa berhenti dengan menutup kartu** (sesuai permintaan).
