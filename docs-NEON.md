@@ -43,3 +43,7 @@ Ubah `CBT_DB` di fungsi menjadi `appwrite` (atau hapus) lalu redeploy; klien tid
 - Neon membuat komputasi tidur setelah 5 menit tanpa aktivitas; siswa pertama bisa terasa lebih lambat 1 sampai 2 detik. Bila batas bulanan paket gratis terlampaui, Neon menghentikan komputasi sampai bulan berikutnya. Pantau di dasbor Neon pada hari ujian.
 - Uji otomatis memakai Postgres tiruan di memori (`tools/uji-neon.mjs`); SQL asli belum dijalankan di sana. Tombol **Siapkan tabel** dan **Uji sambungan** adalah pembuktiannya di Neon sungguhan.
 - `neon-schema.sql` sama dengan tombol Siapkan tabel (dibuat dari `NEON_SKEMA`); boleh dijalankan manual di SQL Editor Neon.
+
+## Menjaga CBT_DB saat push
+
+`up.sh` membaca `CBT_DB` dari `js/config.js` di repo sebelum zip dipasang, lalu memulihkannya bila zip membawa nilai lain, sehingga `'neon'` tidak tertimpa. Untuk sengaja memakai nilai dari zip (misalnya kembali ke Appwrite): `CBT_DB_PAKSA=1 sh up.sh`.

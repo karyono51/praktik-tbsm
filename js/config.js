@@ -11,8 +11,10 @@ window.APP_CONFIG={
   /* Safe Exam Browser (SEB): UserAgent SEB memuat 'SEB/' (Windows, macOS) atau 'SEB_iOS' (iPad/iPhone). Di SEB layar penuh tidak diwajibkan karena SEB sudah mode kios. */
   SEB_UA:'SEB/,SEB_iOS',
   FN_CBT:'akun-admin',   /* ID fungsi yang melayani aksi CBT: 'akun-admin' (paket gratis) atau 'cbt' */
-  /* Penyimpanan jalur panas ujian (soal_run, soal_hasil, soal_kunci): 'appwrite' (bawaan) atau 'neon'. Hanya berlaku bila CBT_AMAN:true.
-     Ubah ke 'neon' SETELAH variabel fungsi CBT_DB=neon dan tabel Neon siap, urutannya di docs-NEON.md. */
+  /* Penyimpanan jalur panas ujian (soal_run, soal_hasil, soal_kunci): 'appwrite' atau 'neon'. Hanya berlaku bila CBT_AMAN:true.
+     CATATAN: sekolah ini sudah pakai 'neon' (variabel fungsi CBT_DB=neon, tabel siap, data lama tersalin).
+     JANGAN dikembalikan ke 'appwrite' saat push. up.sh menjaga nilai ini dari config.js di repo, tetapi bila zip baru
+     memuat nilai lain dan Anda memang ingin mengganti, jalankan: CBT_DB_PAKSA=1 sh up.sh (lihat docs-NEON.md). */
   CBT_DB:'neon',
   /* Selama data lama masih di Appwrite, tetap dibaca. Ubah ke false setelah data disalin (docs-NEON.md), bersamaan dengan CBT_LEGACY=0 di fungsi. */
   CBT_LEGACY:true
