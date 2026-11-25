@@ -1,7 +1,7 @@
 /* lkpd-elemen.js: LKPD adalah bagian dari Elemen CP.
    Tiap modul LKPD terkait ke satu Elemen CP (id mapel elemen di Administrasi Akademik, mis. m_tsm_4).
    Sumber tautan: field modul `elemen` (diisi di Editor Guru); bila kosong dipakai pemetaan bawaan di bawah.
-   Elemen CP dibaca dari data bawaan akademik-data.js (AKD_DDO_ELEMEN untuk kelas X, AKD_TSM_ELEMEN untuk XI-XII). */
+   Elemen CP dibaca dari data bawaan akademik-data.js (AKD_DDO_ELEMEN untuk kelas X, AKD_TSM_ELEMEN untuk XI-XII, AKD_PKL_ELEMEN untuk PKL kelas XII). */
 var LKPD_ELEMEN_MAP={
  'X-1':'m_ddo_7','X-2':'m_ddo_3','X-3':'m_ddo_3','X-4':'m_ddo_2','X-5':'m_ddo_4','X-6':'m_ddo_5',
  'XI-1':'m_tsm_1','XI-2':'m_tsm_2','XI-3':'m_tsm_3','XI-4':'m_tsm_1','XI-5':'m_tsm_1','XI-6':'m_tsm_1','XI-7':'m_tsm_2','XI-8':'m_tsm_2',
@@ -10,7 +10,7 @@ var LKPD_ELEMEN_MAP={
 function lkElAll(){
  var L=[];
  try{
-  [[AKD_DDO,AKD_DDO_ELEMEN,'X'],[AKD_TSM,AKD_TSM_ELEMEN,'XI']].forEach(function(p){
+  [[AKD_DDO,AKD_DDO_ELEMEN,'X'],[AKD_TSM,AKD_TSM_ELEMEN,'XI'],[AKD_PKL,AKD_PKL_ELEMEN,'XII']].forEach(function(p){
    p[1].forEach(function(e,i){L.push({id:p[0].id+'_'+(i+1),no:i+1,nama:e.n,induk:p[0].nama,tingkat:p[0].tingkat||[],urut:L.length})});
   });
  }catch(x){}

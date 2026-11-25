@@ -183,8 +183,8 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   const { ctx, AKD, log, klik } = boot();
   const seed = ctx.akSeedList();
   const ids = seed.map((m) => m.id);
-  T('bawaan: seluruh mapel struktur kurikulum SMK (31 baris: 14 mapel, DDTO dan TSM beserta elemen CP)', seed.length === 31 && ['m_pabp', 'm_mtk', 'm_ddo', 'm_tsm', 'm_pkl', 'm_kka'].every((x) => ids.includes(x)), ids);
-  T('bawaan: hanya DDTO, TSM, PKL dan elemennya bertanda produktif (18)', seed.filter((m) => m.produktif === true).length === 18 && seed.filter((m) => m.produktif === false).length === 13);
+  T('bawaan: seluruh mapel struktur kurikulum SMK (35 baris: 14 mapel, DDTO, TSM, dan PKL beserta elemen CP)', seed.length === 35 && ['m_pabp', 'm_mtk', 'm_ddo', 'm_tsm', 'm_pkl', 'm_kka'].every((x) => ids.includes(x)), ids);
+  T('bawaan: hanya DDTO, TSM, PKL dan elemennya bertanda produktif (22)', seed.filter((m) => m.produktif === true).length === 22 && seed.filter((m) => m.produktif === false).length === 13);
   /* data lama (tanpa tanda produktif) */
   const lama = (o) => ({ aktif: true, kelompok: 'kejuruan', ...o });
   AKD.D.mapel = [
@@ -440,6 +440,10 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   T('tabel: jumlah semua 54 LKPD, 1432 JP; DDO kelas X 19 · 432 JP; TSM XI 23 · 648 JP, XII 12 · 352 JP', /Jumlah semua<\/td><td>19 · 432 JP<\/td><td>23 · 648 JP<\/td><td>12 · 352 JP<\/td><td>54 · 1432 JP/.test(h) && /Jumlah DDO<\/td><td>19 · 432 JP<\/td><td>–<\/td><td>–<\/td>/.test(h) && /Jumlah TSM<\/td><td>–<\/td><td>23 · 648 JP<\/td><td>12 · 352 JP<\/td>/.test(h));
   T('tabel: CP lintas tingkat dalam satu baris (TSM-ENG: XI 5 + XII 2 = 7 LKPD)', /TSM-ENG<\/td><td>Perawatan dan perbaikan engine<\/td><td>–<\/td><td>5 · \d+ JP<\/td><td>2 · \d+ JP<\/td><td><b>7 · /.test(h));
   T('tabel: daftar memuat kode lama, kelas, semester, TP, dan status', /LKPD-DDO-ALT-02<\/span><\/td><td>X<\/td><td>\w+<\/td><td class="akd-tj">Penggunaan dan Perawatan Alat Ukur/.test(h) && /<td class="mono">LKPD-X-06<\/td>/.test(h) && /Ada di aplikasi · Draft/.test(h));
+  T('CP PKL: kartu memuat 4 elemen, kode PKL-SFT, PKL-HSP, PKL-HSG, PKL-WIR, CP, dan 4 TP', (() => { const k = ctx.akPklCard(); return /CP Praktik Kerja Lapangan/.test(k) && ['SFT', 'HSP', 'HSG', 'WIR'].every((c) => k.includes('PKL-' + c)) && /Penyiapan Kemandirian Berwirausaha/.test(k) && /melakukan analisis usaha secara mandiri/.test(k) && /4 tujuan pembelajaran/.test(k) && (k.match(/Belum ada/g) || []).length === 4; })());
+  T('CP PKL: tampil di Peta LKPD, tidak mengubah total 54 LKPD', /CP Praktik Kerja Lapangan/.test(ctx.viewAkdLkpd()) && /Jumlah semua<\/td>/.test(ctx.akLkpdCards()));
+  AKD.lf = 'X'; T('CP PKL: disembunyikan pada filter Kelas X', ctx.akPklCard() === ''); AKD.lf = 'ALL';
+  AKD.lq = 'wirausaha'; T('CP PKL: pencarian menyaring elemen', (ctx.akPklCard().match(/<tr><td class="mono">PKL-/g) || []).length === 1); AKD.lq = '';
   AKD.lf = 'XII'; h = ctx.akLkpdCards();
   T('tabel: filter Kelas XII hanya 12 LKPD dan rekap tanpa DDO', nKode(h) === 12 && !/Jumlah DDO/.test(h) && /Jumlah semua<\/td><td>–<\/td><td>–<\/td><td>12 · 352 JP<\/td><td>12 · 352 JP/.test(h));
   AKD.lf = 'ALL'; AKD.lq = 'zzzz'; T('tabel: pencarian tanpa hasil memberi pesan kosong', /Belum ada LKPD yang cocok/.test(ctx.akLkpdCards())); AKD.lq = '';
@@ -465,6 +469,8 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   log.rows.length = 0; await klik('ekspor');
   const pl = log.rows.find((r) => r[0] && 'Kode LKPD' in r[0]);
   T('ekspor Excel: lembar Peta LKPD memuat 54 baris dengan padanan modul', pl && pl.length === 54 && pl.find((r) => r['Kode LKPD'] === 'LKPD-DDO-ALT-02')['Modul di aplikasi'] === 'LKPD-DDO-ALT-02 (tepat)' && pl.every((r) => typeof r.JP === 'number'), pl && pl.length);
+  const cpkl = log.rows.find((r) => r[0] && 'Capaian Pembelajaran' in r[0]);
+  T('ekspor Excel: lembar CP PKL 4 baris dengan CP dan TP', cpkl && cpkl.length === 4 && cpkl.map((r) => r.Kode).join() === 'PKL-SFT,PKL-HSP,PKL-HSG,PKL-WIR' && cpkl.every((r) => r['Jumlah LKPD'] === 0 && r.Kelas === 'XII') && /1\. Menerapkan soft skills/.test(cpkl[0]['Tujuan pembelajaran (contoh)']));
   const rk = log.rows.find((r) => r[0] && 'Total JP' in r[0]);
   T('ekspor Excel: lembar Rekap Prodi-CP-Kelas 14 baris, total 54 LKPD dan 1432 JP', rk && rk.length === 14 && rk.reduce((a, r) => a + r['Total LKPD'], 0) === 54 && rk.reduce((a, r) => a + r['Total JP'], 0) === 1432 && rk.find((r) => r.Prodi === 'TSM' && r['CP (singkatan)'] === 'ENG')['LKPD Kelas XII'] === 2, rk && rk.length);
 }

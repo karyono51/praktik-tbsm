@@ -42,7 +42,8 @@ ok(ctx.lkKodeLama('LKPD-TSM-PMT-02') === 'LKPD-XI-17' && ctx.lkKodeLama('LKPD-XI
 ok(ctx.lkKodeSama('LKPD-X-06', 'LKPD-DDO-ALT-02') && !ctx.lkKodeSama('LKPD-X-06', 'LKPD-X-12'), 'lkKodeSama');
 ok(G("lkKodeParse('LKPD-TSM-PMT-03').cp") === 'PMT' && G("lkKodeParse('LKPD-X-06')") === null && G("lkKodeParse('X-1')") === null, 'lkKodeParse');
 ok(ctx.lkKodeBerikut('TSM', 'PMT') === 'LKPD-TSM-PMT-08' && ctx.lkKodeBerikut('DDO', 'ALT') === 'LKPD-DDO-ALT-04' && ctx.lkKodeBerikut('TKR', 'ENG') === 'LKPD-TKR-ENG-01', 'lkKodeBerikut: nomor berikutnya per prodi dan CP');
-ok(ctx.lkKodeProdiList().map((p) => p[0]).join() === 'DDO,TSM,TKR' && ctx.lkKodeCpList('TSM').length === 7 && ctx.lkKodeCpList('DDO').length === 7 && ctx.lkKodeCpNama('TSM', 'PMT') === 'Perawatan dan perbaikan sistem pemindah tenaga', 'daftar prodi dan CP untuk editor');
+ok(ctx.lkKodeProdiList().map((p) => p[0]).join() === 'DDO,TSM,TKR,PKL' && ctx.lkKodeCpList('TSM').length === 7 && ctx.lkKodeCpList('DDO').length === 7 && ctx.lkKodeCpList('PKL').map((c) => c[0]).join() === 'SFT,HSP,HSG,WIR' && ctx.lkKodeBerikut('PKL', 'SFT') === 'LKPD-PKL-SFT-01' && ctx.lkKodeCpNama('TSM', 'PMT') === 'Perawatan dan perbaikan sistem pemindah tenaga', 'daftar prodi dan CP untuk editor');
+ok(typeof ctx.lkElForKelas !== 'function' || (ctx.lkElForKelas('XII').filter((e) => /^m_pkl_/.test(e.id)).length === 4 && ctx.lkElForKelas('X').every((e) => !/^m_pkl_/.test(e.id)) && ctx.lkElForKelas('XI').every((e) => !/^m_pkl_/.test(e.id))), 'elemen CP PKL hanya untuk kelas XII di Editor LKPD');
 
 /* data lama dibaca sebagai kode baru */
 G('window.lkRefreshModules()');

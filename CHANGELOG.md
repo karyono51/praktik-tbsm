@@ -486,3 +486,5 @@ Siswa menyiapkan gambar soal sesi sebelum token dirilis. Berkas baru: `js/pra-un
 ## Format cetak PDF LKPD v2 dan gerbang PG
 Nama berkas PDF `LKPD <id> <judul> <sekolah>`, tabel hanya untuk rencana pertemuan, F1 sampai F3, dan tanda tangan, soal PG/kompleks/kategori dan status tercetak sebagai kotak pilihan, unsur khusus aplikasi dibuang, nomor halaman. Gerbang masuk LKPD-X-07 berbentuk 5 soal PG (HOTS, bentuk TKA). Kolom `peran` akun jadi 64 karakter (`tools/perbesar-peran.mjs`). Rincian di `docs-LKPD-V2.md` dan `docs-PERAN-GANDA.md`.
 
+## CP PKL di Peta LKPD
+Prodi `PKL` dengan empat elemen CP (SFT, HSP, HSG, WIR) ditambahkan ke matriks (`tools/matriks-lkpd.py`, `AKD_LKPD_PRODI`, `AKD_LKPD_CP`), data `AKD_PKL_ELEMEN`/`AKD_PKL_TP` di `js/akademik-data.js`, mapel turunan `m_pkl_1..4`, pilihan Elemen CP kelas XII di Editor LKPD, kartu **CP PKL** di Peta LKPD, dan lembar Excel **CP PKL**. Total 54 LKPD dan 1432 JP tidak berubah. Uji: `tools/uji-akademik.mjs`, `tools/uji-lkpd-kode.mjs`. Panduan di `docs-LKPD-KODE.md`.

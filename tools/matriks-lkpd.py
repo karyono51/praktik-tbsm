@@ -7,6 +7,7 @@ JP per pertemuan dibaca dari Ringkasan I5:I7 (X 4 JP, XI 6 JP, XII 6 JP). Berkas
 KODE BARU: LKPD-<PRODI>-<CP>-<NN> (mis. LKPD-DDO-ALT-02, LKPD-TSM-PMT-03). Tingkat (X, XI, XII) bukan bagian kode, disimpan di isian kl,
 sehingga LKPD bisa naik atau turun tingkat tanpa mengubah kode. Kode lama (LKPD-X-06 dst.) disimpan di isian ka dan di AKD_LKPD_ALIAS.
 Nomor NN stabil: yang sudah tercatat di AKD_LKPD_ALIAS dipertahankan, LKPD baru mendapat nomor berikutnya dalam CP-nya.
+PKL: prodi PKL dengan CP SFT, HSP, HSG, WIR ikut dicatat di AKD_LKPD_PRODI dan AKD_LKPD_CP (rinci CP dan TP di AKD_PKL_ELEMEN, js/akademik-data.js).
 Mode --migrasi (tanpa xlsx): mengonversi blok yang sudah ada di js/akademik-data.js dari kode lama ke kode baru."""
 import sys, re, json
 P_DATA = 'js/akademik-data.js'
@@ -15,13 +16,17 @@ src = 'akademik-data.js' if MIGRASI else sys.argv[1]
 if not MIGRASI:
     import openpyxl
     wb = openpyxl.load_workbook(src, data_only=True)
-PRODI = {'DDO': 'Dasar-Dasar Program Keahlian Teknik Otomotif (bersama semua prodi otomotif)', 'TSM': 'Teknik Sepeda Motor', 'TKR': 'Teknik Kendaraan Ringan'}
+PRODI = {'DDO': 'Dasar-Dasar Program Keahlian Teknik Otomotif (bersama semua prodi otomotif)', 'TSM': 'Teknik Sepeda Motor', 'TKR': 'Teknik Kendaraan Ringan',
+         'PKL': 'Praktik Kerja Lapangan (bersama semua prodi, kelas XII)'}
 CP_KODE = {'DDO': {'Wawasan Dunia Otomotif': 'BIS', 'Kecakapan Kerja Dasar, K3, dan Budaya Kerja': 'K3', 'Gambar Teknik Otomotif': 'GBR',
                    'Peralatan dan Perlengkapan Tempat Kerja': 'ALT', 'Dasar Kelistrikan dan Elektronika Otomotif': 'ELK', 'Komponen Otomotif': 'KOM',
                    'Dasar Sistem Hidrolik dan Pneumatik': 'HID'},
            'TSM': {'Pengelolaan bengkel sepeda motor': 'BKL', 'Perawatan dan perbaikan engine': 'ENG', 'Perawatan dan perbaikan sasis': 'SAS',
                    'Perawatan dan perbaikan sistem pemindah tenaga': 'PMT', 'Perawatan dan perbaikan sistem kelistrikan': 'KEL',
-                   'Perawatan dan perbaikan sepeda motor listrik dan hybrid': 'LST', 'Perawatan dan perbaikan engine management system (EMS)': 'EMS'}}
+                   'Perawatan dan perbaikan sepeda motor listrik dan hybrid': 'LST', 'Perawatan dan perbaikan engine management system (EMS)': 'EMS'},
+           # PKL: 4 elemen CP (Panduan PKL 2023, Tabel 2.2). Belum ada LKPD PKL di matriks (PKL 736 JP tidak dihitung sebagai LKPD).
+           'PKL': {'Internalisasi dan Penerapan Soft Skills': 'SFT', 'Penerapan Hard Skills': 'HSP',
+                   'Peningkatan dan Pengembangan Hard Skills': 'HSG', 'Penyiapan Kemandirian Berwirausaha': 'WIR'}}
 def prodi_cp(kl, el):
     pr = 'DDO' if kl == 'X' else 'TSM'      # Kelas X = fase E dasar bersama; XI-XII = konsentrasi TSM
     return pr, CP_KODE[pr][el]

@@ -214,11 +214,11 @@ function akCek(){
 function akSeedList(){
  var L=[];
  AKD_MAPEL_UMUM.forEach(function(m,i){L.push(Object.assign({urut:i,produktif:AKD_PRODUKTIF_ID.indexOf(m.id)>-1,fase:'',tingkat:m.tingkat||[],jp:'',sumber:'Struktur kurikulum SMK/MAK (Permendikdasmen 13/2025); CP Kepka BSKAP 046/H/KR/2025',skkni:[],kata:[]},m))});
- [[AKD_DDO,AKD_DDO_ELEMEN,'DP-01'],[AKD_TSM,AKD_TSM_ELEMEN,'KK-01']].forEach(function(p){
-  L.push(Object.assign({jp:'',skkni:[],kata:[],urut:0,produktif:true},p[0]));
+ [[AKD_DDO,AKD_DDO_ELEMEN,'DP-01'],[AKD_TSM,AKD_TSM_ELEMEN,'KK-01'],[AKD_PKL,AKD_PKL_ELEMEN,'KJ-06',1]].forEach(function(p){
+  if(!p[3])L.push(Object.assign({jp:'',skkni:[],kata:[],urut:0,produktif:true},p[0]));   /* p[3]: induk sudah ada di daftar mapel umum (PKL) */
   p[1].forEach(function(e,i){
    L.push({id:p[0].id+'_'+(i+1),kode:p[2]+'.'+(i+1),nama:e.n,kelompok:'kejuruan',komponen:p[0].komponen,induk:p[0].id,fase:p[0].fase,tingkat:p[0].tingkat,jp:'',
-    produktif:true,sumber:'Elemen CP '+p[0].nama+' (Kepka BSKAP 046/H/KR/2025)'+(e.skkni&&e.skkni.length?'; SKKNI Kepmenaker 147/2019':''),skkni:e.skkni||[],kata:e.kata||[],catatan:e.catatan||'',urut:i+1});
+    produktif:true,sumber:p[0].sumberEl||('Elemen CP '+p[0].nama+' (Kepka BSKAP 046/H/KR/2025)'+(e.skkni&&e.skkni.length?'; SKKNI Kepmenaker 147/2019':'')),skkni:e.skkni||[],kata:e.kata||[],catatan:e.catatan||e.cp||'',urut:i+1});
   });
  });
  return L;
@@ -558,6 +558,21 @@ function akLkpdCards(){
  });
  return out;
 }
+/* CP PKL: 4 elemen CP, CP, TP (contoh), dan jumlah LKPD per elemen. PKL (736 JP) tidak dihitung dalam target LKPD kelas X-XII. */
+function akPklCard(){
+ if(typeof AKD_PKL_ELEMEN==='undefined'||!AKD_PKL_ELEMEN.length)return '';
+ var f=AKD.lf||'ALL',q=akNorm(AKD.lq);if(f!=='ALL'&&f!=='XII')return '';
+ var E=AKD_PKL_ELEMEN.filter(function(e){return !q||akNorm(['pkl praktik kerja lapangan','PKL-'+e.kode,e.kode,e.n,e.cp].join(' ')).indexOf(q)>-1});
+ if(!E.length)return '';
+ var P=akLkpdData().filter(function(x){return x.pr==='PKL'});
+ var h='<div class=\"card\"><b>CP Praktik Kerja Lapangan (PKL)</b><div class=\"note\">Mata pelajaran kejuruan kelas XII, Fase F. Kode LKPD PKL: <span class=\"mono\">LKPD-PKL-&lt;CP&gt;-&lt;NN&gt;</span>. PKL tidak dihitung dalam target JP LKPD kelas X sampai XII.</div>'+
+  '<div class=\"akd-twrap\"><table class=\"akd-tbl akd-tbl-l\"><thead><tr><th>Kode</th><th>Elemen CP</th><th>Capaian Pembelajaran</th><th>LKPD</th></tr></thead><tbody>';
+ E.forEach(function(e){var M=P.filter(function(x){return x.cp===e.kode});
+  h+='<tr><td class=\"mono\">PKL-'+esc(e.kode)+'</td><td>'+esc(e.n)+'</td><td class=\"akd-tj\">'+esc(e.cp)+'</td><td>'+(M.length?M.length+' · '+akLkpdJp(M)+' JP':'Belum ada')+'</td></tr>'});
+ h+='</tbody></table></div>';
+ if(typeof AKD_PKL_TP!=='undefined'&&AKD_PKL_TP.length)h+='<details><summary class=\"note\">'+AKD_PKL_TP.length+' tujuan pembelajaran (contoh) dan ATP</summary>'+AKD_PKL_TP.map(function(t,i){return '<div class=\"note\"><span class=\"mono\">TP '+(i+1)+'</span> '+esc(t)+'</div>'}).join('')+(typeof AKD_PKL_ATP!=='undefined'?'<div class=\"note\">'+esc(AKD_PKL_ATP)+'</div>':'')+'</details>';
+ return h+'<div class=\"note\">Sumber: Panduan PKL sebagai Mata Pelajaran dalam Implementasi Kurikulum Merdeka (Direktorat SMK, 2023), Tabel 2.2 dan Lampiran 1. Samakan rumusan CP dengan Kepka BSKAP 046/H/KR/2025 bila berbeda.</div></div>';
+}
 function viewAkdLkpd(){
  var A=akLkpdAgg(),T=(typeof AKD_LKPD_TARGET!=='undefined'&&AKD_LKPD_TARGET)||{},h='';
  h+='<div class=\"stats\">'+['X','XI','XII'].map(function(k){
@@ -568,6 +583,7 @@ function viewAkdLkpd(){
  if((AKD.lv||'tabel')==='kartu')h+='<div class=\"chips\"><span class=\"note\">Kelompokkan:</span>'+[['cp','Prodi dan CP'],['kelas','Kelas saja']].map(function(c){return '<button type=\"button\" data-akd=\"lg\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lg||'cp')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
  h+='<div class=\"card\"><label class=\"f\">Cari<input type=\"search\" data-akd=\"lq\" value=\"'+esc(AKD.lq)+'\" placeholder=\"Judul, kode LKPD (baru atau lama), TP, atau elemen CP\"></label></div>';
  h+='<div id=\"akd-list\">'+akLkpdCards()+'</div>';
+ h+=akPklCard();
  var tp=akLkpdTanpaPadan();
  h+='<div class=\"card\"><b>Modul aplikasi tanpa padanan di matriks ('+tp.length+')</b>'+
   (tp.length?tp.map(function(m){return '<div class=\"note\"><span class=\"mono\">'+esc(m.id)+'</span> '+esc(m.title)+' · Kelas '+esc(m.kelas)+'</div>'}).join(''):'<div class=\"note\">Semua modul bawaan sudah punya padanan.</div>')+
@@ -771,6 +787,7 @@ function akEkspor(){
  sh('Mata pelajaran',akMapelAll().map(function(m){var ind=m.induk&&akById('mapel',m.induk);return {Kode:m.kode||'','Mata pelajaran':m.nama,Produktif:akProduktif(m)?'Ya':'Tidak',Kelompok:m.kelompok,Komponen:m.komponen||'','Elemen dari':ind?ind.nama:'',Fase:m.fase||'',Tingkat:(m.tingkat||[]).join(', '),JP:m.jp||'','Unit SKKNI':(m.skkni||[]).map(akSkkniKode).join(', '),Sumber:m.sumber||'',Status:m.aktif===false?'Arsip':'Aktif'}}));
  sh('Tugas mengajar',AKD.D.tugas.filter(function(t){var k=akById('kelas',t.kelasId);return !k||akOk(k)}).map(function(t){return {Guru:akNamaUser(t.guruId),'Mata pelajaran':(akById('mapel',t.mapelId)||{}).nama||'',Rombel:(akById('kelas',t.kelasId)||{}).nama||'','Tahun ajaran':akTahunNama(t.tahunId||(akById('kelas',t.kelasId)||{}).tahunId),'JP per minggu':+t.jp||0,Status:akBerlaku(t)?'Berlaku':'Tidak berlaku'}}));
  sh('Rekap Prodi-CP-Kelas',akLkpdRekapBaris(akLkpdData()).map(function(r){var o={Prodi:r.pr,'CP (singkatan)':r.cp,'Elemen CP':r.el};['X','XI','XII'].forEach(function(k){o['LKPD Kelas '+k]=r.k[k].length;o['JP Kelas '+k]=akLkpdJp(r.k[k])});o['Total LKPD']=r.all.length;o['Total JP']=akLkpdJp(r.all);return o}));
+ if(typeof AKD_PKL_ELEMEN!=='undefined')sh('CP PKL',AKD_PKL_ELEMEN.map(function(e,i){var M=akLkpdData().filter(function(x){return x.pr==='PKL'&&x.cp===e.kode});return {Kode:'PKL-'+e.kode,'Elemen CP':e.n,'Capaian Pembelajaran':e.cp,Kelas:'XII',Fase:'F','Jumlah LKPD':M.length,'JP LKPD':akLkpdJp(M),'Tujuan pembelajaran (contoh)':i===0&&typeof AKD_PKL_TP!=='undefined'?AKD_PKL_TP.map(function(t,j){return (j+1)+'. '+t}).join(' | '):''}}));
  sh('Peta LKPD',akLkpdData().map(function(x){var pd=akLkpdPadan(x.k);return {'Kode LKPD':x.k,'Kode lama':x.ka||'',Prodi:x.pr||'','CP (singkatan)':x.cp||'',Kelas:x.kl,Semester:x.sm,'Elemen CP':x.el,'Kode TP':x.tp,'Judul LKPD':x.j,'Jenis LKPD':x.jn,JP:x.jp,'Estimasi minggu':x.mg,Pertemuan:akPertemuan(x),'Unit SKKNI':x.sk.length?x.sk.map(akSkkniKode).join(', '):(x.skt||''),'Status matriks':x.st,'Modul di aplikasi':pd.map(function(p){return p[0]+' ('+p[1]+')'}).join('; ')}}));
  XLSX.writeFile(wb,'administrasi-akademik-'+(schKode()||'semua').toLowerCase()+'-'+ymd(Date.now())+'.xlsx');
 }
