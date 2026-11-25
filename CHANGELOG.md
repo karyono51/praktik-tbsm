@@ -1,3 +1,7 @@
+## Link SEB: alamat tidak diubah di dalam SEB
+- `js/nav.js`: `?go=cbt` tidak lagi dihapus dari alamat lewat `history.replaceState` bila dibuka di Safe Exam Browser (objek `SafeExamBrowser` atau UserAgent `SEB/`, `SEB_iOS`). Sebelumnya alamat yang dikirim ke server (`sebUrl`) menjadi `?s=medina&sesi=...` tanpa `go`, berbeda dari `startURL` di file .seb, sehingga hash Config Key bisa tidak cocok bila SEB menghitungnya dari alamat awal. Di luar SEB perilaku tetap (parameter `go` dihapus).
+- Uji: `periksa`, `uji-cbt` 160, `audit-izin` tanpa temuan baru.
+
 ## CBT: jalur panas ke Neon (Postgres), opsional dan bisa dikembalikan
 - `functions/cbt/src/neon.js` (baru), `functions/cbt/src/main.js`: lapisan dokumen memilih Neon untuk `soal_run`, `soal_hasil`, `soal_kunci` bila variabel fungsi `CBT_DB=neon` dan `NEON_URL` terisi; selain itu tetap Appwrite. Dokumen lama di Appwrite tetap terbaca dan terubah selama `CBT_LEGACY` bukan `0`. Kolom `sekolah` dan `prodi` (variabel `PRODI`, bawaan `tsm`) ikut disimpan.
 - Aksi baru: `dok` (get, list, create, update, delete untuk klien; siswa hanya baca miliknya, `soal_kunci` hanya guru/admin), `dbUji` (admin: uji sambungan, `siapkan:true` membuat tabel), `dbSalin` (admin: salin data lama Appwrite ke Neon, berhenti di batas waktu dan melaporkan `sisa`). Terdaftar di `CBT_AKSI`.

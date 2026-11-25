@@ -17,8 +17,10 @@ function navSesiId(){try{return sessionStorage.getItem(NAVSESI)||''}catch(e){ret
 (function(){
  try{var g=String(new URLSearchParams(location.search).get('go')||'').toLowerCase();
   if(NAVGOTAB[g]){sessionStorage.setItem(NAVGO,g);
-   var q=new URLSearchParams(location.search);q.delete('go');
-   history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash)}}catch(e){}
+   /* Di SEB alamat dibiarkan utuh (termasuk go=cbt): hash Config Key dihitung atas alamat halaman, jadi harus sama dengan startURL di file .seb */
+   var seb=!!window.SafeExamBrowser||/SEB[\/_]/i.test(String(navigator.userAgent||''));
+   if(!seb){var q=new URLSearchParams(location.search);q.delete('go');
+    history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:'')+location.hash)}}}catch(e){}
 })();
 function navGo(u){
  var g='';try{g=sessionStorage.getItem(NAVGO)||''}catch(e){}
