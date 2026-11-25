@@ -13,7 +13,7 @@ window.APP_CONFIG={
   FN_CBT:'akun-admin',   /* ID fungsi yang melayani aksi CBT: 'akun-admin' (paket gratis) atau 'cbt' */
   /* Penyimpanan jalur panas ujian (soal_run, soal_hasil, soal_kunci): 'appwrite' (bawaan) atau 'neon'. Hanya berlaku bila CBT_AMAN:true.
      Ubah ke 'neon' SETELAH variabel fungsi CBT_DB=neon dan tabel Neon siap, urutannya di docs-NEON.md. */
-  CBT_DB:'appwrite',
+  CBT_DB:'neon',
   /* Selama data lama masih di Appwrite, tetap dibaca. Ubah ke false setelah data disalin (docs-NEON.md), bersamaan dengan CBT_LEGACY=0 di fungsi. */
   CBT_LEGACY:true
   /* CBT_DENYUT: selang simpan jawaban ke server dalam ms (bawaan 15000) */
