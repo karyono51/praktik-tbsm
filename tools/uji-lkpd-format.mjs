@@ -36,7 +36,7 @@ function ymd(){return '2026-11-20'}function schNama(){return 'SMKS Medina'}
 var STAFF=false;function isStaff(){return STAFF}
 function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function lkEsc(x){return esc(x)}
-var LK={module:'LKPD-X-06',tab:'materi',detail:null,editor:null,preview:false};
+var LK={module:'LKPD-DDO-ALT-02',tab:'materi',detail:null,editor:null,preview:false};
 var DRAFT={};function lkDraft(){return DRAFT}
 function lkRowOk(d,i){return !!d['row'+i]&&String(d['actual'+i]||'').trim()!==''}
 function lkScore(d){return {practice:-1,theory:-1,final:-1,answered:0,correct:0}}
@@ -123,7 +123,7 @@ ok(!/Diameter luar tidak sesuai/.test(T) && !/✔/.test(T) && !/☑/.test(T), 'l
 /* keamanan: HTML dari isian siswa di-escape */
 ok(bangun(M, { note0: '<img src=x onerror=alert(1)>' }).indexOf('<img src=x') < 0, 'isian siswa di-escape');
 /* gerbang lama (isian) dan modul v1 tetap tercetak */
-const v1 = { id: 'LKPD-X-01', title: 'Uji v1', kelas: 'X', fase: 'E', duration: 90, objectives: ['a', 'b'], theory: [['T1', 'isi 1']], tools: ['kunci'], safety: ['APD'], steps: [['Langkah 1', 5, 'poin']], checks: [['Komponen A', 'ket', 'acuan']], symptoms: ['Gejala 1'], quiz: [{ t: 'pg', q: 'Soal?', o: ['a', 'b', 'c', 'd', 'e'], a: 1 }], rubric: { steps: 30, safety: 20, checks: 30, analysis: 20, practiceWeight: 70, theoryWeight: 30 } };
+const v1 = { id: 'LKPD-DDO-BIS-01', title: 'Uji v1', kelas: 'X', fase: 'E', duration: 90, objectives: ['a', 'b'], theory: [['T1', 'isi 1']], tools: ['kunci'], safety: ['APD'], steps: [['Langkah 1', 5, 'poin']], checks: [['Komponen A', 'ket', 'acuan']], symptoms: ['Gejala 1'], quiz: [{ t: 'pg', q: 'Soal?', o: ['a', 'b', 'c', 'd', 'e'], a: 1 }], rubric: { steps: 30, safety: 20, checks: 30, analysis: 20, practiceWeight: 70, theoryWeight: 30 } };
 const t1 = teks(bangun(v1, { vehicle: 'Beat', safe0: true, actual0: '1,2', status0: 'Baik', q0: 1, symptom0: 'ya' }));
 ok(/Alokasi waktu : 90 menit/.test(t1) && /Tipe kendaraan : Beat/.test(t1), 'v1: identitas');
 ok(/Tujuan pembelajaran/.test(t1) && /1\. T1 isi 1/.test(t1) && /Alat dan bahan/.test(t1) && /☑ APD/.test(t1), 'v1: tujuan, materi, alat, K3');
@@ -151,7 +151,7 @@ ok(!/☐|☑|✔/.test(KT), 'kunci: tidak ada kotak isian siswa');
 /* tombol dan cetak: hanya staf, di samping Cetak */
 const v2js = src('lkpd-v2.js');
 ok((v2js.match(/data-act="lk-print-kunci"/g) || []).length === 2 && /data-act="lk-print">Cetak<\/button>'\+\(m\.v2&&m\.v2\.gate\?'<button data-act="lk-print-kunci">/.test(v2js), 'tombol Cetak kunci dipasang di samping Cetak (pratinjau dan baris aksi)');
-G(`STAFF=false;LK.module='LKPD-X-06';LK.tab='materi';LK.preview=false`);
+G(`STAFF=false;LK.module='LKPD-DDO-ALT-02';LK.tab='materi';LK.preview=false`);
 ok(G(`viewLKPD=viewLKPD;lk2View(LKPD_MODULES[0])`).indexOf('lk-print-kunci') < 0, 'siswa tidak melihat tombol Cetak kunci');
 G(`STAFF=true;LK.preview=true`);
 const vs = G(`lk2View(LKPD_MODULES[0])`);
@@ -167,7 +167,7 @@ LKC={namaPdf:function(m){return 'LKPD X-06 '+m.title+' SMKS Medina Bandung'}};`,
 const klik = () => { const f = listeners.filter((l) => l.t === 'click' && l.c === true); f.forEach((l) => l.f({ target: { closest: (sel) => /lk-print-kunci/.test(sel) ? { dataset: {} } : null }, stopPropagation() {}, preventDefault() {} })); };
 G(`STAFF=false;_printed=0`); klik();
 ok(G('_printed') === 0, 'siswa: klik Cetak kunci tidak mencetak');
-G(`STAFF=true;LK.module='LKPD-X-06'`); klik();
+G(`STAFF=true;LK.module='LKPD-DDO-ALT-02'`); klik();
 ok(G('_printed') === 1 && G('_cls["lk-printing"]') === 1, 'guru: klik Cetak kunci mencetak');
 ok(G('document.title') === 'Kunci LKPD X-06 Penggunaan dan Perawatan Alat Ukur (Jangka Sorong, Mikrometer, Dial Gauge) SMKS Medina Bandung', 'nama berkas PDF kunci: ' + G('document.title'));
 ok(/KUNCI DAN PEMBAHASAN/.test(G('_elem.innerHTML')), 'isi yang dicetak adalah kunci');

@@ -1,3 +1,12 @@
+## LKPD: kode berbasis prodi dan CP (tanpa tingkat), kode lama tetap terbaca
+- Kode baru `LKPD-<PRODI>-<CP>-<NN>` (mis. `LKPD-DDO-ALT-02`, `LKPD-TSM-PMT-03`); `DDO` = dasar bersama semua prodi otomotif, `TSM`, `TKR` disiapkan. Tingkat (X, XI, XII) tidak lagi ada di kode, hanya isian kelas, sehingga LKPD bisa naik atau turun tingkat tanpa mengubah kode. Rincian: `docs-LKPD-KODE.md`.
+- `tools/matriks-lkpd.py`: menurunkan kode baru (`k`), kode lama (`ka`), `pr`, `cp`, dan blok `AKD_LKPD_PRODI`, `AKD_LKPD_CP`, `AKD_LKPD_ALIAS` (54 kode); nomor stabil; mode `--migrasi` mengonversi blok yang ada tanpa xlsx. `js/akademik-data.js`: Peta LKPD 54 baris berkode baru, padanan modul ikut.
+- `js/lkpd-kode.js` (baru): `lkKodeBaru`, `lkKodeLama`, `lkKodeSama`, `lkKodeParse`, `lkKodeBerikut`, dan `lkKodeNormalisasi` (hasil, bukti, modul terkelola berkode lama dibaca sebagai kode baru di memori, dijalankan di `lkRefreshModules`).
+- Lima modul LKPD v2 memakai id baru dengan `alias` kode lama, `prodi`, dan `cp` (X-06 menjadi DDO-ALT-02, X-12 menjadi DDO-ELK-01, X-18 menjadi DDO-KOM-03, XI-17 menjadi TSM-PMT-02, XI-18 menjadi TSM-PMT-03).
+- Peta LKPD (Administrasi Akademik): dikelompokkan Prodi lalu CP (bawaan) atau Kelas saja; kartu memuat pill kelas dan kode lama; pencarian menerima kode lama; Excel menambah kolom Kode lama, Prodi, CP (singkatan).
+- Editor LKPD guru, tab Info: pilihan Prodi dan CP, ID LKPD baru terisi otomatis dengan nomor berikutnya.
+- Uji: `tools/uji-lkpd-kode.mjs` (baru, 40); `uji-akademik` disesuaikan (150); uji lain memakai kode baru dan tetap lulus. `uji-lkpd-banner` gagal 3 butir sejak sebelum perubahan ini (tidak terkait).
+
 ## Link SEB: alamat tidak diubah di dalam SEB
 - `js/nav.js`: `?go=cbt` tidak lagi dihapus dari alamat lewat `history.replaceState` bila dibuka di Safe Exam Browser (objek `SafeExamBrowser` atau UserAgent `SEB/`, `SEB_iOS`). Sebelumnya alamat yang dikirim ke server (`sebUrl`) menjadi `?s=medina&sesi=...` tanpa `go`, berbeda dari `startURL` di file .seb, sehingga hash Config Key bisa tidak cocok bila SEB menghitungnya dari alamat awal. Di luar SEB perilaku tetap (parameter `go` dihapus).
 - Uji: `periksa`, `uji-cbt` 160, `audit-izin` tanpa temuan baru.

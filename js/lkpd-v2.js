@@ -1,4 +1,4 @@
-/* lkpd-v2.js: mesin LKPD v2 (aditif). Hanya aktif untuk modul yang memiliki objek `v2` (mis. LKPD-X-06); LKPD lama tidak berubah.
+/* lkpd-v2.js: mesin LKPD v2 (aditif). Hanya aktif untuk modul yang memiliki objek `v2` (mis. LKPD-DDO-ALT-02); LKPD lama tidak berubah.
    Dimuat tepat setelah lkpd.js, sebelum lkpd-kelas.js dan pembungkus lain, sehingga banner mode, timer, dan daftar kelas tetap bekerja.
    Tambahan v2:
    - Pertemuan: rencana per pertemuan (JP/menit) dan waktu aktual per pertemuan (isian menit).

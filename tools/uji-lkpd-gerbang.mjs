@@ -45,7 +45,7 @@ for (const f of ['js/banksoal.js', 'js/soal-gambar.js', 'js/lkpd-soal.js', 'js/l
   try { vm.runInContext(baca(f), ctx, { filename: f }); }
   catch (e) { ok('memuat ' + f, false, e.message); }
 }
-const x07 = run('LKPD_EXTRA_MODULES.filter(function(m){return m.id===\'LKPD-X-06\'})[0]');
+const x07 = run('LKPD_EXTRA_MODULES.filter(function(m){return m.id===\'LKPD-DDO-ALT-02\'})[0]');
 ok('modul X-06 termuat', !!x07 && x07.v2 && x07.v2.ver === 2);
 ctx.__x07 = x07; ctx.isStaff = () => STAFF; let STAFF = true;
 const klik = async (a, o = {}) => {

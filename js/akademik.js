@@ -491,28 +491,37 @@ function akLkpdCard(x){
  var pd=akLkpdPadan(x.k),sk=x.sk.length?'Unit SKKNI '+x.sk.map(akSkkniKode).join(', '):(x.skt||'');
  var ada=pd.map(function(p){var m=akLkpdModul(p[0]);return '<div class=\"note\"><span class=\"mono\">'+esc(p[0])+'</span> '+esc(m?m.title:'(modul tidak ditemukan)')+' · '+esc(p[1])+'</div>'}).join('');
  return '<div class=\"card\"><div class=\"row sb\"><b>'+esc(x.j)+'</b><span class=\"mono note\">'+esc(x.k)+'</span></div>'+
-  '<div class=\"row\">'+akPill(x.jn)+akPill(x.sm)+akPill(x.jp+' JP','ok')+akPill(x.st,'plain')+(pd.length?akPill('Ada di aplikasi','ok'):'')+'</div>'+
-  '<div class=\"note\">'+esc(x.el)+' · TP '+esc(x.tp)+' · ± '+x.mg+' minggu · '+akPertemuan(x)+'</div>'+
+  '<div class=\"row\">'+akPill('Kelas '+x.kl,'ok')+akPill(x.jn)+akPill(x.sm)+akPill(x.jp+' JP','ok')+akPill(x.st,'plain')+(pd.length?akPill('Ada di aplikasi','ok'):'')+'</div>'+
+  '<div class=\"note\">'+esc(x.el)+' · TP '+esc(x.tp)+' · ± '+x.mg+' minggu · '+akPertemuan(x)+'</div>'+(x.ka?'<div class=\"note\">Kode lama: <span class=\"mono\">'+esc(x.ka)+'</span> · tingkat boleh berpindah tanpa mengubah kode</div>':'')+
   (sk?'<div class=\"note\">'+esc(sk)+'</div>':'')+
   (pd.length?'<details><summary class=\"note\">Modul di aplikasi ('+pd.length+')</summary>'+ada+'</details>':'')+
   ((x.ct||x.us)?'<details><summary class=\"note\">Catatan dan usulan</summary>'+(x.ct?'<div class=\"note\">'+esc(x.ct)+'</div>':'')+(x.us?'<div class=\"note\">'+esc(x.us)+'</div>':'')+'</details>':'')+'</div>';
 }
 function akLkpdCards(){
  var q=akNorm(AKD.lq),f=AKD.lf||'ALL',cari=!!q;
- var all=akLkpdData().filter(function(x){return (f==='ALL'||(f==='ada'?akLkpdPadan(x.k).length>0:x.kl===f))&&(!q||akNorm([x.k,x.j,x.el,x.tp,x.jn,x.sk.join(' ')].join(' ')).indexOf(q)>-1)});
+ var all=akLkpdData().filter(function(x){return (f==='ALL'||(f==='ada'?akLkpdPadan(x.k).length>0:x.kl===f))&&(!q||akNorm([x.k,x.ka||'',x.pr||'',x.cp||'',x.j,x.el,x.tp,x.jn,x.sk.join(' ')].join(' ')).indexOf(q)>-1)});
  if(!all.length)return '<p class=\"muted center\">Belum ada LKPD'+(cari?' yang cocok':'')+'.</p>';
  AKD.gopen=AKD.gopen||{};var out='';
- ['X','XI','XII'].forEach(function(k){
-  var L=all.filter(function(x){return x.kl===k});if(!L.length)return;
-  var jp=L.reduce(function(a,x){return a+x.jp},0),id='lk-'+k,buka=cari||AKD.gopen[id]!==false;
-  out+='<button type=\"button\" class=\"akd-grp\" data-akd=\"grp\" data-id=\"'+id+'\" aria-expanded=\"'+buka+'\"><span><b>Kelas '+k+'</b><small class=\"note\"> · '+L.length+' LKPD · '+jp+' JP</small></span><span class=\"akd-chev\" aria-hidden=\"true\">'+(buka?'▾':'▸')+'</span></button>';
-  if(!buka)return;
-  if((AKD.lg||'cp')!=='cp'){out+=L.map(akLkpdCard).join('');return}
-  /* kelompok kedua: Elemen CP, menurut urutan kemunculan di matriks */
-  var el=[],per={};L.forEach(function(x){if(!per[x.el]){per[x.el]=[];el.push(x.el)}per[x.el].push(x)});
-  el.forEach(function(e,i){
-   var M=per[e],mjp=M.reduce(function(a,x){return a+x.jp},0),eid='lk-'+k+'-cp'+i,eb=cari||AKD.gopen[eid]!==false;
-   out+='<button type=\"button\" class=\"akd-grp akd-sub\" style=\"margin-left:12px\" data-akd=\"grp\" data-id=\"'+eid+'\" aria-expanded=\"'+eb+'\"><span><b>'+esc(e)+'</b><small class=\"note\"> · '+M.length+' LKPD · '+mjp+' JP</small></span><span class=\"akd-chev\" aria-hidden=\"true\">'+(eb?'▾':'▸')+'</span></button>'+(eb?M.map(akLkpdCard).join(''):'');
+ function grp(id,judul,L,buka,sub){var jp=L.reduce(function(a,x){return a+x.jp},0);
+  return '<button type=\"button\" class=\"akd-grp'+(sub?' akd-sub':'')+'\"'+(sub?' style=\"margin-left:12px\"':'')+' data-akd=\"grp\" data-id=\"'+id+'\" aria-expanded=\"'+buka+'\"><span><b>'+esc(judul)+'</b><small class=\"note\"> · '+L.length+' LKPD · '+jp+' JP</small></span><span class=\"akd-chev\" aria-hidden=\"true\">'+(buka?'▾':'▸')+'</span></button>'}
+ if((AKD.lg||'cp')==='kelas'){
+  ['X','XI','XII'].forEach(function(k){
+   var L=all.filter(function(x){return x.kl===k});if(!L.length)return;
+   var id='lk-'+k,buka=cari||AKD.gopen[id]!==false;
+   out+=grp(id,'Kelas '+k,L,buka,false);if(buka)out+=L.map(akLkpdCard).join('');
+  });
+  return out;
+ }
+ /* bawaan: Prodi, lalu CP (tingkat hanya atribut pada kartu, jadi LKPD yang berpindah tingkat tetap di tempatnya) */
+ var PR=(typeof AKD_LKPD_PRODI!=='undefined'&&AKD_LKPD_PRODI)||{},CPN=(typeof AKD_LKPD_CP!=='undefined'&&AKD_LKPD_CP)||{};
+ Object.keys(PR).forEach(function(pr){
+  var L=all.filter(function(x){return x.pr===pr});if(!L.length)return;
+  var id='lkp-'+pr,buka=cari||AKD.gopen[id]!==false;
+  out+=grp(id,pr+' · '+PR[pr],L,buka,false);if(!buka)return;
+  Object.keys(CPN[pr]||{}).forEach(function(cp){
+   var M=L.filter(function(x){return x.cp===cp});if(!M.length)return;
+   var eid='lkp-'+pr+'-'+cp,eb=cari||AKD.gopen[eid]!==false;
+   out+=grp(eid,cp+' · '+CPN[pr][cp],M,eb,true);if(eb)out+=M.map(akLkpdCard).join('');
   });
  });
  return out;
@@ -523,8 +532,8 @@ function viewAkdLkpd(){
   var a=A[k]||{n:0,jp:0},t=T[k]&&T[k].jp,sel=t==null?'':(a.jp===t?'sesuai target '+t:'target '+t+', selisih '+(a.jp>t?'+':'-')+Math.abs(a.jp-t));
   return '<div class=\"card\"><span class=\"label\">Kelas '+k+'</span><b class=\"mono\">'+a.jp+' JP</b><span class=\"note\">'+a.n+' LKPD'+(T[k]&&T[k].jpm?' · '+Math.round(a.jp/T[k].jpm*10)/10+' minggu':'')+(sel?' · '+sel:'')+'</span></div>'}).join('')+'</div>';
  h+='<div class=\"chips\">'+[['ALL','Semua'],['X','Kelas X'],['XI','Kelas XI'],['XII','Kelas XII'],['ada','Ada di aplikasi']].map(function(c){return '<button type=\"button\" data-akd=\"lf\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lf||'ALL')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
- h+='<div class=\"chips\"><span class=\"note\">Kelompokkan:</span>'+[['cp','Elemen CP'],['kelas','Kelas saja']].map(function(c){return '<button type=\"button\" data-akd=\"lg\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lg||'cp')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
- h+='<div class=\"card\"><label class=\"f\">Cari<input type=\"search\" data-akd=\"lq\" value=\"'+esc(AKD.lq)+'\" placeholder=\"Judul, kode LKPD, TP, atau elemen CP\"></label></div>';
+ h+='<div class=\"chips\"><span class=\"note\">Kelompokkan:</span>'+[['cp','Prodi dan CP'],['kelas','Kelas saja']].map(function(c){return '<button type=\"button\" data-akd=\"lg\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lg||'cp')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
+ h+='<div class=\"card\"><label class=\"f\">Cari<input type=\"search\" data-akd=\"lq\" value=\"'+esc(AKD.lq)+'\" placeholder=\"Judul, kode LKPD (baru atau lama), TP, atau elemen CP\"></label></div>';
  h+='<div id=\"akd-list\">'+akLkpdCards()+'</div>';
  var tp=akLkpdTanpaPadan();
  h+='<div class=\"card\"><b>Modul aplikasi tanpa padanan di matriks ('+tp.length+')</b>'+
@@ -727,7 +736,7 @@ function akEkspor(){
  sh('Rombel',akKelasAll().map(function(k){return {Rombel:k.nama,Tingkat:k.tingkat,Sekolah:akSekLabel(k.sekolah),'Tahun ajaran':(akById('tahun',k.tahunId)||{}).nama||'','Wali kelas':k.waliId?akNamaUser(k.waliId):'','Jumlah siswa':akSiswaRombel(k).length,Status:k.aktif===false?'Arsip':'Aktif'}}));
  sh('Mata pelajaran',akMapelAll().map(function(m){var ind=m.induk&&akById('mapel',m.induk);return {Kode:m.kode||'','Mata pelajaran':m.nama,Produktif:akProduktif(m)?'Ya':'Tidak',Kelompok:m.kelompok,Komponen:m.komponen||'','Elemen dari':ind?ind.nama:'',Fase:m.fase||'',Tingkat:(m.tingkat||[]).join(', '),JP:m.jp||'','Unit SKKNI':(m.skkni||[]).map(akSkkniKode).join(', '),Sumber:m.sumber||'',Status:m.aktif===false?'Arsip':'Aktif'}}));
  sh('Tugas mengajar',AKD.D.tugas.filter(function(t){var k=akById('kelas',t.kelasId);return !k||akOk(k)}).map(function(t){return {Guru:akNamaUser(t.guruId),'Mata pelajaran':(akById('mapel',t.mapelId)||{}).nama||'',Rombel:(akById('kelas',t.kelasId)||{}).nama||'','Tahun ajaran':akTahunNama(t.tahunId||(akById('kelas',t.kelasId)||{}).tahunId),'JP per minggu':+t.jp||0,Status:akBerlaku(t)?'Berlaku':'Tidak berlaku'}}));
- sh('Peta LKPD',akLkpdData().map(function(x){var pd=akLkpdPadan(x.k);return {'Kode LKPD':x.k,Kelas:x.kl,Semester:x.sm,'Elemen CP':x.el,'Kode TP':x.tp,'Judul LKPD':x.j,'Jenis LKPD':x.jn,JP:x.jp,'Estimasi minggu':x.mg,Pertemuan:akPertemuan(x),'Unit SKKNI':x.sk.length?x.sk.map(akSkkniKode).join(', '):(x.skt||''),'Status matriks':x.st,'Modul di aplikasi':pd.map(function(p){return p[0]+' ('+p[1]+')'}).join('; ')}}));
+ sh('Peta LKPD',akLkpdData().map(function(x){var pd=akLkpdPadan(x.k);return {'Kode LKPD':x.k,'Kode lama':x.ka||'',Prodi:x.pr||'','CP (singkatan)':x.cp||'',Kelas:x.kl,Semester:x.sm,'Elemen CP':x.el,'Kode TP':x.tp,'Judul LKPD':x.j,'Jenis LKPD':x.jn,JP:x.jp,'Estimasi minggu':x.mg,Pertemuan:akPertemuan(x),'Unit SKKNI':x.sk.length?x.sk.map(akSkkniKode).join(', '):(x.skt||''),'Status matriks':x.st,'Modul di aplikasi':pd.map(function(p){return p[0]+' ('+p[1]+')'}).join('; ')}}));
  XLSX.writeFile(wb,'administrasi-akademik-'+(schKode()||'semua').toLowerCase()+'-'+ymd(Date.now())+'.xlsx');
 }
 

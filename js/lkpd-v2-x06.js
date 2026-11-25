@@ -1,4 +1,4 @@
-/* lkpd-v2-x06.js: LKPD v2 pilot LKPD-X-06 (Penggunaan dan Perawatan Alat Ukur). Hanya DATA, ditambahkan ke LKPD_EXTRA_MODULES.
+/* lkpd-v2-x06.js: LKPD v2 pilot LKPD-DDO-ALT-02 (Penggunaan dan Perawatan Alat Ukur). Hanya DATA, ditambahkan ke LKPD_EXTRA_MODULES.
    Dimuat setelah lkpd-modul.js dan sebelum lkpd.js. LKPD lama tidak disentuh. Status awal Draft: guru menerbitkan setelah pilot diperiksa.
    Angka spesifikasi komponen (standar, batas pakai) sengaja kosong: guru mengisinya dari manual servis lewat kolom Acuan/Standar.
    Rujukan SKKNI 147/2019 hanya usulan pemetaan dan perlu diverifikasi sebelum dipakai untuk asesmen. */
@@ -19,7 +19,7 @@
  function jumMenit(ks){return langkah.filter(function(x){return ks.indexOf(x.k)>-1}).reduce(function(t,x){return t+x.m},0)}
  var kegiatan=['Jangka sorong','Mikrometer','Dial gauge','Perawatan dan penyimpanan'];
  var m={
-  id:'LKPD-X-06',version:2,kelas:'X',fase:'E',status:'draft',active:false,tahap:true,mode:'ujian',
+  id:'LKPD-DDO-ALT-02',alias:['LKPD-X-06'],prodi:'DDO',cp:'ALT',version:2,kelas:'X',fase:'E',status:'draft',active:false,tahap:true,mode:'ujian',
   title:'Penggunaan dan Perawatan Alat Ukur (Jangka Sorong, Mikrometer, Dial Gauge)',
   unit:'Alat ukur: jangka sorong, mikrometer, dial gauge',duration:900,
   skkni:'G.45TSM01.020.2; .027.2; .030.2; .031.2; .012.2 (usulan, verifikasi)',
@@ -111,7 +111,7 @@
     'Di bengkel atau DUDI, pekerjaan ini muncul pada situasi apa?'
    ],
    obs:{
-    judul:'Observasi LKPD-X-06 Alat Ukur',
+    judul:'Observasi LKPD-DDO-ALT-02 Alat Ukur',
     aspek:[
      {id:'k3',ket:'Yang dinilai: APD terpasang benar, meja dan area siap, alat diperiksa sebelum dipakai, larangan K3 dipatuhi, letak APAR dan P3K diketahui.',n:'Persiapan dan K3',b:20,d:{4:'APD lengkap, area aman, alat diperiksa tanpa diingatkan',3:'Lengkap, diingatkan 1 kali',2:'APD kurang atau area belum aman, diingatkan lebih dari 1 kali',1:'Mengabaikan K3 (praktik dihentikan)'},stop:1},
      {id:'prosedur',ket:'Yang dinilai: urutan langkah (periksa nol dulu, ukur, baca, catat), cara memegang alat, tidak memaksa atau menjatuhkan alat.',n:'Prosedur kerja',b:30,d:{4:'Semua langkah urut, nol alat diperiksa, tanpa bantuan',3:'Urut dengan 1–2 koreksi kecil',2:'Beberapa langkah terbalik atau terlewat',1:'Tidak mengikuti prosedur, berisiko merusak'}},

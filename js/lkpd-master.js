@@ -1,4 +1,4 @@
-/* lkpd-master.js: LKPD-X-06 (Penggunaan dan Perawatan Alat Ukur) menjadi MASTER LKPD V2.
+/* lkpd-master.js: LKPD-DDO-ALT-02 (Penggunaan dan Perawatan Alat Ukur) menjadi MASTER LKPD V2.
    Master = acuan struktur dan format untuk semua LKPD v2: pertemuan, gerbang masuk TKA, K3 dan APD, langkah bersaksi guru, tabel data,
    pemeriksaan dan bukti foto, latihan membaca skala, analisis, refleksi, tindak lanjut, penilaian kinerja, dan format cetak PDF.
    Berdiri sendiri: membungkus lksHub (lkpd-staff.js) tanpa mengubah berkasnya; dimuat setelah lkpd-v2-editor.js. Tanpa koleksi atau atribut baru.
@@ -7,7 +7,7 @@
    2. Tombol "Buat LKPD v2 dari master" pada master: membuka Editor LKPD dengan salinan master (draf, tidak aktif, ID kosong). Salinan memuat
       v2.dari = ID master dan tidak membawa peta ke soal lama milik master. Master sendiri tidak berubah.
    Master dikenali dari ID tetap LKMS.ID, jadi salinan tidak ikut menjadi master. */
-var LKMS={ID:'LKPD-X-06'};
+var LKMS={ID:'LKPD-DDO-ALT-02'};
 function lkmsMaster(m){return !!m&&m.id===LKMS.ID&&typeof lk2Is==='function'&&lk2Is(m)}
 function lkmsE(x){return typeof lkEsc==='function'?lkEsc(x):String(x==null?'':x)}
 

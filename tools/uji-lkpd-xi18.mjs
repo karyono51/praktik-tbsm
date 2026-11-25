@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Uji modul LKPD-XI-17 (Transmisi Manual) dan LKPD-XI-18 (Transmisi Otomatis/CVT): data, master V2, hitungan kunci. node tools/uji-lkpd-xi18.mjs */
+/* Uji modul LKPD-TSM-PMT-02 (Transmisi Manual) dan LKPD-TSM-PMT-03 (Transmisi Otomatis/CVT): data, master V2, hitungan kunci. node tools/uji-lkpd-xi18.mjs */
 import fs from 'node:fs'; import path from 'node:path'; import vm from 'node:vm'; import { fileURLToPath } from 'node:url';
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 let lulus = 0, gagal = 0; const ok = (c, m) => { if (c) lulus++; else { gagal++; console.log('GAGAL: ' + m); } };
@@ -10,12 +10,12 @@ const src = (f) => fs.readFileSync(path.join(root, 'js', f), 'utf8');
 const run = (code, n) => vm.runInContext(code, ctx, { filename: n });
 run(src('lkpd-modul.js'), 'a'); run(src('lkpd-v2-x06.js'), 'b'); run(src('lkpd-v2-xi17.js'), 'c1'); run(src('lkpd-v2-xi18.js'), 'c2'); run(src('lkpd.js').split('\n').slice(0, 19).join('\n'), 'd');
 run(`function lk2Is(m){return !!(m&&m.v2&&m.v2.ver===2)}function lkEsc(x){return String(x==null?'':x)}
-var STAFF=true;function isStaff(){return STAFF}var LKS={id:'LKPD-X-06'};function lksMod(){return null}function lksHub(){return ''}
+var STAFF=true;function isStaff(){return STAFF}var LKS={id:'LKPD-DDO-ALT-02'};function lksMod(){return null}function lksHub(){return ''}
 var LK={},LKA={},LKM={};function render(){}function toast(){}function lkEditorDefaults(m){return {src:m}}`, 'stub');
 run(src('lkpd-master.js'), 'lkpd-master.js');
 const G = (e) => vm.runInContext(e, ctx);
 const near = (x, y) => Math.abs(x - y) < 1e-9;
-ok(G('LKPD_MODULES.some(function(x){return x.id==="LKPD-X-06"})'), 'LKPD-X-06 tetap ada');
+ok(G('LKPD_MODULES.some(function(x){return x.id==="LKPD-DDO-ALT-02"})'), 'LKPD-DDO-ALT-02 tetap ada');
 
 function uji(id, judul, skkni, kunciSoal, mengandung) {
   const m = G('LKPD_MODULES.find(function(x){return x.id==="' + id + '"})'); const T = (c, t) => ok(c, id + ': ' + t);
@@ -59,7 +59,7 @@ function uji(id, judul, skkni, kunciSoal, mengandung) {
   T(!/undefined|NaN/.test(JSON.stringify(m)), 'tanpa undefined atau NaN');
 }
 
-uji('LKPD-XI-17', 'Perawatan dan Perbaikan Sistem Transmisi Manual', 'unit 051', (q, T) => {
+uji('LKPD-TSM-PMT-02', 'Perawatan dan Perbaikan Sistem Transmisi Manual', 'unit 051', (q, T) => {
   T(near(q.M1.kunci, 35 / 14), 'M1 = 35/14'); T(near(q.M2.kunci, 3 * 1.5 * 2.8), 'M2 = 12,6');
   T(near(q.M3.kunci, +((5.9 + 5.85 + 5.95) / 3).toFixed(2)), 'M3 = 5,90'); T(near(q.M4.kunci, +(6.3 - 5.9).toFixed(2)), 'M4 = 0,40');
   T(near(q.M5.kunci, (12 - 4) / 100) && q.M5.g.max === 12 && q.M5.g.min === 4, 'M5 = 0,08 dan sama dengan gambar'); T(near(q.M6.kunci, 6000 / 12), 'M6 = 500');
@@ -69,7 +69,7 @@ uji('LKPD-XI-17', 'Perawatan dan Perbaikan Sistem Transmisi Manual', 'unit 051',
   T(g[3].rows.map((r) => r[1]).join() === 'true,true,false,false,true' && near(0.12 - 0.04, 0.08), 'kategori keolengan: 0,12 − 0,04 = 0,08 dan kunci sesuai rancangan');
   T(g[0].a === 0 && /garpu/.test(g[0].o[0]), 'gerbang 1: kunci ganti garpu');
 });
-uji('LKPD-XI-18', 'Perawatan dan Perbaikan Sistem Transmisi Otomatis (CVT)', 'unit 027', (q, T) => {
+uji('LKPD-TSM-PMT-03', 'Perawatan dan Perbaikan Sistem Transmisi Otomatis (CVT)', 'unit 027', (q, T) => {
   T(near(q.C1.kunci, +(22 - 21.1).toFixed(2)), 'C1 = 0,90'); T(near(q.C2.kunci, 130 / 50), 'C2 = 2,6'); T(near(q.C3.kunci, +(40.2 / 6).toFixed(2)), 'C3 = 6,7');
   T(near(q.C4.kunci, +(20 - 19.7).toFixed(2)), 'C4 = 0,30'); T(near(q.C5.kunci, +((3.95 + 3.9 + 4.05) / 3).toFixed(2)), 'C5 = 3,97'); T(near(q.C6.kunci, +(109 - 106.4).toFixed(2)), 'C6 = 2,6');
   T(Object.keys(q).length === 6, '6 soal latihan');
@@ -80,10 +80,10 @@ uji('LKPD-XI-18', 'Perawatan dan Perbaikan Sistem Transmisi Otomatis (CVT)', 'un
   T(!/transmisi manual|garpu|shift drum/i.test(JSON.stringify(m)), 'tidak memuat materi transmisi manual (ada di XI-17)');
 });
 /* Tabel F dihapus di X-06, XI-17, XI-18: tidak ada sisa rujukan tabel atau pengukuran berulang pada langkah, pemeriksaan, analisis, rubrik, indikator. */
-['LKPD-X-06', 'LKPD-XI-17', 'LKPD-XI-18'].forEach((id) => {
+['LKPD-DDO-ALT-02', 'LKPD-TSM-PMT-02', 'LKPD-TSM-PMT-03'].forEach((id) => {
   const m = G('LKPD_MODULES.find(function(x){return x.id===\"' + id + '\"})'); const V = m.v2;
   ok(V.tabel.length === 0 && !V.cekAuto, id + ': tanpa tabel F');
   const teks = JSON.stringify([m.steps, m.checks, V.analisis, V.obs, V.langkah]);
   ok(!/[Tt]abel F|\bF[123]\b|3 kali|3 titik|dirata|Rata-rata/.test(teks), id + ': tidak ada rujukan tabel F atau pengukuran berulang: ' + (teks.match(/.{20}([Tt]abel F|\bF[123]\b|3 kali|3 titik|dirata|Rata-rata).{20}/) || [''])[0]);
 });
-console.log('\nUji LKPD-XI-17 dan XI-18: ' + lulus + ' lulus, ' + gagal + ' gagal'); process.exit(gagal ? 1 : 0);
+console.log('\nUji LKPD-TSM-PMT-02 dan XI-18: ' + lulus + ' lulus, ' + gagal + ' gagal'); process.exit(gagal ? 1 : 0);

@@ -1,11 +1,11 @@
-/* lkpd-v2-x18.js: LKPD v2 LKPD-X-18 (Membongkar, Memeriksa, dan Memasang Komponen sesuai Manual Servis), Kelas X Genap, TP X.6.4. Hanya DATA, ditambahkan ke LKPD_EXTRA_MODULES.
-   Mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas_jam_revisi.xlsx: LKPD-X-18, job sheet praktik, 36 JP (9 pertemuan x 4 JP, Kelas X),
+/* lkpd-v2-x18.js: LKPD v2 LKPD-DDO-KOM-03 (Membongkar, Memeriksa, dan Memasang Komponen sesuai Manual Servis), Kelas X Genap, TP X.6.4. Hanya DATA, ditambahkan ke LKPD_EXTRA_MODULES.
+   Mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas_jam_revisi.xlsx: LKPD-DDO-KOM-03, job sheet praktik, 36 JP (9 pertemuan x 4 JP, Kelas X),
    unit SKKNI 034 (level 2, ditambahkan sebagai usulan), 049 (L3), 051 (L3), 052 (L3).
-   Dimuat setelah lkpd-v2-x12.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-X-06). Status awal Draft.
+   Dimuat setelah lkpd-v2-x12.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-DDO-ALT-02). Status awal Draft.
    Angka spesifikasi (torsi, batas kerataan, celah piston dan ring, hambatan stator, tebal plat kopling, jenis dan jumlah oli) sengaja KOSONG: guru mengisinya dari manual servis
    sepeda motor yang dipakai di bengkel. Angka pada soal hanya contoh hitung, bukan standar.
    Rujukan SKKNI 147/2019 hanya usulan pemetaan dan perlu diverifikasi sebelum dipakai untuk asesmen. Unit level 3 (049, 051, 052) dipakai pada tingkat pengenalan dan
-   pemeriksaan (Kelas X); bak transmisi tidak dibuka (pembongkaran poros dan gigi dikerjakan pada LKPD-XI-17).
+   pemeriksaan (Kelas X); bak transmisi tidak dibuka (pembongkaran poros dan gigi dikerjakan pada LKPD-TSM-PMT-02).
    9 pertemuan x 4 JP (180 menit, 45 menit per JP) = 36 JP. Pertemuan 1 = pemantik, materi, gerbang, APD, cek alat (tanpa kegiatan); Pertemuan 2 sampai 8 = Kegiatan 1 sampai 7,
    satu kegiatan per pertemuan; Pertemuan 9 = penilaian kinerja, refleksi, remedial atau pengayaan (tanpa kegiatan). Tiap kegiatan menyelesaikan satu siklus bongkar, periksa, pasang,
    sehingga engine atau trainer kembali utuh pada akhir pertemuan dan dapat dipakai rombel berikutnya. Praktik memakai engine atau trainer sepeda motor dingin, mesin hanya
@@ -59,7 +59,7 @@
  function jumMenit(ks){return langkah.filter(function(x){return ks.indexOf(x.k)>-1}).reduce(function(t,x){return t+x.m},0)}
  var kegiatan=['Manual servis dan cover body','Pengencangan sesuai torsi dan urutan','Kepala silinder','Silinder, piston, dan ring','Generator section','Kopling dan transmisi','Uji fungsi dan laporan servis'];
  var m={
-  id:'LKPD-X-18',version:2,kelas:'X',fase:'E',status:'draft',active:false,tahap:true,mode:'ujian',
+  id:'LKPD-DDO-KOM-03',alias:['LKPD-X-18'],prodi:'DDO',cp:'KOM',version:2,kelas:'X',fase:'E',status:'draft',active:false,tahap:true,mode:'ujian',
   title:'Membongkar, Memeriksa, dan Memasang Komponen sesuai Manual Servis',
   unit:'Engine sepeda motor: cover body, kepala silinder, piston, generator, dan kopling',duration:1620,
   skkni:'unit 034, 049 (L3), 051 (L3), 052 (L3) (usulan, verifikasi)',
@@ -163,7 +163,7 @@
     'Di bengkel atau DUDI, pekerjaan ini muncul pada situasi apa?'
    ],
    obs:{
-    judul:'Observasi LKPD-X-18 Bongkar Pasang Komponen',
+    judul:'Observasi LKPD-DDO-KOM-03 Bongkar Pasang Komponen',
     aspek:[
      {id:'k3',ket:'Yang dinilai: APD terpasang benar (sarung tangan, kacamata), engine dingin dan terpasang kuat, kunci kontak OFF dan dicabut, jari tidak di antara bidang rapat, alat logam dijauhkan dari rotor, engine hanya dihidupkan atas izin guru, larangan K3 dipatuhi.',n:'Persiapan dan K3',b:20,d:{4:'APD lengkap, area dan alat aman tanpa diingatkan',3:'Lengkap, diingatkan 1 kali',2:'APD kurang atau area belum aman, diingatkan lebih dari 1 kali',1:'Mengabaikan K3 (praktik dihentikan)'},stop:1},
      {id:'prosedur',ket:'Yang dinilai: manual servis dipakai tiap kegiatan, urutan bongkar dan pasang sesuai manual, komponen disusun berurutan, kunci torsi dipakai dengan nilai dan urutan benar, alat ukur dan alat khusus dipakai benar, jumlah baut dan klip dicocokkan.',n:'Prosedur kerja',b:30,d:{4:'Semua langkah urut, manual servis dipakai, tanpa bantuan',3:'Urut dengan 1–2 koreksi kecil',2:'Beberapa langkah terbalik atau terlewat',1:'Tidak mengikuti prosedur, berisiko merusak komponen'}},

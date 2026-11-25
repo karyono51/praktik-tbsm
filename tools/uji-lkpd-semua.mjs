@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Uji cetak LKPD dan Kunci untuk SEMUA LKPD bawaan (X-1..XII-7 dan LKPD-X-06), tanpa peramban.
+/* Uji cetak LKPD dan Kunci untuk SEMUA LKPD bawaan (X-1..XII-7 dan LKPD-DDO-ALT-02), tanpa peramban.
    node tools/uji-lkpd-semua.mjs
    Memuat data modul asli, soal evaluasi asli (js/soal-lkpd), dan js/lkpd-format.js; tiap LKPD diperiksa cetaknya dan kuncinya. */
 import fs from 'node:fs'; import path from 'node:path'; import vm from 'node:vm'; import { fileURLToPath } from 'node:url';
@@ -23,7 +23,7 @@ run(src('lkpd-format.js'), 'lkpd-format.js');
 const G = (e) => vm.runInContext(e, ctx);
 G('LKPD_MODULES=LKPD_MODULES.concat(LKPD_EXTRA_MODULES)'); /* seperti lkpd.js baris 20 */
 const ALL = G('LKPD_MODULES.filter(function(m,i,a){return a.findIndex(function(x){return x.id===m.id})===i})');
-ok(ALL.length === 3 && ALL.map((m) => m.id).join() === 'LKPD-X-06,LKPD-XI-17,LKPD-XI-18', 'hanya LKPD v2 (LKPD-X-06, LKPD-XI-17, LKPD-XI-18) yang bawaan (dapat ' + ALL.map((m) => m.id).join(',') + ')');
+ok(ALL.length === 3 && ALL.map((m) => m.id).join() === 'LKPD-DDO-ALT-02,LKPD-TSM-PMT-02,LKPD-TSM-PMT-03', 'hanya LKPD v2 (LKPD-DDO-ALT-02, LKPD-TSM-PMT-02, LKPD-TSM-PMT-03) yang bawaan (dapat ' + ALL.map((m) => m.id).join(',') + ')');
 const abc = (k) => String.fromCharCode(65 + k);
 const teks = (h) => h.replace(/<style>[\s\S]*?<\/style>/g, '').replace(/<br>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ');
 const H = (d) => ({ d: d || {}, pihak: { siswa: 'Budi', tanggal: '21/11/2026', guru: 'Karyono, S.T.' }, semester: 'Ganjil 2026/2027', mapel: 'Mapel', akhir: '<div>TTD</div>' });

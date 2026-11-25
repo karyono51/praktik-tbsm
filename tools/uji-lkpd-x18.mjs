@@ -1,18 +1,18 @@
 #!/usr/bin/env node
-/* Uji modul LKPD-X-18 (Membongkar, Memeriksa, dan Memasang Komponen sesuai Manual Servis): master V2, 9 x 4 JP, menit, kunci hitung. node tools/uji-lkpd-x18.mjs */
+/* Uji modul LKPD-DDO-KOM-03 (Membongkar, Memeriksa, dan Memasang Komponen sesuai Manual Servis): master V2, 9 x 4 JP, menit, kunci hitung. node tools/uji-lkpd-x18.mjs */
 import fs from 'node:fs'; import path from 'node:path'; import vm from 'node:vm';
 import {fileURLToPath} from 'node:url'; const root=path.join(path.dirname(fileURLToPath(import.meta.url)),'..'); let lulus=0,gagal=0; const ok=(c,m)=>{if(c)lulus++;else{gagal++;console.log('GAGAL: '+m)}};
 const ctx=vm.createContext({console,JSON,Math,Object,Array,String,Number,Date,RegExp,window:null,document:{addEventListener(){},createElement(){return{style:{}}},head:{appendChild(){}},body:{}}});ctx.window=ctx;
 const src=f=>fs.readFileSync(path.join(root,'js',f),'utf8'); const run=(c,n)=>vm.runInContext(c,ctx,{filename:n});
 run(src('lkpd-modul.js'),'a');run(src('lkpd-v2-x06.js'),'b');run(src('lkpd-v2-x12.js'),'x12');run(src('lkpd-v2-x18.js'),'x18');run(src('lkpd.js').split('\n').slice(0,19).join('\n'),'d');
 run(`function lk2Is(m){return !!(m&&m.v2&&m.v2.ver===2)}function lkEsc(x){return String(x==null?'':x)}
-var STAFF=true;function isStaff(){return STAFF}var LKS={id:'LKPD-X-06'};function lksMod(){return null}function lksHub(){return ''}
+var STAFF=true;function isStaff(){return STAFF}var LKS={id:'LKPD-DDO-ALT-02'};function lksMod(){return null}function lksHub(){return ''}
 var LK={},LKA={},LKM={};function render(){}function toast(){}function lkEditorDefaults(m){return {src:m}}`,'stub');
 run(src('lkpd-master.js'),'master');
 const G=e=>vm.runInContext(e,ctx);
-const m=G('LKPD_MODULES.find(function(x){return x.id==="LKPD-X-18"})'); ok(!!m,'terdaftar'); const V=m.v2;
-ok(G('LKPD_MODULES.filter(function(x){return x.id==="LKPD-X-18"}).length')===1,'terdaftar satu kali');
-ok(G('LKPD_MODULES.some(function(x){return x.id==="LKPD-X-06"})')&&G('LKPD_MODULES.some(function(x){return x.id==="LKPD-X-12"})'),'X-06 dan X-12 tetap ada');
+const m=G('LKPD_MODULES.find(function(x){return x.id==="LKPD-DDO-KOM-03"})'); ok(!!m,'terdaftar'); const V=m.v2;
+ok(G('LKPD_MODULES.filter(function(x){return x.id==="LKPD-DDO-KOM-03"}).length')===1,'terdaftar satu kali');
+ok(G('LKPD_MODULES.some(function(x){return x.id==="LKPD-DDO-ALT-02"})')&&G('LKPD_MODULES.some(function(x){return x.id==="LKPD-DDO-ELK-01"})'),'X-06 dan X-12 tetap ada');
 ok(m.title==='Membongkar, Memeriksa, dan Memasang Komponen sesuai Manual Servis','judul sesuai matriks ringkas');
 ok(m.status==='draft'&&m.active===false&&m.kelas==='X'&&V.tp==='X.6.4'&&V.jenis==='jobsheet','Draft, tidak aktif, Kelas X, TP X.6.4, job sheet');
 ok(m.skkni.indexOf('unit 034, 049 (L3), 051 (L3), 052 (L3)')===0&&m.skkni.indexOf('verifikasi')>-1,'unit SKKNI sesuai matriks dan bertanda verifikasi');

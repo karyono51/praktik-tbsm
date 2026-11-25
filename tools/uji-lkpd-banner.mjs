@@ -31,7 +31,7 @@ function ymd(){return '2026-11-20'}function schNama(){return 'SMKS Medina'}
 var STAFF=false;function isStaff(){return STAFF}
 function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function lkEsc(x){return esc(x)}
-var LK={module:'LKPD-X-06',tab:'materi',detail:null,editor:null,preview:false};
+var LK={module:'LKPD-DDO-ALT-02',tab:'materi',detail:null,editor:null,preview:false};
 var DRAFT={};function lkDraft(){return DRAFT}
 function lkRowOk(d,i){return !!d['row'+i]&&String(d['actual'+i]||'').trim()!==''}
 function lkScore(d){return {practice:-1,theory:-1,final:-1,answered:0,correct:0}}

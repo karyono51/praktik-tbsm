@@ -31,7 +31,7 @@ function ymd(){return '2026-11-20'}function schNama(){return 'SMKS Medina'}
 var STAFF=false;function isStaff(){return STAFF}
 function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function lkEsc(x){return esc(x)}
-var LK={module:'LKPD-X-06',tab:'materi',detail:null,editor:null,preview:false};
+var LK={module:'LKPD-DDO-ALT-02',tab:'materi',detail:null,editor:null,preview:false};
 var DRAFT={};function lkDraft(){return DRAFT}
 function lkRowOk(d,i){return !!d['row'+i]&&String(d['actual'+i]||'').trim()!==''}
 function lkScore(d){return {practice:-1,theory:-1,final:-1,answered:0,correct:0}}
@@ -64,7 +64,7 @@ function lkBuildModule(v){return {id:v.id,checks:[]}}
 `, 'stub2');
 run(src('lkpd-mode.js'), 'lkpd-mode.js');
 run(src('lkpd-pandu.js'), 'lkpd-pandu.js');
-G(`LKPD_MODULES[0].kelas='X';LKPD_MODULES[0].status='published';LKPD_MODULES[0].active=true;LKPD_MODULES[0].checks[0][2]='0,00 mm';STAFF=true;LK.preview=true;LK.module='LKPD-X-06';LK.tab='kerja'`);
+G(`LKPD_MODULES[0].kelas='X';LKPD_MODULES[0].status='published';LKPD_MODULES[0].active=true;LKPD_MODULES[0].checks[0][2]='0,00 mm';STAFF=true;LK.preview=true;LK.module='LKPD-DDO-ALT-02';LK.tab='kerja'`);
 const kerja = (mode, extra) => { G(`LKPD_MODULES[0].mode='${mode}';Object.assign(LKPD_MODULES[0],${JSON.stringify(extra || {})})`); return G(`viewLKPD()`); };
 
 /* Latihan */
@@ -99,7 +99,7 @@ ok(G(`lkpFotoWajib(LKPD_MODULES[0])`).length === 7, 'Ujian + fotoUjian mewajibka
 G(`LKPD_MODULES[0].fotoUjian=false`);
 ok(G(`lkpFotoWajib(LKPD_MODULES[0])`).length === 1, 'tanpa fotoUjian hanya daftar bawaan');
 
-/* Tahap Latihan lalu Ujian di LKPD-X-06 asli: satu LKPD, tanpa salinan */
+/* Tahap Latihan lalu Ujian di LKPD-DDO-ALT-02 asli: satu LKPD, tanpa salinan */
 G(`LKPD_MODULES[0].mode='ujian';LKPD_MODULES[0].tahap=true;LKPD_MODULES[0].gKali=2;LKPD_MODULES[0].maxTry=1;LKPD_MODULES[0].fotoUjian=true;S.lkpd=[];S.kelas='X';STAFF=false;LK.preview=false;LK.tab='kerja'`);
 ok(G(`LKPD_MODULES.length`) === 1, 'hanya satu LKPD, tidak ada salinan');
 /* Gerbang masuk soal TKA (v2) dianggap sudah lulus supaya Lembar Kerja terbuka bagi siswa uji */
@@ -107,19 +107,19 @@ G(`var _g0=lk2Gate,FORCE=true;lk2Gate=function(m,d){var g=_g0(m,d);if(FORCE)g.lu
 ok(G(`lkmLock(LKPD_MODULES[0])`) === '', 'siswa baru tidak terkunci: langsung bisa berlatih');
 let dh = G(`lkListView()`);
 ok((dh.match(/<article class="card job/g) || []).length === 1, 'daftar siswa: hanya satu kartu LKPD (tidak membingungkan)');
-ok(/20 JP · 5 pertemuan/.test(dh) && !/900 menit/.test(dh), 'kartu LKPD-X-06 asli: 20 JP · 5 pertemuan, bukan 900 menit');
+ok(/20 JP · 5 pertemuan/.test(dh) && !/900 menit/.test(dh), 'kartu LKPD-DDO-ALT-02 asli: 20 JP · 5 pertemuan, bukan 900 menit');
 ok(/Tahap 1: Latihan 0\/2/.test(dh) && />Latihan<\/span>/.test(dh) && /Mulai latihan/.test(dh) && !/Mulai praktik/.test(dh), 'kartu siswa: label Latihan, Tahap 1 0/2, tombol Mulai latihan');
 ok(!/Kesempatan 0\/1/.test(dh), 'kartu siswa tahap Latihan: kesempatan Ujian belum ditampilkan sebagai batas latihan');
 h = G(`viewLKPD()`);
 ok(/Mode Latihan/.test(h) && /Tahap 1 dari 2/.test(h) && /Latihan berpemandu/.test(h) && /Bantuan: lihat angka acuan/.test(h), 'LKPD asli tahap Latihan: spanduk tahap 1, kartu panduan, Bantuan angka acuan');
 ok(!/Ujian mandiri/.test(h), 'tahap Latihan: tidak memuat kartu Ujian mandiri');
-G(`S.lkpd.push({moduleId:'LKPD-X-06',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})},{moduleId:'LKPD-X-06',sid:'u1',ts:20,score:80,payload:JSON.stringify({mode:'latihan'})})`);
+G(`S.lkpd.push({moduleId:'LKPD-DDO-ALT-02',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})},{moduleId:'LKPD-DDO-ALT-02',sid:'u1',ts:20,score:80,payload:JSON.stringify({mode:'latihan'})})`);
 dh = G(`lkListView()`);
 ok(/Tahap 2: Ujian/.test(dh) && />Ujian<\/span>/.test(dh) && /Mulai praktik/.test(dh) && !/Mulai latihan/.test(dh), 'kartu siswa: dua latihan lulus, LKPD yang sama menjadi Ujian (Tahap 2)');
 h = G(`viewLKPD()`);
 ok(/Mode Ujian/.test(h) && /Tahap 2 dari 2/.test(h) && /Ujian mandiri/.test(h) && !/lk-acuan/.test(h) && !/Latihan berpemandu/.test(h), 'LKPD asli tahap Ujian: spanduk tahap 2, kartu Ujian mandiri, angka acuan hilang');
 ok(/Foto bukti wajib pada <b>semua/.test(h), 'tahap Ujian: aturan foto semua komponen disebut');
-G(`LKPD_MODULES[0].maxTry=2;S.lkpd.push({moduleId:'LKPD-X-06',sid:'u1',ts:30,score:40,payload:JSON.stringify({mode:'ujian'})})`);
+G(`LKPD_MODULES[0].maxTry=2;S.lkpd.push({moduleId:'LKPD-DDO-ALT-02',sid:'u1',ts:30,score:40,payload:JSON.stringify({mode:'ujian'})})`);
 dh = G(`lkListView()`);
 ok(/Remedial/.test(dh) && /Tahap 1: Latihan 0\/2/.test(dh) && /Latihan lagi/.test(dh), 'kartu siswa: Ujian gagal, kembali Tahap 1 dengan penanda Remedial dan tombol Latihan lagi');
 G(`LKPD_MODULES[0].maxTry=1`);
@@ -130,7 +130,7 @@ dh = G(`lkListView()`);
 ok(/Bertahap: Latihan/.test(dh) && !/Tahap 1: Latihan/.test(dh), 'kartu guru: tag Bertahap, tanpa status tahap siswa');
 G(`STAFF=false`);
 
-/* Gerbang masuk hanya di Latihan, Evaluasi hanya di Ujian (LKPD-X-06 asli) */
+/* Gerbang masuk hanya di Latihan, Evaluasi hanya di Ujian (LKPD-DDO-ALT-02 asli) */
 G(`FORCE=false;STAFF=false;LK.preview=false;S.lkpd=[];LKPD_MODULES[0].mode='ujian';LKPD_MODULES[0].tahap=true;LKPD_MODULES[0].gKali=1;LKPD_MODULES[0].maxTry=0`);
 G(`LK.tab='materi'`); h = G(`viewLKPD()`);
 ok(/id="lk2-gate"/.test(h) && /Gerbang masuk praktik/.test(h), 'Latihan: soal gerbang masuk tampil di tab Materi');
@@ -148,7 +148,7 @@ G(`LK.tab='materi'`); h = G(`viewLKPD()`);
 ok(!/Pembahasan latihan/.test(h), 'Latihan v2: pembahasan tidak muncul di tab Materi');
 G(`(function(){var m=LKPD_MODULES[0];m.tahap=true;m.mode='ujian';DRAFT={}})()`);
 /* Naik ke Ujian */
-G(`S.lkpd.push({moduleId:'LKPD-X-06',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})})`);
+G(`S.lkpd.push({moduleId:'LKPD-DDO-ALT-02',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})})`);
 G(`LK.tab='materi'`); h = G(`viewLKPD()`);
 ok(!/id="lk2-gate"/.test(h) && !/Gerbang masuk praktik/.test(h), 'Ujian: soal gerbang masuk tidak tampil');
 ok(/Tujuan pembelajaran/.test(h) && /Alat dan bahan/.test(h) && /Checklist|APD|K3/.test(h), 'Ujian: bagian lain Materi (tujuan, alat bahan, K3) tetap tampil');
@@ -166,7 +166,7 @@ G(`STAFF=false;LK.preview=false;S.lkpd=[]`);
 G(`LKPD_MODULES[0].tahap=true;LKPD_MODULES[0].mode='ujian'`);
 const sk = JSON.parse(G(`JSON.stringify(lkScore({}))`));
 ok(sk.final === sk.practice && sk.theory === 0, 'nilai Latihan = nilai praktik (bobot teori tidak menurunkan)');
-G(`S.lkpd.push({moduleId:'LKPD-X-06',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})})`);
+G(`S.lkpd.push({moduleId:'LKPD-DDO-ALT-02',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})})`);
 const sj = JSON.parse(G(`JSON.stringify(lkScore({}))`));
 ok(sj.final === Math.round(sj.practice * (G(`LKPD_MODULES[0].rubric.practiceWeight`) / 100) + sj.theory * (G(`LKPD_MODULES[0].rubric.theoryWeight`) / 100)), 'nilai Ujian: rumus asli (praktik x bobot + teori x bobot)');
 G(`S.lkpd=[]`);

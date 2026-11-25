@@ -1,4 +1,4 @@
-/* lkpd-v2-banner.js: banner gradien interaktif untuk kartu pertemuan/kegiatan LKPD v2 (LKPD-X-06), tab Lembar Kerja.
+/* lkpd-v2-banner.js: banner gradien interaktif untuk kartu pertemuan/kegiatan LKPD v2 (LKPD-DDO-ALT-02), tab Lembar Kerja.
    Aditif: membungkus lk2Kerja (lkpd-v2.js) dan hanya mengganti kepala kartu `section.lk2-p`. Kunci isian, draf, foto, nilai,
    timer, dan sinkronisasi tidak disentuh. Dimuat tepat setelah lkpd-v2.js.
    Interaksi:

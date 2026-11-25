@@ -45,7 +45,7 @@ for (const f of ['js/banksoal.js', 'js/soal-gambar.js', 'js/lkpd-soal.js', 'js/l
   try { vm.runInContext(baca(f), ctx, { filename: f }); }
   catch (e) { ok('memuat ' + f, false, e.message); }
 }
-const x07 = run('LKPD_EXTRA_MODULES.filter(function(m){return m.id===\'LKPD-X-06\'})[0]');
+const x07 = run('LKPD_EXTRA_MODULES.filter(function(m){return m.id===\'LKPD-DDO-ALT-02\'})[0]');
 ok('modul X-06 termuat', !!x07 && x07.v2 && x07.v2.ver === 2);
 
 console.log('Soal isian angka di editor');
@@ -91,7 +91,7 @@ ok('Cetak memanggil lkvMateriImg', /lkvMateriImg\(x\)/.test(baca('js/lkpd-format
 
 console.log('Unggah foto materi');
 run("var unggah=[];ldCall=async function(p){unggah.push(p);return {ok:true,fileId:'FILE'+String(unggah.length).padStart(8,'0')}};");
-await vm.runInContext("(async function(){var m={id:'LKPD-X-06',theory:[['A','a','data:image/jpeg;base64,/9j/AAAA'],['B','b'],['C','c','drive:KEEPKEEPKEEP']],quiz:[{q:'x',o:['a','b'],a:0,qi:'data:image/jpeg;base64,/9j/BBBB'}]};globalThis.__m=m;globalThis.__ubah=await lkgUploadModul(m)})()", ctx);
+await vm.runInContext("(async function(){var m={id:'LKPD-DDO-ALT-02',theory:[['A','a','data:image/jpeg;base64,/9j/AAAA'],['B','b'],['C','c','drive:KEEPKEEPKEEP']],quiz:[{q:'x',o:['a','b'],a:0,qi:'data:image/jpeg;base64,/9j/BBBB'}]};globalThis.__m=m;globalThis.__ubah=await lkgUploadModul(m)})()", ctx);
 ok('foto materi dan foto soal diunggah (2 unggahan)', run('__ubah')===true && run('unggah.length')===2 && run("unggah.every(function(p){return p.kind==='soal'&&p.action==='upload'})"));
 ok('foto materi menjadi drive:<id>', run("__m.theory[0][2].indexOf('drive:')===0&&__m.theory[1].length===2&&__m.theory[2][2]==='drive:KEEPKEEPKEEP'"));
 ok('nama berkas foto materi memuat nomor topik', run("unggah.some(function(p){return /_materi1$/.test(p.nama)})"), run('JSON.stringify(unggah.map(function(p){return p.nama}))'));

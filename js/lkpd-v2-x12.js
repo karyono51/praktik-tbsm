@@ -1,6 +1,6 @@
-/* lkpd-v2-x12.js: LKPD v2 LKPD-X-12 (Arus, Tegangan, dan Hambatan pada Kendaraan), Kelas X Genap, TP X.5.1. Hanya DATA, ditambahkan ke LKPD_EXTRA_MODULES.
-   Mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas_jam_revisi.xlsx: LKPD-X-12, lembar kerja eksperimen, 12 JP (3 pertemuan x 4 JP, Kelas X), unit SKKNI 039 (level 2).
-   Dimuat setelah lkpd-v2-xi18.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-X-06). Status awal Draft.
+/* lkpd-v2-x12.js: LKPD v2 LKPD-DDO-ELK-01 (Arus, Tegangan, dan Hambatan pada Kendaraan), Kelas X Genap, TP X.5.1. Hanya DATA, ditambahkan ke LKPD_EXTRA_MODULES.
+   Mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas_jam_revisi.xlsx: LKPD-DDO-ELK-01, lembar kerja eksperimen, 12 JP (3 pertemuan x 4 JP, Kelas X), unit SKKNI 039 (level 2).
+   Dimuat setelah lkpd-v2-xi18.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-DDO-ALT-02). Status awal Draft.
    Angka spesifikasi (tegangan baterai standar, batas hambatan, arus beban) sengaja KOSONG: guru mengisinya dari manual servis lewat kolom Standar. Angka pada soal hanya contoh hitung.
    Rujukan SKKNI 147/2019 hanya usulan pemetaan dan perlu diverifikasi sebelum dipakai untuk asesmen.
    3 pertemuan x 4 JP (180 menit, 45 menit per JP) = 12 JP. Pertemuan 1 = pemantik, materi, gerbang, APD, cek alat + Kegiatan 1 tegangan; Pertemuan 2 = Kegiatan 2 hambatan dan 3 arus (dua kartu); Pertemuan 3 = Kegiatan 4 verifikasi hukum Ohm, analisis, penilaian kinerja, refleksi.
@@ -27,7 +27,7 @@
  function jumMenit(ks){return langkah.filter(function(x){return ks.indexOf(x.k)>-1}).reduce(function(t,x){return t+x.m},0)}
  var kegiatan=['Mengukur tegangan','Mengukur hambatan','Mengukur arus','Verifikasi hukum Ohm dan penyimpanan'];
  var m={
-  id:'LKPD-X-12',version:2,kelas:'X',fase:'E',status:'draft',active:false,tahap:true,mode:'ujian',
+  id:'LKPD-DDO-ELK-01',alias:['LKPD-X-12'],prodi:'DDO',cp:'ELK',version:2,kelas:'X',fase:'E',status:'draft',active:false,tahap:true,mode:'ujian',
   title:'Arus, Tegangan, dan Hambatan pada Kendaraan',
   unit:'Rangkaian lampu 12 V pada kendaraan: arus, tegangan, hambatan',duration:540,
   skkni:'unit 039 (usulan, verifikasi)',
@@ -120,7 +120,7 @@
     'Di bengkel atau DUDI, pekerjaan ini muncul pada situasi apa?'
    ],
    obs:{
-    judul:'Observasi LKPD-X-12 Arus, Tegangan, dan Hambatan',
+    judul:'Observasi LKPD-DDO-ELK-01 Arus, Tegangan, dan Hambatan',
     aspek:[
      {id:'k3',ket:'Yang dinilai: APD terpasang benar (kacamata saat menyambung kabel baterai), perhiasan dilepas, kontak kunci OFF, tidak ada logam di atas baterai, multimeter diperiksa selector dan jack-nya, larangan K3 dipatuhi.',n:'Persiapan dan K3',b:20,d:{4:'APD lengkap, area dan alat aman tanpa diingatkan',3:'Lengkap, diingatkan 1 kali',2:'APD kurang atau area belum aman, diingatkan lebih dari 1 kali',1:'Mengabaikan K3 (praktik dihentikan)'},stop:1},
      {id:'prosedur',ket:'Yang dinilai: pemilihan fungsi dan rentang multimeter, pemasangan paralel untuk tegangan dan seri untuk arus, pengukuran hambatan tanpa sumber, nol alat dicatat, urutan langkah.',n:'Prosedur kerja',b:30,d:{4:'Semua langkah urut, pemasangan benar, tanpa bantuan',3:'Urut dengan 1–2 koreksi kecil',2:'Beberapa langkah terbalik atau terlewat',1:'Tidak mengikuti prosedur, berisiko merusak alat atau rangkaian'}},

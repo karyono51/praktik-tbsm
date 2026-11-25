@@ -51,7 +51,7 @@ function lkeInit(d){
  var src=d.src||{},r=src.rubric||{steps:30,safety:20,checks:25,analysis:25,practiceWeight:85,theoryWeight:15},fresh=!d.src;
  var val=src.validation||{vehicle:true,evidence:true,cause:true,conclusion:true,atLeastOneCheck:true},vv={};
  LKE.VAL.forEach(function(k){vv[k[0]]=!!val[k[0]]});
- var s={id:d.id||'',title:d.title||'',kelas:d.kelas||'X',sekolah:(d.sekolah!==undefined?d.sekolah:(src.sekolah!==undefined?src.sekolah:(fresh?(schKode()||''):''))),elemen:(typeof lkElOf==='function'?lkElOf(Object.assign({id:d.id||''},src)):''),fase:d.fase||'E',unit:d.unit||'',duration:d.duration||45,skkni:d.skkni||'',status:d.status||'draft',active:d.active!==false,
+ var s={id:d.id||'',title:d.title||'',kelas:d.kelas||'X',sekolah:(d.sekolah!==undefined?d.sekolah:(src.sekolah!==undefined?src.sekolah:(fresh?(schKode()||''):''))),elemen:(typeof lkElOf==='function'?lkElOf(Object.assign({id:d.id||''},src)):''),prodi:src.prodi||'',cp:src.cp||'',fase:d.fase||'E',unit:d.unit||'',duration:d.duration||45,skkni:d.skkni||'',status:d.status||'draft',active:d.active!==false,
   objectives:lkeCp(src.objectives),theory:lkeCp(src.theory),tools:lkeCp(src.tools),safety:lkeCp(src.safety),
   steps:(src.steps||[]).map(function(x){return {t:x[0],m:x[1],i:x[2]}}),checks:lkeCp(src.checks),symptoms:lkeCp(src.symptoms),quiz:lkeCp(src.quiz),
   w:{steps:r.steps,safety:r.safety,checks:r.checks,analysis:r.analysis,practice:r.practiceWeight},val:vv};
@@ -147,7 +147,7 @@ function lkeIssues(d){
 /* ---------- Susun LKPD untuk disimpan ---------- */
 function lkeBuild(d){
  var s=d.S,w=s.w,pr=Number(lkeNum(w.practice)),
- m={id:lkeT(s.id),version:1,elemen:lkeT(s.elemen||''),title:lkeT(s.title),kelas:lkeT(s.kelas).toUpperCase(),sekolah:(schNorm(s.sekolah)==='ALL'?'':schNorm(s.sekolah)),fase:lkeT(s.fase),unit:lkeT(s.unit),duration:Number(lkeNum(s.duration)),skkni:lkeT(s.skkni),
+ m={id:lkeT(s.id),version:1,elemen:lkeT(s.elemen||''),prodi:lkeT(s.prodi||''),cp:lkeT(s.cp||''),title:lkeT(s.title),kelas:lkeT(s.kelas).toUpperCase(),sekolah:(schNorm(s.sekolah)==='ALL'?'':schNorm(s.sekolah)),fase:lkeT(s.fase),unit:lkeT(s.unit),duration:Number(lkeNum(s.duration)),skkni:lkeT(s.skkni),
   status:s.status==='published'?'published':'draft',active:!!s.active,
   objectives:s.objectives.map(lkeT).filter(Boolean),
   theory:s.theory.filter(function(r){return !lkeBlank(r)}).map(function(r){return [lkeT(r[0]),lkeT(r[1])]}),
@@ -160,7 +160,7 @@ function lkeBuild(d){
  /* pertahankan pengaturan dari panel Pengaturan (mode, kesempatan, jadwal, foto wajib) dan versi soal bawaan */
  var o=(LKPD_MODULES||[]).find(function(x){return x.id===m.id});
  if(o){
-  ['mode','maxTry','showKey','hideTeori','hideLangkah','hidePetunjuk','buka','tutup','tahap','gKali','fotoUjian','pandu'].forEach(function(k){if(o[k]!==undefined)m[k]=o[k]});
+  ['mode','maxTry','showKey','hideTeori','hideLangkah','hidePetunjuk','buka','tutup','tahap','gKali','fotoUjian','pandu','alias'].forEach(function(k){if(o[k]!==undefined)m[k]=o[k]});
   if(Array.isArray(o.fotoWajib)){
    var nm=o.fotoWajib.map(function(i){return o.checks[i]&&o.checks[i][0]}).filter(Boolean);
    m.fotoWajib=[];m.checks.forEach(function(c,i){if(nm.indexOf(c[0])>-1)m.fotoWajib.push(i)});
@@ -203,11 +203,20 @@ function lkePairs(d,p,title,hint,l1,l2,addLabel,longB){
   (longB?'<textarea class="lke-1" rows="2" data-lke="'+p+'.'+i+'.1" placeholder="'+esc(l2)+'">'+esc(x[1])+'</textarea>':'<input data-lke="'+p+'.'+i+'.1" placeholder="'+esc(l2)+'" value="'+esc(x[1])+'">')+'</div>'+lkeCtl(p,i,a.length)+'</div>'}).join('');
  return h+'</div>'+lkeAddRow(d,p,addLabel)+'</section>';
 }
+/* Prodi dan CP menentukan kode LKPD (LKPD-<PRODI>-<CP>-<NN>); tingkat tidak ada di kode, jadi Kelas boleh diubah kapan saja */
+function lkeProdiCp(s){
+ if(typeof lkKodeProdiList!=='function')return '';
+ var po='<option value="">(belum dipilih)</option>'+lkKodeProdiList().map(function(p){return '<option value="'+esc(p[0])+'"'+(s.prodi===p[0]?' selected':'')+'>'+esc(p[0])+' · '+esc(p[1])+'</option>'}).join('');
+ var co='<option value="">(belum dipilih)</option>'+lkKodeCpList(s.prodi).map(function(c){return '<option value="'+esc(c[0])+'"'+(s.cp===c[0]?' selected':'')+'>'+esc(c[0])+' · '+esc(c[1])+'</option>'}).join('');
+ return '<div class="two"><label class="f">Prodi<select data-lke="prodi" data-lke-r="1">'+po+'</select></label>'+
+  '<label class="f">CP (singkatan kode)<select data-lke="cp" data-lke-r="1"'+(s.prodi?'':' disabled')+'>'+co+'</select></label></div>'+
+  '<p class="note">Kode LKPD mengikuti Prodi dan CP. Kelas (tingkat) disimpan terpisah, jadi LKPD bisa dipindah naik atau turun tingkat tanpa mengubah kode.</p>';
+}
 function lkeTabInfo(d){
  var s=d.S,ro=!d.isNew;
- return '<section class="card"><div class="two"><label class="f">ID LKPD'+(ro?' (tidak bisa diubah)':' (unik)')+'<input data-lke="id" value="'+esc(s.id)+'" placeholder="contoh: X-7"'+(ro?' readonly':'')+' autocapitalize="characters"></label>'+
+ return '<section class="card"><div class="two"><label class="f">ID LKPD'+(ro?' (tidak bisa diubah)':' (unik)')+'<input data-lke="id" value="'+esc(s.id)+'" placeholder="contoh: LKPD-TSM-ENG-08"'+(ro?' readonly':'')+' autocapitalize="characters"></label>'+
   '<label class="f">Kelas<select data-lke="kelas" data-lke-r="1">'+lkKelasOpts(s.kelas)+'</select></label></div>'+
-  '<label class="f">Elemen CP (LKPD bagian dari elemen ini)<select data-lke="elemen">'+lkElOpts(s.elemen?s.kelas:s.kelas,s.elemen)+'</select></label>'+
+  lkeProdiCp(s)+'<label class="f">Elemen CP (LKPD bagian dari elemen ini)<select data-lke="elemen">'+lkElOpts(s.elemen?s.kelas:s.kelas,s.elemen)+'</select></label>'+
   '<label class="f">Sekolah<select data-lke="sekolah">'+schOptModul(s.sekolah)+'</select></label>'+
   '<label class="f">Judul LKPD<input data-lke="title" value="'+esc(s.title)+'" placeholder="contoh: Pemeriksaan Busi dan Sistem Pengapian"></label>'+
   '<label class="f">Unit/objek praktik<input data-lke="unit" value="'+esc(s.unit)+'" placeholder="contoh: Sepeda motor 4 langkah injeksi"></label>'+
@@ -459,6 +468,11 @@ document.addEventListener('change',function(e){
  if(!p||!LK.editor||!LK.editor.S)return;
  if(!(t.type==='checkbox'||t.tagName==='SELECT'))return;
  var d=LK.editor,s=d.S;
+ if(p==='prodi'||p==='cp'){
+  s[p]=t.value;if(p==='prodi')s.cp='';
+  if(d.isNew&&s.prodi&&s.cp&&typeof lkKodeBerikut==='function'&&(!lkeT(s.id)||(typeof LKK_RE!=='undefined'&&LKK_RE.test(s.id))))s.id=lkKodeBerikut(s.prodi,s.cp);
+  lkeRe();return;
+ }
  if(p==='kelas'){
   var old=s.kelas;s.kelas=t.value;if(s.elemen&&typeof lkElForKelas==='function'&&!lkElForKelas(t.value).some(function(e){return e.id===s.elemen}))s.elemen='';
   if(KELAS[t.value]&&(!lkeT(s.fase)||(KELAS[old]&&s.fase===KELAS[old].fase)))s.fase=KELAS[t.value].fase;

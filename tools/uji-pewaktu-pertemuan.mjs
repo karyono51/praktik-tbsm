@@ -26,7 +26,7 @@ var S={user:{id:'u1',nama:'Budi',kelas:'X'},lkpd:[],observasi:[],users:[],result
 var Cloud={on:false};var toasts=[];function toast(m){toasts.push(m)}function render(){}function persist(){}function save(){}function uid(){return 'x'}
 function ymd(){return '2026-11-23'}function schNama(){return 'SMKS'}var STAFF=false;function isStaff(){return STAFF}
 function esc(x){return String(x==null?'':x)}function lkEsc(x){return esc(x)}
-var LK={module:'LKPD-X-06',tab:'kerja',detail:null,editor:null,preview:false};
+var LK={module:'LKPD-DDO-ALT-02',tab:'kerja',detail:null,editor:null,preview:false};
 function lkRowOk(){return false}function lkScore(){return {practice:0,theory:0,final:0,answered:0,correct:0}}function lkRead(){return {}}
 function lkProgress(){return ''}function lkSubmit(){}function viewLKPD(){return 'V'}function lkDetailBody(){return 'D'}
 function lkqQuizHtml(){return ''}function uiOk(k,m,f){return true}

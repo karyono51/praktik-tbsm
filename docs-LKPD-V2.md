@@ -1,9 +1,9 @@
 # LKPD v2 dan Observasi LKPD Praktik v2
 
-Tambahan aditif: LKPD dan observasi lama tidak diubah. Pilot: LKPD-X-06 (Penggunaan dan Perawatan Alat Ukur). Modul v2 adalah modul LKPD yang punya objek `v2`; mesin v2 hanya aktif untuk modul itu.
+Tambahan aditif: LKPD dan observasi lama tidak diubah. Pilot: LKPD-DDO-ALT-02 (Penggunaan dan Perawatan Alat Ukur). Modul v2 adalah modul LKPD yang punya objek `v2`; mesin v2 hanya aktif untuk modul itu.
 
 ## 1. Berkas
-- `js/lkpd-v2-x06.js`: data modul LKPD-X-06 (status awal Draft; angka standar dikosongkan untuk diisi guru dari manual servis). Butir K3, kelompok K3 (`v2.k3grup`), dan keterangan aspek (`ket`) ada di sini dan dapat disesuaikan dengan kondisi bengkel.
+- `js/lkpd-v2-x06.js`: data modul LKPD-DDO-ALT-02 (status awal Draft; angka standar dikosongkan untuk diisi guru dari manual servis). Butir K3, kelompok K3 (`v2.k3grup`), dan keterangan aspek (`ket`) ada di sini dan dapat disesuaikan dengan kondisi bengkel.
 - `js/lkpd-v2.js`: mesin v2.
 - `js/lkpd-v2-soal.js`: tipe soal isian angka (`t:'isian'`, `kunci`, `tol`).
 - `js/observasi-v2.js`: Observasi LKPD Praktik v2 (rubrik diambil dari `m.v2.obs` tiap LKPD).
@@ -34,7 +34,7 @@ Urutan tab: Materi, Lembar Kerja, Evaluasi.
 - **Detail guru:** jawaban siswa, kunci, pembahasan, dan level soal tampil; kotak Jawaban benar terisi otomatis dari penilaian sebelum guru menyimpan verifikasi, dan dapat diubah.
 
 ## 4. Soal gerbang masuk (bentuk PG, HOTS, bentuk soal TKA)
-- Gerbang LKPD-X-06 terdiri dari 5 soal: 3 PG (5 pilihan, 1 kunci), 1 PG kompleks (kunci minimal 2), 1 PG kategori (Benar/Salah). Semua soal tunggal berstimulus dan berlevel Aplikasi atau Penalaran (`lvl`; saat ini 3 Aplikasi, 2 Penalaran).
+- Gerbang LKPD-DDO-ALT-02 terdiri dari 5 soal: 3 PG (5 pilihan, 1 kunci), 1 PG kompleks (kunci minimal 2), 1 PG kategori (Benar/Salah). Semua soal tunggal berstimulus dan berlevel Aplikasi atau Penalaran (`lvl`; saat ini 3 Aplikasi, 2 Penalaran).
 - Format soal sama dengan `m.quiz`: `{t:'pg'|'kompleks'|'kategori', q, o, a, e}` atau `rows` untuk kategori.
 - Jawaban gerbang PG disimpan di `q100` sampai `q104` (indeks 100 ke atas) agar tidak bertabrakan dengan soal F4 (`q0` sampai `q7`). Dibaca pembaca jawaban dan dinilai fungsi soal yang ada (`lkpd-soal.js`). Soal gerbang isian lama (`q` + `kunci` teks, `gate<i>`) tetap didukung.
 - Penilaian: lihat bagian 4A (acuan TKA, nilai sebagian untuk PG kompleks dan PG kategori). Kriteria lama "4 dari 5 soal benar" (`gate.min`) sudah dihapus.
@@ -58,7 +58,7 @@ Gerbang adalah **syarat kelayakan masuk praktik, bukan komponen nilai akhir**. N
 - **Detail guru**: tiap soal menampilkan jawaban, kunci, pembahasan, dan poin; ringkasan "Nilai gerbang (acuan TKA)". Kotak "Jawaban benar" dan `gate.min` dihapus.
 - **Cetak**: lembar siswa memuat baris "Nilai gerbang ___ (dari 100; KKM 75)"; Kunci memuat rumus penskoran.
 
-Contoh LKPD-X-06 (3 PG, 1 PG kompleks dengan 2 kunci, 1 PG kategori dengan 5 pernyataan):
+Contoh LKPD-DDO-ALT-02 (3 PG, 1 PG kompleks dengan 2 kunci, 1 PG kategori dengan 5 pernyataan):
 
 | Jawaban | Nilai | Aturan lama 4 dari 5 | KKM 75 |
 |---|---|---|---|
@@ -89,7 +89,7 @@ Tab Evaluasi (soal latihan membaca skala) terbuka bagi siswa bila **nilai prakti
 **Gerbang** tetap terpisah: gerbang hanya syarat kelayakan masuk praktik (bagian 4A), KKM gerbang dan KKM evaluasi masing-masing minimal 75.
 
 ## 4C. Kunci hasil per pertemuan (`js/lkpd-kunci.js`)
-- **Siswa boleh mengunci pertemuan mana saja, kecuali pertemuan awal dan akhir.** Untuk LKPD-X-06 (5 pertemuan × 4 JP) yang bisa dikunci adalah Pertemuan 2 sampai 4 (Pertemuan 4 memuat Kegiatan 3 dan 4, tombolnya "Kunci Kegiatan 3 dan 4"), dengan urutan bebas. Pertemuan 1 (materi, gerbang masuk, APD) dan Pertemuan 5 (penilaian kinerja, refleksi) tidak dikunci siswa.
+- **Siswa boleh mengunci pertemuan mana saja, kecuali pertemuan awal dan akhir.** Untuk LKPD-DDO-ALT-02 (5 pertemuan × 4 JP) yang bisa dikunci adalah Pertemuan 2 sampai 4 (Pertemuan 4 memuat Kegiatan 3 dan 4, tombolnya "Kunci Kegiatan 3 dan 4"), dengan urutan bebas. Pertemuan 1 (materi, gerbang masuk, APD) dan Pertemuan 5 (penilaian kinerja, refleksi) tidak dikunci siswa.
 - **Kunci Pertemuan N hanya mengunci isian pertemuan N.** Isian dipetakan dari data modul (`lkkKeyMap`): langkah, tabel, dan komponen pemeriksaan lewat nomor kegiatan (`pertemuan[].kegiatan`); soal latihan lewat `pertemuan[].latihan`; analisis lewat pertemuan yang judulnya memuat "analisis"; waktu aktual `mt<N>` ke pertemuan N. Isian yang tidak terpetakan (gerbang, K3, refleksi, identitas) tetap bebas diubah.
 - **Tombol:** bilah bawah menampilkan satu tombol "Kunci Pertemuan N" untuk tiap pertemuan yang belum terkunci. Pertemuan yang belum dibuka guru tampil nonaktif. Pertemuan tanpa isian tidak membuat catatan kosong.
 - **Batas buka guru** (`pertBuka`, Pengaturan LKPD): "Semua pertemuan" = bebas mengunci P2 sampai sebelum terakhir; "Sampai Pertemuan N" membatasi.
@@ -142,11 +142,11 @@ Tab Evaluasi (soal latihan membaca skala) terbuka bagi siswa bila **nilai prakti
 
 ## Format cetak PDF LKPD (js/lkpd-format.js)
 Tombol Cetak menyusun lembar dari **data modul**, bukan dari tampilan layar, dengan format acuan PDF LKPD SMKS Medina Bandung. Uji: `node tools/uji-lkpd-format.mjs` (69 uji; `LKPD_HTML=/tmp/lkpd.html` menulis HTML cetak untuk diperiksa).
-- **Modul v2 (LKPD-X-06)**: kop sekolah, judul hijau, identitas dua kolom (alokasi waktu 5 pertemuan × 4 JP), Tujuan pembelajaran, tabel Rencana pertemuan, lalu satu banner hijau per pertemuan (`Pertemuan n · judul` dan `4 JP · target 180 menit`). Isi tiap pertemuan: pertanyaan pemantik, Materi, Gerbang masuk (PG, PG kompleks dengan kotak centang, PG kategori berupa tabel Benar/Salah, baris Skor gerbang dan Paraf guru), Alat dan bahan, K3 dan APD (paraf hanya pada butir APD), Cek kondisi alat, langkah dengan Poin kritis dan Paraf guru, tabel F1 sampai F3, Pemeriksaan dan bukti (Foto bukti hanya pada item foto wajib, Sesuai standar, Tidak sesuai, Catatan), Latihan membaca skala (Jawab dan Cara hitung), Analisis, Refleksi, Tindak lanjut, Penilaian kinerja oleh guru, baris Waktu aktual pertemuan, dan tanda tangan.
+- **Modul v2 (LKPD-DDO-ALT-02)**: kop sekolah, judul hijau, identitas dua kolom (alokasi waktu 5 pertemuan × 4 JP), Tujuan pembelajaran, tabel Rencana pertemuan, lalu satu banner hijau per pertemuan (`Pertemuan n · judul` dan `4 JP · target 180 menit`). Isi tiap pertemuan: pertanyaan pemantik, Materi, Gerbang masuk (PG, PG kompleks dengan kotak centang, PG kategori berupa tabel Benar/Salah, baris Skor gerbang dan Paraf guru), Alat dan bahan, K3 dan APD (paraf hanya pada butir APD), Cek kondisi alat, langkah dengan Poin kritis dan Paraf guru, tabel F1 sampai F3, Pemeriksaan dan bukti (Foto bukti hanya pada item foto wajib, Sesuai standar, Tidak sesuai, Catatan), Latihan membaca skala (Jawab dan Cara hitung), Analisis, Refleksi, Tindak lanjut, Penilaian kinerja oleh guru, baris Waktu aktual pertemuan, dan tanda tangan.
 - **Modul v1 dan LKPD buatan guru**: Tujuan, Materi, Alat dan bahan, Checklist K3, banner Prosedur praktik, Hasil pemeriksaan, Diagnosis dan analisis, Evaluasi pengetahuan, Bobot penilaian, dan tanda tangan.
 - Isian siswa dari draf tercetak pada garis isian dan kotak centang; cetakan guru, admin, dan pratinjau berupa lembar kosong. Isian di-escape.
 - Footer: `LKPD DDPK Kelas X · Alat Ukur · SMKS Medina Bandung` dan `Halaman N dari M` (margin box @page; peramban lama mencetak tanpa nomor halaman). Nama berkas PDF tetap `LKPD X-06 <judul> <nama sekolah>` dari `namaPdf` di `lkpd-cetak.js`.
-- Data tambahan pada `LKPD-X-06`: `v2.judulPendek`, `v2.cekAlat`, `v2.tindak`, dan `latihan` pada pertemuan 2 sampai 4 (id soal latihan). Modul v2 lain yang belum memilikinya tetap tercetak, tanpa bagian itu.
+- Data tambahan pada `LKPD-DDO-ALT-02`: `v2.judulPendek`, `v2.cekAlat`, `v2.tindak`, dan `latihan` pada pertemuan 2 sampai 4 (id soal latihan). Modul v2 lain yang belum memilikinya tetap tercetak, tanpa bagian itu.
 - Bila generator gagal, `lkpd-cetak.js` memakai format lama (salinan tampilan layar yang dirapikan `v2Cetak`).
 
 ## Cetak Kunci dan Pembahasan Gerbang Masuk (khusus guru)
@@ -159,13 +159,13 @@ Tombol **Cetak kunci** muncul tepat di samping **Cetak** (pratinjau guru dan bar
 - Uji: `node tools/uji-lkpd-foto.mjs`.
 
 ## Cetak LKPD dan Cetak kunci untuk semua LKPD
-Format cetak (`js/lkpd-format.js`) dan tombol **Cetak kunci** berlaku untuk **semua LKPD**: 21 LKPD bawaan v1 (X-1 sampai XII-7), LKPD-X-06 (v2), dan LKPD buatan guru.
+Format cetak (`js/lkpd-format.js`) dan tombol **Cetak kunci** berlaku untuk **semua LKPD**: 21 LKPD bawaan v1 (X-1 sampai XII-7), LKPD-DDO-ALT-02 (v2), dan LKPD buatan guru.
 - **Cetak LKPD**: v2 memakai banner pertemuan; v1 dan buatan guru memakai Tujuan, Materi, Alat dan bahan, Checklist K3, banner Prosedur praktik, Hasil pemeriksaan, Diagnosis dan analisis, Evaluasi pengetahuan, Bobot penilaian, dan tanda tangan, dengan kop, judul hijau, identitas, dan footer yang sama.
 - **Cetak kunci** (Guru dan Admin, di samping Cetak): LKPD v2 mencetak *Kunci dan Pembahasan Gerbang Masuk*; LKPD lain mencetak *Kunci dan Pembahasan Soal Evaluasi* (tabel No, Bentuk, Kunci, Pembahasan dari `m.quiz` yang sama dengan yang dilihat siswa; kolom Level hanya bila soal berlevel). Tombol dipasang oleh pembungkus `viewLKPD` di `lkpd-format.js`, hanya bila LKPD punya soal, dan tidak digandakan. Nama berkas PDF: `Kunci LKPD <id> <judul> <sekolah>`.
 - Uji: `node tools/uji-lkpd-semua.mjs` memeriksa ke-22 LKPD (isi cetak lengkap, tanpa undefined/NaN, satu baris kunci per soal dengan huruf kunci sesuai data, pembahasan, footer, dan tombol hanya untuk staf). `LKPD_DUMP=/tmp/x LKPD_ID=XI-3` menulis HTML cetak dan kunci untuk diperiksa.
 
-## Master LKPD V2 (LKPD-X-06)
-**LKPD-X-06 adalah master LKPD V2**: acuan struktur dan format cetak untuk semua LKPD v2. Berkas: `js/lkpd-master.js` (dimuat setelah `lkpd-v2-editor.js`), uji: `node tools/uji-lkpd-master.mjs` (39 uji). Tidak ada koleksi atau atribut Appwrite baru. Master dikenali dari ID tetap `LKMS.ID` (`LKPD-X-06`), sehingga salinannya tidak ikut menjadi master.
+## Master LKPD V2 (LKPD-DDO-ALT-02)
+**LKPD-DDO-ALT-02 adalah master LKPD V2**: acuan struktur dan format cetak untuk semua LKPD v2. Berkas: `js/lkpd-master.js` (dimuat setelah `lkpd-v2-editor.js`), uji: `node tools/uji-lkpd-master.mjs` (39 uji). Tidak ada koleksi atau atribut Appwrite baru. Master dikenali dari ID tetap `LKMS.ID` (`LKPD-DDO-ALT-02`), sehingga salinannya tidak ikut menjadi master.
 - **Kelola LKPD (Guru/Admin), halaman LKPD v2**: kartu **Master LKPD V2** (pada master) atau **Kelengkapan sesuai master V2** (pada LKPD v2 lain) dengan penghitung `n/14` dan butir yang belum terpenuhi.
 - **Buat LKPD v2 dari master**: tombol pada master membuka Editor LKPD berisi salinan (draf, tidak aktif, ID kosong, judul "… (baru dari master)"). Salinan mencatat `v2.dari` = ID master dan tidak membawa `peta` (peta ke soal lama milik master). Master tidak berubah. Isi tiap bagian lalu disesuaikan di Editor LKPD.
 - **14 butir daftar periksa master**: tujuan (min. 3); pemantik dan materi (min. 4 topik); rencana pertemuan (awal dan akhir tanpa kegiatan, JP dan menit terisi); tiap kegiatan terpetakan ke pertemuan; gerbang masuk (min. 3 soal TKA berlevel Aplikasi/Penalaran, kunci valid, pembahasan); K3 dan APD (min. 5 butir, semua terkelompok, ada APD); langkah tiap kegiatan dan ada langkah bersaksi guru; tabel data (min. 1); pemeriksaan dan bukti (tiap komponen punya kegiatan, ada wajib foto); latihan membaca skala (min. 3 soal isian berkunci, id pada pertemuan ada); analisis dan refleksi (min. 3); penilaian kinerja (bobot 100%, rubrik skor 1-4, ada aspek penghenti); tindak lanjut remedial dan pengayaan; cek kondisi alat.
@@ -180,5 +180,5 @@ Soal gerbang masuk dapat diedit penuh di Editor LKPD (`js/lkpd-v2-editor.js`), t
 - Saat simpan, pilihan dan pernyataan kosong dibuang dan kunci mengikuti pilihan yang sama; soal yang tidak diubah tersimpan identik dengan aslinya. Hasil menjadi `v2.gate.qs`, sehingga **Cetak kunci**, penilaian gerbang (KKM), dan daftar periksa master otomatis mengikuti.
 - Catatan: jawaban siswa yang sudah tersimpan mengikuti nomor soal, jadi ubah soal gerbang sebelum LKPD dipakai siswa. Hanya Guru dan Admin.
 
-## LKPD-XI-17 (Transmisi Manual) dan LKPD-XI-18 (Transmisi Otomatis/CVT)
-Dua modul v2 berikutnya, dibuat dari struktur master LKPD-X-06 dan mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas_jam_revisi.xlsx (LKPD-XI-18 lama dipecah dua, masing-masing 18 JP). Berkas `js/lkpd-v2-xi17.js` dan `js/lkpd-v2-xi18.js`, uji `node tools/uji-lkpd-xi18.mjs`. Keduanya 3 pertemuan x 6 JP (270 menit), sesuai 6 JP per pertemuan Kelas XI: Pertemuan 1 = materi, gerbang, APD + Kegiatan 1; Pertemuan 2 = Kegiatan 2 dan 3 (dua kartu); Pertemuan 3 = Kegiatan 4, analisis, penilaian kinerja, refleksi. Karena hanya 3 pertemuan, hanya Pertemuan 2 yang bisa dikunci siswa, dan butir master "awal dan akhir tanpa kegiatan" berlaku untuk 4 pertemuan atau lebih. Target praktik = jumlah menit langkah tiap kegiatan (XI-17: 60, 60, 50, 60; XI-18: 55, 55, 70, 55). Soal latihan memakai isian angka; M5 (XI-17) memakai gambar keolengan. Standar, batas pakai, torsi, dan oli tidak diisi dan harus diisi guru dari manual servis. Status Draft: terbitkan lewat tombol Terbitkan setelah diperiksa.
+## LKPD-TSM-PMT-02 (Transmisi Manual) dan LKPD-TSM-PMT-03 (Transmisi Otomatis/CVT)
+Dua modul v2 berikutnya, dibuat dari struktur master LKPD-DDO-ALT-02 dan mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas_jam_revisi.xlsx (LKPD-TSM-PMT-03 lama dipecah dua, masing-masing 18 JP). Berkas `js/lkpd-v2-xi17.js` dan `js/lkpd-v2-xi18.js`, uji `node tools/uji-lkpd-xi18.mjs`. Keduanya 3 pertemuan x 6 JP (270 menit), sesuai 6 JP per pertemuan Kelas XI: Pertemuan 1 = materi, gerbang, APD + Kegiatan 1; Pertemuan 2 = Kegiatan 2 dan 3 (dua kartu); Pertemuan 3 = Kegiatan 4, analisis, penilaian kinerja, refleksi. Karena hanya 3 pertemuan, hanya Pertemuan 2 yang bisa dikunci siswa, dan butir master "awal dan akhir tanpa kegiatan" berlaku untuk 4 pertemuan atau lebih. Target praktik = jumlah menit langkah tiap kegiatan (XI-17: 60, 60, 50, 60; XI-18: 55, 55, 70, 55). Soal latihan memakai isian angka; M5 (XI-17) memakai gambar keolengan. Standar, batas pakai, torsi, dan oli tidak diisi dan harus diisi guru dari manual servis. Status Draft: terbitkan lewat tombol Terbitkan setelah diperiksa.

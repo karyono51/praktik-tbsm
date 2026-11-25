@@ -1,6 +1,6 @@
-/* lkpd-v2-xi17.js: LKPD v2 LKPD-XI-17 (Perawatan dan Perbaikan Sistem Transmisi Manual), Kelas XI Genap, TP XI.3.2. Hanya DATA, ditambahkan ke LKPD_EXTRA_MODULES.
-   Mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas_jam_revisi.xlsx: LKPD-XI-17 = pecahan transmisi manual dari LKPD-XI-18 revisi2, 18 JP (pembagian 18 + 18 JP adalah usulan), unit SKKNI 051 (level 3, di atas level 2).
-   Dimuat setelah lkpd-v2-x06.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-X-06). Status awal Draft.
+/* lkpd-v2-xi17.js: LKPD v2 LKPD-TSM-PMT-02 (Perawatan dan Perbaikan Sistem Transmisi Manual), Kelas XI Genap, TP XI.3.2. Hanya DATA, ditambahkan ke LKPD_EXTRA_MODULES.
+   Mengikuti Matriks_LKPD_TSM_Kelas_X-XII_ringkas_jam_revisi.xlsx: LKPD-TSM-PMT-02 = pecahan transmisi manual dari LKPD-TSM-PMT-03 revisi2, 18 JP (pembagian 18 + 18 JP adalah usulan), unit SKKNI 051 (level 3, di atas level 2).
+   Dimuat setelah lkpd-v2-x06.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-DDO-ALT-02). Status awal Draft.
    Angka spesifikasi komponen (standar, batas pakai, jenis dan jumlah oli) sengaja KOSONG: guru mengisinya dari manual servis. Angka pada soal hanya contoh hitung.
    Rujukan SKKNI 147/2019 hanya usulan pemetaan dan perlu diverifikasi sebelum dipakai untuk asesmen.
    3 pertemuan x 6 JP (270 menit, 45 menit per JP) = 18 JP, sesuai 6 JP per pertemuan Kelas XI. Pertemuan 1 = materi, gerbang, APD + Kegiatan 1; Pertemuan 2 = Kegiatan 2 dan 3 (dua kartu); Pertemuan 3 = Kegiatan 4, analisis, penilaian kinerja, refleksi. */
@@ -24,7 +24,7 @@
  function jumMenit(ks){return langkah.filter(function(x){return ks.indexOf(x.k)>-1}).reduce(function(t,x){return t+x.m},0)}
  var kegiatan=['Pembongkaran dan pemeriksaan gigi','Garpu pemilih, shift drum, dan bearing','Keolengan poros dengan dial gauge','Perakitan, oli, dan uji fungsi'];
  var m={
-  id:'LKPD-XI-17',version:2,kelas:'XI',fase:'F',status:'draft',active:false,tahap:true,mode:'ujian',
+  id:'LKPD-TSM-PMT-02',alias:['LKPD-XI-17'],prodi:'TSM',cp:'PMT',version:2,kelas:'XI',fase:'F',status:'draft',active:false,tahap:true,mode:'ujian',
   title:'Perawatan dan Perbaikan Sistem Transmisi Manual',
   unit:'Sistem transmisi manual',duration:810,
   skkni:'unit 051 (level 3, di atas level 2; usulan, verifikasi)',
@@ -108,7 +108,7 @@
     'Di bengkel atau DUDI, pekerjaan ini muncul pada situasi apa?'
    ],
    obs:{
-    judul:'Observasi LKPD-XI-17 Transmisi Manual',
+    judul:'Observasi LKPD-TSM-PMT-02 Transmisi Manual',
     aspek:[
      {id:'k3',ket:'Yang dinilai: APD terpasang benar (kacamata saat membuka cover), engine dingin dan terpasang kuat, jari tidak di antara gigi, tangan dijauhkan dari bagian berputar saat uji fungsi, larangan K3 dipatuhi.',n:'Persiapan dan K3',b:20,d:{4:'APD lengkap, area aman tanpa diingatkan',3:'Lengkap, diingatkan 1 kali',2:'APD kurang atau area belum aman, diingatkan lebih dari 1 kali',1:'Mengabaikan K3 (praktik dihentikan)'},stop:1},
      {id:'prosedur',ket:'Yang dinilai: urutan bongkar dan pasang sesuai manual servis, komponen disusun berurutan, penggunaan jangka sorong dan dial gauge, jenis dan jumlah oli sesuai manual servis.',n:'Prosedur kerja',b:30,d:{4:'Semua langkah urut, manual servis dipakai, tanpa bantuan',3:'Urut dengan 1–2 koreksi kecil',2:'Beberapa langkah terbalik atau terlewat',1:'Tidak mengikuti prosedur, berisiko merusak komponen'}},
