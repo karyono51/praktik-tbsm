@@ -13,5 +13,7 @@ execFileSync(process.execPath, [path.join(root, 'tools/bangun-bawaan.mjs')], { s
 const src = path.join(root, 'functions/cbt/src'), dst = path.join(root, 'functions/akun-admin/src');
 fs.copyFileSync(path.join(src, 'main.js'), path.join(dst, 'cbt.js'));
 fs.copyFileSync(path.join(src, 'bawaan.json'), path.join(dst, 'bawaan.json'));
-console.log('Disalin ke functions/akun-admin/src: cbt.js dan bawaan.json');
+fs.copyFileSync(path.join(src, 'neon.js'), path.join(dst, 'neon.js'));
+console.log('Disalin ke functions/akun-admin/src: cbt.js, neon.js, dan bawaan.json');
 console.log('Berikutnya: deploy ulang fungsi akun-admin; scope tambahan yang diperlukan: databases.read, databases.write, users.read.');
+console.log('Mode Neon (opsional): variabel fungsi CBT_DB=neon dan NEON_URL (lihat docs-NEON.md).');

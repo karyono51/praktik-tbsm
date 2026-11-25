@@ -1,3 +1,10 @@
+## CBT: jalur panas ke Neon (Postgres), opsional dan bisa dikembalikan
+- `functions/cbt/src/neon.js` (baru), `functions/cbt/src/main.js`: lapisan dokumen memilih Neon untuk `soal_run`, `soal_hasil`, `soal_kunci` bila variabel fungsi `CBT_DB=neon` dan `NEON_URL` terisi; selain itu tetap Appwrite. Dokumen lama di Appwrite tetap terbaca dan terubah selama `CBT_LEGACY` bukan `0`. Kolom `sekolah` dan `prodi` (variabel `PRODI`, bawaan `tsm`) ikut disimpan.
+- Aksi baru: `dok` (get, list, create, update, delete untuk klien; siswa hanya baca miliknya, `soal_kunci` hanya guru/admin), `dbUji` (admin: uji sambungan, `siapkan:true` membuat tabel), `dbSalin` (admin: salin data lama Appwrite ke Neon, berhenti di batas waktu dan melaporkan `sisa`). Terdaftar di `CBT_AKSI`.
+- `js/neon-db.js` (baru, dimuat setelah core.js): `Cloud.db` dan `Cloud.list` untuk tiga koleksi itu lewat fungsi bila `CBT_DB:'neon'` dan `CBT_AMAN:true`; kode `404` dan `409` dipertahankan. `js/neon-admin.js` (baru): kartu admin di CBT Online (Uji sambungan, Siapkan tabel, Salin data lama). `js/config.js`: `CBT_DB:'appwrite'` (bawaan) dan `CBT_LEGACY:true`.
+- `tools/gabung-cbt.mjs` menyalin `neon.js` ke `akun-admin`; `package.json` kedua fungsi menambah `pg` (dimuat hanya di mode Neon). `neon-schema.sql` dan `docs-NEON.md` baru.
+- Uji: `tools/uji-neon.mjs` (51), `tools/uji-neon-klien.mjs` (18), `uji-cbt` 160 tetap lulus; `periksa` dan `audit-izin` tanpa temuan baru.
+
 ## CBT: jeda simpan jawaban lebih jarang dan bisa diatur (hemat kuota Appwrite gratis)
 - `js/cbt.js`, `js/ujian-server.js`, `js/config.js`: simpan berkala 60 detik menjadi **90 detik** (`CBT_DENYUT`, dijepit 30 sampai 120 detik), simpan setelah jawaban berubah 10 sampai 14 detik menjadi **30 sampai 34 detik** (`CBT_SIMPAN`, dijepit 10 sampai 60 detik). Dikunci pengawas tetap 8 detik. Simpan saat aplikasi disembunyikan, online kembali, pindah soal tertentu, dan Selesai tidak berubah.
 - Perkiraan: tulis database dan eksekusi fungsi per siswa per ujian turun sekitar separuh. Jawaban terakhir yang belum terkirim tetap ada di perangkat. Batas "tidak aktif" Pantau 2,5 menit tetap di atas 90 detik.

@@ -2,6 +2,8 @@
    Runtime Node.js 18+. Tanpa pustaka luar (memakai fetch bawaan Node).
    Execute access: Users. Scopes: users.read, documents.read, documents.write.
    Variabel lingkungan (opsional): DB_ID (bawaan: tbsm).
+   Neon (opsional): CBT_DB=neon dan NEON_URL memindahkan soal_run, soal_hasil, soal_kunci ke Postgres Neon (lihat neon.js dan docs-NEON.md);
+   PRODI (bawaan tsm) dan CBT_LEGACY=0 (matikan pembacaan cadangan dari Appwrite setelah data lama disalin).
 
    Kunci jawaban soal sendiri disimpan di koleksi soal_kunci (hanya guru/admin yang boleh membaca), bukan di
    soal yang dibaca siswa. Hanya fungsi ini yang menilai, jadi nilai tidak bisa dipalsukan dari peramban.
@@ -30,6 +32,7 @@
 */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import { NEON_COLS, neonAktif, nGet, nCreate, nUpdate, nDelete, nList, nCount, nUji, nSalin } from './neon.js';
 
 let BAWAAN = {};
 try {
@@ -182,7 +185,35 @@ const Q = {
   limit: (n) => ({ method: 'limit', values: [n] }),
   cursorAfter: (id) => ({ method: 'cursorAfter', values: [id] })
 };
-async function getDoc(col, id) { return aw('GET', colPath(col) + '/' + encodeURIComponent(id)); }
+/* ---------- Lapisan dokumen: Appwrite, atau Neon untuk soal_run, soal_hasil, soal_kunci (bila CBT_DB=neon) ----------
+   Di mode Neon, dokumen lama yang masih di Appwrite tetap terbaca dan terubah (cadangan) selama CBT_LEGACY bukan '0'. Dokumen baru selalu ke Neon. */
+const viaNeon = (col) => NEON_COLS.has(col) && neonAktif();
+const LEGACY = () => String(process.env.CBT_LEGACY || '1') !== '0';
+const PRODI = () => String(process.env.PRODI || 'tsm').toLowerCase().slice(0, 16);
+const metaNeon = (akun) => ({ sekolah: String((akun && akun.sekolah) || '').slice(0, 32), prodi: PRODI() });
+const awGet = (col, id) => aw('GET', colPath(col) + '/' + encodeURIComponent(id));
+const awCreate = (col, id, data, perms) => aw('POST', colPath(col), { documentId: id, data, permissions: perms || [] });
+const awUpdate = (col, id, data) => aw('PATCH', colPath(col) + '/' + encodeURIComponent(id), { data });
+const awDelete = (col, id) => aw('DELETE', colPath(col) + '/' + encodeURIComponent(id));
+async function awList(col, queries) {
+  const out = []; let cur = null;
+  for (;;) {
+    const q = [Q.limit(100)].concat(queries || []); if (cur) q.push(Q.cursorAfter(cur));
+    const r = await aw('GET', colPath(col) + '?' + qs(q));
+    out.push(...(r.documents || []));
+    if ((r.documents || []).length < 100) return out;
+    cur = r.documents[r.documents.length - 1].$id;
+  }
+}
+const gagalNeon = (e) => { if (e instanceof Fail) return e; const f = new Fail(e && e.code === 404 ? 'Dokumen tidak ditemukan' : e && e.code === 409 ? 'Dokumen sudah ada' : 'Neon: ' + String((e && e.message) || e).slice(0, 120), e && e.code === 404 ? 404 : e && e.code === 409 ? 409 : 502); f.code = e && (e.code === 404 || e.code === 409) ? e.code : 502; return f; };
+const tidakAda = () => { const f = new Fail('Dokumen tidak ditemukan', 404); f.code = 404; return f; };
+async function getDoc(col, id) {
+  if (!viaNeon(col)) return awGet(col, id);
+  let d; try { d = await nGet(col, id); } catch (e) { throw gagalNeon(e); }
+  if (d) return d;
+  if (LEGACY()) return awGet(col, id);   // 404 dari Appwrite bila memang tidak ada
+  throw tidakAda();
+}
 async function tryGet(col, id) { try { return await getDoc(col, id); } catch (e) { if (e.code === 404) return null; throw e; } }
 async function sesiDoc(id) {
   const c = memGet(memo.sesi, id, TTL_SESI); if (c) return c;
@@ -198,18 +229,41 @@ async function tokenSesi(id) {
   });
 }
 const tokAktif = (ti, now) => !!(ti.rilis && ti.berlaku > 0 && now >= ti.rilis - 5000 && now <= ti.rilis + ti.berlaku * 60000);
-async function listDocs(col, queries) {
-  const out = []; let cur = null;
-  for (;;) {
-    const q = [Q.limit(100)].concat(queries || []); if (cur) q.push(Q.cursorAfter(cur));
-    const r = await aw('GET', colPath(col) + '?' + qs(q));
-    out.push(...(r.documents || []));
-    if ((r.documents || []).length < 100) return out;
-    cur = r.documents[r.documents.length - 1].$id;
-  }
+/* Neon hanya mengenal filter equal pada sid, sesiId, $id (cukup untuk semua pemakaian di fungsi ini) */
+function saringNeon(queries) {
+  const f = {};
+  (queries || []).forEach((q) => { if (q && q.method === 'equal' && ['sid', 'sesiId', '$id'].includes(q.attribute)) f[q.attribute] = q.values; });
+  return f;
 }
-const createDoc = (col, id, data, perms) => aw('POST', colPath(col), { documentId: id, data, permissions: perms || [] });
-const updateDoc = (col, id, data) => aw('PATCH', colPath(col) + '/' + encodeURIComponent(id), { data });
+/* legacy: ikut baca Appwrite (hasil dan kunci lama). soal_run tidak digabung: daftar pantau dipanggil sering dan catatan lama sudah selesai. */
+async function listDocs(col, queries, opt) {
+  if (!viaNeon(col)) return awList(col, queries);
+  const f = saringNeon(queries), out = new Map(); let cur = null;
+  try {
+    for (;;) { const part = await nList(col, f, { limit: 100, cursor: cur }); part.forEach((d) => out.set(d.$id, d)); if (part.length < 100) break; cur = part[part.length - 1].$id; }
+  } catch (e) { throw gagalNeon(e); }
+  const lama = opt && opt.legacy !== undefined ? opt.legacy : col !== 'soal_run';
+  if (lama && LEGACY()) (await awList(col, queries)).forEach((d) => { if (!out.has(d.$id)) out.set(d.$id, d); });
+  return [...out.values()];
+}
+async function createDoc(col, id, data, perms, akun) {
+  if (!viaNeon(col)) return awCreate(col, id, data, perms);
+  try { return await nCreate(col, id, data, metaNeon(akun)); } catch (e) { throw gagalNeon(e); }
+}
+async function updateDoc(col, id, data) {
+  if (!viaNeon(col)) return awUpdate(col, id, data);
+  try { return await nUpdate(col, id, data); }
+  catch (e) { if (e && e.code === 404 && LEGACY()) return awUpdate(col, id, data); throw gagalNeon(e); }
+}
+/* hapus di Neon; bila cadangan aktif, dokumen lama dengan ID yang sama di Appwrite ikut dihapus (data yang sudah disalin tidak muncul lagi) */
+async function deleteDoc(col, id) {
+  if (!viaNeon(col)) return awDelete(col, id);
+  let ada = true;
+  try { await nDelete(col, id); } catch (e) { if (e && e.code === 404) ada = false; else throw gagalNeon(e); }
+  if (LEGACY()) { try { await awDelete(col, id); ada = true; } catch (e) { if (e.code !== 404) throw e; } }
+  if (!ada) throw tidakAda();
+  return { ok: true };
+}
 async function byIds(col, ids) {
   const out = {};
   for (let i = 0; i < ids.length; i += 50) {
@@ -487,7 +541,7 @@ async function mulai(me, body) {
   const dev = devId(body.dev); if (dev) p.dev = dev;
   let doc;
   try {
-    doc = await createDoc('soal_run', rid, { sid, sesiId, ts: now, done: false, payload: JSON.stringify(p), ext: 0, stop: false, pb: 0 }, userRead(me.id));
+    doc = await createDoc('soal_run', rid, { sid, sesiId, ts: now, done: false, payload: JSON.stringify(p), ext: 0, stop: false, pb: 0 }, userRead(me.id), me.akun);
   } catch (e) {
     if (e.code === 409) { const again = await getDoc('soal_run', rid); if (again.done) throw new Fail('Kamu sudah mengerjakan sesi ini.', 409); await cekPerangkat(again, me, body, s); return resumeResp(again, s, now); }
     throw e;
@@ -561,7 +615,7 @@ async function selesaikan(run, me, opt) {
     score: g.score, benar: g.benar, total: g.total, detik: Math.max(0, Math.min(Math.round((t - st.start) / 1000), st.dur + st.ext)),
     payload: JSON.stringify({ ans, order: ids, oo: p.oo || {}, pindah: Math.max(p.pindah || 0, opt.pindah || 0), pts: g.pts, pend: g.pend || undefined, tampil: !!p.tampil, kkm: p.kkm }) };
   let doc;
-  try { doc = await createDoc('soal_hasil', hid, data, opt.perms || userRead(me.id)); }
+  try { doc = await createDoc('soal_hasil', hid, data, opt.perms || userRead(me.id), akun); }
   catch (e) {
     if (e.code !== 409) throw e;
     /* hasil sudah ada (kirim ganda atau guru sudah menilai): jangan menimpa, cukup tandai selesai */
@@ -596,7 +650,7 @@ async function kirimLatihan(me, body) {
   const a = me.akun, hid = 'h' + crypto.randomBytes(8).toString('hex');
   const data = { ts: now, sid: a.$id, siswa: String(a.nama || '').slice(0, 128), kelas: a.kelas || '', mode: 'latihan', sesiId: '', sesiJudul: '', score: g.score, benar: g.benar, total: g.total,
     detik: Math.max(0, Math.min(86400, Number(body.detik) || 0)), payload: JSON.stringify({ ans, order: ids, oo, pindah: 0, pts: g.pts, tampil: true }) };
-  const doc = await createDoc('soal_hasil', hid, data, userRead(me.id));
+  const doc = await createDoc('soal_hasil', hid, data, userRead(me.id), a);
   return { ok: true, hasil: hasilOut(doc), kc: kcOf(ids, Qs) };
 }
 
@@ -900,8 +954,81 @@ async function catat(me, body) {
   return { ok: true };
 }
 
+/* ---------- Neon: jalur dokumen untuk klien (staf), uji koneksi, dan penyalinan data lama ---------- */
+const DOK_MAKS = 200000;   // karakter JSON per dokumen yang boleh ditulis staf
+async function dok(me, body) {
+  const col = String(body.col || ''), op = String(body.op || ''), id = body.id === undefined ? '' : String(body.id);
+  if (!NEON_COLS.has(col)) throw new Fail('Koleksi tidak didukung.', 400);
+  if (id && !ID_RE.test(id)) throw new Fail('ID tidak valid.', 400);
+  const aid = me.akun.$id;
+  if (!me.staff) {
+    /* siswa: hanya membaca catatan dan hasil miliknya (jalur tulis siswa hanya lewat aksi mulai, simpan, kirim) */
+    if (col === 'soal_kunci' || (op !== 'get' && op !== 'list')) throw new Fail('Tidak diizinkan.', 403);
+    if (op === 'get') {
+      if (!id) throw new Fail('ID wajib.', 400);
+      const d = await tryGet(col, id);
+      if (!d || d.sid !== aid) throw tidakAda();
+      return { ok: true, doc: d };
+    }
+  }
+  const f = {};
+  if (body.q && typeof body.q === 'object') ['sid', 'sesiId', '$id'].forEach((k) => { if (Array.isArray(body.q[k])) f[k] = body.q[k].map(String).slice(0, 200); });
+  switch (op) {
+    case 'get': { if (!id) throw new Fail('ID wajib.', 400); return { ok: true, doc: await getDoc(col, id) }; }
+    case 'list': {
+      if (!me.staff) f.sid = [aid];
+      const lim = Math.max(1, Math.min(Number(body.limit) || 100, 500)), cur = body.cursor ? String(body.cursor) : null;
+      let docs;
+      if (viaNeon(col)) { try { docs = await nList(col, f, { limit: lim, cursor: cur }); } catch (e) { throw gagalNeon(e); } }
+      else {
+        const q = [Q.limit(lim)]; Object.keys(f).forEach((k) => q.push(Q.equal(k, f[k]))); if (cur) q.push(Q.cursorAfter(cur));
+        docs = (await aw('GET', colPath(col) + '?' + qs(q))).documents || [];
+      }
+      const out = { ok: true, docs, now: Date.now() };
+      if (body.total && viaNeon(col)) { try { out.total = await nCount(col, f); } catch (e) { throw gagalNeon(e); } }
+      return out;
+    }
+    case 'create': case 'update': {
+      if (!id) throw new Fail('ID wajib.', 400);
+      const data = body.data;
+      if (!data || typeof data !== 'object' || Array.isArray(data) || JSON.stringify(data).length > DOK_MAKS) throw new Fail('Data tidak valid.', 400);
+      Object.keys(data).forEach((k) => { if (k[0] === '$') delete data[k]; });
+      return { ok: true, doc: op === 'create' ? await createDoc(col, id, data, [], me.akun) : await updateDoc(col, id, data) };
+    }
+    case 'delete': { if (!id) throw new Fail('ID wajib.', 400); await deleteDoc(col, id); return { ok: true }; }
+    default: throw new Fail('Operasi tidak dikenal.', 400);
+  }
+}
+function needAdmin(me) { if (!me.admin) throw new Fail('Hanya admin.', 403); }
+/* admin: uji sambungan Neon (siapkan:true membuat tabel yang belum ada) */
+async function dbUji(me, body) {
+  needAdmin(me);
+  const info = { ok: true, backend: viaNeon('soal_run') ? 'neon' : 'appwrite', CBT_DB: String(process.env.CBT_DB || ''), NEON_URL: process.env.NEON_URL ? 'terisi' : 'kosong', PRODI: PRODI(), CBT_LEGACY: LEGACY() };
+  if (info.backend !== 'neon') { info.pesan = 'Neon belum aktif: isi variabel CBT_DB=neon dan NEON_URL di fungsi lalu deploy ulang.'; return info; }
+  try { Object.assign(info, await nUji(!!body.siapkan)); } catch (e) { throw new Fail('Neon gagal: ' + String((e && e.message) || e).slice(0, 140), 502); }
+  return info;
+}
+/* admin: salin dokumen lama Appwrite ke Neon (soal_kunci, soal_hasil, soal_run). Ulangi selama sisa=true, kirim kembali cursor. */
+async function dbSalin(me, body) {
+  needAdmin(me);
+  const col = String(body.col || '');
+  if (!NEON_COLS.has(col)) throw new Fail('Koleksi tidak didukung.', 400);
+  if (!viaNeon(col)) throw new Fail('Neon belum aktif di fungsi.', 400);
+  const deadline = Date.now() + BUDGET_MS; let cur = body.cursor ? String(body.cursor) : null, n = 0, baca = 0, sisa = false;
+  for (;;) {
+    const q = [Q.limit(100)]; if (cur) q.push(Q.cursorAfter(cur));
+    const r = await aw('GET', colPath(col) + '?' + qs(q)), docs = r.documents || [];
+    try { n += await nSalin(col, docs, { sekolah: '', prodi: PRODI() }); } catch (e) { throw gagalNeon(e); }
+    baca += docs.length;
+    if (docs.length < 100) { cur = null; break; }
+    cur = docs[docs.length - 1].$id;
+    if (Date.now() > deadline) { sisa = true; break; }
+  }
+  return { ok: true, col, baca, baru: n, sisa, cursor: sisa ? cur : null };
+}
+
 export const _uji = { frac, nilai, cleanAns, runId, parse, memReset, semuaReset: () => { memReset(); memo.salah.clear(); inflight.clear(); } };
-export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua', 'nilaiUlang', 'nilaiUraian', 'rilisToken', 'pantau', 'aksiRun', 'catat', 'tebak', 'bukaTebak', 'sebTolak']);
+export const CBT_AKSI = new Set(['mulai', 'simpan', 'kirim', 'periksa', 'ulasan', 'akhiri', 'akhiriSemua', 'nilaiUlang', 'nilaiUraian', 'rilisToken', 'pantau', 'aksiRun', 'catat', 'tebak', 'bukaTebak', 'sebTolak', 'dok', 'dbUji', 'dbSalin']);
 
 /* Dipakai sebagai fungsi sendiri (default export) atau dipanggil dari fungsi lain, mis. akun-admin (lihat tools/gabung-cbt.mjs). */
 export async function cbtHandle({ req, res, error, body }) {
@@ -927,6 +1054,9 @@ export async function cbtHandle({ req, res, error, body }) {
       case 'sebTolak': return res.json(await sebTolakDaftar(me, body));
       case 'bukaTebak': return res.json(await bukaTebak(me, body));
       case 'catat': return res.json(await catat(me, body));
+      case 'dok': return res.json(await dok(me, body));
+      case 'dbUji': return res.json(await dbUji(me, body));
+      case 'dbSalin': return res.json(await dbSalin(me, body));
       default: return res.json({ ok: false, error: 'Aksi tidak dikenal.' }, 400);
     }
   } catch (e) {

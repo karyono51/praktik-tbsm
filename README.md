@@ -150,6 +150,7 @@ Dijalankan dari folder proyek dengan Node.js (tanpa pustaka tambahan).
 
 ### Ujian CBT Online
 - `docs-CBT.md`: CBT online dari Bank soal (penilaian di server)
+- `docs-NEON.md`: jalur panas CBT di Neon (Postgres): variabel, urutan pasang, kembali ke Appwrite
 - `docs-RUANG.md`: Ruang dan gelombang ujian
 - `docs-ROMBEL-SESI.md`: Sesi satu tingkat, beberapa rombel
 - `docs-DAFTAR-TETAP.md`: Daftar peserta tetap per sesi
