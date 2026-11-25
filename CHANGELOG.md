@@ -1,3 +1,8 @@
+## Pembersihan: modul banner lama dan berkas sisa dibuang
+- `js/lkpd-v2-banner.js` (banner gradien lama) dihapus bersama `tools/uji-lkpd-banner.mjs`: modul itu tidak lagi dimuat `index.html` dan tidak dirujuk berkas lain sejak kartu Kegiatan memakai kepala akordeon (`lk2-ph`, `lk2Bn`), sehingga polanya tidak pernah cocok dan ujinya gagal 3 butir sejak lama. Tampilan aplikasi tidak berubah.
+- `js/lkpd-v2-x07.js` (sisa penggantian nama X-07 menjadi X-06, tidak dimuat) ikut dihapus. `up.sh` menghapus ketiga berkas ini setelah zip dipasang (zip tidak bisa menghapus).
+- Seluruh uji (`periksa`, 32 skrip uji, `audit-izin`) kini lulus tanpa kegagalan.
+
 ## Administrasi Akademik: tabel Peta LKPD per prodi, CP, dan kelas
 - `js/akademik.js`: tab Peta LKPD punya tampilan **Tabel** (bawaan) dan **Kartu**. Tabel 1: Rekap Prodi, CP, dan Kelas (jumlah LKPD · JP per CP untuk Kelas X, XI, XII, jumlah per prodi dan jumlah semua). Tabel 2: Daftar LKPD berkode (kode, kelas, semester, judul, TP, JP, status, kode lama). Filter dan pencarian berlaku untuk keduanya. Catatan usang "ID modul tidak diubah" diperbarui.
 - Unduh Excel analisis: lembar baru **Rekap Prodi-CP-Kelas**. `css/app.css`: gaya `.akd-tbl` (gulir mendatar di HP, kolom kode tetap).
@@ -10,7 +15,7 @@
 - Lima modul LKPD v2 memakai id baru dengan `alias` kode lama, `prodi`, dan `cp` (X-06 menjadi DDO-ALT-02, X-12 menjadi DDO-ELK-01, X-18 menjadi DDO-KOM-03, XI-17 menjadi TSM-PMT-02, XI-18 menjadi TSM-PMT-03).
 - Peta LKPD (Administrasi Akademik): dikelompokkan Prodi lalu CP (bawaan) atau Kelas saja; kartu memuat pill kelas dan kode lama; pencarian menerima kode lama; Excel menambah kolom Kode lama, Prodi, CP (singkatan).
 - Editor LKPD guru, tab Info: pilihan Prodi dan CP, ID LKPD baru terisi otomatis dengan nomor berikutnya.
-- Uji: `tools/uji-lkpd-kode.mjs` (baru, 40); `uji-akademik` disesuaikan (150); uji lain memakai kode baru dan tetap lulus. `uji-lkpd-banner` gagal 3 butir sejak sebelum perubahan ini (tidak terkait).
+- Uji: `tools/uji-lkpd-kode.mjs` (baru, 40); `uji-akademik` disesuaikan (150); uji lain memakai kode baru dan tetap lulus.
 
 ## Link SEB: alamat tidak diubah di dalam SEB
 - `js/nav.js`: `?go=cbt` tidak lagi dihapus dari alamat lewat `history.replaceState` bila dibuka di Safe Exam Browser (objek `SafeExamBrowser` atau UserAgent `SEB/`, `SEB_iOS`). Sebelumnya alamat yang dikirim ke server (`sebUrl`) menjadi `?s=medina&sesi=...` tanpa `go`, berbeda dari `startURL` di file .seb, sehingga hash Config Key bisa tidak cocok bila SEB menghitungnya dari alamat awal. Di luar SEB perilaku tetap (parameter `go` dihapus).
