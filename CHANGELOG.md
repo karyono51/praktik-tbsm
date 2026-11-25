@@ -1,3 +1,10 @@
+## Edit LKPD v2 mengikuti form siswa
+- `js/lkpd-v2-struktur.js` (baru, dimuat setelah `lkpd-v2-editor.js`): urutan tab editor LKPD v2 mengikuti form siswa (Info; Materi: Tujuan & teori, Rencana pertemuan, Gerbang masuk, Alat & K3; Lembar Kerja: Langkah, Tabel data, Pemeriksaan, Syarat kirim; Evaluasi; Penilaian). Soal gerbang masuk pindah dari tab Soal ke tab Gerbang masuk.
+- **Rencana pertemuan** bisa diedit: judul, JP, menit, target praktik, kegiatan tiap pertemuan, kartu Lembar Kerja (judul, pisah per kegiatan), latihan soal, nama kegiatan, serta kegiatan, menit, dan saksi guru tiap langkah. Total JP dan alokasi waktu mengikuti pertemuan.
+- **Tabel data**: judul, kegiatan, baris, desimal, catatan, nama kolom, tambah dari dua contoh, hapus. **Pemeriksaan**: kegiatan dan sumber hasil otomatis dari tabel. **K3**: kelompok dan butir APD berparaf. **Syarat kirim**: ringkasan, isian wajib, dan foto wajib.
+- Tanpa perubahan, hasil simpan identik dengan modul asli (5 modul v2). Jumlah dan urutan langkah, butir K3, dan komponen tetap dikunci. Tidak ada perubahan server, Appwrite, atau Neon; `CBT_DB:'neon'` di `js/config.js` tidak disentuh; modul dipasang di atas kode LKPD baru (`LKPD-DDO-ALT-02` dan seterusnya).
+- Uji baru `tools/uji-lkpd-struktur.mjs` (125; modul bertabel memakai salinan ALT-02 + `fixtur-tabel-x06.js`). Uji lain, `periksa`, dan `audit-izin` tidak berubah. Dokumen: `docs-LKPD-STRUKTUR.md`.
+
 ## Pembersihan: modul banner lama dan berkas sisa dibuang
 - `js/lkpd-v2-banner.js` (banner gradien lama) dihapus bersama `tools/uji-lkpd-banner.mjs`: modul itu tidak lagi dimuat `index.html` dan tidak dirujuk berkas lain sejak kartu Kegiatan memakai kepala akordeon (`lk2-ph`, `lk2Bn`), sehingga polanya tidak pernah cocok dan ujinya gagal 3 butir sejak lama. Tampilan aplikasi tidak berubah.
 - `js/lkpd-v2-x07.js` (sisa penggantian nama X-07 menjadi X-06, tidak dimuat) ikut dihapus. `up.sh` menghapus ketiga berkas ini setelah zip dipasang (zip tidak bisa menghapus).
