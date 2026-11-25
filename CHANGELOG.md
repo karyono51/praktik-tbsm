@@ -1,3 +1,6 @@
+## CBT Online: ID sesi tampil dan bisa disalin
+- `js/banksoal.js`: kartu sesi (guru/admin) menampilkan ID sesi dan tombol **Salin ID**, dipakai untuk `tools/buat-seb.mjs --sesi=ID`. Tidak ada perubahan server.
+
 ## SEB: link langsung ke sesi ujian
 - `tools/buat-seb.mjs`: opsi baru `--sekolah`, `--go=cbt`, `--sesi=ID`. startURL memuat `?s=..&go=cbt&sesi=ID`; quitURL ikut membawa `?s=`.
 - `js/nav.js`: membaca `?sesi=ID` (divalidasi), `navSesiId()`. `js/banksoal.js`: sesi tujuan tampil paling atas dengan tanda di CBT Online. Ujian tidak dimulai otomatis.

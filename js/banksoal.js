@@ -810,7 +810,8 @@ function bsViewSesi(){
  h+=ss.map(function(s){
   var st=bsSesiStatus(s),n=BS.D.hasil.filter(function(x){return x.sesiId===s.id}).length,jml=bsJmlTxt(s)+((s.pilih!=='manual'&&s.mapelF&&s.mapelF.length)?' ('+s.mapelF.join(', ')+')':'');
   return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+st.c+'">'+st.t+'</span></div><p class="note">'+schLabelModul(s.sekolah)+' · Kelas '+esc(bsKlsLabel(s))+(s.rmb&&s.rmb.length?' ('+s.rmb.length+' rombel)':'')+' · '+jml+' · '+(s.durasi||0)+' menit · KKM '+(s.kkm||S.kkm)+'</p><p class="note">'+(s.mulai?'Mulai '+bsWaktu(s.mulai):'Tanpa jadwal mulai')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+' · '+n+' pengumpulan'+(s.acak!==false?' · diacak':'')+(s.tampil?' · pembahasan ditampilkan':'')+'</p>'+
-   '<div class="row"><button type="button" class="btn small" data-bs="sesiubah" data-q="'+s.id+'">Ubah</button><button type="button" class="btn small" data-bs="sesiaktif" data-q="'+s.id+'">'+(s.aktif===false?'Aktifkan':'Nonaktifkan')+'</button><button type="button" class="btn small" data-bs="sesihasil" data-q="'+s.id+'">Lihat hasil</button><button type="button" class="btn small" data-bs="sesigandakan" data-q="'+s.id+'">Gandakan</button><button type="button" class="btn small danger" data-bs="sesihapus" data-q="'+s.id+'">Hapus</button></div></div>';
+   '<p class="note">ID sesi (untuk file SEB per sesi): <b class="mono">'+esc(s.id)+'</b></p>'+
+   '<div class="row"><button type="button" class="btn small" data-bs="sesiubah" data-q="'+s.id+'">Ubah</button><button type="button" class="btn small" data-bs="sesisalinid" data-q="'+s.id+'">Salin ID</button><button type="button" class="btn small" data-bs="sesiaktif" data-q="'+s.id+'">'+(s.aktif===false?'Aktifkan':'Nonaktifkan')+'</button><button type="button" class="btn small" data-bs="sesihasil" data-q="'+s.id+'">Lihat hasil</button><button type="button" class="btn small" data-bs="sesigandakan" data-q="'+s.id+'">Gandakan</button><button type="button" class="btn small danger" data-bs="sesihapus" data-q="'+s.id+'">Hapus</button></div></div>';
  }).join('');
  return h;
 }
@@ -1175,6 +1176,7 @@ document.addEventListener('click',function(e){
  else if(a==='ftipe'){bsFormRead();BS.form.tipe=v;if(v==='uraian')BS.form.tujuan='ujian';if(v==='pg'&&BS.form.kunci.length>1)BS.form.kunci=[BS.form.kunci[0]];render()}
  else if(a==='simpansoal')bsFormSave();
  else if(a==='sesibaru'){BS.sf=bsNewSesi(null);render();window.scrollTo(0,0)}
+ else if(a==='sesisalinid'){var ci=String(qid||'');try{navigator.clipboard.writeText(ci).then(function(){toast('ID sesi disalin: '+ci)},function(){toast('ID sesi: '+ci)})}catch(er){toast('ID sesi: '+ci)}}
  else if(a==='sesiubah'){var sx=BS.D.sesi.filter(function(x){return x.id===qid})[0];if(sx){BS.sf=bsNewSesi(sx);render();window.scrollTo(0,0)}}
  else if(a==='sesibatal'){BS.sf=null;render()}
  else if(a==='sesisimpan')bsSfSave();
