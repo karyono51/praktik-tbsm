@@ -433,6 +433,18 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   ctx.S.tab = 'akd-lkpd';
   let h = ctx.viewAkdLkpd();
   T('halaman Peta LKPD: tiga kartu JP per kelas dengan keterangan sesuai target', /432 JP/.test(h) && /648 JP/.test(h) && /352 JP/.test(h) && (h.match(/sesuai target/g) || []).length === 3);
+  /* tampilan Tabel (bawaan) */
+  const nKode = (x) => (x.match(/<span class="mono note">LKPD-/g) || []).length;
+  T('tabel (bawaan): rekap Prodi-CP-Kelas dan daftar LKPD berkode, 54 baris', /Rekap Prodi, CP, dan Kelas/.test(h) && /Daftar LKPD berkode/.test(h) && nKode(h) === 54, nKode(h));
+  T('tabel: chips Tampilan Tabel/Kartu, pilihan Kelompokkan hanya untuk kartu', /data-akd="lv" data-id="tabel" aria-pressed="true"/.test(h) && /data-akd="lv" data-id="kartu" aria-pressed="false"/.test(h) && !/Kelompokkan:/.test(h));
+  T('tabel: jumlah semua 54 LKPD, 1432 JP; DDO kelas X 19 · 432 JP; TSM XI 23 · 648 JP, XII 12 · 352 JP', /Jumlah semua<\/td><td>19 · 432 JP<\/td><td>23 · 648 JP<\/td><td>12 · 352 JP<\/td><td>54 · 1432 JP/.test(h) && /Jumlah DDO<\/td><td>19 · 432 JP<\/td><td>–<\/td><td>–<\/td>/.test(h) && /Jumlah TSM<\/td><td>–<\/td><td>23 · 648 JP<\/td><td>12 · 352 JP<\/td>/.test(h));
+  T('tabel: CP lintas tingkat dalam satu baris (TSM-ENG: XI 5 + XII 2 = 7 LKPD)', /TSM-ENG<\/td><td>Perawatan dan perbaikan engine<\/td><td>–<\/td><td>5 · \d+ JP<\/td><td>2 · \d+ JP<\/td><td><b>7 · /.test(h));
+  T('tabel: daftar memuat kode lama, kelas, semester, TP, dan status', /LKPD-DDO-ALT-02<\/span><\/td><td>X<\/td><td>\w+<\/td><td class="akd-tj">Penggunaan dan Perawatan Alat Ukur/.test(h) && /<td class="mono">LKPD-X-06<\/td>/.test(h) && /Ada di aplikasi · Draft/.test(h));
+  AKD.lf = 'XII'; h = ctx.akLkpdCards();
+  T('tabel: filter Kelas XII hanya 12 LKPD dan rekap tanpa DDO', nKode(h) === 12 && !/Jumlah DDO/.test(h) && /Jumlah semua<\/td><td>–<\/td><td>–<\/td><td>12 · 352 JP<\/td><td>12 · 352 JP/.test(h));
+  AKD.lf = 'ALL'; AKD.lq = 'zzzz'; T('tabel: pencarian tanpa hasil memberi pesan kosong', /Belum ada LKPD yang cocok/.test(ctx.akLkpdCards())); AKD.lq = '';
+  AKD.lv = 'kartu'; h = ctx.viewAkdLkpd();
+  T('kartu: chips Kelompokkan muncul dan tabel tidak dirender', /Kelompokkan:/.test(h) && !/Rekap Prodi, CP, dan Kelas/.test(h));
   T('halaman Peta LKPD: kelompok Prodi DDO dan TSM, kartu LKPD dengan pill kelas', /DDO · Dasar-Dasar Program Keahlian Teknik Otomotif[^<]*<\/b>/.test(h) && /TSM · Teknik Sepeda Motor<\/b>/.test(h) && />Kelas X</.test(h) && />Kelas XII</.test(h) && /LKPD-TSM-EMS-0\d/.test(h) && /Penggunaan dan Perawatan Alat Ukur/.test(h));
   T('halaman Peta LKPD: padanan modul tampil (LKPD-DDO-ALT-02 tepat)', /Modul di aplikasi \(1\)/.test(h) && /LKPD-DDO-ALT-02<\/span> Penggunaan dan Perawatan Alat Ukur · tepat/.test(h));
   AKD.lf = 'XII'; h = ctx.akLkpdCards();
@@ -453,6 +465,8 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   log.rows.length = 0; await klik('ekspor');
   const pl = log.rows.find((r) => r[0] && 'Kode LKPD' in r[0]);
   T('ekspor Excel: lembar Peta LKPD memuat 54 baris dengan padanan modul', pl && pl.length === 54 && pl.find((r) => r['Kode LKPD'] === 'LKPD-DDO-ALT-02')['Modul di aplikasi'] === 'LKPD-DDO-ALT-02 (tepat)' && pl.every((r) => typeof r.JP === 'number'), pl && pl.length);
+  const rk = log.rows.find((r) => r[0] && 'Total JP' in r[0]);
+  T('ekspor Excel: lembar Rekap Prodi-CP-Kelas 14 baris, total 54 LKPD dan 1432 JP', rk && rk.length === 14 && rk.reduce((a, r) => a + r['Total LKPD'], 0) === 54 && rk.reduce((a, r) => a + r['Total JP'], 0) === 1432 && rk.find((r) => r.Prodi === 'TSM' && r['CP (singkatan)'] === 'ENG')['LKPD Kelas XII'] === 2, rk && rk.length);
 }
 
 console.log('\n' + pass + ' lulus, ' + fail + ' gagal');

@@ -21,8 +21,11 @@ Pemetaan 54 kode lama (`LKPD-X-06`, `LKPD-XI-17`, ...) ke kode baru ada di `AKD_
 ## Mengubah Peta LKPD
 `python3 tools/matriks-lkpd.py <berkas.xlsx>` membangun ulang Peta LKPD dari matriks (kode di sheet tetap kode lama). Nomor yang sudah tercatat di `AKD_LKPD_ALIAS` dipertahankan; LKPD baru mendapat nomor berikutnya dalam CP-nya. `python3 tools/matriks-lkpd.py --migrasi` hanya mengonversi blok yang sudah ada (dipakai satu kali pada pengalihan ini; aman diulang).
 
+## Tabel di Administrasi Akademik (tab Peta LKPD)
+Tampilan **Tabel** (bawaan) memuat dua tabel: **Rekap Prodi, CP, dan Kelas** (jumlah LKPD · JP per CP dan tingkat, dengan jumlah per prodi dan jumlah semua) dan **Daftar LKPD berkode** (kode, kelas, semester, judul, TP, JP, status, kode lama). Tampilan **Kartu** (pengelompokan Prodi dan CP atau Kelas saja) tetap tersedia. Filter kelas, "Ada di aplikasi", dan pencarian berlaku untuk keduanya. Tabel bergulir mendatar di HP dengan kolom kode tetap terlihat. Unduh Excel menambah lembar **Rekap Prodi-CP-Kelas**.
+
 ## Editor LKPD guru
 Tab Info punya pilihan **Prodi** dan **CP**. Pada LKPD baru, ID terisi otomatis dengan nomor berikutnya (boleh diubah). Kelas tetap bisa diganti kapan saja.
 
 ## Uji
-`node tools/uji-lkpd-kode.mjs` (40 butir).
+`node tools/uji-lkpd-kode.mjs` (40 butir); tampilan tabel diuji di `node tools/uji-akademik.mjs`.

@@ -497,10 +497,42 @@ function akLkpdCard(x){
   (pd.length?'<details><summary class=\"note\">Modul di aplikasi ('+pd.length+')</summary>'+ada+'</details>':'')+
   ((x.ct||x.us)?'<details><summary class=\"note\">Catatan dan usulan</summary>'+(x.ct?'<div class=\"note\">'+esc(x.ct)+'</div>':'')+(x.us?'<div class=\"note\">'+esc(x.us)+'</div>':'')+'</details>':'')+'</div>';
 }
+/* ---------- Tabel Peta LKPD: rekap Prodi x CP x Kelas dan daftar LKPD berkode (kode LKPD-<PRODI>-<CP>-<NN>) ---------- */
+function akLkpdJp(L){return L.reduce(function(a,x){return a+x.jp},0)}
+function akLkpdRekapBaris(all){
+ var PR=(typeof AKD_LKPD_PRODI!=='undefined'&&AKD_LKPD_PRODI)||{},CPN=(typeof AKD_LKPD_CP!=='undefined'&&AKD_LKPD_CP)||{},out=[];
+ Object.keys(PR).forEach(function(pr){Object.keys(CPN[pr]||{}).forEach(function(cp){
+  var M=all.filter(function(x){return x.pr===pr&&x.cp===cp});if(!M.length)return;
+  var r={pr:pr,cp:cp,el:CPN[pr][cp],all:M,k:{}};['X','XI','XII'].forEach(function(k){r.k[k]=M.filter(function(x){return x.kl===k})});out.push(r)})});
+ return out;
+}
+function akLkpdTabel(all){
+ var PR=(typeof AKD_LKPD_PRODI!=='undefined'&&AKD_LKPD_PRODI)||{},R=akLkpdRekapBaris(all),KL=['X','XI','XII'];
+ function sel(L){return L.length?L.length+' · '+akLkpdJp(L)+' JP':'–'}
+ var h='<div class=\"card\"><b>Rekap Prodi, CP, dan Kelas</b><div class=\"note\">Isi sel: jumlah LKPD · JP. Tingkat hanya atribut: LKPD yang dipindah tingkat berpindah kolom, kodenya tetap.</div>'+
+  '<div class=\"akd-twrap\"><table class=\"akd-tbl\"><thead><tr><th>Kode</th><th>Elemen CP</th><th>Kelas X</th><th>Kelas XI</th><th>Kelas XII</th><th>Total</th></tr></thead><tbody>';
+ Object.keys(PR).forEach(function(pr){
+  var P=R.filter(function(r){return r.pr===pr});if(!P.length)return;
+  h+='<tr class=\"akd-tg\"><td colspan=\"6\"><b>'+esc(pr)+'</b> · '+esc(PR[pr])+'</td></tr>';
+  P.forEach(function(r){h+='<tr><td class=\"mono\">'+esc(pr+'-'+r.cp)+'</td><td>'+esc(r.el)+'</td>'+KL.map(function(k){return '<td>'+sel(r.k[k])+'</td>'}).join('')+'<td><b>'+sel(r.all)+'</b></td></tr>'});
+  var A=[].concat.apply([],P.map(function(r){return r.all}));
+  h+='<tr class=\"akd-ts\"><td colspan=\"2\">Jumlah '+esc(pr)+'</td>'+KL.map(function(k){return '<td>'+sel(A.filter(function(x){return x.kl===k}))+'</td>'}).join('')+'<td>'+sel(A)+'</td></tr>';
+ });
+ h+='<tr class=\"akd-ts\"><td colspan=\"2\">Jumlah semua</td>'+KL.map(function(k){return '<td>'+sel(all.filter(function(x){return x.kl===k}))+'</td>'}).join('')+'<td>'+sel(all)+'</td></tr></tbody></table></div></div>';
+ h+='<div class=\"card\"><b>Daftar LKPD berkode</b><div class=\"akd-twrap\"><table class=\"akd-tbl akd-tbl-l\"><thead><tr><th>Kode</th><th>Kelas</th><th>Smt</th><th>Judul LKPD</th><th>TP</th><th>JP</th><th>Status</th><th>Kode lama</th></tr></thead><tbody>';
+ R.forEach(function(r){
+  h+='<tr class=\"akd-tg\"><td colspan=\"8\"><b>'+esc(r.pr+'-'+r.cp)+'</b> · '+esc(r.el)+' · '+r.all.length+' LKPD · '+akLkpdJp(r.all)+' JP</td></tr>';
+  r.all.forEach(function(x){var ada=akLkpdPadan(x.k).length>0;
+   h+='<tr><td class=\"mono\"><span class=\"mono note\">'+esc(x.k)+'</span></td><td>'+esc(x.kl)+'</td><td>'+esc(x.sm)+'</td><td class=\"akd-tj\">'+esc(x.j)+'</td><td class=\"mono\">'+esc(x.tp)+'</td><td>'+x.jp+'</td><td>'+esc(ada?'Ada di aplikasi · '+x.st:x.st)+'</td><td class=\"mono\">'+esc(x.ka||'')+'</td></tr>'});
+ });
+ return h+'</tbody></table></div></div>';
+}
+
 function akLkpdCards(){
  var q=akNorm(AKD.lq),f=AKD.lf||'ALL',cari=!!q;
  var all=akLkpdData().filter(function(x){return (f==='ALL'||(f==='ada'?akLkpdPadan(x.k).length>0:x.kl===f))&&(!q||akNorm([x.k,x.ka||'',x.pr||'',x.cp||'',x.j,x.el,x.tp,x.jn,x.sk.join(' ')].join(' ')).indexOf(q)>-1)});
  if(!all.length)return '<p class=\"muted center\">Belum ada LKPD'+(cari?' yang cocok':'')+'.</p>';
+ if((AKD.lv||'tabel')==='tabel')return akLkpdTabel(all);
  AKD.gopen=AKD.gopen||{};var out='';
  function grp(id,judul,L,buka,sub){var jp=L.reduce(function(a,x){return a+x.jp},0);
   return '<button type=\"button\" class=\"akd-grp'+(sub?' akd-sub':'')+'\"'+(sub?' style=\"margin-left:12px\"':'')+' data-akd=\"grp\" data-id=\"'+id+'\" aria-expanded=\"'+buka+'\"><span><b>'+esc(judul)+'</b><small class=\"note\"> · '+L.length+' LKPD · '+jp+' JP</small></span><span class=\"akd-chev\" aria-hidden=\"true\">'+(buka?'▾':'▸')+'</span></button>'}
@@ -532,13 +564,14 @@ function viewAkdLkpd(){
   var a=A[k]||{n:0,jp:0},t=T[k]&&T[k].jp,sel=t==null?'':(a.jp===t?'sesuai target '+t:'target '+t+', selisih '+(a.jp>t?'+':'-')+Math.abs(a.jp-t));
   return '<div class=\"card\"><span class=\"label\">Kelas '+k+'</span><b class=\"mono\">'+a.jp+' JP</b><span class=\"note\">'+a.n+' LKPD'+(T[k]&&T[k].jpm?' · '+Math.round(a.jp/T[k].jpm*10)/10+' minggu':'')+(sel?' · '+sel:'')+'</span></div>'}).join('')+'</div>';
  h+='<div class=\"chips\">'+[['ALL','Semua'],['X','Kelas X'],['XI','Kelas XI'],['XII','Kelas XII'],['ada','Ada di aplikasi']].map(function(c){return '<button type=\"button\" data-akd=\"lf\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lf||'ALL')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
- h+='<div class=\"chips\"><span class=\"note\">Kelompokkan:</span>'+[['cp','Prodi dan CP'],['kelas','Kelas saja']].map(function(c){return '<button type=\"button\" data-akd=\"lg\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lg||'cp')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
+ h+='<div class=\"chips\"><span class=\"note\">Tampilan:</span>'+[['tabel','Tabel'],['kartu','Kartu']].map(function(c){return '<button type=\"button\" data-akd=\"lv\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lv||'tabel')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
+ if((AKD.lv||'tabel')==='kartu')h+='<div class=\"chips\"><span class=\"note\">Kelompokkan:</span>'+[['cp','Prodi dan CP'],['kelas','Kelas saja']].map(function(c){return '<button type=\"button\" data-akd=\"lg\" data-id=\"'+c[0]+'\" aria-pressed=\"'+((AKD.lg||'cp')===c[0])+'\">'+c[1]+'</button>'}).join('')+'</div>';
  h+='<div class=\"card\"><label class=\"f\">Cari<input type=\"search\" data-akd=\"lq\" value=\"'+esc(AKD.lq)+'\" placeholder=\"Judul, kode LKPD (baru atau lama), TP, atau elemen CP\"></label></div>';
  h+='<div id=\"akd-list\">'+akLkpdCards()+'</div>';
  var tp=akLkpdTanpaPadan();
  h+='<div class=\"card\"><b>Modul aplikasi tanpa padanan di matriks ('+tp.length+')</b>'+
   (tp.length?tp.map(function(m){return '<div class=\"note\"><span class=\"mono\">'+esc(m.id)+'</span> '+esc(m.title)+' · Kelas '+esc(m.kelas)+'</div>'}).join(''):'<div class=\"note\">Semua modul bawaan sudah punya padanan.</div>')+
-  '<div class=\"note\">ID modul tidak diubah karena pengumpulan siswa tersimpan menurut ID. Padanan di atas awal dan perlu diverifikasi guru. Durasi modul di aplikasi (menit) adalah waktu satu sesi praktik atau ujian, bukan alokasi JP; JP matriks adalah rencana alokasi seluruh LKPD.</div></div>';
+  '<div class=\"note\">Modul LKPD v2 memakai kode baru (kode lama tersimpan sebagai alias, jadi data lama tetap terbaca); LKPD v1 (X-1 dst.) tetap memakai ID lamanya. Padanan di atas awal dan perlu diverifikasi guru. Durasi modul di aplikasi (menit) adalah waktu satu sesi praktik atau ujian, bukan alokasi JP; JP matriks adalah rencana alokasi seluruh LKPD.</div></div>';
  if(typeof AKD_LKPD_PKL!=='undefined'&&AKD_LKPD_PKL)h+='<div class=\"card\"><b>Catatan matriks</b><div class=\"note\">'+esc(typeof AKD_LKPD_CATATAN!=='undefined'?AKD_LKPD_CATATAN:'')+'</div><div class=\"note\">'+esc(AKD_LKPD_PKL)+'</div></div>';
  return h;
 }
@@ -675,6 +708,7 @@ document.addEventListener('click',async function(e){
  else if(a==='daftar'){AKD.sk=id;AKD.mem=null;AKD.form=null;S.tab='akd-siswa';render();window.scrollTo(0,0)}
  else if(a==='fl'){AKD.fl=id;render()}
  else if(a==='lf'){AKD.lf=id;render()}
+ else if(a==='lv'){AKD.lv=id==='kartu'?'kartu':'tabel';render()}
  else if(a==='lg'){AKD.lg=id==='kelas'?'kelas':'cp';render()}
  else if(a==='grp'){AKD.gopen=AKD.gopen||{};AKD.gopen[id]=AKD.gopen[id]===false;render()}
  else if(a==='sinkron')akSinkron();
@@ -736,6 +770,7 @@ function akEkspor(){
  sh('Rombel',akKelasAll().map(function(k){return {Rombel:k.nama,Tingkat:k.tingkat,Sekolah:akSekLabel(k.sekolah),'Tahun ajaran':(akById('tahun',k.tahunId)||{}).nama||'','Wali kelas':k.waliId?akNamaUser(k.waliId):'','Jumlah siswa':akSiswaRombel(k).length,Status:k.aktif===false?'Arsip':'Aktif'}}));
  sh('Mata pelajaran',akMapelAll().map(function(m){var ind=m.induk&&akById('mapel',m.induk);return {Kode:m.kode||'','Mata pelajaran':m.nama,Produktif:akProduktif(m)?'Ya':'Tidak',Kelompok:m.kelompok,Komponen:m.komponen||'','Elemen dari':ind?ind.nama:'',Fase:m.fase||'',Tingkat:(m.tingkat||[]).join(', '),JP:m.jp||'','Unit SKKNI':(m.skkni||[]).map(akSkkniKode).join(', '),Sumber:m.sumber||'',Status:m.aktif===false?'Arsip':'Aktif'}}));
  sh('Tugas mengajar',AKD.D.tugas.filter(function(t){var k=akById('kelas',t.kelasId);return !k||akOk(k)}).map(function(t){return {Guru:akNamaUser(t.guruId),'Mata pelajaran':(akById('mapel',t.mapelId)||{}).nama||'',Rombel:(akById('kelas',t.kelasId)||{}).nama||'','Tahun ajaran':akTahunNama(t.tahunId||(akById('kelas',t.kelasId)||{}).tahunId),'JP per minggu':+t.jp||0,Status:akBerlaku(t)?'Berlaku':'Tidak berlaku'}}));
+ sh('Rekap Prodi-CP-Kelas',akLkpdRekapBaris(akLkpdData()).map(function(r){var o={Prodi:r.pr,'CP (singkatan)':r.cp,'Elemen CP':r.el};['X','XI','XII'].forEach(function(k){o['LKPD Kelas '+k]=r.k[k].length;o['JP Kelas '+k]=akLkpdJp(r.k[k])});o['Total LKPD']=r.all.length;o['Total JP']=akLkpdJp(r.all);return o}));
  sh('Peta LKPD',akLkpdData().map(function(x){var pd=akLkpdPadan(x.k);return {'Kode LKPD':x.k,'Kode lama':x.ka||'',Prodi:x.pr||'','CP (singkatan)':x.cp||'',Kelas:x.kl,Semester:x.sm,'Elemen CP':x.el,'Kode TP':x.tp,'Judul LKPD':x.j,'Jenis LKPD':x.jn,JP:x.jp,'Estimasi minggu':x.mg,Pertemuan:akPertemuan(x),'Unit SKKNI':x.sk.length?x.sk.map(akSkkniKode).join(', '):(x.skt||''),'Status matriks':x.st,'Modul di aplikasi':pd.map(function(p){return p[0]+' ('+p[1]+')'}).join('; ')}}));
  XLSX.writeFile(wb,'administrasi-akademik-'+(schKode()||'semua').toLowerCase()+'-'+ymd(Date.now())+'.xlsx');
 }

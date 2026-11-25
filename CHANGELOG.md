@@ -1,3 +1,8 @@
+## Administrasi Akademik: tabel Peta LKPD per prodi, CP, dan kelas
+- `js/akademik.js`: tab Peta LKPD punya tampilan **Tabel** (bawaan) dan **Kartu**. Tabel 1: Rekap Prodi, CP, dan Kelas (jumlah LKPD · JP per CP untuk Kelas X, XI, XII, jumlah per prodi dan jumlah semua). Tabel 2: Daftar LKPD berkode (kode, kelas, semester, judul, TP, JP, status, kode lama). Filter dan pencarian berlaku untuk keduanya. Catatan usang "ID modul tidak diubah" diperbarui.
+- Unduh Excel analisis: lembar baru **Rekap Prodi-CP-Kelas**. `css/app.css`: gaya `.akd-tbl` (gulir mendatar di HP, kolom kode tetap).
+- Uji: `uji-akademik` 159 lulus (butir tabel dan Excel ditambah).
+
 ## LKPD: kode berbasis prodi dan CP (tanpa tingkat), kode lama tetap terbaca
 - Kode baru `LKPD-<PRODI>-<CP>-<NN>` (mis. `LKPD-DDO-ALT-02`, `LKPD-TSM-PMT-03`); `DDO` = dasar bersama semua prodi otomotif, `TSM`, `TKR` disiapkan. Tingkat (X, XI, XII) tidak lagi ada di kode, hanya isian kelas, sehingga LKPD bisa naik atau turun tingkat tanpa mengubah kode. Rincian: `docs-LKPD-KODE.md`.
 - `tools/matriks-lkpd.py`: menurunkan kode baru (`k`), kode lama (`ka`), `pr`, `cp`, dan blok `AKD_LKPD_PRODI`, `AKD_LKPD_CP`, `AKD_LKPD_ALIAS` (54 kode); nomor stabil; mode `--migrasi` mengonversi blok yang ada tanpa xlsx. `js/akademik-data.js`: Peta LKPD 54 baris berkode baru, padanan modul ikut.

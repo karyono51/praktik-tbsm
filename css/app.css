@@ -561,3 +561,15 @@ fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);out
 .lk2-p:not(.is-open) .lk2-pb{display:none}
 .lk2-p.is-open{border-color:var(--pri,#1b5e20)}
 @media print{.lk2-p .lk2-pb{display:block!important}.lk2-ph::after{display:none}}
+
+/* Tabel Peta LKPD (Administrasi Akademik): gulir mendatar di HP, kolom kode tetap terlihat */
+.akd-twrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:8px;border:1px solid var(--line);border-radius:12px}
+.akd-tbl{border-collapse:separate;border-spacing:0;width:100%;min-width:560px;font-size:12.5px;line-height:1.35}
+.akd-tbl-l{min-width:860px}
+.akd-tbl th,.akd-tbl td{padding:7px 9px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.akd-tbl thead th{background:var(--surface,#fff);color:var(--muted);font-weight:600;white-space:nowrap;position:sticky;top:0}
+.akd-tbl td:first-child,.akd-tbl th:first-child{position:sticky;left:0;background:var(--surface,#fff);white-space:nowrap;z-index:1}
+.akd-tbl .akd-tg td{background:var(--bg,#f4f6f8);position:static;white-space:normal}
+.akd-tbl .akd-ts td{font-weight:600;background:var(--bg,#f4f6f8)}
+.akd-tbl .akd-tj{min-width:220px}
+.akd-tbl td.mono,.akd-tbl .mono{white-space:nowrap}
