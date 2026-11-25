@@ -41,7 +41,7 @@ viewLKPD=function(){
  if(!LK.open&&!LK.detail&&!LK.editor)return lkListView();
  var h=viewLKPD0();
  if(LK.detail)return h;
- return '<div class="row"><button type="button" class="btn small" data-act="lkc-list">‹ Daftar LKPD '+lkEsc(lkcKelasInfo(S.kelas).judul)+'</button></div>'+h;
+ return '<div class="row"><button type="button" class="btn small" data-act="lkc-list">‹ Daftar LKPD'+((typeof isStaff==='function'&&isStaff()&&LK.tab==='riwayat')?'':' '+lkEsc(lkcKelasInfo(S.kelas).judul))+'</button></div>'+h;
 };
 /* Unit Ujian lama (sementara): pilih kelas lewat chip karena baris kelas di dasbor kini membuka LKPD */
 /* v100: tombol Kelas X/XI/XII di atas Unit Ujian dihapus; kelas dipilih lewat menu dasbor (baris UKK Kelas X/XI/XII) */

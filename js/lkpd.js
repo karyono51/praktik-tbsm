@@ -20,7 +20,21 @@ function lkEditorForm(v){function f(n,label,wide,rows,type){return '<label class
 /* Komponen dianggap terisi bila Hasil aktual berisi dan Status sudah dipilih (tanpa ceklis "Sudah terisi"). */
 function lkRowOk(d,i){var st=d['status'+i];return String(d['actual'+i]||'').trim()!==''&&!!st&&st!=='Belum diperiksa'}
 function lkProgress(m,d){function n(pre,arr){return arr.filter(function(x,i){return d[pre+i]}).length}var ans=m.quiz.filter(function(q,i){return lkqAnswered(q,d['q'+i])}).length,it=[['K3',n('safe',m.safety),m.safety.length],['Langkah',n('step',m.steps),m.steps.length],['Periksa',m.checks.filter(function(x,i){return lkRowOk(d,i)}).length,m.checks.length],['Soal',ans,m.quiz.length]];return it.map(function(x){return '<span class="lk-prog'+(x[1]===x[2]?' done':'')+'">'+x[0]+' '+x[1]+'/'+x[2]+'</span>'}).join('')}
-function lkDetailBody(z,p){if(!p||typeof p!=='object')p={};var m=LKPD_MODULES.find(function(x){return x.id===z.moduleId});if(!m)return '<pre class="lk-json">'+lkEsc(JSON.stringify(p,null,2))+'</pre>';
+/* Cadangan bila modul LKPD asal tidak ditemukan (dihapus, belum termuat, atau kodenya berganti): tampilkan ringkasan terbaca, bukan JSON mentah. */
+function lkDetailRingkas(z,p){
+ var keys=Object.keys(p||{}),num=function(re){return keys.filter(function(k){return re.test(k)})},
+  safe=num(/^safe\d+$/),step=num(/^step\d+$/),qs=num(/^q\d+$/).filter(function(k){return p[k]!==''&&p[k]!=null&&p[k]!==false}),
+  on=function(a){return a.filter(function(k){return p[k]===true||p[k]==='true'}).length},
+  idl=[['Sekolah','school'],['Nama siswa','student'],['Kelas','class'],['Kelompok','group'],['Tanggal','date'],['Tipe kendaraan','vehicle'],['Guru/instruktur','teacher'],['Alat ukur','meter']].filter(function(x){return p[x[1]]}),
+  txt=[['evidence','Bukti pemeriksaan'],['cause','Kemungkinan penyebab'],['recommend','Rekomendasi tindakan'],['conclusion','Kesimpulan'],['reflection','Refleksi'],['testCondition','Kondisi/catatan pengukuran']].filter(function(x){return p[x[0]]}),
+  rows=num(/^actual\d+$/).map(function(k){return k.slice(6)}),
+  h='<p class="note">Modul LKPD asal ('+lkEsc(z.moduleId||z.moduleTitle||'-')+') tidak ditemukan di daftar modul saat ini, jadi isian ditampilkan sebagai ringkasan dari data tersimpan. Nilai dan koreksi guru tetap berlaku.</p>';
+ if(idl.length)h+='<h3>Identitas</h3><div class="lk-kv">'+idl.map(function(x){return '<div><span>'+x[0]+'</span><b>'+lkEsc(p[x[1]])+'</b></div>'}).join('')+'</div>';
+ h+='<h3>Ketercapaian</h3><p class="note">'+(safe.length?'K3 '+on(safe)+'/'+safe.length+' · ':'')+(step.length?'Langkah '+on(step)+'/'+step.length+' · ':'')+'Soal evaluasi terjawab '+qs.length+'</p>';
+ if(rows.length)h+='<h3>Hasil pemeriksaan</h3><div class="tablewrap"><table><thead><tr><th>No</th><th>Hasil aktual</th><th>Standar manual</th><th>Status</th><th>Catatan</th></tr></thead><tbody>'+rows.map(function(i){return '<tr><td data-label="No">'+(+i+1)+'</td><td data-label="Hasil aktual">'+lkEsc(p['actual'+i]||'-')+'</td><td data-label="Standar manual">'+lkEsc(p['standard'+i]||'-')+'</td><td data-label="Status">'+lkEsc(p['status'+i]||'Belum diperiksa')+'</td><td data-label="Catatan">'+lkEsc(p['note'+i]||'-')+'</td></tr>'}).join('')+'</tbody></table></div>';
+ if(txt.length)h+='<h3>Diagnosis dan analisis</h3>'+txt.map(function(x){return '<p><b>'+x[1]+'</b><br><span class="lk-text">'+lkEsc(p[x[0]])+'</span></p>'}).join('');
+ return h+'<details><summary class="note">Data mentah (untuk teknisi)</summary><pre class="lk-json">'+lkEsc(JSON.stringify(p,null,2))+'</pre></details>'}
+function lkDetailBody(z,p){if(!p||typeof p!=='object')p={};var m=LKPD_MODULES.find(function(x){return x.id===z.moduleId})||(z.moduleTitle?LKPD_MODULES.find(function(x){return x.title===z.moduleTitle&&(!z.kelas||!x.kelas||x.kelas===z.kelas)}):null);if(!m)return lkDetailRingkas(z,p);
  var id=[['Sekolah',p.school],['Nama siswa',p.student],['Kelas',p.class],['Kelompok',p.group],['Tanggal',p.date],['Tipe kendaraan',p.vehicle],['Guru/instruktur',p.teacher],['Alat ukur',p.meter]],
  h='<h3>Identitas</h3><div class="lk-kv">'+id.map(function(x){return '<div><span>'+x[0]+'</span><b>'+lkEsc(x[1]||'-')+'</b></div>'}).join('')+'</div>';
  function cnt(pre,arr){return arr.filter(function(x,i){return p[pre+i]}).length+'/'+arr.length}
