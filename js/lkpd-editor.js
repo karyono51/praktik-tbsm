@@ -15,6 +15,7 @@ var LKE={
 '.lke-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between}'+
 '.lke-tabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:thin}.lke-tabs button{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--muted)}'+
 '.lke-tabs button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--onc)}'+
+'.lke-grps{display:grid;gap:6px;margin:0 0 8px}.lke-grps button{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 4px;color:var(--muted);font-weight:700}.lke-grps button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--onc)}.lke-grps .lke-gn{font-size:11px;opacity:.7}.lke-grps .lke-gt{font-size:12.5px;line-height:1.2;text-align:center}.lke-grps button[aria-pressed=true] .lke-badge.ok{background:rgba(255,255,255,.25);color:#fff}.lke-sub{margin:0 0 8px}'+
 '.lke-badge{min-width:18px;height:18px;border-radius:9px;padding:0 5px;font-size:11px;line-height:18px;text-align:center;font-weight:700;background:var(--bad);color:#fff}.lke-badge.ok{background:var(--ok-bg);color:var(--ok)}'+
 '.lke-tabs button[aria-pressed=true] .lke-badge.ok{background:rgba(255,255,255,.25);color:#fff}'+
 '.lke-health{border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5;background:var(--ok-bg);color:var(--ok)}.lke-health.warn{background:var(--warn-bg);color:var(--warn)}'+
@@ -268,11 +269,20 @@ function lkeCalc(d){
  return '';
 }
 function lkeCalc2(d){var pr=lkeNum(d.S.w.practice);pr=pr>=0&&pr<=100?pr:0;return '<div class="row sb"><b>Praktik '+pr+'%</b><b>Teori '+(100-pr)+'%</b></div><div class="lke-bar2"><i style="width:'+pr+'%"></i></div>'}
+var LKE_GRUP=[['info','Info',['info']],['materi','Materi',['tujuan','rencana','gerbang','bahan']],['kerja','Lembar Kerja',['langkah','tabel','cek','kirim']],['nilai','Evaluasi',['soal','nilai']]];
 function lkeBar(d){
  var I=lkeIssues(d),cnt={};I.forEach(function(x){cnt[x.tab]=(cnt[x.tab]||0)+1});
- var tabs='<div class="lke-tabs" role="tablist">'+LKE.TABS.map(function(t){return '<button type="button" role="tab" data-lke-a="tab" data-v="'+t[0]+'" aria-pressed="'+(d.tab===t[0])+'">'+t[1]+'<span class="lke-badge'+(cnt[t[0]]?'':' ok')+'">'+(cnt[t[0]]||'✓')+'</span></button>'}).join('')+'</div>';
+ var ada={};LKE.TABS.forEach(function(t){ada[t[0]]=t[1]});
+ var gs=LKE_GRUP.map(function(g){return{k:g[0],n:g[1],t:g[2].filter(function(id){return ada[id]})}}).filter(function(g){return g.t.length});
+ var aktif=gs.filter(function(g){return g.t.indexOf(d.tab)>-1})[0]||gs[0];
+ function badge(n){return '<span class="lke-badge'+(n?'':' ok')+'">'+(n||'✓')+'</span>'}
+ var top='<div class="lke-grps" role="tablist" style="grid-template-columns:repeat('+gs.length+',1fr)">'+gs.map(function(g,gi){
+  var n=g.t.reduce(function(a,id){return a+(cnt[id]||0)},0),go=g===aktif?d.tab:g.t[0];
+  return '<button type="button" role="tab" data-lke-a="tab" data-v="'+go+'" aria-pressed="'+(g===aktif)+'"><span class="lke-gn">'+(gi+1)+'</span><span class="lke-gt">'+g.n+'</span>'+badge(n)+'</button>'}).join('')+'</div>';
+ var sub=aktif.t.length>1?'<div class="lke-tabs lke-sub" role="tablist" aria-label="Bagian '+aktif.n+'">'+aktif.t.map(function(id){
+  return '<button type="button" role="tab" data-lke-a="tab" data-v="'+id+'" aria-pressed="'+(d.tab===id)+'">'+ada[id]+badge(cnt[id])+'</button>'}).join('')+'</div>':'';
  var hl=I.length?'<div class="lke-health warn"><b>'+I.length+' hal perlu dilengkapi sebelum disimpan</b><ul>'+I.slice(0,3).map(function(x){return '<li><button type="button" data-lke-a="tab" data-v="'+x.tab+'">'+esc(x.msg)+'</button></li>'}).join('')+(I.length>3?'<li>dan '+(I.length-3)+' lainnya</li>':'')+'</ul></div>':'<div class="lke-health"><b>Semua bagian lengkap.</b> LKPD siap disimpan.</div>';
- return tabs+hl;
+ return top+sub+hl;
 }
 
 /* ---------- Soal ---------- */
@@ -481,3 +491,24 @@ document.addEventListener('change',function(e){
  lkeSet(p,t.type==='checkbox'?t.checked:t.value);
  lkeLive();
 });
+
+/* Tab editor yang sedang dibuka selalu di tengah bilah tab (LKPD dan UKK). */
+(function(){
+ function pusat(){
+  var bars=document.querySelectorAll('.lke-tabs');
+  for(var i=0;i<bars.length;i++){
+   var nv=bars[i],c=nv.querySelector('[aria-pressed="true"]');
+   if(!c)continue;
+   var x=c.offsetLeft-(nv.clientWidth-c.offsetWidth)/2;
+   nv.scrollLeft=Math.max(0,x);
+  }
+ }
+ if(typeof render==='function'){
+  var r0=render;
+  render=function(){
+   var h=r0.apply(this,arguments);
+   try{pusat();if(window.requestAnimationFrame)requestAnimationFrame(pusat)}catch(e){}
+   return h;
+  };
+ }
+})();

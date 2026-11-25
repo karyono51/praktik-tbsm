@@ -17,7 +17,7 @@
    Bergantung pada: lkpd-editor.js (lke*), lkpd-v2-editor.js (lkv*). */
 var LKS={
  BASE:LKE.TABS.slice(),
- TABS:[['info','Info'],['tujuan','Tujuan & teori'],['rencana','Rencana pertemuan'],['gerbang','Gerbang masuk'],['bahan','Alat & K3'],['langkah','Langkah'],['tabel','Tabel data'],['cek','Pemeriksaan'],['kirim','Syarat kirim'],['soal','Evaluasi'],['nilai','Penilaian']],
+ TABS:[['info','Info'],['tujuan','Tujuan & teori'],['rencana','Rencana pertemuan'],['gerbang','Gerbang masuk'],['bahan','Alat & K3'],['langkah','Langkah'],['tabel','Tabel data'],['cek','Pemeriksaan'],['kirim','Syarat kirim'],['soal','Soal evaluasi'],['nilai','Penilaian']],
  GRP:{tujuan:'Materi',langkah:'Lembar Kerja',soal:'Evaluasi'},
  NEW:{rencana:1,gerbang:1,tabel:1,kirim:1}
 };
@@ -218,9 +218,6 @@ function lksAutoOk(v,A){
  lkeBar=function(d){
   var h=b0.apply(this,arguments);
   if(!lkvIs(d))return h;
-  Object.keys(LKS.GRP).forEach(function(k){
-   h=h.replace('<button type="button" role="tab" data-lke-a="tab" data-v="'+k+'"',function(s){return '<span class="lks-grp">'+LKS.GRP[k]+'</span>'+s});
-  });
   return h;
  };
  var n0=lkeTabNilai;
