@@ -1,3 +1,8 @@
+## CBT: jeda simpan jawaban lebih jarang dan bisa diatur (hemat kuota Appwrite gratis)
+- `js/cbt.js`, `js/ujian-server.js`, `js/config.js`: simpan berkala 60 detik menjadi **90 detik** (`CBT_DENYUT`, dijepit 30 sampai 120 detik), simpan setelah jawaban berubah 10 sampai 14 detik menjadi **30 sampai 34 detik** (`CBT_SIMPAN`, dijepit 10 sampai 60 detik). Dikunci pengawas tetap 8 detik. Simpan saat aplikasi disembunyikan, online kembali, pindah soal tertentu, dan Selesai tidak berubah.
+- Perkiraan: tulis database dan eksekusi fungsi per siswa per ujian turun sekitar separuh. Jawaban terakhir yang belum terkirim tetap ada di perangkat. Batas "tidak aktif" Pantau 2,5 menit tetap di atas 90 detik.
+- Uji: `uji-cbt` 160, `periksa`, `audit-izin` tanpa temuan baru.
+
 ## CBT Online: ID sesi tampil dan bisa disalin
 - `js/banksoal.js`: kartu sesi (guru/admin) menampilkan ID sesi dan tombol **Salin ID**, dipakai untuk `tools/buat-seb.mjs --sesi=ID`. Tidak ada perubahan server.
 

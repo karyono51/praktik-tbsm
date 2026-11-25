@@ -31,7 +31,12 @@
  function viol(r){return Math.max(0,(r.pindah||0)-(r.pb||0))}
  function locked(r){var p=pol(r);return !!r&&r.mode==='ujian'&&p.aksi==='kunci'&&p.batas>0&&viol(r)>=p.batas}
  function inExam(){var r=BS.run;return !!(r&&r.mode==='ujian'&&!r.done&&bsOn()&&BS.sub==='run')}
- window.cbtDenyutMs=function(r){return locked(r)?8000:((window.CFG&&CFG.CBT_DENYUT)||60000)};
+ /* Hemat kuota Appwrite (paket gratis: 250K tulis dan 750K eksekusi per bulan). Tiap simpan = 1 eksekusi fungsi + 1 tulis.
+   CBT_DENYUT: simpan berkala saat tidak ada perubahan (bawaan 90000 ms, dijepit 30000 sampai 120000 supaya Pantau tidak menganggap siswa diam; batas diam Pantau 150 detik).
+   CBT_SIMPAN: tunda simpan setelah jawaban berubah (bawaan 30000 ms, dijepit 10000 sampai 60000). Dikunci pengawas tetap 8 detik. */
+ function klem(v,d,a,b){v=+v;if(!(v>0))v=d;return Math.max(a,Math.min(b,v))}
+ window.cbtDenyutMs=function(r){return locked(r)?8000:klem(window.CFG&&CFG.CBT_DENYUT,90000,30000,120000)};
+ window.cbtSimpanMs=function(){return klem(window.CFG&&CFG.CBT_SIMPAN,30000,10000,60000)};
  /* ext (tambahan detik), stop (diakhiri guru), pb (batas pelanggaran yang dibuka guru) dari catatan ujian */
  window.cbtApply=function(r,d){
   if(!r||!d)return;

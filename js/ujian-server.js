@@ -103,7 +103,7 @@
  function sched(){
   var r=BS.run;if(!r||r.mode!=='ujian'||!r.rid||(st.noCol&&!(window.bsAman&&bsAman())))return;
   r.dirty=1;
-  if(!st.timer)st.timer=setTimeout(push,10000+Math.random()*4000);
+  if(!st.timer)st.timer=setTimeout(push,(window.cbtSimpanMs?cbtSimpanMs():10000)+Math.random()*4000);
  }
  var bsRunSave0=bsRunSave;
  bsRunSave=function(){bsRunSave0();sched()};
@@ -113,7 +113,7 @@
  window.addEventListener('pagehide',segera);
  /* denyut: tiap 4 menit satu tulis ringan juga menyegarkan sampel jam server */
  window.bsPushNow=function(){if(st.timer){clearTimeout(st.timer);st.timer=0}return push()};
- setInterval(function(){var r=BS.run;if(!r||r.mode!=='ujian'||!r.rid)return;var gap=window.cbtDenyutMs?cbtDenyutMs(r):60000;if(r.dirty)gap=Math.min(gap,15000);if(Date.now()-(r.lastPush||0)>gap)window.bsPushNow()},4000);
+ setInterval(function(){var r=BS.run;if(!r||r.mode!=='ujian'||!r.rid)return;var gap=window.cbtDenyutMs?cbtDenyutMs(r):60000;if(r.dirty)gap=Math.min(gap,(window.cbtSimpanMs?cbtSimpanMs():15000)+4000);if(Date.now()-(r.lastPush||0)>gap)window.bsPushNow()},4000);
  window.addEventListener('online',segera);
 
  /* Tandai selesai di server setelah hasil dibuat */
