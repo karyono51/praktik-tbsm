@@ -491,13 +491,14 @@ function bsViewSiswa(){
  if(BS.sub==='riwayat')return bsViewRiwayat();
  var kelas=S.user.kelas||'',h='',run=BS.run;
  if(run)h+='<div class="card bs-resume"><b>'+(run.mode==='ujian'?'Ujian sedang berjalan':'Latihan belum selesai')+'</b><p class="note">'+esc(bsJudul(run))+' · '+Object.keys(run.ans).length+' dari '+run.ids.length+' soal terjawab</p><button type="button" class="btn primary" data-bs="lanjut">Lanjutkan</button></div>';
- var sesi=bsSesiUntuk(kelas).filter(function(s){return bsSesiStatus(s).k!=='off'}).sort(function(a,b){return (b.ts||0)-(a.ts||0)});
+ var tujuan=(cbt&&typeof navSesiId==='function')?navSesiId():'';
+ var sesi=bsSesiUntuk(kelas).filter(function(s){return bsSesiStatus(s).k!=='off'}).sort(function(a,b){return ((b.id===tujuan)-(a.id===tujuan))||((b.ts||0)-(a.ts||0))});
  if(cbt)h+='<section class="recent"><div class="sechead"><h2>Ujian</h2></div>';
  if(cbt&&!sesi.length)h+='<p class="muted">Belum ada sesi ujian untuk kelasmu.</p>';
  if(cbt)h+=sesi.map(function(s){
   var st=bsSesiStatus(s),done=BS.D.hasil.filter(function(x){return x.sid===S.user.id&&x.sesiId===s.id&&x.mode==='ujian'})[0],go=st.k==='on'&&!done&&!(run&&run.sesiId===s.id);
   var jml=s.pilih==='manual'?(s.ids||[]).length:bsGrup(s)?bsGrup(s).reduce(function(a,g){return a+g.n},0):(s.jumlah||'semua');
-  return '<div class="card"><div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+(done?'ok':st.c)+'">'+(done?'Selesai':st.t)+'</span></div><p class="note">'+jml+' soal · '+(s.durasi||0)+' menit'+(s.mulai?' · mulai '+bsWaktu(s.mulai):'')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+(s.tok?' · pakai token':'')+'</p>'+
+  return '<div class="card"'+(tujuan&&s.id===tujuan?' style="border:2px solid var(--primary,#1a73e8)"':'')+'>'+(tujuan&&s.id===tujuan?'<p class="note"><b>Ujian untuk file SEB ini</b></p>':'')+'<div class="row sb"><b>'+esc(s.judul)+'</b><span class="pill '+(done?'ok':st.c)+'">'+(done?'Selesai':st.t)+'</span></div><p class="note">'+jml+' soal · '+(s.durasi||0)+' menit'+(s.mulai?' · mulai '+bsWaktu(s.mulai):'')+(s.selesai?' · tutup '+bsWaktu(s.selesai):'')+(s.tok?' · pakai token':'')+'</p>'+
    (done?'<p>Nilai: <b class="mono">'+done.score+'</b> ('+done.benar+' benar dari '+done.total+')</p>':'')+
    (window.pdBaris?pdBaris(s,done):'')+
    (go?'<button type="button" class="btn primary" data-bs="mulaiujian" data-v="'+s.id+'">Mulai ujian</button>':'')+'</div>';

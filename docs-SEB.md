@@ -27,3 +27,11 @@
 - Tab **Pantau** menampilkan kartu "Perlu perhatian" bila ada siswa yang belum mulai dan ditolak dalam 15 menit terakhir, lengkap dengan petunjuk perbaikan (Config Key: periksa file .seb sekolah yang benar, SEB_CONFIG_KEYS, dan deploy ulang fungsi).
 - Catatan disimpan di koleksi `soal_kunci` (dokumen `si_...`, tanpa skema baru), paling banyak 100 siswa terbaru per sesi, satu tulisan per siswa tiap 15 detik. Gagal menulis tidak mengubah hasil penolakan.
 - Aksi server baru `sebTolak` (guru, admin, proktor; proktor hanya melihat siswa ruangnya). **Fungsi akun-admin harus di-deploy ulang** agar aksi ini dikenali.
+
+## Link SEB langsung ke sesi ujian
+- Dua pilihan saat membuat file .seb:
+  - `node tools/buat-seb.mjs https://ALAMAT --sekolah=medina --go=cbt`: **satu file untuk semua sesi**. Setelah masuk, siswa langsung di halaman CBT Online. Satu Config Key saja. Cocok untuk UTS/UAS yang tiap kelas hanya punya satu sesi terbuka.
+  - `node tools/buat-seb.mjs https://ALAMAT --sekolah=medina --sesi=ID_SESI --nama=UTS-XI-TSM1`: **satu file per sesi**. Sesi itu tampil paling atas dengan bingkai dan tulisan "Ujian untuk file SEB ini". Setiap file punya Config Key sendiri (startURL berbeda); gabungkan semua key di `SEB_CONFIG_KEYS`, dipisah koma, lalu deploy ulang fungsi.
+- Ujian **tidak dimulai otomatis**: siswa tetap menekan Mulai ujian dan menyetujui konfirmasi, karena waktu langsung berjalan.
+- Verifikasi Config Key tidak berubah: server menghitung SHA-256(alamat yang dikirim SEB + Config Key), sehingga parameter `?go=cbt&sesi=...` ikut terhitung dan aman. Siswa tetap tidak bisa memalsukannya tanpa Config Key.
+- ID sesi hanya huruf, angka, `-`, dan `_` (maksimal 64). Bila sesi tidak ditemukan atau bukan untuk kelas siswa, daftar ujian tampil seperti biasa.

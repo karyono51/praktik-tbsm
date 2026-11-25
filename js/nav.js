@@ -7,7 +7,13 @@ var NAVTABS=['beranda','katalog','rekap','akun','acuan','lkpd','observasi','obse
 var NAVPERM={akun:'akun',observasi:'observasi','observasi-siswa':'observasi','observasi-ukk':'observasi','nilai-akhir-ukk':'observasi',kompetensi:'nilai',hapusnilai:'hapus'};
 
 /* ---- Tautan langsung: ?go=cbt membuka halaman CBT Online (sesi ujian) setelah masuk ---- */
-var NAVGO='tbsm-go',NAVGOTAB={cbt:'cbtonline',bank:'banksoal'};
+var NAVGO='tbsm-go',NAVGOTAB={cbt:'cbtonline',bank:'banksoal'},NAVSESI='tbsm-sesi';
+/* ?sesi=ID (dipakai file .seb per sesi): sesi itu ditampilkan paling atas di CBT Online. Parameter dibiarkan di alamat supaya hash Config Key SEB tetap dihitung atas alamat yang sama. Tidak memulai ujian otomatis. */
+(function(){
+ try{var sx=String(new URLSearchParams(location.search).get('sesi')||'');
+  if(/^[A-Za-z0-9_-]{1,64}$/.test(sx))sessionStorage.setItem(NAVSESI,sx)}catch(e){}
+})();
+function navSesiId(){try{return sessionStorage.getItem(NAVSESI)||''}catch(e){return ''}}
 (function(){
  try{var g=String(new URLSearchParams(location.search).get('go')||'').toLowerCase();
   if(NAVGOTAB[g]){sessionStorage.setItem(NAVGO,g);

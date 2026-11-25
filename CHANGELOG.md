@@ -1,3 +1,9 @@
+## SEB: link langsung ke sesi ujian
+- `tools/buat-seb.mjs`: opsi baru `--sekolah`, `--go=cbt`, `--sesi=ID`. startURL memuat `?s=..&go=cbt&sesi=ID`; quitURL ikut membawa `?s=`.
+- `js/nav.js`: membaca `?sesi=ID` (divalidasi), `navSesiId()`. `js/banksoal.js`: sesi tujuan tampil paling atas dengan tanda di CBT Online. Ujian tidak dimulai otomatis.
+- Server tidak berubah: Config Key dihitung atas alamat lengkap yang dikirim SEB. Per-sesi = Config Key sendiri, gabungkan di `SEB_CONFIG_KEYS`.
+- `docs-SEB.md`: bagian "Link SEB langsung ke sesi ujian". Uji: `uji-seb-keluar`, `uji-cbt` (160) lulus.
+
 ## LKPD v2: modul baru LKPD-X-18 (Membongkar, Memeriksa, dan Memasang Komponen sesuai Manual Servis)
 - `js/lkpd-v2-x18.js` (baru, hanya data, Draft, tidak aktif): Kelas X Genap, TP X.6.4, job sheet praktik, **36 JP = 9 pertemuan x 4 JP (180 menit)** sesuai matriks ringkas jam revisi; unit SKKNI 034, 049 (L3), 051 (L3), 052 (L3) sebagai usulan yang perlu diverifikasi.
 - Susunan: Pertemuan 1 (pemantik, materi, gerbang, APD, cek alat) dan Pertemuan 9 (penilaian kinerja, refleksi, remedial atau pengayaan) tanpa kegiatan; Pertemuan 2 sampai 8 = Kegiatan 1 sampai 7, satu kartu per pertemuan (tidak disatukan): 1 manual servis dan cover body, 2 pengencangan sesuai torsi dan urutan, 3 kepala silinder, 4 silinder, piston, dan ring, 5 generator section, 6 kopling dan transmisi (bak transmisi tidak dibuka; poros dan gigi tetap di LKPD-XI-17), 7 uji fungsi dan laporan servis. Tiap kegiatan menutup siklus bongkar, periksa, pasang sehingga engine utuh di akhir pertemuan.
