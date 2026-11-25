@@ -32,7 +32,7 @@ function navGo(u){
 /* ---- Simpan dan pulihkan posisi halaman ---- */
 function navSave(){
  if(!S.user||V.mode!=='list')return;
- try{localStorage.setItem(NAVK,JSON.stringify({u:S.user.id,t:Date.now(),tab:S.tab,kelas:S.kelas,lm:LK.module,lt:LK.tab,lo:!!LK.open,lp:!!(LK.open&&LK.preview),kf:LK.kf||''}))}catch(e){}
+ try{localStorage.setItem(NAVK,JSON.stringify({u:S.user.id,t:Date.now(),tab:S.tab,kelas:S.kelas,lm:LK.module,lt:LK.tab,lo:!!LK.open,lp:!!(LK.open&&LK.preview),kf:LK.kf||'',le:(LK.open&&LK.editor&&isStaff())?{id:LK.editor.id||'',n:!!LK.editor.isNew,t:LK.editor.tab||'info',k:LK.editor.kelas||''}:null}))}catch(e){}
 }
 function navApply(u){
  var j;try{j=JSON.parse(localStorage.getItem(NAVK)||'null')}catch(e){j=null}
@@ -43,6 +43,13 @@ function navApply(u){
  if(j.tab==='lkpd'){
   if(j.lm)LK.module=j.lm;LK.kf=j.kf||'';LK.open=!!j.lo;LK.preview=!!(j.lp&&j.lo&&isStaff());
   if(['materi','kerja','evaluasi','riwayat'].indexOf(j.lt)>-1)LK.tab=j.lt;
+  /* editor LKPD yang sedang dibuka ikut dipulihkan (beserta tab dan draf otomatis) */
+  if(j.le&&j.lo&&isStaff()){try{
+   var em=j.le.id?LKPD_MODULES.find(function(x){return x.id===j.le.id}):null;
+   if(em||j.le.n){var ed=lkEditorDefaults(em||null);
+    if(!em){ed.kelas=j.le.k||S.kelas;if(KELAS[ed.kelas])ed.fase=KELAS[ed.kelas].fase}
+    ed.tab=j.le.t||'info';ed.auto=true;LK.tab='editor';LK.preview=false;LK.detail=null;LK.editor=ed}
+  }catch(e){}}
  }
 }
 (function(){

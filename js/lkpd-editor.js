@@ -62,6 +62,7 @@ function lkeInit(d){
  try{
   var raw=JSON.parse(localStorage.getItem(LKE.DKEY)||'null'),k=d.id||'(baru)';
   if(raw&&raw.k===k&&raw.S&&JSON.stringify(raw.S)!==d.snap&&Date.now()-raw.ts<14*864e5)d.rec=raw;
+  if(d.auto&&d.rec){d.S=d.rec.S;d.rec=null;d.auto=false}
  }catch(e){}
  return s;
 }
