@@ -139,6 +139,12 @@ body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
 .bp-i{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;font-size:14px;line-height:1.4;font-weight:500;min-height:44px;padding:10px 12px;border-radius:12px}
 .bp-i[aria-selected=true]{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .bp-i:disabled{opacity:.5}
+.bp-i .bp-k{display:block;margin-top:1px;font-size:12px;font-weight:400;color:var(--muted)}
+.bp-i[aria-selected=true] .bp-k{color:inherit;opacity:.8}
+.bp-i.bp-kosong{color:var(--muted);font-weight:400;border-bottom:1px solid var(--line);border-radius:12px 12px 0 0;margin-bottom:4px}
+.bp-i.bp-kosong[aria-selected=true]{background:none;color:var(--muted)}
+.bp-q{margin:8px 12px 2px;width:calc(100% - 24px);font-size:14px;padding:8px 12px}
+.bp-0{margin:12px;font-size:13px;color:var(--muted)}.bp-0[hidden],.bp-i[hidden],.bp-g[hidden]{display:none}
 /* label mapel/modul yang panjang tidak lagi terpotong: turun baris di dalam kartu */
 .card .row .pill{max-width:100%;white-space:normal;line-height:1.3}
 

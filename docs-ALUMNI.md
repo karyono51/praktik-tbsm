@@ -27,3 +27,6 @@ Berisi data pribadi alumni (kontak, kontak atasan, kisaran gaji). Semua akun ber
 - Alumni mengisi sendiri lewat tautan atau token (butuh perubahan fungsi server).
 - Ekspor PDF.
 - Hubungan otomatis dengan akun siswa saat lulus.
+
+## Dropdown
+Semua dropdown di modul ini dibuat lewat `alSel(kunci, atribut, daftar, nilai)` dan terdaftar di `AL_PIL` (judul lembar dan teks pilihan kosong). Lembar pilihannya digambar `js/bank-pilihan.js` (huruf seperti menu, kolom Cari untuk 8 pilihan atau lebih, nama lengkap jurusan sebagai keterangan). Menambah dropdown baru: satu baris di `AL_PIL`, lalu panggil `alSel`. Nilai tetap ditulis ke `<select>` dengan peristiwa input dan change, jadi penyimpanan tidak berubah.

@@ -1,12 +1,13 @@
 ## Lembar pilihan untuk semua dropdown
 - `js/bank-pilihan.js` sekarang berlaku untuk semua `<select>` di aplikasi (sebelumnya hanya daftar filter Bank soal dan Atur latihan siswa), sehingga dialog bawaan Android yang hurufnya besar diganti lembar pilihan bertema. Huruf pilihan 14px seperti menu samping (`css/banksoal.css`).
+- Fitur baru lembar pilihan: judul eksplisit (`data-judul`), keterangan kecil per pilihan (`option[data-ket]`, dipakai untuk nama lengkap jurusan), pilihan kosong tampil redup, dan kotak Cari otomatis untuk 8 pilihan atau lebih (`data-cari` memaksa, `data-tanpa-cari` menyembunyikan).
 - Dikecualikan: select di dalam tabel (cetak dan UKK), `select multiple`, `select size`, dan select ber-atribut `data-native`. Nilai tetap ditulis ke select aslinya dengan peristiwa input dan change, jadi logika halaman tidak berubah.
 - Uji baru: `tools/uji-pilihan.mjs`.
 
 ## Alumni: jurusan per sekolah
 - Daftar jurusan di form Alumni mengikuti sekolah: Darul Fatwa = TSM, TKJ; Medina = TSM, TKR, TKJ, OTKP (admin lintas sekolah melihat keempatnya). Kode tetap disimpan di kolom `prodi`. Kolom Jurusan berupa pilihan (select), bukan daftar saran, karena daftar saran tidak tampil di sebagian Chrome Android.
 - Daftar Alumni punya filter Jurusan (ikut sekolah) di samping tahun dan status; ekspor Excel mengikuti filter itu. Template impor memuat petunjuk kolom Jurusan.
-- Tampilan form Alumni disesuaikan dengan tema aplikasi: label kecil (`label.f`), Jurusan, Status alumni, dan Status tautan atasan berupa chip (bukan dialog pilihan Android yang hurufnya besar), filter Jurusan di daftar juga chip, pertanyaan tracer bertipe pilihan tunggal menjadi daftar radio, dan teks pertanyaan sedikit dikecilkan (`.al-q` di `css/app.css`).
+- Semua dropdown modul Alumni (form: Jurusan, Status alumni, Status tautan atasan, pertanyaan tracer berpilihan banyak; daftar dan dasbor: filter Jurusan, Tahun, Status) lewat satu fungsi `alSel` dan registri `AL_PIL` di `js/alumni.js`, dan lembar pilihannya digambar `bank-pilihan.js`. Pilihan tunggal dengan 4 opsi atau lebih menjadi dropdown (`AL_AMBANG_DROPDOWN`); ya/tidak dan skala 1-4 tetap radio. Label isian memakai gaya `label.f`, teks pertanyaan sedikit dikecilkan (`.al-q`).
 - Impor Excel menerima nama lengkap jurusan selain kodenya. Alumni baru tidak lagi diisi TSM otomatis di Darul Fatwa.
 
 ## Modul Alumni dan Tracer

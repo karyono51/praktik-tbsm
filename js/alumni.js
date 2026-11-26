@@ -12,26 +12,33 @@ var AL_ASP=['Belum memenuhi kebutuhan dunia kerja/usaha','Mendekati kebutuhan du
 var AL_DMP=['Sangat tidak berdampak','Tidak berdampak','Berdampak','Sangat berdampak'];
 var AL_ASPEK=['Fasilitas pembelajaran','Pembelajaran teori','Pembelajaran praktik/keterampilan','Bimbingan karier','Pembelajaran terkait budaya kerja','Pembelajaran terkait K-3','Pembelajaran bahasa asing','Pembelajaran teknologi informasi','Penanaman etika','Penanaman kejujuran','Penanaman tanggung jawab','Penanaman kedisiplinan','Kemampuan berkomunikasi','Kemampuan menyelesaikan masalah','Kemampuan bekerja sama dalam tim'];
 var AL_YT=['Ya','Tidak'];
+var AL_AMBANG_DROPDOWN=4; /* pilihan tunggal dengan opsi sebanyak ini atau lebih tampil sebagai dropdown; ya/tidak dan skala 1-4 tetap radio */
 /* jurusan per sekolah: DF = Darul Fatwa, MEDINA = Medina Bandung. Kode disimpan di kolom prodi. */
 var AL_PRODI_NAMA={TSM:'Teknik Sepeda Motor',TKR:'Teknik Kendaraan Ringan',TKJ:'Teknik Komputer dan Jaringan',OTKP:'Otomatisasi Tata Kelola Perkantoran'};
 var AL_PRODI_SEK={DF:['TSM','TKJ'],MEDINA:['TSM','TKR','TKJ','OTKP']};
 function alProdiList(sek){return AL_PRODI_SEK[sek]||['TSM','TKR','TKJ','OTKP']}
-/* deretan chip bertema (komponen .chips) untuk pilihan pendek; aksi: al-chip (isian form) dan al-fpr (filter jurusan daftar) */
-function alChips(act,f,L,v){
- return '<div class="chips" data-chips="'+f+'">'+L.map(function(x){return '<button type="button" data-act="'+act+'" data-f="'+f+'" data-v="'+esc(x[0])+'" aria-pressed="'+(String(v||'')===String(x[0]))+'">'+esc(x[1])+'</button>'}).join('')+'</div>';
+/* SATU PINTU untuk semua dropdown modul Alumni. Lembar pilihannya digambar bank-pilihan.js (huruf seperti menu, judul, keterangan, kolom cari).
+   AL_PIL = daftar dropdown: judul lembar dan teks pilihan kosong (null = tanpa pilihan kosong). Menambah dropdown baru = satu baris di sini,
+   lalu panggil alSel(kunci, atribut, daftar, nilai). Daftar berisi [nilai, teks] atau [nilai, teks, keterangan]. */
+var AL_PIL={
+ prodi:{judul:'Jurusan',kosong:'Pilih jurusan'},
+ status:{judul:'Status alumni',kosong:'Belum diketahui'},
+ dudiStatus:{judul:'Status tautan atasan',kosong:null},
+ fProdi:{judul:'Filter jurusan',kosong:'Semua jurusan'},
+ fTahun:{judul:'Filter tahun lulus',kosong:'Semua tahun'},
+ fStatus:{judul:'Filter status',kosong:'Semua status'},
+ tanya:{judul:'Pilih jawaban',kosong:'Pilih'}
+};
+function alSel(kunci,attr,L,v,judul){
+ var c=AL_PIL[kunci]||AL_PIL.tanya,cur=String(v==null?'':v),ada=false,h='';
+ L.forEach(function(x){if(String(x[0])===cur)ada=true});
+ if(cur&&!ada)L=L.concat([[cur,cur]]); /* nilai lama di luar daftar tetap tampil, tidak hilang diam-diam */
+ if(c.kosong!=null)h+='<option value="">'+esc(c.kosong)+'</option>';
+ L.forEach(function(x){h+='<option value="'+esc(x[0])+'"'+(x[2]?' data-ket="'+esc(x[2])+'"':'')+(String(x[0])===cur?' selected':'')+'>'+esc(x[1])+'</option>'});
+ return '<select '+attr+' data-judul="'+esc(judul||c.judul)+'">'+h+'</select>';
 }
-function alProdiKet(k){return AL_PRODI_NAMA[k]?AL_PRODI_NAMA[k]:''}
-/* pilihan jurusan form: hanya jurusan sekolah alumni; nilai lama di luar daftar tetap tampil supaya tidak hilang diam-diam */
-function alProdiChipList(c){
- var l=alProdiList(c.sekolah||alSek()).slice(),v=String(c.prodi||'');
- if(v&&l.indexOf(v)<0)l.push(v);
- return l.map(function(k){return [k,k]});
-}
-function alProdiOpsi(c){
- var l=alProdiList(c.sekolah||alSek()).slice(),v=String(c.prodi||'');
- if(v&&l.indexOf(v)<0)l.push(v);
- return '<option value="">Pilih jurusan</option>'+l.map(function(k){return '<option value="'+esc(k)+'"'+(v===k?' selected':'')+'>'+esc(k+(AL_PRODI_NAMA[k]?' - '+AL_PRODI_NAMA[k]:''))+'</option>'}).join('');
-}
+/* daftar jurusan [kode, kode, nama lengkap] untuk sekolah tertentu */
+function alProdiItem(sek){return alProdiList(sek).map(function(k){return [k,k,AL_PRODI_NAMA[k]||'']})}
 /* nama lengkap atau kode (huruf besar/kecil, tanda baca bebas) menjadi kode jurusan; tidak dikenal = teks apa adanya dalam huruf besar */
 function alProdiKode(v){
  var t=String(v||'').trim();if(!t)return '';
@@ -157,7 +164,6 @@ function alFilter(rows){
 function alTahun(rows){var m={};rows.forEach(function(r){if(r.tahun)m[r.tahun]=1});return Object.keys(m).sort().reverse()}
 
 /* ---- Tampilan ---- */
-function alOpsi(L,v,kosong){return (kosong?'<option value="">'+esc(kosong)+'</option>':'')+L.map(function(x){return '<option value="'+esc(x[0])+'"'+(x[0]===v?' selected':'')+'>'+esc(x[1])+'</option>'}).join('')}
 function alBaris(r){
  var st=r.status?alLabel(AL_STATUS,r.status):'Belum diisi';
  var cls=r.status==='bekerja'||r.status==='wirausaha'||r.status==='kuliah'?'ok':r.status?'warn':'';
@@ -180,7 +186,7 @@ function viewAlumniDaftar(){
  var aksi=alTulis()?'<div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small primary" data-act="al-baru">Tambah alumni</button><label class="btn small" style="cursor:pointer">Impor Excel<input type="file" accept=".xlsx,.xls,.csv" data-act="al-imp" hidden></label><button type="button" class="btn small" data-act="al-tpl">Template</button><button type="button" class="btn small" data-act="al-xls">Ekspor Excel</button></div>':'<div class="row"><button type="button" class="btn small" data-act="al-xls">Ekspor Excel</button></div>';
  return '<section class="card"><p class="note">Data alumni untuk persiapan dan pemantauan Tracer Study Vokasi. Pengisian resmi tetap di portal <b>tracervokasi.kemendikdasmen.go.id</b> (alumni masuk dengan NISN). Modul ini menyimpan jawaban internal dan memantau siapa yang belum mengisi.</p>'+
   '<div class="row" style="gap:6px;flex-wrap:wrap"><a class="btn small" href="'+AL_PORTAL+'" target="_blank" rel="noopener noreferrer">Buka portal resmi</a></div></section>'+alTab()+aksi+
-  '<section class="card"><input id="al-q" type="search" placeholder="Cari nama atau NISN" value="'+esc(ALM.q)+'" autocomplete="off"><div style="height:8px"></div>'+alChips('al-fpr','pr',[['','Semua jurusan']].concat(alProdiList(alSek()).map(function(k){return [k,k]})),ALM.pr)+'<div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap"><select id="al-th" aria-label="Tahun lulus"><option value="">Semua tahun</option>'+th.map(function(t){return '<option'+(ALM.th===t?' selected':'')+'>'+esc(t)+'</option>'}).join('')+'</select><select id="al-st" aria-label="Status"><option value="">Semua status</option><option value="belum"'+(ALM.st==='belum'?' selected':'')+'>Tracer belum diisi</option>'+alOpsi(AL_STATUS,ALM.st)+'</select></div></section>'+
+  '<section class="card"><input id="al-q" type="search" placeholder="Cari nama atau NISN" value="'+esc(ALM.q)+'" autocomplete="off"><div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">'+alSel('fProdi','id="al-pr"',alProdiItem(alSek()),ALM.pr)+alSel('fTahun','id="al-th"',th.map(function(t){return [t,t]}),ALM.th)+alSel('fStatus','id="al-st"',[['belum','Tracer belum diisi']].concat(AL_STATUS),ALM.st)+'</div></section>'+
   '<div id="al-list">'+alDaftarHtml()+'</div>';
 }
 function alPct(n,t){return t?Math.round(n*1000/t)/10:0}
@@ -194,7 +200,7 @@ function viewAlumniDasbor(){
  var avg=AL_ASPEK.map(function(a,i){var v=rows.map(function(r){return r.t&&r.t['asp'+(i+1)]}).filter(function(x){return x>0});return {a:a,n:v.length,m:v.length?v.reduce(function(s,x){return s+x},0)/v.length:0}});
  var bar=function(p,c){return '<div style="height:8px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:'+Math.min(100,p)+'%;background:'+(c||'var(--accent)')+'"></div></div>'};
  var belum=rows.filter(function(r){return !alSudah(r)}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
- var h='<section class="card"><div class="row sb" style="gap:8px"><b>Filter tahun lulus</b><select id="al-dth" style="max-width:160px" aria-label="Tahun lulus"><option value="">Semua</option>'+th.map(function(t){return '<option'+(ALM.th===t?' selected':'')+'>'+esc(t)+'</option>'}).join('')+'</select></div></section>';
+ var h='<section class="card"><div class="row sb" style="gap:8px"><b>Filter tahun lulus</b>'+alSel('fTahun','id="al-dth" style="max-width:160px"',th.map(function(t){return [t,t]}),ALM.th)+'</div></section>';
  h+='<section class="card"><b>Ringkasan</b><p class="note" style="margin:6px 0">'+n+' alumni · tracer terisi '+sudah+' ('+alPct(sudah,n)+'%)</p>'+bar(alPct(sudah,n))+'</section>';
  h+='<section class="card"><b>Status alumni</b>'+AL_STATUS.map(function(s){return '<div style="margin-top:10px"><div class="row sb"><span>'+esc(s[1])+'</span><span class="muted">'+stc[s[0]]+' · '+alPct(stc[s[0]],n)+'%</span></div>'+bar(alPct(stc[s[0]],n))+'</div>'}).join('')+(tanpa?'<p class="note">'+tanpa+' alumni belum punya status.</p>':'')+'</section>';
  h+='<section class="card"><b>Kesesuaian pekerjaan dengan keahlian</b><p class="note" style="margin:6px 0">'+(ber.length?ses+' dari '+ber.length+' alumni yang bekerja/berwirausaha menjawab sesuai ('+alPct(ses,ber.length)+'%)':'Belum ada jawaban.')+'</p>'+(ber.length?bar(alPct(ses,ber.length),'var(--ok)'):'')+'</section>';
@@ -207,7 +213,7 @@ function viewAlumniDasbor(){
 }
 function alField(q,t){
  var v=t[q.k],id='alq-'+q.k,h='<div class="card al-q" style="margin-bottom:8px"><b style="display:block;margin-bottom:6px">'+esc(q.l)+'</b>';
- if(false){}
+ if(q.t==='s'||(q.t==='r'&&q.o.length>=AL_AMBANG_DROPDOWN))h+=alSel('tanya','data-alt="'+q.k+'"',q.o.map(function(o){return [o,o]}),v==null?'':v,q.l);
  else if(q.t==='x')h+='<input type="text" data-alt="'+q.k+'" value="'+esc(v||'')+'" autocomplete="off">';
  else if(q.t==='n')h+='<input type="number" inputmode="numeric" min="0" max="168" data-alt="'+q.k+'" value="'+esc(v==null?'':v)+'">';
  else if(q.t==='m')h+=q.o.map(function(o){return '<label class="row" style="gap:8px;align-items:center;margin:4px 0"><input type="checkbox" style="width:auto" data-alt="'+q.k+'" data-v="'+esc(o)+'"'+((v||[]).indexOf(o)>-1?' checked':'')+'><span>'+esc(o)+'</span></label>'}).join('');
@@ -226,13 +232,13 @@ function viewAlumniForm(){
   h+='<section class="card">'+
    '<label class="f">NISN (10 digit)<input data-alf="nisn" inputmode="numeric" maxlength="10" value="'+esc(c.nisn)+'"></label>'+
    '<label class="f">Nama lengkap<input data-alf="nama" value="'+esc(c.nama)+'" autocomplete="off"></label>'+
-   '<div class="label" style="margin:4px 0 6px">Jurusan</div>'+alChips('al-chip','prodi',alProdiChipList(c),c.prodi)+'<small class="muted" id="al-prodi-ket" style="display:block;min-height:18px;margin-top:4px">'+esc(alProdiKet(c.prodi))+'</small>'+
+   '<label class="f">Jurusan'+alSel('prodi','data-alf="prodi"',alProdiItem(c.sekolah||alSek()),c.prodi)+'</label>'+
    '<label class="f">Tahun lulus<input data-alf="tahun" inputmode="numeric" maxlength="4" value="'+esc(c.tahun)+'"></label>'+
    '<label class="f">No. HP/WhatsApp<input data-alf="hp" inputmode="tel" value="'+esc(c.hp||'')+'"></label>'+
    '<label class="f">Email<input data-alf="email" type="email" value="'+esc(c.email||'')+'"></label>'+
-   '<div class="label" style="margin:4px 0 6px">Status alumni</div>'+alChips('al-chip','status',[['','Belum diketahui']].concat(AL_STATUS),c.status)+'<div style="height:10px"></div>'+
+   '<label class="f">Status alumni'+alSel('status','data-alf="status"',AL_STATUS,c.status)+'</label>'+
    '<label class="f">Tautan survei atasan (dari portal, bagian akhir)<input data-alf="dudiLink" value="'+esc(c.dudiLink||'')+'" placeholder="https://"></label>'+
-   '<div class="label" style="margin:4px 0 6px">Status tautan atasan</div>'+alChips('al-chip','dudiStatus',AL_DUDI,c.dudiStatus||'')+'<div style="height:6px"></div>'+
+   '<label class="f">Status tautan atasan'+alSel('dudiStatus','data-alf="dudiStatus"',AL_DUDI,c.dudiStatus||'')+'</label>'+
    '<p class="note">Data pribadi alumni. Gunakan hanya untuk keperluan tracer study dan pastikan alumni setuju datanya dicatat.</p></section>';
  }else{
   if(ALM.step===2)h+='<p class="note">Bagian ini diisi bila alumni bekerja atau berwirausaha.</p>';
@@ -374,18 +380,6 @@ document.addEventListener('click',function(e){
  else if(a==='al-xls')alEkspor();
  else if(a==='al-tpl')alTemplate();
  else if(a==='al-wa')alWa(b.dataset.id);
- else if(a==='al-chip'&&ALM.cur&&alTulis()){
-  var f=b.dataset.f,v=b.dataset.v;
-  if(f==='prodi'&&ALM.cur.prodi===v)v='';
-  ALM.cur[f]=v;
-  var g=b.parentNode;if(g)Array.prototype.forEach.call(g.querySelectorAll('button'),function(x){x.setAttribute('aria-pressed',String(x.dataset.v===v))});
-  if(f==='prodi'){var kt=document.getElementById('al-prodi-ket');if(kt)kt.textContent=alProdiKet(v)}
- }
- else if(a==='al-fpr'){
-  ALM.pr=b.dataset.v;
-  var g2=b.parentNode;if(g2)Array.prototype.forEach.call(g2.querySelectorAll('button'),function(x){x.setAttribute('aria-pressed',String(x.dataset.v===ALM.pr))});
-  var l4=document.getElementById('al-list');if(l4)l4.innerHTML=alDaftarHtml();
- }
 });
 document.addEventListener('change',function(e){
  var t=e.target;if(!t||!t.dataset)return;

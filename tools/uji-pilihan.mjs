@@ -11,13 +11,20 @@ function boot() {
   const document = {
     addEventListener(t, f) { (hs[t] = hs[t] || []).push(f); },
     getElementById(id) { return id === 'bp-ov' ? (body.kids.filter((k) => !k.dihapus).pop() || null) : null; },
-    createElement() { const o = { handlers: {}, innerHTML: '', id: '', className: '', dihapus: false, remove() { this.dihapus = true; }, addEventListener(t, f) { this.handlers[t] = f; }, querySelector: () => null }; return o; },
+    createElement() {
+      const o = { handlers: {}, innerHTML: '', id: '', className: '', dihapus: false, remove() { this.dihapus = true; }, addEventListener(t, f) { this.handlers[t] = f; },
+        _n: null,
+        nodes() { if (!this._n) { this._n = []; const re = /<(button|div|p)[^>]*? class="(bp-i[^"]*|bp-g|bp-0)"([^>]*)>([\s\S]*?)<\/\1>/g; let m; while ((m = re.exec(this.innerHTML))) { const k = m[2]; this._n.push({ className: k, hidden: / hidden/.test(m[3]), textContent: m[4].replace(/<[^>]+>/g, ' '), classList: { contains: (c) => k.split(' ').indexOf(c) > -1 } }); } } return this._n; },
+        querySelectorAll(sel) { const ok = sel.split(',').map((x) => x.trim().replace('.', '')); return this.nodes().filter((n) => ok.some((c) => n.classList.contains(c))); },
+        querySelector(sel) { if (sel === '.bp-0') return this.nodes().find((n) => n.classList.contains('bp-0')) || null; return null; } };
+      return o;
+    },
     body,
   };
   const ctx = { console, document, window: {}, esc: (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])), Array, Event: class { constructor(t) { this.type = t; } } };
   vm.createContext(ctx);
   vm.runInContext(baca('js/bank-pilihan.js'), ctx, { filename: 'bank-pilihan.js' });
-  const opt = (v, t, extra = {}) => ({ tagName: 'OPTION', value: v, textContent: t, disabled: false, ...extra });
+  const opt = (v, t, extra = {}) => ({ tagName: 'OPTION', value: v, textContent: t, disabled: false, ket: extra.ket, getAttribute(a) { return a === 'data-ket' ? this.ket || null : null; }, ...extra });
   function select(over = {}) {
     const ev = [];
     const s = { tagName: 'SELECT', disabled: false, multiple: false, size: 0, value: 'X', attrs: over.attrs || {}, inTable: !!over.inTable, ev,
@@ -74,6 +81,36 @@ console.log('Judul lembar');
   T('judul dari teks tepat di atas select', /aria-label="Tempat praktik"/.test(b.sheet().innerHTML));
   const b2 = boot(); b2.klik(b2.select());
   T('tanpa petunjuk judul memakai "Pilih"', /aria-label="Pilih"/.test(b2.sheet().innerHTML));
+}
+
+console.log('Fitur lembar pilihan');
+{
+  const b = boot(); const s = b.select({ attrs: { 'data-judul': 'Jurusan' }, children: [b.opt('', 'Pilih jurusan'), b.opt('TSM', 'TSM', { ket: 'Teknik Sepeda Motor' }), b.opt('TKJ', 'TKJ', { ket: 'Teknik Komputer dan Jaringan' })], props: { value: 'TKJ' } });
+  b.klik(s); const h = b.sheet().innerHTML;
+  T('data-judul dipakai sebagai judul lembar', /aria-label="Jurusan"/.test(h) && /<span>Jurusan<\/span>/.test(h));
+  T('keterangan pilihan tampil di bawah teks', /TSM<small class="bp-k">Teknik Sepeda Motor<\/small>/.test(h));
+  T('pilihan kosong (value "") diberi gaya redup', /class="bp-i bp-kosong"[^>]*>Pilih jurusan/.test(h) && (h.match(/bp-kosong/g) || []).length === 1);
+  T('pilihan aktif bertanda terpilih (TKJ)', /data-i="2" aria-selected="true"/.test(h));
+  T('daftar pendek: tanpa kotak cari', !/class="bp-q"/.test(h));
+  const kos = { closest: (sel) => (/bp-i/.test(sel) ? { getAttribute: () => '0', disabled: false } : null) };
+  b.sheet().handlers.click({ target: kos });
+  T('memilih pilihan kosong mengosongkan isian', s.value === '' && s.ev.join() === 'input,change');
+}
+{
+  const banyak = (b, n) => Array.from({ length: n }, (_, i) => b.opt('v' + i, i % 2 ? 'Teman ' + i : 'Media sosial ' + i));
+  const b = boot(); b.klik(b.select({ children: banyak(b, 7) }));
+  T('7 pilihan: tanpa kotak cari', !/class="bp-q"/.test(b.sheet().innerHTML));
+  const b2 = boot(); b2.klik(b2.select({ children: banyak(b2, 8) }));
+  T('8 pilihan atau lebih: muncul kotak cari', /class="bp-q"/.test(b2.sheet().innerHTML));
+  const b3 = boot(); b3.klik(b3.select({ children: banyak(b3, 12), attrs: { 'data-tanpa-cari': '' } }));
+  T('data-tanpa-cari menyembunyikan kotak cari', !/class="bp-q"/.test(b3.sheet().innerHTML));
+  const b4 = boot(); b4.klik(b4.select({ children: banyak(b4, 3), attrs: { 'data-cari': '' } }));
+  T('data-cari memaksa kotak cari tampil', /class="bp-q"/.test(b4.sheet().innerHTML));
+  const o = b2.sheet(); const sat = (v) => o.handlers.input({ target: { classList: { contains: (c) => c === 'bp-q' }, value: v } });
+  const tampil = () => o.querySelectorAll('.bp-i').filter((n) => !n.hidden).length;
+  sat('teman'); T('cari menyaring pilihan menurut teks', tampil() === 4, tampil());
+  T('tanpa hasil: pesan "Tidak ada yang cocok" tampil', (sat('zzz'), o.querySelector('.bp-0').hidden === false && tampil() === 0));
+  sat(''); T('kosongkan cari: semua pilihan kembali', tampil() === 8 && o.querySelector('.bp-0').hidden === true);
 }
 
 console.log('Berkas dan tema');
