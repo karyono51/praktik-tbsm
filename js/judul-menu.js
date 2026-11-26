@@ -4,7 +4,7 @@
  var A='Pembelajaran',U='Ujian dan nilai',V2='Supervisi',P='Pengaturan';
  var M={rekap:[U,'Rekap nilai','rekap'],banksoal:[U,'Bank soal','menu'],cbtonline:[U,'CBT Online','menu'],riwayatlatihan:[U,'Riwayat latihan siswa','rekap'],
   kompetensi:[U,'Rekap kompetensi siswa','rekap'],'nilai-akhir-ukk':[U,'Rekap nilai akhir UKK','rekap'],ruangujian:[U,'Ruang ujian','menu'],
-  observasi:[V2,'Observasi guru','observasi'],'observasi-siswa':[V2,'Observasi LKPD Praktik','observasi'],'observasi-ukk':[V2,'Observasi UKK','observasi'],
+  absensi:[A,'Absensi','absensi'],observasi:[V2,'Observasi guru','observasi'],'observasi-siswa':[V2,'Observasi LKPD Praktik','observasi'],'observasi-ukk':[V2,'Observasi UKK','observasi'],
   alumni:['Alumni','Alumni dan Tracer','alumni'],acuan:[P,'Acuan dan aturan','acuan'],akun:[P,'Akun','akun'],hapusnilai:[P,'Hapus nilai','menu'],logaudit:[P,'Log audit','menu'],sinkron:[P,'Cek sinkronisasi','segarkan']};
  function info(){
   var t=S.tab;

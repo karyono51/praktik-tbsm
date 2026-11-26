@@ -1,3 +1,10 @@
+## Absensi kehadiran dan praktik lewat barcode
+- **Siswa**: menu *Barcode saya* dan kartu di beranda siswa menampilkan kartu QR pribadi (nama, kelas, NIS) yang bisa disimpan sebagai gambar.
+- **Guru/admin**: menu *Absensi* (kelas, tanggal, jenis Kehadiran atau Praktik). Scan kamera, scan dari galeri (beberapa gambar, beberapa barcode per gambar), status Hadir/Sakit/Izin/Alpa per siswa, ikon barcode di tiap siswa untuk keterangan, tombol Alpa untuk sisa siswa, dan rekap bulanan dengan ekspor Excel. Admin juga mendapat ikon barcode di daftar Akun.
+- Penyimpanan di koleksi `observasi` dengan `tipe='absen'` (satu dokumen per guru, kelas, tanggal, jenis): tidak ada koleksi atau atribut Appwrite baru; sinkron dan antrean offline ikut yang ada. Observasi guru/LKPD/UKK tidak menampilkan sesi absensi.
+- `js/qr.js` (baru): pembuat QR tanpa pustaka luar; diuji dengan pembaca QR untuk semua versi 1-20. `js/absensi.js` (baru). Uji baru `tools/uji-absensi.mjs`. Dokumen: `docs-ABSENSI.md`.
+- Pemindai memakai `BarcodeDetector` peramban (Chrome Android); tanpa itu guru memakai tombol status manual.
+
 ## PKL: Kunjungan menjadi Monitoring
 - Nama tab, judul, tombol, ringkasan, dan nama lembar Excel diganti. Kunci data tetap `kunjungan`, jadi data dan Appwrite tidak berubah. Pilihan cara "Kunjungan langsung" dipertahankan.
 
