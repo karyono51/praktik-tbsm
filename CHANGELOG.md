@@ -1,3 +1,8 @@
+## PKL: menu di atas, jadwal per sekolah, basmalah artistik
+- Basmalah selebar bar atas, rata tengah, kaligrafi emas (Aref Ruqaa) dengan ornamen kiri-kanan.
+- Menu PKL guru/admin pindah ke atas, dikelompokkan Persiapan, Pelaksanaan, Penilaian; ringkasan angka pindah ke bawah.
+- Peserta PKL kelas XII: Darul Fatwa semester 6, Medina semester 5 (judul PKL dan PDF nilai). Pilihan siswa hanya kelas XII atau yang sudah ditempatkan.
+
 ## Lembar pilihan untuk semua dropdown
 - `js/bank-pilihan.js` sekarang berlaku untuk semua `<select>` di aplikasi (sebelumnya hanya daftar filter Bank soal dan Atur latihan siswa), sehingga dialog bawaan Android yang hurufnya besar diganti lembar pilihan bertema. Huruf pilihan 14px seperti menu samping (`css/banksoal.css`).
 - Fitur baru lembar pilihan: judul eksplisit (`data-judul`), keterangan kecil per pilihan (`option[data-ket]`, dipakai untuk nama lengkap jurusan), pilihan kosong tampil redup, dan kotak Cari otomatis untuk 8 pilihan atau lebih (`data-cari` memaksa, `data-tanpa-cari` menyembunyikan).

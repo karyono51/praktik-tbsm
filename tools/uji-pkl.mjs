@@ -262,7 +262,7 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   console.log('Pilihan sistematis (bank-pilihan)');
   {
     const b = boot({ peran: 'guru' }), x = b.ctx;
-    x.S.users.push({ id: 's3', nama: 'Cici', peran: 'siswa', kelas: 'XI', sekolah: 'MEDINA' });
+    x.S.users.push({ id: 's3', nama: 'Cici', peran: 'siswa', kelas: 'XII B', sekolah: 'MEDINA' });
     x.PK.D.tempat.push(tempat({ id: 'tp1', nama: 'PT Maju Motor', kota: 'Bandung', kuota: 2 }), tempat({ id: 'tp2', nama: 'CV Bintang', kota: 'Cimahi', kuota: 1, pks: '', pksSelesai: '', bidang: 'Servis' }), tempat({ id: 'tp3', nama: 'Bengkel Sinar', kota: 'bandung', kuota: 0 }));
     x.PK.D.tugas.push(tugas({ id: 'a1', sid: 's1', tempatId: 'tp2', guruId: 'g1' }));
     x.PK.D.nilai.push({ id: 'n1', sid: 's1', nama: 'Ani', tempatId: 'tp2', tp1: 80, tp2: 80, tp3: 80, tp4: 80 });
