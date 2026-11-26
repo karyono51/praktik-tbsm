@@ -1,3 +1,6 @@
+## Judul gaya Akademik di semua menu
+- `js/judul-menu.js` (baru): label kelompok, nama menu, pil tahun ajaran dan sekolah; judul lama yang kembar disembunyikan.
+
 ## PKL: judul dan menu gaya Administrasi Akademik
 - Judul: ikon, label PKL, nama tab; pil tahun ajaran dan semester, sekolah, kelas XII.
 - Menu: satu baris tab berikon yang bisa digeser, berurutan sesuai tahap.

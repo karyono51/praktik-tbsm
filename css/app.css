@@ -596,3 +596,4 @@ header.top.mini .hello span{display:inline;font-size:13px}
 header.top.mini .hello b{display:inline;font-size:16px}
 
 header.top,header.top .logo{transition:none}
+.jm-head{display:flex;flex-direction:column;gap:10px}.jm-head .akd-ctx{flex-wrap:wrap}
