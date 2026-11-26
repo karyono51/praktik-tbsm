@@ -1,3 +1,6 @@
+## PKL: Kunjungan menjadi Monitoring
+- Nama tab, judul, tombol, ringkasan, dan nama lembar Excel diganti. Kunci data tetap `kunjungan`, jadi data dan Appwrite tidak berubah. Pilihan cara "Kunjungan langsung" dipertahankan.
+
 ## Perbaikan label tertinggal di bawah judul
 - Label sekolah atau peran dari judul lama (mis. MEDINA di Alumni, Admin di Hapus nilai) tidak lagi muncul sendirian.
 

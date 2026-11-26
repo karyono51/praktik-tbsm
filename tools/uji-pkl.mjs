@@ -290,8 +290,8 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
     b.klik('pkl-cancel');
     b.klik('pkl-new', { k: 'kunjungan' });
     const fk = x.viewPkl(), sk = sel(fk, 'tempatId');
-    T('kunjungan: tempat berpenghuni tanpa kunjungan masuk kelompok "Perlu monitoring"', /<optgroup label="Perlu monitoring \(lebih dari 30 hari\)"><option value="tp2" data-ket="Cimahi · 1\/1 siswa · Belum pernah dikunjungi">/.test(sk) && /<optgroup label="Belum ada siswa aktif">/.test(sk), sk);
-    T('cara kunjungan punya keterangan', /data-judul="Cara kunjungan"/.test(sel(fk, 'mode')) && /data-ket="Datang ke tempat PKL"/.test(sel(fk, 'mode')));
+    T('kunjungan: tempat berpenghuni tanpa kunjungan masuk kelompok "Perlu monitoring"', /<optgroup label="Perlu monitoring \(lebih dari 30 hari\)"><option value="tp2" data-ket="Cimahi · 1\/1 siswa · Belum pernah dimonitor">/.test(sk) && /<optgroup label="Belum ada siswa aktif">/.test(sk), sk);
+    T('cara kunjungan punya keterangan', /data-judul="Cara monitoring"/.test(sel(fk, 'mode')) && /data-ket="Datang ke tempat PKL"/.test(sel(fk, 'mode')));
     T('status penempatan punya keterangan kuota', /data-ket="Dihitung dalam kuota tempat"/.test(sel(f2, 'status')));
     // pemicu: memilih tempat kunjungan mengisi guru yang membimbing di tempat itu; memilih tempat penempatan mengisi instruktur
     x.PK.f = { tanggal: '2026-11-26', mode: 'luring' }; let r0 = b.log.render;

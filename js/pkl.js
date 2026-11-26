@@ -205,7 +205,7 @@ function pkOptSiswa(ctx,f){
  if(cur&&!ada){var uu=pkUser(cur);A.unshift(pkO(cur,uu?uu.nama+(uu.kelas?' ('+uu.kelas+')':''):'(siswa tidak ditemukan)','Akun tidak aktif'))}
  return [pkO('','(pilih siswa)')].concat(ctx==='nilai'?[pkG('Belum dinilai',A),pkG('Sudah dinilai',B),pkG('Belum ditempatkan',C)]:[pkG('Belum ditempatkan',A),pkG('Sudah punya penempatan aktif',B)]);
 }
-/* Tempat. ctx 'tugas': yang masih ada kuota lebih dulu, yang penuh dinonaktifkan. ctx 'kunjungan': yang perlu monitoring (lebih dari 30 hari tanpa kunjungan) lebih dulu. */
+/* Tempat. ctx 'tugas': yang masih ada kuota lebih dulu, yang penuh dinonaktifkan. ctx 'kunjungan': yang perlu monitoring (lebih dari 30 hari tanpa monitoring) lebih dulu. */
 function pkOptTempat(ctx,f){
  var exc=ctx==='tugas'&&f&&f.id||'',A=[],B=[],C=[];
  pkList('tempat').slice().sort(pkUrutNama).forEach(function(t){
@@ -214,7 +214,7 @@ function pkOptTempat(ctx,f){
    var penuh=!!kuota&&n>=kuota;
    (penuh?B:A).push(pkO(t.id,t.nama,[t.kota,isi,ps[0]==='bad'?ps[1]:''].filter(Boolean).join(' · '),penuh));
   }else{
-   (n?(h==null||h>30?A:B):C).push(pkO(t.id,t.nama,[t.kota,isi,k?'Terakhir dikunjungi '+h+' hari lalu':'Belum pernah dikunjungi'].filter(Boolean).join(' · ')));
+   (n?(h==null||h>30?A:B):C).push(pkO(t.id,t.nama,[t.kota,isi,k?'Terakhir dimonitor '+h+' hari lalu':'Belum pernah dimonitor'].filter(Boolean).join(' · ')));
   }
  });
  return [pkO('','(pilih tempat PKL)')].concat(ctx==='tugas'?[pkG('Masih ada kuota',A),pkG('Kuota penuh',B)]:[pkG('Perlu monitoring (lebih dari 30 hari)',A),pkG('Sudah dipantau',B),pkG('Belum ada siswa aktif',C)]);
@@ -254,7 +254,7 @@ function pkSchema(k){
   jurnal:[PF('tanggal','Tanggal','date',{r:1}),PF('unit','Unit kerja / pekerjaan','text',{r:1}),PF('uraian','Uraian kegiatan','textarea',{r:1})],
   jurnalcat:[PF('cat','Catatan instruktur / pembimbing','textarea'),PF('verif','Diketahui oleh','select',{o:PK_VERIF,jd:'Diketahui oleh'})],
   kunjungan:[PF('tanggal','Tanggal','date',{r:1}),PF('tempatId','Tempat PKL','select',Object.assign({r:1},T1('kunjungan'))),PF('guruId','Guru pembimbing','select',G1('kunjungan')),
-   PF('mode','Cara','select',{o:PK_MODE,jd:'Cara kunjungan'}),PF('temuan','Temuan (penempatan, kesesuaian pekerjaan, kondisi siswa)','textarea'),PF('tindak','Tindak lanjut','textarea')],
+   PF('mode','Cara','select',{o:PK_MODE,jd:'Cara monitoring'}),PF('temuan','Temuan (penempatan, kesesuaian pekerjaan, kondisi siswa)','textarea'),PF('tindak','Tindak lanjut','textarea')],
   nilai:[PF('sid','Siswa','select',Object.assign({r:1},S1('nilai'))),PF('tp1','TP 1 · '+tp[0],'number',{ph:'0-100'}),PF('tp2','TP 2 · '+tp[1],'number',{ph:'0-100'}),PF('tp3','TP 3 · '+tp[2],'number',{ph:'0-100'}),PF('tp4','TP 4 · '+tp[3],'number',{ph:'0-100'}),
    PF('catGuru','Catatan guru pembimbing','textarea'),PF('catInstr','Catatan instruktur dunia kerja','textarea')]
  }[k]||[];
@@ -277,7 +277,7 @@ var PK_SARING={tempat:['kota','bidang','pks','monitor'],tugas:['tempat','kelas',
  kunjungan:['tempat','guru','mode'],nilai:['kelas','tempat','siswa'],cek:['tempat','kelas','siswa'],rekap:['tempat','kelas','guru'],daftar:['kota','bidang']};
 var PK_SL={tempat:['Tempat PKL','Semua tempat'],kelas:['Kelas','Semua kelas'],siswa:['Siswa','Semua siswa'],guru:['Guru pembimbing','Semua guru'],status:['Status','Semua status'],tipe:['Jenis absen','Semua jenis'],
  verif:['Catatan','Semua jurnal'],mode:['Cara','Semua cara'],kota:['Kota','Semua kota'],bidang:['Bidang usaha','Semua bidang'],pks:['Perjanjian','Semua status'],monitor:['Monitoring','Semua tempat']};
-var PK_SATUAN={tempat:'tempat',tugas:'penempatan',absen:'catatan',jurnal:'jurnal',kunjungan:'kunjungan',nilai:'nilai',cek:'siswa',rekap:'siswa',daftar:'tempat'};
+var PK_SATUAN={tempat:'tempat',tugas:'penempatan',absen:'catatan',jurnal:'jurnal',kunjungan:'monitoring',nilai:'nilai',cek:'siswa',rekap:'siswa',daftar:'tempat'};
 var PK_TETAP={status:{aktif:'Aktif',selesai:'Selesai',dibatalkan:'Dibatalkan'},tipe:PK_TIPE,verif:{belum:'Belum diberi catatan',sudah:'Sudah diketahui'},mode:{luring:'Kunjungan langsung',daring:'Daring'},monitor:{perlu:'Perlu monitoring',aman:'Tidak perlu'}};
 function pkAttr(a,o){
  if(a==='tempat')return o.tempatId||'';
@@ -323,7 +323,7 @@ function pkDefault(k){
  if(k==='jurnal'||k==='kunjungan')return {tanggal:t,mode:'luring'};
  return {};
 }
-var PK_JUDUL={tempat:'Tempat PKL',tugas:'Penempatan siswa',jurnal:'Jurnal kegiatan',jurnalcat:'Catatan jurnal',kunjungan:'Kunjungan monitoring',nilai:'Nilai PKL'};
+var PK_JUDUL={tempat:'Tempat PKL',tugas:'Penempatan siswa',jurnal:'Jurnal kegiatan',jurnalcat:'Catatan jurnal',kunjungan:'Monitoring PKL',nilai:'Nilai PKL'};
 /* Tombol Simpan/Batal ada di atas formulir (tidak perlu menggulir), disusul pesan galat tepat di bawahnya. */
 function pkAksiAtas(aksi,label){
  return '<div class="row pk-aksi" style="gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" data-act="'+aksi+'">'+esc(label)+'</button><button type="button" class="btn" data-act="pkl-cancel">Batal</button></div>'+(PK.msg?'<div class="err">'+esc(PK.msg)+'</div>':'');
@@ -438,7 +438,7 @@ function pkJurnalBaris(j,staff){
 }
 
 /* ---------- Tampilan guru dan admin ---------- */
-var PK_TABS=[['tempat','Tempat PKL'],['tugas','Penempatan'],['absen','Absensi'],['jurnal','Jurnal'],['kunjungan','Kunjungan'],['nilai','Nilai'],['cek','Kelengkapan'],['rekap','Rekap']];
+var PK_TABS=[['tempat','Tempat PKL'],['tugas','Penempatan'],['absen','Absensi'],['jurnal','Jurnal'],['kunjungan','Monitoring'],['nilai','Nilai'],['cek','Kelengkapan'],['rekap','Rekap']];
 /* Judul dan menu mengikuti tampilan Administrasi Akademik (kelas akd-*). Urutan tab = urutan tahap PKL. */
 var PK_IKON={tempat:'<path d="M12 21s-6.5-5.600-6.500-11a6.500 6.500 0 0 1 13 0c0 5.4-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.300"/>',
  tugas:'<circle cx="9" cy="8" r="3.200"/><path d="M3 20c0-3.300 2.700-6 6-6s6 2.700 6 6M16 11l2 2 3.500-4"/>',
@@ -465,7 +465,7 @@ function pkRingkas(){
   bel=pkSiswaAll().filter(pkPeserta).filter(function(u){return !pkTugasSiswa(u.id)}).length;
  function st(l,v,c){return '<div class="card"><span class="label">'+l+'</span><b class="mono">'+v+'</b>'+(c?'<span class="note">'+c+'</span>':'')+'</div>'}
  return '<div class="stats pk-stats">'+st('Tempat PKL',T.length)+st('Siswa PKL',G.length,bel+' belum ditempatkan')+st('Hadir hari ini',A.length+'/'+G.length)+'</div>'+
-  '<div class="stats pk-stats">'+st('Jurnal baru',J.length,'menunggu catatan')+st('Perlu dikunjungi',''+tel,'> 30 hari')+st('Nilai',pkList('nilai').length,'sudah diisi')+'</div>';
+  '<div class="stats pk-stats">'+st('Jurnal baru',J.length,'menunggu catatan')+st('Perlu dimonitor',''+tel,'> 30 hari')+st('Nilai',pkList('nilai').length,'sudah diisi')+'</div>';
 }
 function pkStaffView(){
  var f={tempat:pkTabTempat,tugas:pkTabTugas,absen:pkTabAbsen,jurnal:pkTabJurnal,kunjungan:pkTabKunjungan,nilai:pkTabNilai,cek:pkTabCek,rekap:pkTabRekap}[PK.tab]||pkTabTempat;
@@ -478,7 +478,7 @@ function pkTabTempat(){
   var ps=pkPksStatus(t),n=pkList('tugas').filter(function(x){return x.tempatId===t.id&&x.status==='aktif'}).length,k=pkKunjunganAkhir(t.id),h=k?pkHariSejak(k.tanggal):null;
   return '<div style="padding:8px 0;border-top:1px solid var(--line)">'+pkTempatCard(t,false)+
    '<div class="note">'+(t.pks?'PKS sekolah: '+esc(t.pks):'')+(t.pksMitra?' · PKS mitra: '+esc(t.pksMitra):'')+(t.pksSelesai?' · berlaku s.d. '+esc(t.pksSelesai):'')+(t.fasilitas?'<br>Fasilitas: '+esc(t.fasilitas):'')+
-   '<br>'+(k?'Kunjungan terakhir '+esc(k.tanggal)+' ('+h+' hari lalu)':'Belum pernah dikunjungi')+(n&&(h==null||h>30)?' '+pkPill('warn','Perlu monitoring'):'')+(t.lat&&t.lng?' · '+pkPill('plain','Koordinat terisi'):'')+'</div>'+pkAksi('tempat',t.id)+'</div>'}).join(''):'<div class="note">'+(T0.length?'Tidak ada tempat PKL yang cocok dengan saringan.':'Belum ada tempat PKL.')+'</div>')+'</div>';
+   '<br>'+(k?'Monitoring terakhir '+esc(k.tanggal)+' ('+h+' hari lalu)':'Belum pernah dimonitor')+(n&&(h==null||h>30)?' '+pkPill('warn','Perlu monitoring'):'')+(t.lat&&t.lng?' · '+pkPill('plain','Koordinat terisi'):'')+'</div>'+pkAksi('tempat',t.id)+'</div>'}).join(''):'<div class="note">'+(T0.length?'Tidak ada tempat PKL yang cocok dengan saringan.':'Belum ada tempat PKL.')+'</div>')+'</div>';
 }
 function pkTabTugas(){
  var G0=pkList('tugas').sort(function(a,b){return pkTempatNama(a.tempatId).localeCompare(pkTempatNama(b.tempatId),'id')||pkNm(a).localeCompare(pkNm(b),'id')}),Z=pkSaring('tugas',G0),G=Z.list,bel=pkSiswaAll().filter(pkPeserta).filter(function(u){return !pkTugasSiswa(u.id)});
@@ -499,8 +499,8 @@ function pkTabJurnal(){
 }
 function pkTabKunjungan(){
  var K0=pkList('kunjungan').sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))}),Z=pkSaring('kunjungan',K0),K=Z.list;
- return '<div class="card"><b>Kunjungan monitoring ('+K.length+(Z.aktif?' dari '+K0.length:'')+')</b><div class="note">Panduan: guru pembimbing memantau minimal sebulan sekali (kunjungan atau komunikasi dengan dunia kerja).</div>'+pkTambah('kunjungan','Kunjungan baru')+Z.bar+
-  (K.length?K.map(function(k){var gu=k.guruId&&pkUser(k.guruId);return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="note"><b>'+esc(k.tanggal)+'</b> · '+esc(pkTempatNama(k.tempatId))+' · '+(k.mode==='daring'?'daring':'langsung')+' · '+esc(gu?gu.nama:(k.guruNama||'-'))+(k.temuan?'<br>Temuan: '+esc(k.temuan):'')+(k.tindak?'<br>Tindak lanjut: '+esc(k.tindak):'')+'</div>'+pkAksi('kunjungan',k.id)+'</div>'}).join(''):'<div class="note">'+(K0.length?'Tidak ada kunjungan yang cocok dengan saringan.':'Belum ada kunjungan.')+'</div>')+'</div>';
+ return '<div class="card"><b>Daftar monitoring ('+K.length+(Z.aktif?' dari '+K0.length:'')+')</b><div class="note">Panduan: guru pembimbing memantau minimal sebulan sekali (kunjungan atau komunikasi dengan dunia kerja).</div>'+pkTambah('kunjungan','Monitoring baru')+Z.bar+
+  (K.length?K.map(function(k){var gu=k.guruId&&pkUser(k.guruId);return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="note"><b>'+esc(k.tanggal)+'</b> · '+esc(pkTempatNama(k.tempatId))+' · '+(k.mode==='daring'?'daring':'langsung')+' · '+esc(gu?gu.nama:(k.guruNama||'-'))+(k.temuan?'<br>Temuan: '+esc(k.temuan):'')+(k.tindak?'<br>Tindak lanjut: '+esc(k.tindak):'')+'</div>'+pkAksi('kunjungan',k.id)+'</div>'}).join(''):'<div class="note">'+(K0.length?'Tidak ada monitoring yang cocok dengan saringan.':'Belum ada monitoring.')+'</div>')+'</div>';
 }
 function pkTabNilai(){
  var N0=pkList('nilai').sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')}),Z=pkSaring('nilai',N0),N=Z.list;
@@ -534,12 +534,12 @@ function pkTabRekap(){
 function pkXls(){
  if(typeof XLSX==='undefined'){toast('Pustaka Excel belum termuat.');return}
  var wb=XLSX.utils.book_new(),sh=function(n,rows){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows.length?rows:[{Keterangan:'Belum ada data'}]),n)},tp=pkTP();
- sh('Tempat PKL',pkList('tempat').map(function(t){var k=pkKunjunganAkhir(t.id);return {Nama:t.nama,Bidang:t.bidang||'',Alamat:t.alamat||'',Kota:t.kota||'',Lokasi:t.negeri==='luar'?'Luar negeri':'Dalam negeri',Telepon:t.telp||'',Pimpinan:t.pimpinan||'',Instruktur:t.instruktur||'','Kontak instruktur':t.instrTelp||'',Kuota:t.kuota||'','Siswa aktif':pkList('tugas').filter(function(x){return x.tempatId===t.id&&x.status==='aktif'}).length,'Jam kerja':t.jam||'','No. PKS sekolah':t.pks||'','No. PKS mitra':t.pksMitra||'','PKS mulai':t.pksMulai||'','PKS selesai':t.pksSelesai||'','Status PKS':pkPksStatus(t)[1],Fasilitas:t.fasilitas||'','Kunjungan terakhir':k?k.tanggal:''}}));
+ sh('Tempat PKL',pkList('tempat').map(function(t){var k=pkKunjunganAkhir(t.id);return {Nama:t.nama,Bidang:t.bidang||'',Alamat:t.alamat||'',Kota:t.kota||'',Lokasi:t.negeri==='luar'?'Luar negeri':'Dalam negeri',Telepon:t.telp||'',Pimpinan:t.pimpinan||'',Instruktur:t.instruktur||'','Kontak instruktur':t.instrTelp||'',Kuota:t.kuota||'','Siswa aktif':pkList('tugas').filter(function(x){return x.tempatId===t.id&&x.status==='aktif'}).length,'Jam kerja':t.jam||'','No. PKS sekolah':t.pks||'','No. PKS mitra':t.pksMitra||'','PKS mulai':t.pksMulai||'','PKS selesai':t.pksSelesai||'','Status PKS':pkPksStatus(t)[1],Fasilitas:t.fasilitas||'','Monitoring terakhir':k?k.tanggal:''}}));
  sh('Penempatan',pkList('tugas').map(function(g){var gu=g.guruId&&pkUser(g.guruId);return {Siswa:pkNm(g),Kelas:pkKl(g),Tempat:pkTempatNama(g.tempatId),'Guru pembimbing':gu?gu.nama:(g.guruNama||''),Instruktur:g.instruktur||'',Mulai:g.mulai||'',Selesai:g.selesai||'',Status:g.status||''}}));
  sh('Absensi',pkList('absen').sort(function(a,b){return a.ts-b.ts}).map(function(a){return {Tanggal:a.tanggal,Jam:a.jam||'',Siswa:a.nama||'',Kelas:a.kelas||'',Jenis:PK_TIPE[a.tipe]||a.tipe,Tempat:pkTempatNama(a.tempatId),Lokasi:a.lokasi==='ya'?'Di lokasi':a.lokasi==='tidak'?'Di luar lokasi':'Tidak diketahui','Jarak (m)':a.jarak==null?'':a.jarak,Selfie:(a.foto||a.fotoAda)?'Ada':'Tidak',Catatan:a.cat||''}}));
  sh('Rekap kehadiran',pkRekapBaris().map(function(x){return {Siswa:pkNm(x.g),Kelas:pkKl(x.g),Tempat:pkTempatNama(x.g.tempatId),Hadir:x.r.hadir,Izin:x.r.izin,Sakit:x.r.sakit,'Tanpa keterangan':x.r.alpa,'Masuk di luar lokasi':x.r.luar,'Jurnal':x.jurnal,'Kelengkapan':x.cek+'/'+PK_CEK.length,'Nilai akhir':x.nilai==null?'':x.nilai,Guru:x.guru}}));
  sh('Jurnal',pkList('jurnal').sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))}).map(function(j){return {Tanggal:j.tanggal,Siswa:j.nama||'',Kelas:j.kelas||'','Unit kerja':j.unit||'',Uraian:j.uraian||'',Catatan:j.cat||'','Diketahui oleh':j.verif||''}}));
- sh('Kunjungan',pkList('kunjungan').sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))}).map(function(k){var gu=k.guruId&&pkUser(k.guruId);return {Tanggal:k.tanggal,Tempat:pkTempatNama(k.tempatId),Guru:gu?gu.nama:(k.guruNama||''),Cara:k.mode==='daring'?'Daring':'Langsung',Temuan:k.temuan||'','Tindak lanjut':k.tindak||''}}));
+ sh('Monitoring',pkList('kunjungan').sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))}).map(function(k){var gu=k.guruId&&pkUser(k.guruId);return {Tanggal:k.tanggal,Tempat:pkTempatNama(k.tempatId),Guru:gu?gu.nama:(k.guruNama||''),Cara:k.mode==='daring'?'Daring':'Langsung',Temuan:k.temuan||'','Tindak lanjut':k.tindak||''}}));
  sh('Nilai',pkList('nilai').map(function(n){var o={Siswa:n.nama||'',Kelas:n.kelas||'',Tempat:pkTempatNama(n.tempatId)};[1,2,3,4].forEach(function(i){o['TP'+i+' '+tp[i-1]]=n['tp'+i]==null?'':n['tp'+i]});o['Nilai akhir']=pkNilaiAkhir(n)==null?'':pkNilaiAkhir(n);o.Predikat=pkPredikat(pkNilaiAkhir(n));o['Catatan guru']=n.catGuru||'';o['Catatan instruktur']=n.catInstr||'';return o}));
  sh('Kelengkapan',pkList('tugas').filter(function(x){return x.status!=='dibatalkan'}).map(function(g){var c=pkCekOf(g.sid),o={Siswa:pkNm(g),Tempat:pkTempatNama(g.tempatId)};PK_CEK.forEach(function(x){o[x[1]]=c&&c.items&&c.items[x[0]]?'Ya':'Belum'});return o}));
  XLSX.writeFile(wb,'pkl-'+(typeof schKode==='function'&&schKode()||'semua').toLowerCase()+'-'+pkToday()+'.xlsx');
