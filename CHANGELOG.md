@@ -1,3 +1,8 @@
+## Header ringkas dan PKL lebih padat
+- Sapaan tidak lagi diakhiri koma dari nama bergelar.
+- Header mengecil saat halaman digulir (basmalah, logo, nama) dan kembali penuh di posisi paling atas.
+- Kartu judul PKL dan enam kartu ringkasan dipadatkan; label "Tempat" menjadi "Perlu dikunjungi".
+
 ## PKL: menu di atas, jadwal per sekolah, basmalah artistik
 - Basmalah selebar bar atas, rata tengah, kaligrafi emas (Aref Ruqaa) dengan ornamen kiri-kanan.
 - Menu PKL guru/admin pindah ke atas, dikelompokkan Persiapan, Pelaksanaan, Penilaian; ringkasan angka pindah ke bawah.

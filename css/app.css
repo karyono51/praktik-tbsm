@@ -585,3 +585,13 @@ fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);out
 .top:not(.big) .hi{flex:1;min-width:0}
 .top:not(.big) .bsm-wrap{margin-bottom:4px}
 .top:not(.big) .bsm{font-size:clamp(16px,5vw,22px);line-height:1.55}
+
+/* header ringkas saat digulir */
+header.top.mini{padding-top:calc(4px + env(safe-area-inset-top));padding-bottom:8px;border-radius:0 0 20px 20px}
+header.top.mini .bsm-wrap{margin-bottom:0}
+header.top.mini .bsm{font-size:clamp(15px,4.6vw,20px);line-height:1.5}
+header.top.mini .logo{width:36px;height:36px;padding:2px}
+header.top.mini .hi .mail,header.top.mini .hi .hmeta,header.top.mini .netslot,header.top.mini .moto,header.top.mini .rings{display:none}
+header.top.mini .hello span{display:inline;font-size:13px}
+header.top.mini .hello b{display:inline;font-size:16px}
+

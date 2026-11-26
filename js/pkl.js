@@ -451,8 +451,8 @@ function pkRingkas(){
   J=pkList('jurnal').filter(function(x){return !x.verif}),tel=T.filter(function(x){var k=pkKunjunganAkhir(x.id),n=G.filter(function(g){return g.tempatId===x.id}).length;if(!n)return false;var h=k?pkHariSejak(k.tanggal):999;return h>30}).length,
   bel=pkSiswaAll().filter(pkPeserta).filter(function(u){return !pkTugasSiswa(u.id)}).length;
  function st(l,v,c){return '<div class="card"><span class="label">'+l+'</span><b class="mono">'+v+'</b>'+(c?'<span class="note">'+c+'</span>':'')+'</div>'}
- return '<div class="stats">'+st('Tempat PKL',T.length)+st('Siswa PKL',G.length,bel+' belum ditempatkan')+st('Hadir hari ini',A.length+'/'+G.length)+'</div>'+
-  '<div class="stats">'+st('Jurnal baru',J.length,'menunggu catatan')+st('Tempat','' +tel,'tanpa kunjungan > 30 hari')+st('Nilai',pkList('nilai').length,'sudah diisi')+'</div>';
+ return '<div class="stats pk-stats">'+st('Tempat PKL',T.length)+st('Siswa PKL',G.length,bel+' belum ditempatkan')+st('Hadir hari ini',A.length+'/'+G.length)+'</div>'+
+  '<div class="stats pk-stats">'+st('Jurnal baru',J.length,'menunggu catatan')+st('Perlu dikunjungi',''+tel,'> 30 hari')+st('Nilai',pkList('nilai').length,'sudah diisi')+'</div>';
 }
 function pkStaffView(){
  var f={tempat:pkTabTempat,tugas:pkTabTugas,absen:pkTabAbsen,jurnal:pkTabJurnal,kunjungan:pkTabKunjungan,nilai:pkTabNilai,cek:pkTabCek,rekap:pkTabRekap}[PK.tab]||pkTabTempat;
@@ -613,7 +613,9 @@ function pkPdfJurnal(sid){
 
 /* ---------- Tampilan utama ---------- */
 var PK_CSS=document.createElement('style');
-PK_CSS.textContent='.pk-menu{display:grid;gap:10px}.pk-grup .label{display:block;margin-bottom:4px}.pk-tombol{display:grid;gap:6px}.pk-tombol.n2{grid-template-columns:1fr 1fr}.pk-tombol.n3{grid-template-columns:repeat(3,1fr)}'+
+PK_CSS.textContent='.card.pk-judul{gap:2px;padding-top:12px;padding-bottom:12px}.pk-judul .note{margin:0;line-height:1.4}'+
+ '.stats.pk-stats{gap:8px}.stats.pk-stats .card{padding:8px 10px;gap:0;align-content:start}.pk-stats .label,.pk-stats .note{font-size:12px;line-height:1.3;margin:0}.pk-stats b{font-size:18px;line-height:1.35}'+
+ '.pk-menu{display:grid;gap:10px}.pk-grup .label{display:block;margin-bottom:4px}.pk-tombol{display:grid;gap:6px}.pk-tombol.n2{grid-template-columns:1fr 1fr}.pk-tombol.n3{grid-template-columns:repeat(3,1fr)}'+
  '.pk-tombol button{min-height:44px;padding:6px 4px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:inherit;font:600 13px/1.25 inherit;font-family:inherit}.pk-tombol button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}'+
  '.pk-row{display:flex;gap:10px;align-items:flex-start}.pk-pv{width:150px;aspect-ratio:3/4;object-fit:cover;border-radius:14px;border:1px solid var(--line);flex:none}'+
  '.pk-th{width:44px;height:58px;object-fit:cover;border-radius:8px;cursor:zoom-in;flex:none;border:1px solid var(--line)}.pk-kosong{display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:var(--muted);background:var(--surface)}'+

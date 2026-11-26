@@ -20,12 +20,13 @@ function svg(d,n){n=n||20;return '<svg viewBox="0 0 24 24" width="'+n+'" height=
 
 function render(){
  if(!S.user){$('#app').innerHTML=viewLogin();return}
+ if(window.requestAnimationFrame)requestAnimationFrame(hdrRingkas);
  var u=S.user,home=V.mode==='list'&&S.tab==='beranda',act=actRole(),multi=roleList(u).length>1;
  var logoBtn='<button type="button" class="logobtn" data-act="drawer" aria-label="Buka menu" aria-controls="drawer" aria-expanded="false"><img class="logo" src="'+LOGO+'" alt="Logo '+schNama()+'"></button>';
  var rolePill=multi?'<button type="button" class="pill glass role" data-act="switchrole" aria-label="Peran aktif '+PERAN[act]+'. Ketuk untuk berganti peran">'+PERAN[act]+svg(ICO.swap,14)+'</button>':'<span class="pill glass">'+PERAN[act]+'</span>';
  var kls=act==='siswa'&&u.kelas?'<span class="pill glass">Kelas '+esc(u.kelas)+'</span>':'';
  var bsm='<div class="bsm-wrap"><p class="bsm" lang="ar" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p></div>';
- var who='<div class="hi"><p class="hello"><span>Halo,</span> <b>'+esc(String(u.nama).trim().split(/\s+/)[0])+'</b></p><p class="mail">'+esc(u.email||u.username||'')+'</p><div class="hmeta">'+rolePill+schPill()+kls+'<button type="button" class="pill glass role iconbtn" data-act="refresh" aria-label="Segarkan data" title="Segarkan data">'+svg(ICO.segarkan,17)+'</button></div>'+(home?'':'<div class="netslot" id="netslot" hidden></div>')+'</div>';
+ var who='<div class="hi"><p class="hello"><span>Halo,</span> <b>'+esc(String(u.nama).trim().split(/\s+/)[0].replace(/[,;:]+.*$/,''))+'</b></p><p class="mail">'+esc(u.email||u.username||'')+'</p><div class="hmeta">'+rolePill+schPill()+kls+'<button type="button" class="pill glass role iconbtn" data-act="refresh" aria-label="Segarkan data" title="Segarkan data">'+svg(ICO.segarkan,17)+'</button></div>'+(home?'':'<div class="netslot" id="netslot" hidden></div>')+'</div>';
  var moto='<svg class="moto" viewBox="0 0 170 96" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="32" cy="66" r="19"/><circle cx="138" cy="66" r="19"/><circle cx="32" cy="66" r="5"/><circle cx="138" cy="66" r="5"/><path d="M32 66 56 42h40l14 24M96 42l12-22h16M108 20 138 66M60 42l-6-8h24M62 66h32l8-14"/></svg>';
  var head=home?
   '<header class="top big"><svg class="rings" viewBox="0 0 220 220" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="150" cy="70" r="30"/><circle cx="150" cy="70" r="60"/><circle cx="150" cy="70" r="90"/></svg>'+moto+bsm+
@@ -232,3 +233,13 @@ document.addEventListener('click',function(e){
  if(!d){drOpen(false);return}
  if(!t.closest('button,a,input,select,textarea,label,summary,[data-act],.chip.grp,.srow'))drOpen(false);
 });
+
+/* Header ringkas saat digulir: hanya basmalah, logo, dan nama. */
+function hdrRingkas(){
+ var h=document.querySelector('header.top');if(!h)return;
+ var y=window.scrollY||0,mini=h.classList.contains('mini');
+ /* hanya bila halaman cukup panjang, supaya mengecilnya header tidak memantulkan posisi gulir */
+ if(!mini&&y>140&&document.documentElement.scrollHeight-window.innerHeight>300)h.classList.add('mini');
+ else if(mini&&y<12)h.classList.remove('mini');
+}
+if(window.addEventListener)window.addEventListener('scroll',hdrRingkas,{passive:true});
