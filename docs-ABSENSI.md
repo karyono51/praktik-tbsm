@@ -4,23 +4,29 @@ Siswa punya barcode (QR) pribadi. Guru atau admin memindainya dengan kamera atau
 
 ## Alur kerja
 1. **Siswa**: buka menu **Barcode saya** (atau kartu di beranda siswa). Tampil kartu berisi QR, nama, kelas, dan NIS. Tombol **Simpan gambar** menyimpan kartu ke galeri supaya bisa dipakai tanpa membuka aplikasi.
-2. **Guru/admin**: menu **Absensi** (juga ubin di beranda). Pilih **kelas**, **tanggal**, dan **jenis** (Kehadiran atau Praktik; untuk Praktik isi kegiatannya).
-3. **Scan kamera**: arahkan ke barcode siswa. Tiap kode yang terbaca langsung mencatat Hadir, dengan bunyi dan getar. Kode yang sama diabaikan 2,5 detik; siswa yang sudah hadir tidak dicatat dua kali. Siswa dari kelas lain, akun nonaktif, atau QR asing ditolak dengan pesan.
+2. **Guru/admin**: menu **Absensi** (juga ubin di beranda). Pilih **rombel**, **tanggal**, dan **jenis** (Kehadiran atau Praktik; untuk Praktik isi kegiatannya).
+3. **Scan kamera**: arahkan ke barcode siswa. Tiap kode yang terbaca langsung mencatat Hadir, dengan bunyi dan getar. Kode yang sama diabaikan 2,5 detik; siswa yang sudah hadir tidak dicatat dua kali. Siswa yang bukan anggota rombel terpilih (pesan menyebut rombelnya), akun nonaktif, atau QR asing ditolak.
 4. **Scan dari galeri**: pilih satu atau beberapa gambar (kartu yang dikirim siswa, tangkapan layar). Satu gambar boleh memuat beberapa barcode. Hasilnya tampil di kartu Hasil pindai terakhir.
 5. **Tidak masuk**: di tiap siswa ada tombol status Hadir, Sakit, Izin, Alpa (ketuk lagi untuk menghapus). Ikon **barcode** di baris siswa membuka lembar keterangan: status, catatan (misalnya "demam, surat dokter menyusul"), tanggal dan jenis, serta QR siswa. Tombol **Belum ada status → Alpa** menandai sisa siswa sekaligus setelah semua dipindai.
-6. **Rekap dan Excel**: per kelas, bulan, dan jenis; jumlah H/S/I/A dan persen hadir tiap siswa. Ekspor Excel berisi sheet Rekap dan Harian.
+6. **Rekap dan Excel**: per rombel, bulan, dan jenis; jumlah H/S/I/A dan persen hadir tiap siswa. Ekspor Excel berisi sheet Rekap dan Harian.
 
 Admin juga mendapat ikon barcode di tiap baris siswa pada menu **Akun**; isinya sama dengan lembar keterangan.
+
+## Rombel, bukan tingkat kelas
+Absensi dicatat per **rombel** (rombongan belajar, mis. X TBSM 1) dari Administrasi Akademik (menu Akademik, Kelas): hanya rombel aktif pada tahun ajaran aktif, dengan anggota dari daftar anggota rombel.
+- Siswa yang belum masuk rombel tahun ini muncul di pilihan **Belum punya rombel**, supaya tidak ada yang terlewat.
+- Bila belum ada rombel sama sekali, pilihan jatuh ke **Kelas X / XI / XII** (siswa menurut kelas pada akun).
+- Anggota rombel diatur di Akademik; absensi langsung mengikuti (siswa pindah rombel = pindah daftar absensi).
 
 ## Isi barcode
 `TBSM|<id akun>|<cek>`. `cek` (4 karakter) hanya mencegah QR sembarang terbaca sebagai siswa; ini bukan pengaman. Barcode yang dibagikan bisa dipakai orang lain, jadi guru tetap mencocokkan orang di kelas.
 
 ## Penyimpanan
-Tanpa koleksi atau atribut Appwrite baru. Sesi disimpan di koleksi `observasi` (`S.observasi`) dengan `tipe='absen'`: satu dokumen per **guru + kelas + tanggal + jenis** (`ab-<yymmdd>-<h|p>-<kelas>-<hash guru>`), isi `payload` = status semua siswa pada sesi itu (`{rows:{<id siswa>:{s:'H|S|I|A',t:waktu,m:'s|m',c:catatan}},ket}`). Kolom `skor` = jumlah hadir, `kategori` = `hadir` atau `praktik`.
+Tanpa koleksi atau atribut Appwrite baru. Sesi disimpan di koleksi `observasi` (`S.observasi`) dengan `tipe='absen'`: satu dokumen per **guru + rombel + tanggal + jenis** (`ab-<yymmdd>-<h|p>-<hash rombel>-<hash guru>`), isi `payload` = rombel dan status semua siswa pada sesi itu (`{rb:<id rombel>,rn:<nama rombel>,rows:{<id siswa>:{s:'H|S|I|A',t:waktu,m:'s|m',c:catatan}},ket}`). Kolom `kelas` (maks 8 karakter) berisi tingkat (X/XI/XII), nama rombel ada di `mapel` dan `payload.rn`. `skor` = jumlah hadir, `kategori` = `hadir` atau `praktik`. Dokumen tanpa `rb` (versi awal, per tingkat) dikenali sebagai `k<tingkat>`.
 - Sinkron, antrean offline, dan Cek sinkronisasi ikut jalur observasi. Mencatat absensi bisa dilakukan offline.
 - Hak akses mengikuti observasi: guru melihat sesinya sendiri, admin semua. Kepala Sekolah tidak mencatat absensi.
 - Daftar Observasi guru/LKPD/UKK tidak menampilkan sesi absensi (`obsTipe` mengembalikan `absen`).
-- Satu sesi memuat sampai sekitar 200 siswa (batas payload 20.000 karakter); kelas 45 siswa memakai sekitar 3-4 KB.
+- Satu sesi memuat sampai sekitar 150 siswa (batas payload 20.000 karakter); kelas 45 siswa memakai sekitar 3-4 KB.
 - Siswa belum bisa melihat riwayat absensinya sendiri di aplikasi, karena siswa tidak punya izin baca koleksi `observasi`.
 
 ## Pemindai dan peramban

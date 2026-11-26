@@ -1,13 +1,13 @@
 /* absensi.js: absensi kehadiran dan absensi praktik lewat barcode (QR).
    Siswa: kartu barcode pribadi (menu "Barcode saya" dan kartu di beranda siswa), dapat disimpan sebagai gambar.
-   Guru/admin: menu Absensi (kelas, tanggal, jenis Kehadiran atau Praktik), scan kamera, scan dari galeri,
+   Guru/admin: menu Absensi (rombel, tanggal, jenis Kehadiran atau Praktik), scan kamera, scan dari galeri,
    status Hadir/Sakit/Izin/Alpa per siswa, ikon barcode di tiap siswa untuk keterangan, rekap per bulan dan Excel.
    Admin juga mendapat ikon barcode di daftar Akun (baris siswa).
-   Penyimpanan: koleksi `observasi` yang sama (S.observasi) dengan tipe = 'absen', satu dokumen per guru, kelas, tanggal, dan jenis;
+   Penyimpanan: koleksi `observasi` yang sama (S.observasi) dengan tipe = 'absen', satu dokumen per guru, rombel, tanggal, dan jenis;
    isi (payload) memuat status semua siswa pada sesi itu. Jadi tidak ada koleksi atau atribut Appwrite baru, dan sinkron,
    antrean offline, serta hak akses (admin semua, guru miliknya) ikut berlaku. Pemindai memakai BarcodeDetector bawaan peramban
    (Chrome Android); QR dibuat sendiri oleh qr.js. Lihat docs-ABSENSI.md. */
-var AB={kelas:'',tgl:'',j:'h',ket:'',tab:'sesi',sheet:null,log:[],rk:{bulan:'',kelas:'',j:'h'},_last:{},_t:null};
+var AB={rb:'',tgl:'',j:'h',ket:'',tab:'sesi',sheet:null,log:[],rk:{bulan:'',rb:'',j:'h'},_last:{},_t:null,_ak:0};
 var AB_ST={H:['Hadir','ok'],S:['Sakit','warn'],I:['Izin','plain'],A:['Alpa','bad']};
 var AB_J={h:'Kehadiran',p:'Praktik'};
 ICO.barcode='<path d="M4 5v14M7 5v14M11 5v14M14 5v14M17 5v14M20 5v14"/>';
@@ -18,35 +18,77 @@ function abCek(id){var s='tbsm:'+id,h=5381,i;for(i=0;i<s.length;i++)h=((h<<5)+h+
 function abIsi(u){return 'TBSM|'+u.id+'|'+abCek(u.id)}
 function abUrai(t){var p=String(t||'').trim().split('|');return(p.length===3&&p[0]==='TBSM'&&p[1]&&abCek(p[1])===p[2])?p[1]:null}
 
-/* ---- sesi: satu dokumen observasi bertipe 'absen' per guru, kelas, tanggal, jenis ---- */
-function abInit(){if(!AB.kelas)AB.kelas=(S.user&&S.user.kelas&&KLS.indexOf(S.user.kelas)>-1&&actRole()==='siswa')?S.user.kelas:KLS[0];if(!AB.tgl)AB.tgl=ymd(Date.now());if(!AB.rk.bulan)AB.rk.bulan=ymd(Date.now()).slice(0,7);if(!AB.rk.kelas)AB.rk.kelas=KLS[0]}
-function abDocId(k,t,j){var g=(S.user&&S.user.id)||'',h=5381,i;for(i=0;i<g.length;i++)h=((h<<5)+h+g.charCodeAt(i))>>>0;return 'ab-'+String(t).replace(/-/g,'').slice(2)+'-'+j+'-'+String(k).toLowerCase()+'-'+h.toString(36)}
-function abRec(k,t,j){var id=abDocId(k,t,j);return (S.observasi||[]).filter(function(r){return r.tipe==='absen'&&r.id===id})[0]||null}
-function abPay(r){try{var p=JSON.parse(r.payload||'{}');if(!p.rows)p.rows={};return p}catch(e){return {v:1,rows:{}}}}
-function abBaris(k,t,j){var r=abRec(k,t,j);return r?abPay(r).rows:{}}
-function abSiswa(k){return S.users.filter(function(u){return hasRole(u,'siswa')&&u.kelas===k&&u.aktif!==false&&schAkunOk(u)}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')})}
+/* ---- rombel: rombongan belajar dari Administrasi Akademik (AKD.D.kelas); tanpa rombel, pilihan jatuh ke tingkat (Kelas X/XI/XII) ---- */
+function abTahunOk(k){
+ try{var ta=typeof akTahunAktif==='function'?akTahunAktif():null;if(!ta)return true;var n=typeof akTahunNama==='function'?akTahunNama(k.tahunId):'';return !n||n===String(ta.nama||'')}catch(e){return true}
+}
+function abSiswaAll(){return S.users.filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false&&schAkunOk(u)})}
+function abUrut(a,b){return (typeof akUrutNis==='function')?akUrutNis(a,b):String(a.nama).localeCompare(String(b.nama),'id')}
+function abPilihan(){
+ var kl=[],op=[],used={};
+ try{if(typeof akKelasAll==='function'&&typeof AKD!=='undefined')kl=akKelasAll().filter(function(k){return k.aktif!==false&&abTahunOk(k)})}catch(e){kl=[]}
+ if(kl.length){
+  kl.forEach(function(k){(k.anggota||[]).forEach(function(id){if(!used[id])used[id]=k.nama});op.push({key:k.id,nama:k.nama,tingkat:k.tingkat||'-',ids:k.anggota||[]})});
+  if(abSiswaAll().some(function(u){return !used[u.id]}))op.push({key:'tanpa',nama:'Belum punya rombel',tingkat:'-',tanpa:true,used:used});
+ }else KLS.forEach(function(t){op.push({key:'k'+t,nama:'Kelas '+t,tingkat:t,kelas:t})});
+ return op;
+}
+function abOp(rb){return abPilihan().filter(function(o){return o.key===rb})[0]||{key:rb,nama:String(rb||'-'),tingkat:'-',ids:[]}}
+function abSiswa(rb){
+ var op=abOp(rb),all=abSiswaAll(),L;
+ if(op.ids){var m={};op.ids.forEach(function(id){m[id]=1});L=all.filter(function(u){return m[u.id]})}
+ else if(op.tanpa)L=all.filter(function(u){return !op.used[u.id]});
+ else L=all.filter(function(u){return u.kelas===op.kelas});
+ return L.sort(abUrut);
+}
+/* rombel (kunci pilihan) tempat siswa berada */
+function abRbSiswa(u){
+ var op=abPilihan(),i;
+ for(i=0;i<op.length;i++){if(op[i].ids&&op[i].ids.indexOf(u.id)>-1)return op[i].key}
+ for(i=0;i<op.length;i++){if(op[i].tanpa)return op[i].key}
+ for(i=0;i<op.length;i++){if(op[i].kelas===u.kelas)return op[i].key}
+ return op.length?op[0].key:'';
+}
+function abNamaRombel(u){var k=abRbSiswa(u),o=abPilihan().filter(function(x){return x.key===k})[0];return o?o.nama:''}
+function abInit(){
+ if(typeof akLoad==='function'&&typeof AKD!=='undefined'&&!AKD.loaded&&!AB._ak){AB._ak=1;try{akLoad().then(function(){if(S.tab==='absensi'||S.tab==='akun')render()})}catch(e){}}
+ var op=abPilihan();
+ if(!AB.rb||!op.some(function(o){return o.key===AB.rb}))AB.rb=op.length?op[0].key:'';
+ if(!AB.rk.rb||!op.some(function(o){return o.key===AB.rk.rb}))AB.rk.rb=AB.rb;
+ if(!AB.tgl)AB.tgl=ymd(Date.now());
+ if(!AB.rk.bulan)AB.rk.bulan=ymd(Date.now()).slice(0,7);
+}
+function abHash(t){var h=5381,i;t=String(t);for(i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))>>>0;return h.toString(36)}
+function abDocId(rb,t,j){return 'ab-'+String(t).replace(/-/g,'').slice(2)+'-'+j+'-'+abHash(rb)+'-'+abHash((S.user&&S.user.id)||'')}
+function abRec(rb,t,j){var id=abDocId(rb,t,j);return (S.observasi||[]).filter(function(r){return r.tipe==='absen'&&r.id===id})[0]||null}
+function abPay(r){try{var p=JSON.parse(r.payload||'{}');if(!p.rows)p.rows={};return p}catch(e){return {v:2,rows:{}}}}
+function abBaris(rb,t,j){var r=abRec(rb,t,j);return r?abPay(r).rows:{}}
+/* kunci rombel sebuah dokumen: payload.rb; dokumen lama (hanya tingkat) = 'k'+kelas */
+function abKunci(r){var p=abPay(r);return p.rb||('k'+r.kelas)}
+function abMapel(op,j,ket){return ((j==='p'?'Praktik'+(ket?': '+ket:''):'Kehadiran')+' · '+op.nama).slice(0,120)}
 function abJam(t){var d=new Date(t);return ('0'+d.getHours()).slice(-2)+'.'+('0'+d.getMinutes()).slice(-2)}
 function abTglIndo(t){var b=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],p=String(t).split('-');return p.length===3?(+p[2])+' '+b[+p[1]-1]+' '+p[0]:t}
 function abSimpan(){try{save()}catch(e){}clearTimeout(AB._t);AB._t=setTimeout(function(){try{persist()}catch(e){}},1200)}
 
 /* st null = hapus status siswa dari sesi. ex: {m:'s'|'m', c:'catatan'} */
-function abSet(k,t,j,sid,st,ex){
+function abSet(rb,t,j,sid,st,ex){
  ex=ex||{};
- var rec=abRec(k,t,j),p=rec?abPay(rec):{v:1,j:j,ket:'',rows:{}},old=p.rows[sid]||{};
+ var op=abOp(rb),rec=abRec(rb,t,j),p=rec?abPay(rec):{v:2,j:j,rb:rb,rn:op.nama,ket:'',rows:{}},old=p.rows[sid]||{};
  if(st==null)delete p.rows[sid];
  else{
   var c=ex.c!=null?String(ex.c).trim().slice(0,200):(old.c||'');
   p.rows[sid]={s:st,t:Date.now(),m:ex.m||'m'};if(c)p.rows[sid].c=c;
  }
+ p.rb=rb;p.rn=op.nama;
  if(j==='p'&&AB.ket&&!p.ket)p.ket=AB.ket.slice(0,120);
  var h=0,key;for(key in p.rows)if(p.rows[key].s==='H')h++;
  var payload=JSON.stringify(p);
  if(payload.length>19000){toast('Sesi terlalu besar untuk disimpan');return false}
- var mapel=j==='p'?('Praktik'+(p.ket?': '+p.ket:'')).slice(0,120):'Kehadiran';
+ var mapel=abMapel(op,j,p.ket);
  if(rec){rec.payload=payload;rec.skor=h;rec.mapel=mapel;rec.ts=Date.now();if(rec.r)rec.d=1}
  else if(Object.keys(p.rows).length){
   S.observasi=S.observasi||[];
-  S.observasi.push({id:abDocId(k,t,j),ts:Date.now(),tipe:'absen',guruId:S.user.id,guru:String(S.user.nama).slice(0,120),mapel:mapel,kelas:k,tanggal:t,pengamat:String(S.user.nama).slice(0,120),pengamatId:S.user.id,skor:h,kategori:j==='p'?'praktik':'hadir',payload:payload});
+  S.observasi.push({id:abDocId(rb,t,j),ts:Date.now(),tipe:'absen',guruId:S.user.id,guru:String(S.user.nama).slice(0,120),mapel:mapel,kelas:String(op.tingkat||'-').slice(0,8),tanggal:t,pengamat:String(S.user.nama).slice(0,120),pengamatId:S.user.id,skor:h,kategori:j==='p'?'praktik':'hadir',payload:payload});
  }
  abSimpan();return true;
 }
@@ -113,10 +155,11 @@ function abProses(raw){
  if(!u)return {ok:false,msg:'Siswa tidak ada di daftar akun'};
  if(!hasRole(u,'siswa')||!schAkunOk(u))return {ok:false,msg:u.nama+': bukan siswa sekolah ini'};
  if(u.aktif===false)return {ok:false,msg:u.nama+': akun nonaktif'};
- if(u.kelas!==AB.kelas)return {ok:false,msg:u.nama+' kelas '+(u.kelas||'?')+', sesi ini kelas '+AB.kelas};
- var cur=abBaris(AB.kelas,AB.tgl,AB.j)[sid];
+ var L=abSiswa(AB.rb);
+ if(!L.some(function(x){return x.id===sid})){var rn=abNamaRombel(u);return {ok:false,msg:u.nama+' bukan anggota '+abOp(AB.rb).nama+(rn?' (rombelnya '+rn+')':'')}}
+ var cur=abBaris(AB.rb,AB.tgl,AB.j)[sid];
  if(cur&&cur.s==='H')return {ok:true,dup:true,msg:u.nama+' sudah hadir '+abJam(cur.t)};
- if(!abSet(AB.kelas,AB.tgl,AB.j,sid,'H',{m:'s'}))return {ok:false,msg:'Gagal menyimpan'};
+ if(!abSet(AB.rb,AB.tgl,AB.j,sid,'H',{m:'s'}))return {ok:false,msg:'Gagal menyimpan'};
  return {ok:true,msg:u.nama+' hadir'+(cur?' (sebelumnya '+AB_ST[cur.s][0]+')':'')};
 }
 function abCatat(h){AB.log.unshift(h);AB.log=AB.log.slice(0,12)}
@@ -163,7 +206,7 @@ async function abKamera(){
  if(document.getElementById('abscan'))return;
  var ov=document.createElement('div');ov.id='abscan';ov.className='ab-scan';
  ov.innerHTML='<video playsinline muted autoplay></video><div class="ab-frame" aria-hidden="true"></div>'+
-  '<div class="ab-top"><div><b>'+AB_J[AB.j]+' · Kelas '+esc(AB.kelas)+'</b><small>'+esc(abTglIndo(AB.tgl))+'</small></div><button type="button" class="btn small" data-ab3="x">Selesai</button></div>'+
+  '<div class="ab-top"><div><b>'+AB_J[AB.j]+' · '+esc(abOp(AB.rb).nama)+'</b><small>'+esc(abTglIndo(AB.tgl))+'</small></div><button type="button" class="btn small" data-ab3="x">Selesai</button></div>'+
   '<div class="ab-bot"><div class="ab-msg" id="abmsg" role="status" aria-live="polite">Arahkan kamera ke barcode siswa</div><div class="ab-cnt" id="abcnt"></div><ul class="ab-rec" id="abrec"></ul></div>';
  document.body.appendChild(ov);
  var vid=ov.querySelector('video');
@@ -200,7 +243,7 @@ function abTampilPesan(h){
 }
 function abHitung(){
  var c=document.getElementById('abcnt');if(!c)return;
- var R=abBaris(AB.kelas,AB.tgl,AB.j),n=abSiswa(AB.kelas),h=n.filter(function(u){return R[u.id]&&R[u.id].s==='H'}).length;
+ var R=abBaris(AB.rb,AB.tgl,AB.j),n=abSiswa(AB.rb),h=n.filter(function(u){return R[u.id]&&R[u.id].s==='H'}).length;
  c.textContent='Hadir '+h+' dari '+n.length+' siswa';
 }
 function abTutupKamera(){
@@ -239,10 +282,10 @@ function abHitungSesi(R,L){
 function abLembar(){
  var s=AB.sheet;if(!s)return '';
  var u=S.users.filter(function(x){return x.id===s.sid})[0];if(!u)return '';
- var R=abBaris(s.kelas,s.tgl,s.j),cur=s.pilih!==undefined?s.pilih:(R[u.id]?R[u.id].s:null),cat=s.cat!==undefined?s.cat:(R[u.id]&&R[u.id].c)||'';
+ var R=abBaris(s.rb,s.tgl,s.j),cur=s.pilih!==undefined?s.pilih:(R[u.id]?R[u.id].s:null),cat=s.cat!==undefined?s.cat:(R[u.id]&&R[u.id].c)||'';
  var chips=Object.keys(AB_ST).map(function(k){return '<button type="button" class="abst-b'+(cur===k?' on '+AB_ST[k][1]:'')+'" data-act="absp" data-v="'+k+'" aria-pressed="'+(cur===k)+'">'+AB_ST[k][0]+'</button>'}).join('');
  return '<div class="ui-ov bp-ov"><div class="bp-sheet abs-sheet" role="dialog" aria-modal="true" aria-label="Keterangan siswa"><div class="bp-h"><span>Keterangan · '+esc(u.nama)+'</span><button type="button" class="bp-x" data-act="absx">Tutup</button></div><div class="abs-body">'+
-  '<div class="abs-qr">'+QR.svg(abIsi(u),{px:116,label:'Barcode '+u.nama})+'<div><b>'+esc(u.nama)+'</b><div class="note">Kelas '+esc(u.kelas||'-')+' · '+esc(u.username||'')+'</div><button type="button" class="btn small" data-act="abkartu" data-v="'+esc(u.id)+'">Lihat dan simpan kartu</button></div></div>'+
+  '<div class="abs-qr">'+QR.svg(abIsi(u),{px:116,label:'Barcode '+u.nama})+'<div><b>'+esc(u.nama)+'</b><div class="note">'+esc(abNamaRombel(u)||('Kelas '+(u.kelas||'-')))+' · '+esc(u.username||'')+'</div><button type="button" class="btn small" data-act="abkartu" data-v="'+esc(u.id)+'">Lihat dan simpan kartu</button></div></div>'+
   '<div class="abs-two"><label class="f">Tanggal<input type="date" data-ab="stgl" value="'+esc(s.tgl)+'"></label><label class="f">Jenis<select data-ab="sj"><option value="h"'+(s.j==='h'?' selected':'')+'>Kehadiran</option><option value="p"'+(s.j==='p'?' selected':'')+'>Praktik</option></select></label></div>'+
   '<div class="abst" role="group" aria-label="Status">'+chips+'</div>'+
   '<label class="f">Keterangan (opsional)<textarea data-ab="cat" rows="2" maxlength="200" placeholder="Contoh: demam, surat dokter menyusul">'+esc(cat)+'</textarea></label>'+
@@ -251,8 +294,8 @@ function abLembar(){
 function viewAbsensi(){
  abInit();
  if(AB.tab==='rekap')return abViewRekap();
- var L=abSiswa(AB.kelas),R=abBaris(AB.kelas,AB.tgl,AB.j),c=abHitungSesi(R,L),q='';
- var kls=KLS.map(function(k){return '<option value="'+k+'"'+(k===AB.kelas?' selected':'')+'>Kelas '+k+'</option>'}).join('');
+ var L=abSiswa(AB.rb),R=abBaris(AB.rb,AB.tgl,AB.j),c=abHitungSesi(R,L),op=abOp(AB.rb);
+ var kls=abPilihan().map(function(o){return '<option value="'+esc(o.key)+'"'+(o.key===AB.rb?' selected':'')+'>'+esc(o.nama)+'</option>'}).join('');
  var pills=['H','S','I','A'].map(function(k){return '<span class="pill '+AB_ST[k][1]+'">'+AB_ST[k][0]+' <b class="mono">'+c[k]+'</b></span>'}).join('')+'<span class="pill plain">Belum <b class="mono">'+c.B+'</b></span>';
  var log=AB.log.length?'<div class="card ab-log"><div class="row sb"><b>Hasil pindai terakhir</b><button type="button" class="btn small" data-act="ablogx">Tutup</button></div><ul class="plain">'+AB.log.slice(0,6).map(function(x){return '<li class="'+(x.ok?'':'bad')+'">'+(x.ok?(x.dup?'• ':'✓ '):'✗ ')+esc(x.msg)+'</li>'}).join('')+'</ul></div>':'';
  var rows=L.map(function(u,i){
@@ -261,25 +304,25 @@ function viewAbsensi(){
   var b=Object.keys(AB_ST).map(function(k){return '<button type="button" class="abst-b'+(st===k?' on '+AB_ST[k][1]:'')+'" data-act="abst" data-v="'+esc(u.id)+'|'+k+'" aria-pressed="'+(st===k)+'" aria-label="'+AB_ST[k][0]+' untuk '+esc(u.nama)+'">'+AB_ST[k][0]+'</button>'}).join('');
   return '<div class="card abr"><div class="row sb"><div class="grow"><b>'+(i+1)+'. '+esc(u.nama)+'</b><div class="note">'+info+'</div></div><button type="button" class="btn small abico" data-act="abkode" data-v="'+esc(u.id)+'" aria-label="Barcode dan keterangan '+esc(u.nama)+'">'+svg(ICO.barcode,20)+'</button></div><div class="abst" role="group">'+b+'</div></div>';
  }).join('');
- var ket=AB.j==='p'?'<label class="f">Kegiatan praktik<input data-ab="ket" maxlength="100" value="'+esc(abPay(abRec(AB.kelas,AB.tgl,'p')||{payload:'{}'}).ket||AB.ket)+'" placeholder="Contoh: Praktik mikrometer"></label>':'';
+ var ket=AB.j==='p'?'<label class="f">Kegiatan praktik<input data-ab="ket" maxlength="100" value="'+esc(abPay(abRec(AB.rb,AB.tgl,'p')||{payload:'{}'}).ket||AB.ket)+'" placeholder="Contoh: Praktik mikrometer"></label>':'';
  return '<div class="row sb"><h2>Absensi</h2><button type="button" class="btn small" data-act="abrekap">Rekap dan Excel</button></div>'+
   '<div class="card">'+
-  '<div class="abs-two"><label class="f">Kelas<select data-ab="kelas">'+kls+'</select></label><label class="f">Tanggal<input type="date" data-ab="tgl" value="'+esc(AB.tgl)+'"></label></div>'+
+  '<div class="abs-two"><label class="f">Rombel<select data-ab="rombel">'+kls+'</select></label><label class="f">Tanggal<input type="date" data-ab="tgl" value="'+esc(AB.tgl)+'"></label></div>'+
   '<div class="chips" role="group" aria-label="Jenis absensi"><button type="button" data-act="abjenis" data-v="h" aria-pressed="'+(AB.j==='h')+'">Kehadiran</button><button type="button" data-act="abjenis" data-v="p" aria-pressed="'+(AB.j==='p')+'">Praktik</button></div>'+ket+
   '<div class="row">'+pills+'</div>'+
   '<div class="row"><button type="button" class="btn primary grow" data-act="abscan">Scan kamera</button><label class="btn grow filebtn" style="text-align:center">Scan dari galeri<input id="abfile" type="file" accept="image/*" multiple hidden></label></div>'+
   (abNative()?'':'<p class="note">Peramban ini tidak punya pemindai bawaan (misalnya Safari di iPhone). Pemindai cadangan dimuat saat Scan ditekan; bila belum terpasang, tandai manual dengan tombol status di bawah.</p>')+
   '</div>'+log+
-  (rows||'<div class="card"><p class="muted">Belum ada siswa di kelas '+esc(AB.kelas)+'.</p></div>')+
-  (L.length?'<div class="row"><button type="button" class="btn" data-act="abalpa">Belum ada status → Alpa ('+c.B+')</button>'+(abRec(AB.kelas,AB.tgl,AB.j)?'<button type="button" class="btn danger" data-act="abhapus">Hapus sesi</button>':'')+'</div>':'')+
+  (rows||'<div class="card"><p class="muted">Belum ada siswa di '+esc(op.nama)+'. Atur anggota rombel di Administrasi Akademik.</p></div>')+
+  (L.length?'<div class="row"><button type="button" class="btn" data-act="abalpa">Belum ada status → Alpa ('+c.B+')</button>'+(abRec(AB.rb,AB.tgl,AB.j)?'<button type="button" class="btn danger" data-act="abhapus">Hapus sesi</button>':'')+'</div>':'')+
   '<p class="note">Scan mencatat Hadir. Untuk siswa yang tidak masuk, ketuk Sakit, Izin, atau Alpa; ikon barcode membuka keterangan dan kartu barcode siswa. Data tersimpan sebagai milik akun ini (admin melihat semua).</p>'+(AB.sheet&&AB.sheet.via!=='akun'?abLembar():'');
 }
 
 /* ---- rekap ---- */
 function abRekapData(){
- var k=AB.rk.kelas,j=AB.rk.j,b=AB.rk.bulan,L=abSiswa(k),adm=can('observasi-semua'),kat=j==='p'?'praktik':'hadir';
+ var k=AB.rk.rb,j=AB.rk.j,b=AB.rk.bulan,L=abSiswa(k),adm=can('observasi-semua'),kat=j==='p'?'praktik':'hadir';
  var S2=(typeof schObsList==='function'?schObsList(S.observasi||[]):(S.observasi||[])).filter(function(r){
-  return r.tipe==='absen'&&r.kelas===k&&r.kategori===kat&&String(r.tanggal).slice(0,7)===b&&(adm||r.pengamatId===S.user.id)}).sort(function(a,c){return String(a.tanggal).localeCompare(String(c.tanggal))});
+  return r.tipe==='absen'&&abKunci(r)===k&&r.kategori===kat&&String(r.tanggal).slice(0,7)===b&&(adm||r.pengamatId===S.user.id)}).sort(function(a,c){return String(a.tanggal).localeCompare(String(c.tanggal))});
  var sess=S2.map(function(r){return {r:r,rows:abPay(r).rows}});
  var rec=L.map(function(u){
   var c={H:0,S:0,I:0,A:0};
@@ -289,21 +332,21 @@ function abRekapData(){
  return {L:L,sess:sess,rec:rec};
 }
 function abViewRekap(){
- var D=abRekapData(),k=AB.rk.kelas;
- var kls=KLS.map(function(x){return '<option value="'+x+'"'+(x===k?' selected':'')+'>Kelas '+x+'</option>'}).join('');
+ var D=abRekapData(),k=AB.rk.rb;
+ var kls=abPilihan().map(function(o){return '<option value="'+esc(o.key)+'"'+(o.key===k?' selected':'')+'>'+esc(o.nama)+'</option>'}).join('');
  var rows=D.rec.map(function(o,i){
   return '<div class="card abr"><div class="row sb"><div class="grow"><b>'+(i+1)+'. '+esc(o.u.nama)+'</b><div class="note">'+esc(o.u.username||'')+'</div></div><span class="pill '+(o.tot&&o.pct>=75?'ok':o.tot?'warn':'plain')+'">'+(o.tot?o.pct+'%':'-')+'</span></div><div class="row"><span class="pill ok">H '+o.c.H+'</span><span class="pill warn">S '+o.c.S+'</span><span class="pill plain">I '+o.c.I+'</span><span class="pill bad">A '+o.c.A+'</span><span class="note">dari '+o.tot+' sesi</span></div></div>';
  }).join('');
  return '<div class="row sb"><h2>Rekap absensi</h2><button type="button" class="btn small" data-act="abback">Kembali</button></div>'+
-  '<div class="card"><div class="abs-two"><label class="f">Kelas<select data-ab="rkelas">'+kls+'</select></label><label class="f">Bulan<input type="month" data-ab="rbulan" value="'+esc(AB.rk.bulan)+'"></label></div>'+
+  '<div class="card"><div class="abs-two"><label class="f">Rombel<select data-ab="rrombel">'+kls+'</select></label><label class="f">Bulan<input type="month" data-ab="rbulan" value="'+esc(AB.rk.bulan)+'"></label></div>'+
   '<div class="chips" role="group"><button type="button" data-act="abrj" data-v="h" aria-pressed="'+(AB.rk.j==='h')+'">Kehadiran</button><button type="button" data-act="abrj" data-v="p" aria-pressed="'+(AB.rk.j==='p')+'">Praktik</button></div>'+
   '<div class="row"><span class="pill plain">'+D.sess.length+' sesi</span><span class="pill plain">'+D.L.length+' siswa</span><button type="button" class="btn small primary" data-act="abxls"'+(D.sess.length?'':' disabled')+'>Ekspor Excel</button></div></div>'+
-  (rows||'<div class="card"><p class="muted">Belum ada siswa di kelas '+esc(k)+'.</p></div>')+
+  (rows||'<div class="card"><p class="muted">Belum ada siswa di '+esc(abOp(k).nama)+'.</p></div>')+
   (D.sess.length?'':'<p class="note">Belum ada sesi '+AB_J[AB.rk.j].toLowerCase()+' pada bulan ini.</p>');
 }
 function abXls(){
  if(!needX())return;
- var D=abRekapData(),k=AB.rk.kelas,j=AB.rk.j;
+ var D=abRekapData(),k=AB.rk.rb,j=AB.rk.j;
  var a=[['No','Nama','NIS/Username','Hadir','Sakit','Izin','Alpa','Jumlah sesi','% Hadir']];
  D.rec.forEach(function(o,i){a.push([i+1,o.u.nama,o.u.username||'',o.c.H,o.c.S,o.c.I,o.c.A,o.tot,o.tot?o.pct:''])});
  var h=[['No','Nama','NIS/Username']];
@@ -312,7 +355,7 @@ function abXls(){
  var wb=XLSX.utils.book_new(),w1=XLSX.utils.aoa_to_sheet(a),w2=XLSX.utils.aoa_to_sheet(h);
  w1['!cols']=[{wch:5},{wch:30},{wch:16},{wch:8},{wch:8},{wch:8},{wch:8},{wch:12},{wch:9}];
  XLSX.utils.book_append_sheet(wb,w1,'Rekap');XLSX.utils.book_append_sheet(wb,w2,'Harian');
- dl(wb,'Absensi_'+AB_J[j]+'_Kelas'+k+'_'+AB.rk.bulan);
+ dl(wb,'Absensi_'+AB_J[j]+'_'+abOp(k).nama.replace(/[^A-Za-z0-9]+/g,'_')+'_'+AB.rk.bulan);
 }
 
 /* ---- gaya ---- */
@@ -353,39 +396,39 @@ document.addEventListener('click',async function(e){
  if(a==='abxls'){abXls();return}
  if(a==='ablogx'){AB.log=[];render();return}
  if(a==='abst'){
-  var p=String(v).split('|'),sid=p[0],st=p[1],cur=abBaris(AB.kelas,AB.tgl,AB.j)[sid];
-  abSet(AB.kelas,AB.tgl,AB.j,sid,(cur&&cur.s===st)?null:st,{m:'m'});render();return;
+  var p=String(v).split('|'),sid=p[0],st=p[1],cur=abBaris(AB.rb,AB.tgl,AB.j)[sid];
+  abSet(AB.rb,AB.tgl,AB.j,sid,(cur&&cur.s===st)?null:st,{m:'m'});render();return;
  }
  if(a==='abkode'){
   var us=S.users.filter(function(x){return x.id===v})[0];if(!us)return;
-  AB.sheet={sid:v,kelas:us.kelas||AB.kelas,tgl:AB.tgl,j:AB.j};render();return;
+  AB.sheet={sid:v,rb:AB.rb,tgl:AB.tgl,j:AB.j};render();return;
  }
  if(a==='abakun'){
   var ua=S.users.filter(function(x){return x.id===v})[0];if(!ua)return;
-  abInit();AB.sheet={sid:v,kelas:ua.kelas||KLS[0],tgl:AB.tgl,j:AB.j,via:'akun'};render();return;
+  abInit();AB.sheet={sid:v,rb:abRbSiswa(ua),tgl:AB.tgl,j:AB.j,via:'akun'};render();return;
  }
  if(a==='absx'||a==='absx2'){AB.sheet=null;render();return}
  if(a==='absp'){if(AB.sheet){AB.sheet.pilih=(AB.sheet.pilih===v)?null:v;render()}return}
  if(a==='abkosong'){
-  if(!AB.sheet)return;var s=AB.sheet;abSet(s.kelas,s.tgl,s.j,s.sid,null);AB.sheet=null;render();toast('Status dihapus');return;
+  if(!AB.sheet)return;var s=AB.sheet;abSet(s.rb,s.tgl,s.j,s.sid,null);AB.sheet=null;render();toast('Status dihapus');return;
  }
  if(a==='absimpan'){
   var s2=AB.sheet;if(!s2)return;
-  var R2=abBaris(s2.kelas,s2.tgl,s2.j),st2=s2.pilih!==undefined?s2.pilih:(R2[s2.sid]?R2[s2.sid].s:null),cat=s2.cat!==undefined?s2.cat:(R2[s2.sid]&&R2[s2.sid].c)||'';
+  var R2=abBaris(s2.rb,s2.tgl,s2.j),st2=s2.pilih!==undefined?s2.pilih:(R2[s2.sid]?R2[s2.sid].s:null),cat=s2.cat!==undefined?s2.cat:(R2[s2.sid]&&R2[s2.sid].c)||'';
   if(!st2){toast('Pilih status dulu');return}
   var keep=R2[s2.sid];
-  if(abSet(s2.kelas,s2.tgl,s2.j,s2.sid,st2,{m:keep&&keep.m||'m',c:cat})){AB.sheet=null;render();toast('Keterangan tersimpan')}
+  if(abSet(s2.rb,s2.tgl,s2.j,s2.sid,st2,{m:keep&&keep.m||'m',c:cat})){AB.sheet=null;render();toast('Keterangan tersimpan')}
   return;
  }
  if(a==='abalpa'){
-  var L=abSiswa(AB.kelas),R=abBaris(AB.kelas,AB.tgl,AB.j),kos=L.filter(function(u){return !R[u.id]});
+  var L=abSiswa(AB.rb),R=abBaris(AB.rb,AB.tgl,AB.j),kos=L.filter(function(u){return !R[u.id]});
   if(!kos.length){toast('Semua siswa sudah punya status');return}
   if(!(await uiConfirm('Tandai '+kos.length+' siswa yang belum punya status sebagai Alpa?',{ok:'Tandai Alpa'})))return;
-  kos.forEach(function(u){abSet(AB.kelas,AB.tgl,AB.j,u.id,'A',{m:'m'})});render();toast(kos.length+' siswa ditandai Alpa');return;
+  kos.forEach(function(u){abSet(AB.rb,AB.tgl,AB.j,u.id,'A',{m:'m'})});render();toast(kos.length+' siswa ditandai Alpa');return;
  }
  if(a==='abhapus'){
-  var r=abRec(AB.kelas,AB.tgl,AB.j);if(!r)return;
-  if(!(await uiConfirm('Hapus seluruh sesi '+AB_J[AB.j].toLowerCase()+' kelas '+AB.kelas+' tanggal '+abTglIndo(AB.tgl)+'?\nTindakan ini tidak dapat dibatalkan.',{ok:'Hapus',danger:true})))return;
+  var r=abRec(AB.rb,AB.tgl,AB.j);if(!r)return;
+  if(!(await uiConfirm('Hapus seluruh sesi '+AB_J[AB.j].toLowerCase()+' '+abOp(AB.rb).nama+' tanggal '+abTglIndo(AB.tgl)+'?\nTindakan ini tidak dapat dibatalkan.',{ok:'Hapus',danger:true})))return;
   if(Cloud.on&&r.r){if(navigator.onLine===false){toast('Hapus hanya bisa saat online');return}if(!(await Cloud.remove('observasi',r.id)))return}
   S.observasi=S.observasi.filter(function(x){return x.id!==r.id});persist();render();toast('Sesi dihapus');return;
  }
@@ -393,10 +436,10 @@ document.addEventListener('click',async function(e){
 document.addEventListener('change',function(e){
  var t=e.target,k=t&&t.dataset&&t.dataset.ab;if(!k)return;
  if(t.id==='abfile'||k==='file'){return}
- if(k==='kelas'){AB.kelas=t.value;render()}
+ if(k==='rombel'){AB.rb=t.value;render()}
  else if(k==='tgl'){if(t.value){AB.tgl=t.value;render()}}
- else if(k==='ket'){AB.ket=t.value.trim();var rr=abRec(AB.kelas,AB.tgl,'p');if(rr){var p=abPay(rr);p.ket=AB.ket;rr.payload=JSON.stringify(p);rr.mapel=('Praktik'+(AB.ket?': '+AB.ket:'')).slice(0,120);if(rr.r)rr.d=1;abSimpan()}}
- else if(k==='rkelas'){AB.rk.kelas=t.value;render()}
+ else if(k==='ket'){AB.ket=t.value.trim();var rr=abRec(AB.rb,AB.tgl,'p');if(rr){var p=abPay(rr);p.ket=AB.ket;rr.payload=JSON.stringify(p);rr.mapel=abMapel(abOp(AB.rb),'p',AB.ket);if(rr.r)rr.d=1;abSimpan()}}
+ else if(k==='rrombel'){AB.rk.rb=t.value;render()}
  else if(k==='rbulan'){if(t.value){AB.rk.bulan=t.value;render()}}
  else if(k==='stgl'&&AB.sheet){if(t.value){AB.sheet.tgl=t.value;AB.sheet.pilih=undefined;AB.sheet.cat=undefined;render()}}
  else if(k==='sj'&&AB.sheet){AB.sheet.j=t.value;AB.sheet.pilih=undefined;AB.sheet.cat=undefined;render()}

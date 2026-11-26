@@ -1,3 +1,7 @@
+## Absensi per rombel (bukan tingkat kelas)
+- Pilihan kelas pada Absensi dan Rekap diganti **rombel** dari Administrasi Akademik (rombel aktif tahun ajaran aktif; anggota dari daftar anggota rombel). Siswa tanpa rombel masuk pilihan *Belum punya rombel*; tanpa rombel sama sekali, pilihan jatuh ke Kelas X/XI/XII. Scan menolak siswa yang bukan anggota rombel terpilih dan menyebut rombelnya.
+- Penyimpanan: `payload.rb` dan `payload.rn` memuat rombel, `kelas` berisi tingkat, nama rombel ikut di `mapel`; id dokumen memakai hash rombel. Tidak ada perubahan skema. `tools/uji-absensi.mjs` ditulis ulang (49 uji).
+
 ## Absensi kehadiran dan praktik lewat barcode
 - **Siswa**: menu *Barcode saya* dan kartu di beranda siswa menampilkan kartu QR pribadi (nama, kelas, NIS) yang bisa disimpan sebagai gambar.
 - **Guru/admin**: menu *Absensi* (kelas, tanggal, jenis Kehadiran atau Praktik). Scan kamera, scan dari galeri (beberapa gambar, beberapa barcode per gambar), status Hadir/Sakit/Izin/Alpa per siswa, ikon barcode di tiap siswa untuk keterangan, tombol Alpa untuk sisa siswa, dan rekap bulanan dengan ekspor Excel. Admin juga mendapat ikon barcode di daftar Akun.
