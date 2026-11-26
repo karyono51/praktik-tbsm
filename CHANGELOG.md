@@ -1,6 +1,7 @@
 ## Alumni: jurusan per sekolah
 - Daftar jurusan di form Alumni mengikuti sekolah: Darul Fatwa = TSM, TKJ; Medina = TSM, TKR, TKJ, OTKP (admin lintas sekolah melihat keempatnya). Kode tetap disimpan di kolom `prodi`. Kolom Jurusan berupa pilihan (select), bukan daftar saran, karena daftar saran tidak tampil di sebagian Chrome Android.
 - Daftar Alumni punya filter Jurusan (ikut sekolah) di samping tahun dan status; ekspor Excel mengikuti filter itu. Template impor memuat petunjuk kolom Jurusan.
+- Tampilan form Alumni disesuaikan dengan tema aplikasi: label kecil (`label.f`), Jurusan, Status alumni, dan Status tautan atasan berupa chip (bukan dialog pilihan Android yang hurufnya besar), filter Jurusan di daftar juga chip, pertanyaan tracer bertipe pilihan tunggal menjadi daftar radio, dan teks pertanyaan sedikit dikecilkan (`.al-q` di `css/app.css`).
 - Impor Excel menerima nama lengkap jurusan selain kodenya. Alumni baru tidak lagi diisi TSM otomatis di Darul Fatwa.
 
 ## Modul Alumni dan Tracer

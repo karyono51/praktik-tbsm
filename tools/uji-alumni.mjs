@@ -37,7 +37,7 @@ function boot(opt = {}) {
   };
   ctx.window.XLSX = null;
   vm.createContext(ctx);
-  vm.runInContext(baca('js/alumni.js') + '\n;this.ALM=ALM;this.alTurunStatus=alTurunStatus;this.alSimpan=alSimpan;this.alHapus=alHapus;this.alKolom=alKolom;this.alFilter=alFilter;this.alSudah=alSudah;this.alKosong=alKosong;this.viewAlumni=viewAlumni;this.alMuat=alMuat;this.alHp=alHp;this.alNisn=alNisn;this.alTulis=alTulis;this.alKeDoc=alKeDoc;this.alDariDoc=alDariDoc;this.alSimpanSatu=alSimpanSatu;this.alDaftarHtml=alDaftarHtml;this.AL_Q=AL_Q;this.alProdiList=alProdiList;this.alProdiOpsi=alProdiOpsi;this.alProdiKode=alProdiKode;this.AL_PRODI_NAMA=AL_PRODI_NAMA;', ctx, { filename: 'alumni.js' });
+  vm.runInContext(baca('js/alumni.js') + '\n;this.ALM=ALM;this.alTurunStatus=alTurunStatus;this.alSimpan=alSimpan;this.alHapus=alHapus;this.alKolom=alKolom;this.alFilter=alFilter;this.alSudah=alSudah;this.alKosong=alKosong;this.viewAlumni=viewAlumni;this.alMuat=alMuat;this.alHp=alHp;this.alNisn=alNisn;this.alTulis=alTulis;this.alKeDoc=alKeDoc;this.alDariDoc=alDariDoc;this.alSimpanSatu=alSimpanSatu;this.alDaftarHtml=alDaftarHtml;this.AL_Q=AL_Q;this.alProdiList=alProdiList;this.alProdiOpsi=alProdiOpsi;this.alChips=alChips;this.alProdiChipList=alProdiChipList;this.alProdiKode=alProdiKode;this.AL_PRODI_NAMA=AL_PRODI_NAMA;', ctx, { filename: 'alumni.js' });
   return { ctx, log, hs, store, dbDocs };
 }
 
@@ -182,6 +182,8 @@ function boot(opt = {}) {
   { const o = x.alProdiOpsi({ sekolah: 'MEDINA', prodi: 'OTKP' }); T('select jurusan Medina: OTKP terpilih, 4 pilihan', /value="OTKP" selected/.test(o) && (o.match(/<option/g) || []).length === 5); }
   { const o = x.alProdiOpsi({ sekolah: 'DF', prodi: 'TKR' }); T('nilai lama di luar daftar tetap tampil', /value="TKR" selected/.test(o)); }
   { const rows = [{ nisn: '1', nama: 'A', prodi: 'TKJ', tahun: '2025', status: '', t: {} }, { nisn: '2', nama: 'B', prodi: 'TSM', tahun: '2025', status: '', t: {} }]; const lama = x.ALM.pr; x.ALM.pr = 'TKJ'; const h = x.alFilter(rows); x.ALM.pr = lama; T('filter jurusan menyaring daftar', h.length === 1 && h[0].nama === 'A'); }
+  { const h = x.alChips('al-chip', 'prodi', x.alProdiChipList({ sekolah: 'DF', prodi: 'TKJ' }), 'TKJ'); T('chip jurusan DF: TSM dan TKJ, TKJ terpilih', /data-v="TKJ" aria-pressed="true"/.test(h) && /data-v="TSM" aria-pressed="false"/.test(h) && !/data-v="TKR"/.test(h)); }
+  { x.ALM.cur = { ...x.alKosong(), sekolah: 'DF', prodi: 'TKJ', status: 'kuliah' }; x.ALM.v = 'form'; x.ALM.step = 0; const h = String(x.viewAlumni()); T('form: jurusan, status, tautan atasan berupa chip, bukan select', !/<select data-alf/.test(h) && /data-f="prodi"/.test(h) && /data-f="status"/.test(h) && /data-f="dudiStatus"/.test(h) && /label class="f"/.test(h)); T('form: nama lengkap jurusan terpilih tampil', /Teknik Komputer dan Jaringan/.test(h)); x.ALM.cur = null; x.ALM.v = 'list'; }
   T('alKosong tidak menebak jurusan', x.alKosong().prodi === '');
 
   console.log(`\n${pass} lulus, ${fail} gagal`);

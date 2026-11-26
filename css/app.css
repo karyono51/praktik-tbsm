@@ -573,3 +573,5 @@ fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);out
 .akd-tbl .akd-ts td{font-weight:600;background:var(--bg,#f4f6f8)}
 .akd-tbl .akd-tj{min-width:220px}
 .akd-tbl td.mono,.akd-tbl .mono{white-space:nowrap}
+/* modul Alumni: pertanyaan tracer lebih ringkas */
+.al-q b{font-size:14px;font-weight:600}.al-q label span{font-size:13px;line-height:1.4}

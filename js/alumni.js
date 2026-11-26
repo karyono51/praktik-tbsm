@@ -16,7 +16,17 @@ var AL_YT=['Ya','Tidak'];
 var AL_PRODI_NAMA={TSM:'Teknik Sepeda Motor',TKR:'Teknik Kendaraan Ringan',TKJ:'Teknik Komputer dan Jaringan',OTKP:'Otomatisasi Tata Kelola Perkantoran'};
 var AL_PRODI_SEK={DF:['TSM','TKJ'],MEDINA:['TSM','TKR','TKJ','OTKP']};
 function alProdiList(sek){return AL_PRODI_SEK[sek]||['TSM','TKR','TKJ','OTKP']}
+/* deretan chip bertema (komponen .chips) untuk pilihan pendek; aksi: al-chip (isian form) dan al-fpr (filter jurusan daftar) */
+function alChips(act,f,L,v){
+ return '<div class="chips" data-chips="'+f+'">'+L.map(function(x){return '<button type="button" data-act="'+act+'" data-f="'+f+'" data-v="'+esc(x[0])+'" aria-pressed="'+(String(v||'')===String(x[0]))+'">'+esc(x[1])+'</button>'}).join('')+'</div>';
+}
+function alProdiKet(k){return AL_PRODI_NAMA[k]?AL_PRODI_NAMA[k]:''}
 /* pilihan jurusan form: hanya jurusan sekolah alumni; nilai lama di luar daftar tetap tampil supaya tidak hilang diam-diam */
+function alProdiChipList(c){
+ var l=alProdiList(c.sekolah||alSek()).slice(),v=String(c.prodi||'');
+ if(v&&l.indexOf(v)<0)l.push(v);
+ return l.map(function(k){return [k,k]});
+}
 function alProdiOpsi(c){
  var l=alProdiList(c.sekolah||alSek()).slice(),v=String(c.prodi||'');
  if(v&&l.indexOf(v)<0)l.push(v);
@@ -170,7 +180,7 @@ function viewAlumniDaftar(){
  var aksi=alTulis()?'<div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small primary" data-act="al-baru">Tambah alumni</button><label class="btn small" style="cursor:pointer">Impor Excel<input type="file" accept=".xlsx,.xls,.csv" data-act="al-imp" hidden></label><button type="button" class="btn small" data-act="al-tpl">Template</button><button type="button" class="btn small" data-act="al-xls">Ekspor Excel</button></div>':'<div class="row"><button type="button" class="btn small" data-act="al-xls">Ekspor Excel</button></div>';
  return '<section class="card"><p class="note">Data alumni untuk persiapan dan pemantauan Tracer Study Vokasi. Pengisian resmi tetap di portal <b>tracervokasi.kemendikdasmen.go.id</b> (alumni masuk dengan NISN). Modul ini menyimpan jawaban internal dan memantau siapa yang belum mengisi.</p>'+
   '<div class="row" style="gap:6px;flex-wrap:wrap"><a class="btn small" href="'+AL_PORTAL+'" target="_blank" rel="noopener noreferrer">Buka portal resmi</a></div></section>'+alTab()+aksi+
-  '<section class="card"><input id="al-q" type="search" placeholder="Cari nama atau NISN" value="'+esc(ALM.q)+'" autocomplete="off"><div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap"><select id="al-pr" aria-label="Jurusan"><option value="">Semua jurusan</option>'+alProdiList(alSek()).map(function(k){return '<option value="'+k+'"'+(ALM.pr===k?' selected':'')+'>'+k+'</option>'}).join('')+'</select><select id="al-th" aria-label="Tahun lulus"><option value="">Semua tahun</option>'+th.map(function(t){return '<option'+(ALM.th===t?' selected':'')+'>'+esc(t)+'</option>'}).join('')+'</select><select id="al-st" aria-label="Status"><option value="">Semua status</option><option value="belum"'+(ALM.st==='belum'?' selected':'')+'>Tracer belum diisi</option>'+alOpsi(AL_STATUS,ALM.st)+'</select></div></section>'+
+  '<section class="card"><input id="al-q" type="search" placeholder="Cari nama atau NISN" value="'+esc(ALM.q)+'" autocomplete="off"><div style="height:8px"></div>'+alChips('al-fpr','pr',[['','Semua jurusan']].concat(alProdiList(alSek()).map(function(k){return [k,k]})),ALM.pr)+'<div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap"><select id="al-th" aria-label="Tahun lulus"><option value="">Semua tahun</option>'+th.map(function(t){return '<option'+(ALM.th===t?' selected':'')+'>'+esc(t)+'</option>'}).join('')+'</select><select id="al-st" aria-label="Status"><option value="">Semua status</option><option value="belum"'+(ALM.st==='belum'?' selected':'')+'>Tracer belum diisi</option>'+alOpsi(AL_STATUS,ALM.st)+'</select></div></section>'+
   '<div id="al-list">'+alDaftarHtml()+'</div>';
 }
 function alPct(n,t){return t?Math.round(n*1000/t)/10:0}
@@ -196,8 +206,8 @@ function viewAlumniDasbor(){
  return h;
 }
 function alField(q,t){
- var v=t[q.k],id='alq-'+q.k,h='<div class="card" style="margin-bottom:8px"><b style="display:block;margin-bottom:6px">'+esc(q.l)+'</b>';
- if(q.t==='s')h+='<select data-alt="'+q.k+'"><option value="">Pilih</option>'+q.o.map(function(o){return '<option'+(v===o?' selected':'')+'>'+esc(o)+'</option>'}).join('')+'</select>';
+ var v=t[q.k],id='alq-'+q.k,h='<div class="card al-q" style="margin-bottom:8px"><b style="display:block;margin-bottom:6px">'+esc(q.l)+'</b>';
+ if(false){}
  else if(q.t==='x')h+='<input type="text" data-alt="'+q.k+'" value="'+esc(v||'')+'" autocomplete="off">';
  else if(q.t==='n')h+='<input type="number" inputmode="numeric" min="0" max="168" data-alt="'+q.k+'" value="'+esc(v==null?'':v)+'">';
  else if(q.t==='m')h+=q.o.map(function(o){return '<label class="row" style="gap:8px;align-items:center;margin:4px 0"><input type="checkbox" style="width:auto" data-alt="'+q.k+'" data-v="'+esc(o)+'"'+((v||[]).indexOf(o)>-1?' checked':'')+'><span>'+esc(o)+'</span></label>'}).join('');
@@ -214,15 +224,15 @@ function viewAlumniForm(){
  h+='<fieldset'+(w?'':' disabled')+' style="border:0;padding:0;margin:0">';
  if(ALM.step===0){
   h+='<section class="card">'+
-   '<label>NISN (10 digit)<input data-alf="nisn" inputmode="numeric" maxlength="10" value="'+esc(c.nisn)+'"></label>'+
-   '<label>Nama lengkap<input data-alf="nama" value="'+esc(c.nama)+'" autocomplete="off"></label>'+
-   '<label>Jurusan<select data-alf="prodi">'+alProdiOpsi(c)+'</select></label>'+
-   '<label>Tahun lulus<input data-alf="tahun" inputmode="numeric" maxlength="4" value="'+esc(c.tahun)+'"></label>'+
-   '<label>No. HP/WhatsApp<input data-alf="hp" inputmode="tel" value="'+esc(c.hp||'')+'"></label>'+
-   '<label>Email<input data-alf="email" type="email" value="'+esc(c.email||'')+'"></label>'+
-   '<label>Status alumni<select data-alf="status">'+alOpsi(AL_STATUS,c.status,'Belum diketahui')+'</select></label>'+
-   '<label>Tautan survei atasan (dari portal, bagian akhir)<input data-alf="dudiLink" value="'+esc(c.dudiLink||'')+'" placeholder="https://"></label>'+
-   '<label>Status tautan atasan<select data-alf="dudiStatus">'+alOpsi(AL_DUDI,c.dudiStatus||'')+'</select></label>'+
+   '<label class="f">NISN (10 digit)<input data-alf="nisn" inputmode="numeric" maxlength="10" value="'+esc(c.nisn)+'"></label>'+
+   '<label class="f">Nama lengkap<input data-alf="nama" value="'+esc(c.nama)+'" autocomplete="off"></label>'+
+   '<div class="label" style="margin:4px 0 6px">Jurusan</div>'+alChips('al-chip','prodi',alProdiChipList(c),c.prodi)+'<small class="muted" id="al-prodi-ket" style="display:block;min-height:18px;margin-top:4px">'+esc(alProdiKet(c.prodi))+'</small>'+
+   '<label class="f">Tahun lulus<input data-alf="tahun" inputmode="numeric" maxlength="4" value="'+esc(c.tahun)+'"></label>'+
+   '<label class="f">No. HP/WhatsApp<input data-alf="hp" inputmode="tel" value="'+esc(c.hp||'')+'"></label>'+
+   '<label class="f">Email<input data-alf="email" type="email" value="'+esc(c.email||'')+'"></label>'+
+   '<div class="label" style="margin:4px 0 6px">Status alumni</div>'+alChips('al-chip','status',[['','Belum diketahui']].concat(AL_STATUS),c.status)+'<div style="height:10px"></div>'+
+   '<label class="f">Tautan survei atasan (dari portal, bagian akhir)<input data-alf="dudiLink" value="'+esc(c.dudiLink||'')+'" placeholder="https://"></label>'+
+   '<div class="label" style="margin:4px 0 6px">Status tautan atasan</div>'+alChips('al-chip','dudiStatus',AL_DUDI,c.dudiStatus||'')+'<div style="height:6px"></div>'+
    '<p class="note">Data pribadi alumni. Gunakan hanya untuk keperluan tracer study dan pastikan alumni setuju datanya dicatat.</p></section>';
  }else{
   if(ALM.step===2)h+='<p class="note">Bagian ini diisi bila alumni bekerja atau berwirausaha.</p>';
@@ -364,6 +374,18 @@ document.addEventListener('click',function(e){
  else if(a==='al-xls')alEkspor();
  else if(a==='al-tpl')alTemplate();
  else if(a==='al-wa')alWa(b.dataset.id);
+ else if(a==='al-chip'&&ALM.cur&&alTulis()){
+  var f=b.dataset.f,v=b.dataset.v;
+  if(f==='prodi'&&ALM.cur.prodi===v)v='';
+  ALM.cur[f]=v;
+  var g=b.parentNode;if(g)Array.prototype.forEach.call(g.querySelectorAll('button'),function(x){x.setAttribute('aria-pressed',String(x.dataset.v===v))});
+  if(f==='prodi'){var kt=document.getElementById('al-prodi-ket');if(kt)kt.textContent=alProdiKet(v)}
+ }
+ else if(a==='al-fpr'){
+  ALM.pr=b.dataset.v;
+  var g2=b.parentNode;if(g2)Array.prototype.forEach.call(g2.querySelectorAll('button'),function(x){x.setAttribute('aria-pressed',String(x.dataset.v===ALM.pr))});
+  var l4=document.getElementById('al-list');if(l4)l4.innerHTML=alDaftarHtml();
+ }
 });
 document.addEventListener('change',function(e){
  var t=e.target;if(!t||!t.dataset)return;
