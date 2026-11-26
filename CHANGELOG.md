@@ -1,3 +1,7 @@
+## Alumni: jurusan per sekolah
+- Daftar jurusan di form Alumni mengikuti sekolah: Darul Fatwa = TSM, TKJ; Medina = TSM, TKR, TKJ, OTKP (admin lintas sekolah melihat keempatnya). Kode tetap disimpan di kolom `prodi`.
+- Impor Excel menerima nama lengkap jurusan selain kodenya. Alumni baru tidak lagi diisi TSM otomatis di Darul Fatwa.
+
 ## Modul Alumni dan Tracer
 - `js/alumni.js` (baru, dimuat sebelum `menu-dasbor.js`): menu Alumni dan Tracer untuk admin, guru, dan Kepala Sekolah (hanya lihat). Data alumni, form tracer empat langkah meniru Tracer Vokasi, dasbor (status, kesesuaian, 15 aspek, belum mengisi + WhatsApp), impor/ekspor Excel, template.
 - **Appwrite**: koleksi baru `alumni` di `appwrite.json` (baca/buat/ubah label guru dan admin, hapus admin). Jalankan `appwrite push collections` atau `node tools/setup-appwrite.mjs` sebelum memakai menu. Tidak ada perubahan fungsi server, Neon, atau koleksi lain.

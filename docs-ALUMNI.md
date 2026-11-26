@@ -10,9 +10,9 @@ Menu **Alumni dan Tracer** (grup menu "Alumni dan Tracer") untuk admin, guru, da
 
 ## Fitur
 - **Daftar**: cari nama/NISN, filter tahun lulus dan status (termasuk "Tracer belum diisi"), tambah/ubah. Hapus hanya admin.
-- **Form** empat langkah: Identitas (NISN 10 digit, nama, jurusan, tahun lulus, HP, email, status, tautan dan status survei atasan/DUDI), Data lulusan, Bekerja, Umpan balik (PKL, 15 aspek kualitas, dampak sertifikat). Status alumni diisi otomatis dari jawaban (bekerja, wirausaha, kuliah, belum bekerja/kuliah) bila belum dipilih.
+- **Form** empat langkah: Identitas (NISN 10 digit, nama, jurusan (pilihan mengikuti sekolah: Darul Fatwa TSM dan TKJ; Medina TSM, TKR, TKJ, OTKP), tahun lulus, HP, email, status, tautan dan status survei atasan/DUDI), Data lulusan, Bekerja, Umpan balik (PKL, 15 aspek kualitas, dampak sertifikat). Status alumni diisi otomatis dari jawaban (bekerja, wirausaha, kuliah, belum bekerja/kuliah) bila belum dipilih.
 - **Dasbor**: jumlah dan persen per status, kesesuaian kerja dengan keahlian, rata-rata 15 aspek (skala 1-4), daftar belum mengisi dengan tombol WhatsApp (pesan siap kirim berisi alamat portal).
-- **Impor Excel** (.xlsx/.xls/.csv; kolom NISN, Nama, Jurusan, Tahun lulus, HP, Email, Status; NISN yang sudah ada diperbarui) dan **Template**. **Ekspor Excel** mengikuti filter daftar.
+- **Impor Excel** (.xlsx/.xls/.csv; kolom NISN, Nama, Jurusan (kode atau nama lengkap, mis. TKJ atau Teknik Komputer dan Jaringan), Tahun lulus, HP, Email, Status; NISN yang sudah ada diperbarui) dan **Template**. **Ekspor Excel** mengikuti filter daftar.
 - Data dipisah per sekolah (kolom `sekolah`); akun lintas sekolah melihat semuanya.
 
 ## Pasang

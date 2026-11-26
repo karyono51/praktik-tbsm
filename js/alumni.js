@@ -12,6 +12,18 @@ var AL_ASP=['Belum memenuhi kebutuhan dunia kerja/usaha','Mendekati kebutuhan du
 var AL_DMP=['Sangat tidak berdampak','Tidak berdampak','Berdampak','Sangat berdampak'];
 var AL_ASPEK=['Fasilitas pembelajaran','Pembelajaran teori','Pembelajaran praktik/keterampilan','Bimbingan karier','Pembelajaran terkait budaya kerja','Pembelajaran terkait K-3','Pembelajaran bahasa asing','Pembelajaran teknologi informasi','Penanaman etika','Penanaman kejujuran','Penanaman tanggung jawab','Penanaman kedisiplinan','Kemampuan berkomunikasi','Kemampuan menyelesaikan masalah','Kemampuan bekerja sama dalam tim'];
 var AL_YT=['Ya','Tidak'];
+/* jurusan per sekolah: DF = Darul Fatwa, MEDINA = Medina Bandung. Kode disimpan di kolom prodi. */
+var AL_PRODI_NAMA={TSM:'Teknik Sepeda Motor',TKR:'Teknik Kendaraan Ringan',TKJ:'Teknik Komputer dan Jaringan',OTKP:'Otomatisasi Tata Kelola Perkantoran'};
+var AL_PRODI_SEK={DF:['TSM','TKJ'],MEDINA:['TSM','TKR','TKJ','OTKP']};
+function alProdiList(sek){return AL_PRODI_SEK[sek]||['TSM','TKR','TKJ','OTKP']}
+/* nama lengkap atau kode (huruf besar/kecil, tanda baca bebas) menjadi kode jurusan; tidak dikenal = teks apa adanya dalam huruf besar */
+function alProdiKode(v){
+ var t=String(v||'').trim();if(!t)return '';
+ var u=t.toUpperCase().replace(/[^A-Z ]/g,'').replace(/\s+/g,' ').trim();
+ if(AL_PRODI_NAMA[u])return u;
+ for(var k in AL_PRODI_NAMA)if(AL_PRODI_NAMA[k].toUpperCase()===u)return k;
+ return t.toUpperCase();
+}
 /* t: r radio, s pilihan, x teks, n angka, m kotak centang ganda, k skala 1-4 (disimpan sebagai angka) */
 var AL_Q=[
  [
@@ -197,7 +209,7 @@ function viewAlumniForm(){
   h+='<section class="card">'+
    '<label>NISN (10 digit)<input data-alf="nisn" inputmode="numeric" maxlength="10" value="'+esc(c.nisn)+'"></label>'+
    '<label>Nama lengkap<input data-alf="nama" value="'+esc(c.nama)+'" autocomplete="off"></label>'+
-   '<label>Jurusan<input data-alf="prodi" list="al-prodi" value="'+esc(c.prodi)+'"><datalist id="al-prodi"><option>TSM</option><option>TKR</option><option>TKJ</option><option>OTKP</option></datalist></label>'+
+   '<label>Jurusan<input data-alf="prodi" list="al-prodi" value="'+esc(c.prodi)+'"><datalist id="al-prodi">'+alProdiList(c.sekolah||alSek()).map(function(k){return '<option value="'+k+'">'+esc(AL_PRODI_NAMA[k])+'</option>'}).join('')+'</datalist></label>'+
    '<label>Tahun lulus<input data-alf="tahun" inputmode="numeric" maxlength="4" value="'+esc(c.tahun)+'"></label>'+
    '<label>No. HP/WhatsApp<input data-alf="hp" inputmode="tel" value="'+esc(c.hp||'')+'"></label>'+
    '<label>Email<input data-alf="email" type="email" value="'+esc(c.email||'')+'"></label>'+
@@ -244,7 +256,7 @@ render=function(){
 };
 
 /* ---- Aksi ---- */
-function alKosong(){return {id:'',r:0,nisn:'',nama:'',prodi:(alSek()==='DF'?'TSM':''),sekolah:alSek(),tahun:'',hp:'',email:'',status:'',dudiLink:'',dudiStatus:'',t:{}}}
+function alKosong(){return {id:'',r:0,nisn:'',nama:'',prodi:'',sekolah:alSek(),tahun:'',hp:'',email:'',status:'',dudiLink:'',dudiStatus:'',t:{}}}
 async function alSimpan(){
  var c=ALM.cur;if(!c||!alTulis())return;
  c.nisn=alNisn(c.nisn);c.nama=String(c.nama||'').trim();
@@ -311,7 +323,7 @@ async function alImpor(file){
    if(nisn.length!==10||!nama){lewat.push('baris '+(i+2));return}
    var ada=ALM.rows.filter(function(x){return x.nisn===nisn})[0],r=ada?alSalin(ada):alKosong();
    r.nisn=nisn;r.nama=nama;
-   var pr=get(o,['jurusan','prodi']);if(pr)r.prodi=pr.toUpperCase();
+   var pr=get(o,['jurusan','prodi']);if(pr)r.prodi=alProdiKode(pr);
    var th=get(o,['tahunlulus','tahun']);if(/^(19|20)\d{2}$/.test(th))r.tahun=th;
    var hp=get(o,['hp','nohp','whatsapp','nohpwhatsapp']);if(hp)r.hp=hp;
    var em=get(o,['email']);if(em)r.email=em;
