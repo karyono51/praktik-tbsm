@@ -21,10 +21,12 @@
    var x=polos(h[i].textContent);
    if(!x||(x.indexOf(n)!==0&&n.indexOf(x)!==0))continue;
    var box=h[i].parentNode;h[i].hidden=true;h[i].style.display='none';
-   if(box.classList.contains('sechead')){
-    var ic=box.querySelector(':scope > .ico');if(ic)ic.style.display='none';
-    if([].every.call(box.children,function(c){return c===h[i]||c===ic}))box.style.display='none';
-   }
+   var ic=box.classList.contains('sechead')&&box.querySelector(':scope > .ico');if(ic)ic.style.display='none';
+   /* label di samping judul lama yang mengulang sekolah aktif atau peran (sudah ada di header/judul) ikut disembunyikan */
+   var ulang=['admin','proktor'],c=typeof schCfg==='function'&&schCfg();
+   if(c)[schKode(),c.pendek,c.nama].forEach(function(v){if(v)ulang.push(polos(v))});
+   [].forEach.call(box.children,function(e){if(e.classList.contains('pill')&&ulang.indexOf(polos(e.textContent))>-1)e.style.display='none'});
+   if((box.classList.contains('sechead')||box.classList.contains('row'))&&[].every.call(box.children,function(e){return e.style.display==='none'}))box.style.display='none';
    return;
   }
  }

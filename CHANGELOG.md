@@ -1,3 +1,6 @@
+## Perbaikan label tertinggal di bawah judul
+- Label sekolah atau peran dari judul lama (mis. MEDINA di Alumni, Admin di Hapus nilai) tidak lagi muncul sendirian.
+
 ## Pusat pengaturan tampilan
 - `js/tampilan.js` (bawaan dan panel menu Tampilan) dan `css/tampilan.css` (gaya). Pilihan pengguna tersimpan per perangkat.
 - Judul menu tidak lagi muncul untuk menu yang tidak tersedia bagi peran aktif.
