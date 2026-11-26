@@ -1,3 +1,7 @@
+## Pusat pengaturan tampilan
+- `js/tampilan.js` (bawaan dan panel menu Tampilan) dan `css/tampilan.css` (gaya). Pilihan pengguna tersimpan per perangkat.
+- Judul menu tidak lagi muncul untuk menu yang tidak tersedia bagi peran aktif.
+
 ## Judul gaya Akademik di semua menu
 - `js/judul-menu.js` (baru): label kelompok, nama menu, pil tahun ajaran dan sekolah; judul lama yang kembar disembunyikan.
 

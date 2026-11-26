@@ -238,6 +238,7 @@ document.addEventListener('click',function(e){
    Tinggi yang berkurang diganti margin bawah, sehingga panjang halaman tetap dan posisi gulir tidak memantul. */
 function hdrRingkas(){
  var h=document.querySelector('header.top');if(!h)return;
+ if(document.documentElement&&document.documentElement.getAttribute('data-tp-ringkas')==='mati')return;
  var y=window.scrollY||0,mini=h.classList.contains('mini');
  if(!mini&&y>60){
   var t0=h.offsetHeight,m0=parseFloat(getComputedStyle(h).marginBottom)||0;

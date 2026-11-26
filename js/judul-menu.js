@@ -37,6 +37,7 @@
   var teks='Tahun ajaran '+(ta?ta.nama+' · '+ta.semester:y+'/'+(y+1)+' · '+(d.getMonth()>=6?'Ganjil':'Genap'));
   var sk=typeof schCfg==='function'&&schCfg();
   function pil(t,c){return '<span class="pill'+(c?' plain':'')+'">'+esc(t)+'</span>'}
+  if(M[S.tab]&&!document.querySelector('#drawer .srow[data-v="'+S.tab+'"]'))return;
   buangKembar(main,m[1]);
   main.insertAdjacentHTML('afterbegin','<div class="jm-head"><div class="sechead akd-head"><span class="ico">'+svg(ICO[m[2]]||ICO.menu,18)+'</span><div class="grow"><div class="akd-crumb">'+esc(m[0])+'</div><h2>'+esc(m[1])+'</h2></div></div>'+
    '<div class="row akd-ctx">'+pil(teks)+(sk?pil(sk.nama,1):'')+(typeof actRole==='function'&&actRole()==='kepsek'?pil('Hanya lihat',1):'')+'</div></div>');
