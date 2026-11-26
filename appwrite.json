@@ -1487,6 +1487,288 @@
           ]
         }
       ]
+    },
+    {
+      "$id": "pkl",
+      "databaseId": "tbsm",
+      "name": "pkl",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"users\")",
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "jenis",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 12
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "tanggal",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 10
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 60000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_pkl_jenis",
+          "type": "key",
+          "attributes": [
+            "jenis"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_pkl_sid",
+          "type": "key",
+          "attributes": [
+            "sid"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "pkl_catat",
+      "databaseId": "tbsm",
+      "name": "pkl_catat",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "jenis",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 12
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "tanggal",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 10
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 60000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_pkc_sid",
+          "type": "key",
+          "attributes": [
+            "sid"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_pkc_jenis",
+          "type": "key",
+          "attributes": [
+            "jenis"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "pkl_nilai",
+      "databaseId": "tbsm",
+      "name": "pkl_nilai",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "jenis",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 12
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "tanggal",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 10
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 60000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_pkn_jenis",
+          "type": "key",
+          "attributes": [
+            "jenis"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
     }
   ],
   "profilAman": {

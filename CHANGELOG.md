@@ -506,3 +506,9 @@ Nama berkas PDF `LKPD <id> <judul> <sekolah>`, tabel hanya untuk rencana pertemu
 
 ## CP PKL di Peta LKPD
 Prodi `PKL` dengan empat elemen CP (SFT, HSP, HSG, WIR) ditambahkan ke matriks (`tools/matriks-lkpd.py`, `AKD_LKPD_PRODI`, `AKD_LKPD_CP`), data `AKD_PKL_ELEMEN`/`AKD_PKL_TP` di `js/akademik-data.js`, mapel turunan `m_pkl_1..4`, pilihan Elemen CP kelas XII di Editor LKPD, kartu **CP PKL** di Peta LKPD, dan lembar Excel **CP PKL**. Total 54 LKPD dan 1432 JP tidak berubah. Uji: `tools/uji-akademik.mjs`, `tools/uji-lkpd-kode.mjs`. Panduan di `docs-LKPD-KODE.md`.
+
+## Menu PKL: absensi selfie, tempat PKL, penempatan, jurnal, kunjungan, nilai, kelengkapan
+- `js/pkl.js` (baru), menu **PKL** (kelompok Praktik Kerja Lapangan). Siswa: absen Masuk/Pulang/Izin/Sakit dengan selfie dan lokasi GPS, jurnal kegiatan, tempat dan pembimbing. Guru/Admin: Tempat PKL (perjanjian kerja sama, instruktur, kuota, koordinat), Penempatan, Absensi, Jurnal, Kunjungan monitoring, Nilai 4 TP, Kelengkapan 11 butir, Rekap, dan Excel. Kepala Sekolah hanya melihat. Panduan: `docs-PKL.md`.
+- `appwrite.json`: koleksi baru `pkl`, `pkl_catat`, `pkl_nilai` (jalankan `node tools/setup-appwrite.mjs --only=pkl,pkl_catat,pkl_nilai`). Penempatan di `pkl` tanpa nama siswa; temuan audit `BACA-USERS:pkl` diterima di `tools/audit-izin.baseline.json`.
+- `tools/uji-pkl.mjs` (68 butir). `tools/uji-lkpd-struktur.mjs`: dua butir lama menguji penanda `lks-grp` yang sudah diganti bilah berkelompok (`lke-gt`); ujinya disesuaikan, aplikasi tidak berubah.
+
