@@ -597,3 +597,13 @@ header.top.mini .hello b{display:inline;font-size:16px}
 
 header.top,header.top .logo{transition:none}
 .jm-head{display:flex;flex-direction:column;gap:10px}.jm-head .akd-ctx{flex-wrap:wrap}
+
+/* Pemilih lokasi di peta (formulir Tempat PKL) */
+.pk-lok{margin:-4px 0 12px}
+.pk-peta{position:fixed;inset:0;z-index:3000;display:flex;flex-direction:column;background:var(--card,#fff);color:inherit}
+.pk-peta-bar{padding:calc(8px + env(safe-area-inset-top,0px)) 10px 8px}
+.pk-peta-cari{display:flex;gap:8px;margin:0}
+.pk-peta-cari input{flex:1;min-width:0}
+.pk-peta-map{flex:1;min-height:0;position:relative;z-index:0}
+.pk-peta-ft{padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px))}
+.pk-pin span{display:block;width:22px;height:22px;margin:3px;background:#d32f2f;border:3px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 1px 4px rgba(0,0,0,.5)}

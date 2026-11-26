@@ -43,6 +43,13 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
 (async () => {
   console.log('Hitungan');
   let { ctx: x } = boot();
+  T('tempel koordinat Google Maps dipecah (titik desimal)', JSON.stringify(x.pkLokTempel('-6.9175, 107.6191')) === '[-6.9175,107.6191]');
+  T('tempel koordinat dipecah (koma desimal, pemisah spasi)', JSON.stringify(x.pkLokTempel('-6,9175 107,6191')) === '[-6.9175,107.6191]');
+  T('satu angka atau di luar rentang tidak dipecah', x.pkLokTempel('-6.9175') === null && x.pkLokTempel('95, 107') === null && x.pkLokTempel('-6,917') === null);
+  x.PK.fk = 'tempat'; x.PK.f = { lat: '', lng: '' }; x.PK.lokMsg = '';
+  T('formulir tempat memuat tombol lokasi saya dan peta', /pkl-lok-gps/.test(x.pkFormView()) && /pkl-lok-peta/.test(x.pkFormView()));
+  x.PK.fk = 'tugas'; x.PK.f = {};
+  T('formulir lain tidak memuat tombol lokasi', !/pkl-lok-peta/.test(x.pkFormView()));
   T('jarak 0 m di titik yang sama', x.pkJarak(-6.9175, 107.6191, -6.9175, 107.6191) === 0);
   T('jarak ±1,1 km untuk selisih 0,01 derajat lintang', Math.abs(x.pkJarak(-6.9175, 107.6191, -6.9075, 107.6191) - 1112) < 15);
   T('hari kerja Sen-Jum: 2 Nov (Senin) s.d. 8 Nov = 5', x.pkHariKerja('2026-11-02', '2026-11-08') === 5);

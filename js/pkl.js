@@ -332,11 +332,84 @@ function pkFormView(){
  var k=PK.fk,sk=k==='jurnalcat'?'jurnalcat':k,F=pkSchema(sk),f=PK.f||{};
  var h='<div class="card"><b>'+esc(PK_JUDUL[k]||k)+(f.id?' · ubah':' · baru')+'</b>'+pkAksiAtas('pkl-save','Simpan');
  if(k==='jurnalcat'&&f.uraian)h+='<div class="note">'+esc(f.tanggal)+' · '+esc(f.unit||'')+' · '+esc(f.uraian)+'</div>';
- h+=F.map(function(fl){return pkField(fl,f[fl.k],f)}).join('');
+ h+=F.map(function(fl){return pkField(fl,f[fl.k],f)+(k==='tempat'&&fl.k==='lng'?pkLokTools():'')}).join('');
  if(k==='nilai')h+='<div class="note" id="pk-na">'+pkNilaiTeks(f)+'</div>';
  return h+'</div>';
 }
 function pkNilaiTeks(f){var v=pkNilaiAkhir(f);return v==null?'Nilai akhir: isi minimal satu TP (rata-rata keempat TP).':'Nilai akhir (rata-rata TP yang terisi): <b>'+v+'</b> · '+pkPredikat(v)}
+
+/* ---------- Koordinat tempat PKL: lokasi saya, peta, atau tempel dari Google Maps ----------
+   Peta memakai Leaflet + OpenStreetMap, dimuat dari CDN hanya saat tombol "Pilih di peta" diketuk (tidak menambah beban halaman lain). */
+var PK_LEAF={css:'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css',js:'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
+ cssSri:'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=',jsSri:'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo='};
+function pkLokTools(){
+ return '<div class="pk-lok"><div class="row" style="gap:8px;flex-wrap:wrap"><button type="button" class="btn small" data-act="pkl-lok-gps">Pakai lokasi saya</button><button type="button" class="btn small" data-act="pkl-lok-peta">Pilih di peta</button></div>'+
+  '<div class="note">'+esc(PK.lokMsg||'Atau tempel koordinat dari Google Maps (mis. -6.9175, 107.6191) ke kolom Lintang.')+'</div></div>';
+}
+function pkLokIsi(lat,lng,msg){PK.f.lat=(+lat).toFixed(6);PK.f.lng=(+lng).toFixed(6);PK.lokMsg=msg||'';render()}
+function pkLokGps(){
+ if(!navigator.geolocation){PK.lokMsg='Perangkat tidak mendukung lokasi.';return render()}
+ PK.lokMsg='Mengambil lokasi…';render();
+ navigator.geolocation.getCurrentPosition(function(p){pkLokIsi(p.coords.latitude,p.coords.longitude,'Lokasi terisi (akurasi ±'+Math.round(p.coords.accuracy)+' m). Pastikan Anda sedang berada di tempat PKL.')},
+  function(){PK.lokMsg='Lokasi tidak tersedia. Aktifkan izin lokasi, atau pilih di peta.';render()},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+}
+/* "-6.9175, 107.6191" (salinan dari Google Maps) di kolom Lintang dipecah otomatis ke Lintang dan Bujur */
+function pkLokTempel(v){
+ var m=/^\s*(-?\d{1,3}(?:[.,]\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:[.,]\d+)?)\s*$/.exec(String(v||''));if(!m)return null;
+ var la=+m[1].replace(',','.'),ln=+m[2].replace(',','.');
+ return Math.abs(la)<=90&&Math.abs(ln)<=180?[la,ln]:null;
+}
+function pkLeaflet(cb){
+ if(typeof window!=='undefined'&&window.L&&window.L.map)return cb(true);
+ if(PK._leaf){PK._leaf.push(cb);return}
+ PK._leaf=[cb];
+ var c=document.createElement('link'),s=document.createElement('script'),
+  fin=function(ok){var q=PK._leaf;PK._leaf=null;if(!ok){try{c.remove();s.remove()}catch(e){}}q.forEach(function(f){f(ok)})};
+ c.rel='stylesheet';c.href=PK_LEAF.css;c.integrity=PK_LEAF.cssSri;c.crossOrigin='anonymous';document.head.appendChild(c);
+ s.src=PK_LEAF.js;s.integrity=PK_LEAF.jsSri;s.crossOrigin='anonymous';
+ s.onload=function(){fin(!!(window.L&&window.L.map))};s.onerror=function(){fin(false)};document.head.appendChild(s);
+}
+function pkPeta(){
+ var f=PK.f||{},la=parseFloat(String(f.lat==null?'':f.lat).replace(',','.')),ln=parseFloat(String(f.lng==null?'':f.lng).replace(',','.')),
+  ada=isFinite(la)&&isFinite(ln)&&Math.abs(la)<=90&&Math.abs(ln)<=180,rad=+f.radius||200,pos=ada?[la,ln]:[-6.9175,107.6191],
+  ov=document.createElement('div');
+ ov.className='pk-peta';ov.setAttribute('role','dialog');ov.setAttribute('aria-label','Pilih lokasi di peta');
+ ov.innerHTML='<div class="pk-peta-bar"><form class="pk-peta-cari"><input type="search" placeholder="Cari nama tempat atau alamat" aria-label="Cari lokasi" enterkeyhint="search"><button type="submit" class="btn small">Cari</button></form></div>'+
+  '<div class="pk-peta-map" id="pk-peta-map"></div>'+
+  '<div class="pk-peta-ft"><div class="note" data-pkp="info">Memuat peta…</div><div class="row" style="gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" data-pkp="ok">Gunakan lokasi ini</button><button type="button" class="btn" data-pkp="gps">Lokasi saya</button><button type="button" class="btn" data-pkp="x">Batal</button></div></div>';
+ document.body.appendChild(ov);
+ var info=ov.querySelector('[data-pkp="info"]'),map=null,cur=null,
+  tutup=function(){if(map){try{map.remove()}catch(e){}}ov.remove()};
+ ov.querySelector('[data-pkp="x"]').addEventListener('click',tutup);
+ pkLeaflet(function(ok){
+  if(!ok){info.textContent='Peta gagal dimuat (perlu internet). Gunakan "Pakai lokasi saya" atau tempel koordinat dari Google Maps ke kolom Lintang.';return}
+  map=L.map('pk-peta-map').setView(pos,ada?17:13);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  var mk=L.marker(pos,{draggable:true,icon:L.divIcon({className:'pk-pin',html:'<span></span>',iconSize:[28,28],iconAnchor:[14,28]})}).addTo(map),
+   ring=L.circle(pos,{radius:rad,color:'#0a8f4e',weight:2,fillOpacity:.12}).addTo(map),
+   set=function(a,b,geser){cur=[a,b];mk.setLatLng(cur);ring.setLatLng(cur);if(geser)map.setView(cur,Math.max(map.getZoom(),17));
+    info.textContent='Lintang '+a.toFixed(6)+' · Bujur '+b.toFixed(6)+' · lingkaran hijau = radius absen '+rad+' m'};
+  set(pos[0],pos[1]);if(!ada)info.textContent='Ketuk peta atau geser pin ke tempat PKL. Bisa juga cari alamat di atas.';
+  map.on('click',function(e){set(e.latlng.lat,e.latlng.lng)});
+  mk.on('dragend',function(){var p=mk.getLatLng();set(p.lat,p.lng)});
+  setTimeout(function(){if(map)map.invalidateSize()},60);
+  ov.querySelector('form').addEventListener('submit',function(e){
+   e.preventDefault();var q=ov.querySelector('input').value.trim();if(!q)return;info.textContent='Mencari…';
+   fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=id&q='+encodeURIComponent(q)).then(function(r){return r.json()}).then(function(a){
+    if(!a||!a[0]){info.textContent='Tempat tidak ditemukan. Coba kata kunci lain.';return}
+    set(+a[0].lat,+a[0].lon,true);
+   }).catch(function(){info.textContent='Pencarian gagal (perlu internet).'});
+  });
+  ov.querySelector('[data-pkp="gps"]').addEventListener('click',function(){
+   if(!navigator.geolocation){info.textContent='Perangkat tidak mendukung lokasi.';return}
+   info.textContent='Mengambil lokasi…';
+   navigator.geolocation.getCurrentPosition(function(p){set(p.coords.latitude,p.coords.longitude,true)},function(){info.textContent='Lokasi tidak tersedia. Aktifkan izin lokasi.'},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+  });
+  ov.querySelector('[data-pkp="ok"]').addEventListener('click',function(){
+   if(!cur)return;var a=cur[0],b=cur[1];tutup();pkLokIsi(a,b,'Lokasi dipilih dari peta.');
+  });
+ });
+}
 
 /* ---------- Absen dengan selfie ---------- */
 function pkGps(){
@@ -657,7 +730,7 @@ function viewPkl(){
  return h+(isStaff()?pkStaffView():pkSiswaView());
 }
 function pkFormBuka(k,id){
- var sk=k;PK.fk=k;PK.msg='';
+ var sk=k;PK.fk=k;PK.msg='';PK.lokMsg='';
  var rec=id?pkById(k==='jurnalcat'?'jurnal':k,id):null;
  PK.f=rec?Object.assign({},rec):Object.assign({},pkDefault(k));
  PK.mode='form';render();
@@ -714,6 +787,8 @@ document.addEventListener('click',function(e){
  else if(a==='pkl-absen')pkAbsenBuka();
  else if(a==='pkl-tipe'){PK.f.tipe=v;PK.msg='';render()}
  else if(a==='pkl-gps'){pkGps();render()}
+ else if(a==='pkl-lok-gps')pkLokGps();
+ else if(a==='pkl-lok-peta')pkPeta();
  else if(a==='pkl-selfie'){var inp=document.querySelector('[data-pklfoto]');if(inp)inp.click()}
  else if(a==='pkl-absen-kirim')pkAbsenKirim();
  else if(a==='pkl-zoom')pkZoom(v);
@@ -724,7 +799,8 @@ document.addEventListener('click',function(e){
 });
 document.addEventListener('input',function(e){
  var t=e.target;if(!t||!t.dataset||PK.mode==='list')return;
- if(t.dataset.pkl&&PK.f){PK.f[t.dataset.pkl]=t.value;if(PK.fk==='nilai'&&/^tp[1-4]$/.test(t.dataset.pkl)){var el=document.getElementById('pk-na');if(el)el.innerHTML=pkNilaiTeks(PK.f)}}
+ if(t.dataset.pkl==='lat'&&PK.fk==='tempat'&&PK.f){var tp=pkLokTempel(t.value);if(tp){pkLokIsi(tp[0],tp[1],'Koordinat dari Google Maps terbaca.');return}}
+  if(t.dataset.pkl&&PK.f){PK.f[t.dataset.pkl]=t.value;if(PK.fk==='nilai'&&/^tp[1-4]$/.test(t.dataset.pkl)){var el=document.getElementById('pk-na');if(el)el.innerHTML=pkNilaiTeks(PK.f)}}
 });
 document.addEventListener('toggle',function(e){var d=e.target;if(d&&d.getAttribute&&d.getAttribute('data-pkd')==='daftar')PK.tOpen=!!d.open},true);
 document.addEventListener('change',function(e){
