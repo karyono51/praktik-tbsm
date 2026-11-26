@@ -1,3 +1,6 @@
+## Layar muat
+- Layar sebelum login kini berisi logo sekolah, penanda memuat, dan tombol Muat ulang bila lebih dari 12 detik.
+
 ## Menu sistematis dan SEO
 - `js/menu-peta.js`: satu sumber susunan menu untuk laci, breadcrumb, dan judul. LKPD dan UKK dipisah; Observasi UKK masuk UKK; ujian dan nilai dipisah; Absensi masuk Pembelajaran; Cari menu.
 - `js/rute.js`: alamat dan judul tab per menu.
