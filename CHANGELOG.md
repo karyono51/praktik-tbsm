@@ -517,3 +517,11 @@ Prodi `PKL` dengan empat elemen CP (SFT, HSP, HSG, WIR) ditambahkan ke matriks (
 - **PDF**: Daftar Nilai PKL per siswa atau semua (Lampiran 5) dan Jurnal PKL (Lampiran 2); siswa dapat mencetak jurnalnya sendiri.
 - `tools/uji-pkl.mjs` kini 99 butir (Drive, PDF, dan fungsi `getpkl`).
 
+
+## PKL: semua pilihan (select) memakai lembar pilihan secara penuh dan sistematis
+- `js/pkl.js`: semua `<select>` PKL (isian formulir dan saringan tab) kini dibuat oleh satu pembangun, `pkSelectHtml`, dari satu bentuk data (opsi `{v,l,ket,off}`, kelompok `{g,o}`). Lembar pilihan `js/bank-pilihan.js` terpakai penuh: judul (`data-judul`), keterangan kecil (`data-ket`), kelompok (`optgroup`), pilihan kosong terpisah, pilihan nonaktif, dan kotak Cari.
+- **Formulir**: Siswa dikelompokkan (Belum ditempatkan / Sudah punya penempatan aktif, yang kedua nonaktif); Tempat dikelompokkan menurut kuota (yang penuh nonaktif) dengan keterangan kota, isi/kuota, dan status perjanjian; di Kunjungan dikelompokkan menurut kebutuhan monitoring (lebih dari 30 hari). Nilai: Belum dinilai / Sudah dinilai (dengan nilai akhir) / Belum ditempatkan. Guru: jumlah siswa bimbingan aktif. Status dan Cara punya keterangan.
+- Keterangan pilihan terpilih tampil di bawah kolom. Nilai yang tersimpan tetapi sudah tidak ada di daftar (akun nonaktif, tempat dihapus) tetap tampil, tidak dikosongkan diam-diam. Pilihan nonaktif yang sedang terpilih tetap bisa dipertahankan saat ubah data.
+- Pemicu terpusat (`PK_HOOK`): tempat di Penempatan mengisi instruktur; tempat di Kunjungan mengisi guru pembimbing bila masih kosong.
+- **Saringan per tab** (tabel `PK_SARING`): Tempat (kota, bidang, perjanjian, monitoring), Penempatan (tempat, kelas, guru, status), Absensi (tempat, kelas, siswa, jenis), Jurnal (tempat, kelas, siswa, catatan), Kunjungan (tempat, guru, cara), Nilai, Kelengkapan, Rekap, dan daftar tempat di tampilan siswa (kota, bidang). Jumlah data tampil di keterangan, saringan yang nilainya sudah hilang otomatis dikosongkan, ada tombol Setel ulang. Tombol PDF nilai di tab Nilai mencetak yang sedang tampil.
+- Tidak ada perubahan di `js/bank-pilihan.js`, data, atau Appwrite. `tools/uji-pkl.mjs` kini 130 butir.

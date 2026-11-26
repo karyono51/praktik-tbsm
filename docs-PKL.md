@@ -36,3 +36,8 @@ Menu **PKL** untuk Siswa, Guru, Admin (Kepala Sekolah hanya melihat). Mengacu pa
 - Jam absen berasal dari jam perangkat siswa dan lokasi dari GPS perangkat; keduanya bisa dimanipulasi. Selfie dan status lokasi membantu pemeriksaan guru, bukan bukti mutlak.
 - Belum ada cetak naskah perjanjian kerja sama; datanya (nomor, masa berlaku) tersedia di Excel.
 - Nilai tidak ditampilkan ke siswa.
+
+## Pilihan dan saringan (select)
+- Semua dropdown PKL membuka lembar pilihan aplikasi (`js/bank-pilihan.js`). Kotak Cari muncul otomatis bila pilihan 8 atau lebih, dan selalu pada pilihan Siswa.
+- Pilihan bertanda abu-abu dan nonaktif tidak bisa dipilih: siswa yang sudah punya penempatan aktif, dan tempat yang kuotanya penuh. Aturan yang sama tetap diperiksa saat Simpan.
+- Menambah pilihan baru: buat daftar opsi lewat `pkO(nilai, teks, keterangan, nonaktif)` dan `pkG(judul, opsi)`, lalu pasang di `pkSchema` (isian) atau tambahkan atribut di `PK_SARING`, `PK_SL`, dan `pkAttr` (saringan).

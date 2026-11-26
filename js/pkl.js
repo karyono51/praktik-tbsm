@@ -9,7 +9,7 @@
 var PKC={tempat:'pkl',tugas:'pkl',absen:'pkl_catat',jurnal:'pkl_catat',kunjungan:'pkl_nilai',nilai:'pkl_nilai',cek:'pkl_nilai'};
 var PKKEY='tbsm-pkl',PKFOTO=40000;
 var PKD={cache:{},loading:{},failed:{},q:[],run:0,off:false,tm:0};
-var PK={D:{tempat:[],tugas:[],absen:[],jurnal:[],kunjungan:[],nilai:[],cek:[]},loaded:false,loading:false,err:[],tab:'tempat',mode:'list',f:null,fk:'',gps:null,gpsMsg:'',ft:''};
+var PK={D:{tempat:[],tugas:[],absen:[],jurnal:[],kunjungan:[],nilai:[],cek:[]},loaded:false,loading:false,err:[],tab:'tempat',mode:'list',f:null,fk:'',gps:null,gpsMsg:'',ft:'',flt:{},vis:{},tOpen:false};
 ICO.pkl='<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/>';
 var PK_TIPE={masuk:'Masuk',pulang:'Pulang',izin:'Izin',sakit:'Sakit'};
 var PK_CEK=[['pembekalan','Pembekalan PKL selesai'],['pks','Naskah perjanjian kerja sama ditandatangani'],['jaminan','Jaminan kesehatan dan keselamatan kerja tercantum di naskah'],
@@ -162,36 +162,159 @@ function pkNilaiAkhir(n){
 }
 function pkPredikat(v){return v==null?'':v>=90?'Sangat baik':v>=75?'Baik':v>=60?'Cukup':'Perlu bimbingan'}
 
+/* ---------- Pilihan (select) yang sistematis ----------
+   Semua <select> PKL (isian formulir dan saringan tab) dibuat dari SATU bentuk data lewat SATU pembangun, pkSelectHtml, supaya lembar pilihan
+   buatan aplikasi (js/bank-pilihan.js) terpakai penuh: judul lembar (data-judul), keterangan kecil tiap pilihan (data-ket), kelompok (optgroup),
+   pilihan kosong yang terpisah (value=""), pilihan nonaktif, dan kotak Cari (otomatis bila 8 pilihan atau lebih).
+   Bentuk data: opsi = {v:nilai, l:teks, ket:keterangan, off:true bila tidak boleh dipilih}; kelompok = {g:judul, o:[opsi]}; daftar = larik opsi/kelompok.
+   Daftar lama berbentuk [nilai,teks,ket] tetap diterima. Nilai yang sedang tersimpan tapi sudah tidak ada di daftar (akun nonaktif, tempat dihapus)
+   tetap ditampilkan agar ubah data tidak mengosongkannya diam-diam, dan opsi nonaktif yang sedang terpilih tidak ikut dinonaktifkan. */
+function pkO(v,l,ket,off){return {v:v,l:l,ket:ket||'',off:!!off}}
+function pkG(g,o){return {g:g,o:o}}
+function pkNorm(L){return (L||[]).map(function(x){return Array.isArray(x)?pkO(x[0],x[1],x[2],x[3]):x})}
+function pkFlat(L){var out=[];pkNorm(L).forEach(function(x){if(x.o)x.o.forEach(function(y){out.push(y)});else out.push(x)});return out}
+function pkSelectHtml(attr,L,cur,opt){
+ opt=opt||{};cur=cur==null?'':String(cur);L=pkNorm(L);
+ if(cur&&!pkFlat(L).some(function(o){return String(o.v)===cur}))L=L.concat([pkO(cur,opt.fb||'(data tidak ditemukan)','Pilih ulang')]);
+ function one(o){return '<option value="'+esc(o.v)+'"'+(o.ket?' data-ket="'+esc(o.ket)+'"':'')+(String(o.v)===cur?' selected':(o.off?' disabled':''))+'>'+esc(o.l)+'</option>'}
+ var h=L.map(function(x){return x.o?(x.o.length?'<optgroup label="'+esc(x.g)+'">'+x.o.map(one).join('')+'</optgroup>':''):one(x)}).join(''),
+  a=(opt.judul?' data-judul="'+esc(opt.judul)+'"':'')+(opt.cari?' data-cari':'')+(opt.tanpaCari?' data-tanpa-cari':''),
+  sel=pkFlat(L).filter(function(o){return String(o.v)===cur})[0];
+ return {html:'<select'+attr+a+'>'+h+'</select>',ket:sel&&sel.ket||''};
+}
+function pkUrutNama(a,b){return String(a.nama).localeCompare(String(b.nama),'id')}
+function pkAktifTugas(sid,exc){return pkList('tugas').filter(function(t){return t.sid===sid&&t.status==='aktif'&&t.id!==exc})[0]||null}
+function pkTerisi(tid,exc){return pkList('tugas').filter(function(t){return t.tempatId===tid&&t.status==='aktif'&&t.id!==exc}).length}
+function pkBimbing(gid,exc){return pkList('tugas').filter(function(t){return t.guruId===gid&&t.status==='aktif'&&t.id!==exc}).length}
+/* Siswa. ctx 'tugas': yang belum punya penempatan aktif lebih dulu, yang sudah punya dinonaktifkan (aturan satu penempatan aktif). ctx 'nilai': belum dinilai, sudah dinilai, belum ditempatkan. */
+function pkOptSiswa(ctx,f){
+ var exc=f&&f.id||'',cur=f&&f.sid||'',A=[],B=[],C=[];
+ pkSiswaAll().forEach(function(u){
+  var lab=u.nama+(u.kelas?' ('+u.kelas+')':'');
+  if(ctx==='nilai'){
+   var n=pkList('nilai').filter(function(x){return x.sid===u.id})[0],tt=pkTugasSiswa(u.id),tn=tt?pkTempatNama(tt.tempatId):'';
+   if(n)B.push(pkO(u.id,lab,'Nilai akhir '+(pkNilaiAkhir(n)==null?'-':pkNilaiAkhir(n))+(tn?' · '+tn:'')));
+   else if(tt)A.push(pkO(u.id,lab,tn));
+   else C.push(pkO(u.id,lab,'Belum ditempatkan'));
+  }else{
+   var tg=pkAktifTugas(u.id,exc);
+   if(tg)B.push(pkO(u.id,lab,'Sudah aktif di '+pkTempatNama(tg.tempatId),true));else A.push(pkO(u.id,lab,''));
+  }
+ });
+ var ada=pkSiswaAll().some(function(u){return u.id===cur});
+ if(cur&&!ada){var uu=pkUser(cur);A.unshift(pkO(cur,uu?uu.nama+(uu.kelas?' ('+uu.kelas+')':''):'(siswa tidak ditemukan)','Akun tidak aktif'))}
+ return [pkO('','(pilih siswa)')].concat(ctx==='nilai'?[pkG('Belum dinilai',A),pkG('Sudah dinilai',B),pkG('Belum ditempatkan',C)]:[pkG('Belum ditempatkan',A),pkG('Sudah punya penempatan aktif',B)]);
+}
+/* Tempat. ctx 'tugas': yang masih ada kuota lebih dulu, yang penuh dinonaktifkan. ctx 'kunjungan': yang perlu monitoring (lebih dari 30 hari tanpa kunjungan) lebih dulu. */
+function pkOptTempat(ctx,f){
+ var exc=ctx==='tugas'&&f&&f.id||'',A=[],B=[],C=[];
+ pkList('tempat').slice().sort(pkUrutNama).forEach(function(t){
+  var n=pkTerisi(t.id,exc),kuota=+t.kuota||0,isi=n+(kuota?'/'+kuota:'')+' siswa',ps=pkPksStatus(t),k=pkKunjunganAkhir(t.id),h=k?pkHariSejak(k.tanggal):null;
+  if(ctx==='tugas'){
+   var penuh=!!kuota&&n>=kuota;
+   (penuh?B:A).push(pkO(t.id,t.nama,[t.kota,isi,ps[0]==='bad'?ps[1]:''].filter(Boolean).join(' · '),penuh));
+  }else{
+   (n?(h==null||h>30?A:B):C).push(pkO(t.id,t.nama,[t.kota,isi,k?'Terakhir dikunjungi '+h+' hari lalu':'Belum pernah dikunjungi'].filter(Boolean).join(' · ')));
+  }
+ });
+ return [pkO('','(pilih tempat PKL)')].concat(ctx==='tugas'?[pkG('Masih ada kuota',A),pkG('Kuota penuh',B)]:[pkG('Perlu monitoring (lebih dari 30 hari)',A),pkG('Sudah dipantau',B),pkG('Belum ada siswa aktif',C)]);
+}
+function pkOptGuru(){
+ return [pkO('','(pilih guru pembimbing)')].concat(pkGuruAll().map(function(u){var n=pkBimbing(u.id,'');return pkO(u.id,u.nama,n?n+' siswa bimbingan aktif':'Belum membimbing siswa')}));
+}
+var PK_NEGERI=[['dalam','Dalam negeri'],['luar','Luar negeri']];
+var PK_STATUS=[['aktif','Aktif','Dihitung dalam kuota tempat'],['selesai','Selesai','Tidak dihitung dalam kuota'],['dibatalkan','Dibatalkan','Tidak dihitung dalam kuota dan rekap']];
+var PK_VERIF=[['','Belum diketahui'],['instruktur','Instruktur'],['guru','Guru pembimbing'],['keduanya','Instruktur dan guru']];
+var PK_MODE=[['luring','Kunjungan langsung','Datang ke tempat PKL'],['daring','Daring (telepon/video)','Tanpa datang ke tempat PKL']];
+/* Pilihan yang memicu perubahan isian lain. Mengembalikan true bila formulir perlu digambar ulang. */
+var PK_HOOK={
+ tugas:{tempatId:function(f,v){var tp=pkById('tempat',v);if(tp&&!f.instruktur)f.instruktur=tp.instruktur||'';return true}},
+ kunjungan:{tempatId:function(f,v){if(f.guruId)return false;var g=pkList('tugas').filter(function(x){return x.tempatId===v&&x.status==='aktif'&&x.guruId})[0];if(!g)return false;f.guruId=g.guruId;return true}}
+};
+function pkKetPerbarui(t){
+ try{var op=t.options&&t.options[t.selectedIndex],el=t.parentNode&&t.parentNode.querySelector&&t.parentNode.querySelector('[data-pkket]');if(!el)return;var k=op&&op.getAttribute&&op.getAttribute('data-ket')||'';el.textContent=k;el.hidden=!k}catch(x){}
+}
+
 /* ---------- Form generik ---------- */
 function PF(k,l,t,x){return Object.assign({k:k,l:l,t:t||'text'},x||{})}
-function pkOpts(L,first){return (first?[['',first]]:[]).concat(L)}
 function pkSchema(k){
- var S1=pkOpts(pkSiswaAll().map(function(u){return [u.id,u.nama+(u.kelas?' ('+u.kelas+')':'')]}),'(pilih siswa)'),
-     T1=pkOpts(pkList('tempat').map(function(t){return [t.id,t.nama]}),'(pilih tempat PKL)'),
-     G1=pkOpts(pkGuruAll().map(function(u){return [u.id,u.nama]}),'(pilih guru pembimbing)'),tp=pkTP();
+ var tp=pkTP(),
+  S1=function(ctx){return {o:function(f){return pkOptSiswa(ctx,f)},jd:'Pilih siswa',cari:true,fb:'(siswa tidak ditemukan)'}},
+  T1=function(ctx){return {o:function(f){return pkOptTempat(ctx,f)},jd:'Pilih tempat PKL',fb:'(tempat dihapus)'}},
+  G1=function(){return {o:function(){return pkOptGuru()},jd:'Pilih guru pembimbing',fb:'(guru tidak ditemukan)'}};
  return {
   tempat:[PF('nama','Nama dunia kerja','text',{r:1}),PF('bidang','Bidang usaha / kompetensi yang dilatih'),PF('alamat','Alamat','textarea'),PF('kota','Kota/kabupaten'),
-   PF('negeri','Lokasi','select',{o:[['dalam','Dalam negeri'],['luar','Luar negeri']]}),PF('telp','Telepon/WA kantor'),PF('pimpinan','Pimpinan/HRD'),PF('instruktur','Instruktur (pembimbing dunia kerja)'),
+   PF('negeri','Lokasi','select',{o:PK_NEGERI,jd:'Lokasi tempat PKL'}),PF('telp','Telepon/WA kantor'),PF('pimpinan','Pimpinan/HRD'),PF('instruktur','Instruktur (pembimbing dunia kerja)'),
    PF('instrTelp','Kontak instruktur'),PF('kuota','Kuota siswa','number'),PF('jam','Jam kerja (siswa hanya shift pagi/siang)','text',{ph:'mis. 08.00-16.00'}),
    PF('pks','No. perjanjian kerja sama (sekolah)'),PF('pksMitra','No. perjanjian kerja sama (dunia kerja)'),PF('pksMulai','Perjanjian berlaku mulai','date'),PF('pksSelesai','Perjanjian berlaku sampai','date'),
    PF('fasilitas','Fasilitas/insentif (transport, konsumsi, uang saku)','textarea'),PF('lat','Lintang lokasi (untuk cek lokasi absen)','text',{ph:'mis. -6.9175'}),PF('lng','Bujur lokasi','text',{ph:'mis. 107.6191'}),
    PF('radius','Radius lokasi absen (meter)','number',{ph:'200'}),PF('cat','Catatan','textarea')],
-  tugas:[PF('sid','Siswa','select',{o:S1,r:1}),PF('tempatId','Tempat PKL','select',{o:T1,r:1}),PF('guruId','Guru pembimbing','select',{o:G1}),PF('instruktur','Instruktur (kosongkan = ikut tempat)'),
-   PF('mulai','Mulai PKL','date',{r:1}),PF('selesai','Selesai PKL','date',{r:1}),PF('status','Status','select',{o:[['aktif','Aktif'],['selesai','Selesai'],['dibatalkan','Dibatalkan']]})],
+  tugas:[PF('sid','Siswa','select',Object.assign({r:1},S1('tugas'))),PF('tempatId','Tempat PKL','select',Object.assign({r:1},T1('tugas'))),PF('guruId','Guru pembimbing','select',G1('tugas')),PF('instruktur','Instruktur (kosongkan = ikut tempat)'),
+   PF('mulai','Mulai PKL','date',{r:1}),PF('selesai','Selesai PKL','date',{r:1}),PF('status','Status','select',{o:PK_STATUS,jd:'Status penempatan'})],
   jurnal:[PF('tanggal','Tanggal','date',{r:1}),PF('unit','Unit kerja / pekerjaan','text',{r:1}),PF('uraian','Uraian kegiatan','textarea',{r:1})],
-  jurnalcat:[PF('cat','Catatan instruktur / pembimbing','textarea'),PF('verif','Diketahui oleh','select',{o:[['','Belum diketahui'],['instruktur','Instruktur'],['guru','Guru pembimbing'],['keduanya','Instruktur dan guru']]})],
-  kunjungan:[PF('tanggal','Tanggal','date',{r:1}),PF('tempatId','Tempat PKL','select',{o:T1,r:1}),PF('guruId','Guru pembimbing','select',{o:G1}),
-   PF('mode','Cara','select',{o:[['luring','Kunjungan langsung'],['daring','Daring (telepon/video)']]}),PF('temuan','Temuan (penempatan, kesesuaian pekerjaan, kondisi siswa)','textarea'),PF('tindak','Tindak lanjut','textarea')],
-  nilai:[PF('sid','Siswa','select',{o:S1,r:1}),PF('tp1','TP 1 · '+tp[0],'number',{ph:'0-100'}),PF('tp2','TP 2 · '+tp[1],'number',{ph:'0-100'}),PF('tp3','TP 3 · '+tp[2],'number',{ph:'0-100'}),PF('tp4','TP 4 · '+tp[3],'number',{ph:'0-100'}),
+  jurnalcat:[PF('cat','Catatan instruktur / pembimbing','textarea'),PF('verif','Diketahui oleh','select',{o:PK_VERIF,jd:'Diketahui oleh'})],
+  kunjungan:[PF('tanggal','Tanggal','date',{r:1}),PF('tempatId','Tempat PKL','select',Object.assign({r:1},T1('kunjungan'))),PF('guruId','Guru pembimbing','select',G1('kunjungan')),
+   PF('mode','Cara','select',{o:PK_MODE,jd:'Cara kunjungan'}),PF('temuan','Temuan (penempatan, kesesuaian pekerjaan, kondisi siswa)','textarea'),PF('tindak','Tindak lanjut','textarea')],
+  nilai:[PF('sid','Siswa','select',Object.assign({r:1},S1('nilai'))),PF('tp1','TP 1 · '+tp[0],'number',{ph:'0-100'}),PF('tp2','TP 2 · '+tp[1],'number',{ph:'0-100'}),PF('tp3','TP 3 · '+tp[2],'number',{ph:'0-100'}),PF('tp4','TP 4 · '+tp[3],'number',{ph:'0-100'}),
    PF('catGuru','Catatan guru pembimbing','textarea'),PF('catInstr','Catatan instruktur dunia kerja','textarea')]
  }[k]||[];
 }
-function pkField(fl,val){
+function pkField(fl,val,f){
  var n=' data-pkl="'+fl.k+'"',v=val==null?'':val,h;
  if(fl.t==='textarea')h='<textarea rows="2"'+n+'>'+esc(v)+'</textarea>';
- else if(fl.t==='select')h='<select'+n+'>'+(fl.o||[]).map(function(o){return '<option value="'+esc(o[0])+'"'+(String(o[0])===String(v)?' selected':'')+'>'+esc(o[1])+'</option>'}).join('')+'</select>';
+ else if(fl.t==='select'){
+  var r=pkSelectHtml(n,typeof fl.o==='function'?fl.o(f||{}):fl.o,v,{judul:fl.jd||fl.l,cari:fl.cari,fb:fl.fb});
+  h=r.html+'<span class="pk-ket" data-pkket'+(r.ket?'':' hidden')+'>'+esc(r.ket)+'</span>';
+ }
  else h='<input'+n+' type="'+(fl.t==='number'?'number" inputmode="decimal':fl.t)+'" value="'+esc(v)+'"'+(fl.ph?' placeholder="'+esc(fl.ph)+'"':'')+'>';
  return '<label class="f">'+esc(fl.l)+(fl.r?' *':'')+h+'</label>';
+}
+
+/* ---------- Saringan (select) per tab ----------
+   Tiap tab daftar punya baris saringan dari satu tabel (PK_SARING). Pilihannya diambil dari data tab itu sendiri, dengan jumlah data di keterangannya,
+   dan saringan yang nilainya sudah tidak ada otomatis dikosongkan. Keadaan disimpan di PK.flt[tab][atribut]. */
+var PK_SARING={tempat:['kota','bidang','pks','monitor'],tugas:['tempat','kelas','guru','status'],absen:['tempat','kelas','siswa','tipe'],jurnal:['tempat','kelas','siswa','verif'],
+ kunjungan:['tempat','guru','mode'],nilai:['kelas','tempat','siswa'],cek:['tempat','kelas','siswa'],rekap:['tempat','kelas','guru'],daftar:['kota','bidang']};
+var PK_SL={tempat:['Tempat PKL','Semua tempat'],kelas:['Kelas','Semua kelas'],siswa:['Siswa','Semua siswa'],guru:['Guru pembimbing','Semua guru'],status:['Status','Semua status'],tipe:['Jenis absen','Semua jenis'],
+ verif:['Catatan','Semua jurnal'],mode:['Cara','Semua cara'],kota:['Kota','Semua kota'],bidang:['Bidang usaha','Semua bidang'],pks:['Perjanjian','Semua status'],monitor:['Monitoring','Semua tempat']};
+var PK_SATUAN={tempat:'tempat',tugas:'penempatan',absen:'catatan',jurnal:'jurnal',kunjungan:'kunjungan',nilai:'nilai',cek:'siswa',rekap:'siswa',daftar:'tempat'};
+var PK_TETAP={status:{aktif:'Aktif',selesai:'Selesai',dibatalkan:'Dibatalkan'},tipe:PK_TIPE,verif:{belum:'Belum diberi catatan',sudah:'Sudah diketahui'},mode:{luring:'Kunjungan langsung',daring:'Daring'},monitor:{perlu:'Perlu monitoring',aman:'Tidak perlu'}};
+function pkAttr(a,o){
+ if(a==='tempat')return o.tempatId||'';
+ if(a==='kelas')return pkKl(o)||'';
+ if(a==='siswa')return o.sid||'';
+ if(a==='guru')return o.guruId||'';
+ if(a==='status')return o.status||'aktif';
+ if(a==='tipe')return o.tipe||'';
+ if(a==='verif')return o.verif?'sudah':'belum';
+ if(a==='mode')return o.mode==='daring'?'daring':'luring';
+ if(a==='kota'||a==='bidang')return String(o[a]||'').trim().toLowerCase();
+ if(a==='pks')return pkPksStatus(o)[1];
+ if(a==='monitor'){var k=pkKunjunganAkhir(o.id),h=k?pkHariSejak(k.tanggal):null;return pkTerisi(o.id,'')&&(h==null||h>30)?'perlu':'aman'}
+ return '';
+}
+function pkAttrLabel(a,v,o){
+ if(a==='tempat')return pkTempatNama(v);
+ if(a==='siswa')return pkNm(o);
+ if(a==='guru'){var g=pkUser(v);return g?g.nama:(o.guruNama||v)}
+ if(PK_TETAP[a])return PK_TETAP[a][v]||v;
+ if(a==='kota'||a==='bidang')return String(o[a]||'').trim();
+ return v;
+}
+function pkSaring(tab,recs,get){
+ get=get||function(x){return x};
+ var S0=PK.flt[tab]=PK.flt[tab]||{},bar='',aktif=0,out=recs,sat=PK_SATUAN[tab]||'data';
+ (recs.length?PK_SARING[tab]||[]:[]).forEach(function(a){
+  var cnt={},lab={},fixed=PK_TETAP[a];
+  recs.forEach(function(r){var o=get(r),v=pkAttr(a,o);if(v===''||v==null)return;cnt[v]=(cnt[v]||0)+1;if(lab[v]===undefined)lab[v]=pkAttrLabel(a,v,o)});
+  if(fixed)Object.keys(fixed).forEach(function(v){if(cnt[v]===undefined)cnt[v]=0;lab[v]=fixed[v]});
+  var keys=Object.keys(lab);if(!fixed)keys.sort(function(x,y){return String(lab[x]).localeCompare(String(lab[y]),'id')});
+  if(!keys.length)return;
+  var cur=S0[a]||'';if(cur&&keys.indexOf(cur)<0){cur='';S0[a]=''}
+  if(cur){aktif++;out=out.filter(function(r){return pkAttr(a,get(r))===cur})}
+  bar+='<label class="f">'+esc(PK_SL[a][0])+pkSelectHtml(' data-pkfilter="'+tab+':'+a+'"',[pkO('',PK_SL[a][1])].concat(keys.map(function(v){return pkO(v,lab[v],cnt[v]+' '+sat)})),cur,{judul:'Saring: '+PK_SL[a][0]}).html+'</label>';
+ });
+ return {list:out,aktif:aktif,bar:bar?'<div class="pk-bar">'+bar+'</div>'+(aktif?'<div class="note">Menampilkan '+out.length+' dari '+recs.length+' '+sat+'. <button type="button" class="btn small" data-act="pkl-flt-reset" data-v="'+tab+'">Setel ulang saringan</button></div>':''):''};
 }
 function pkDefault(k){
  var t=pkToday();
@@ -205,7 +328,7 @@ function pkFormView(){
  var k=PK.fk,sk=k==='jurnalcat'?'jurnalcat':k,F=pkSchema(sk),f=PK.f||{};
  var h='<div class="card"><b>'+esc(PK_JUDUL[k]||k)+(f.id?' · ubah':' · baru')+'</b>';
  if(k==='jurnalcat'&&f.uraian)h+='<div class="note">'+esc(f.tanggal)+' · '+esc(f.unit||'')+' · '+esc(f.uraian)+'</div>';
- h+=F.map(function(fl){return pkField(fl,f[fl.k])}).join('');
+ h+=F.map(function(fl){return pkField(fl,f[fl.k],f)}).join('');
  if(k==='nilai')h+='<div class="note" id="pk-na">'+pkNilaiTeks(f)+'</div>';
  if(PK.msg)h+='<div class="err">'+esc(PK.msg)+'</div>';
  return h+'<div class="row" style="gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" data-act="pkl-save">Simpan</button><button type="button" class="btn" data-act="pkl-cancel">Batal</button></div></div>';
@@ -296,8 +419,8 @@ function pkSiswaView(){
  }
  h+='<div class="card"><b>Riwayat absen</b>'+(mine.length?mine.slice(0,12).map(pkAbsenBaris).join(''):'<div class="note">Belum ada absen.</div>')+'</div>';
  h+='<div class="card"><b>Jurnal kegiatan</b>'+(jr.length?'<div class="row"><button type="button" class="btn small" data-act="pkl-pdf-jurnal" data-v="'+esc(me.id)+'">PDF jurnal saya</button></div>':'')+(jr.length?jr.slice(0,15).map(function(j){return pkJurnalBaris(j,false)}).join(''):'<div class="note">Belum ada jurnal.</div>')+'</div>';
- var T=pkList('tempat');
- h+='<div class="card"><details><summary><b>Daftar tempat PKL ('+T.length+')</b></summary>'+(T.length?T.map(function(x){return pkTempatCard(x,false)}).join(''):'<div class="note">Belum ada tempat PKL.</div>')+'</details></div>';
+ var T0=pkList('tempat').sort(pkUrutNama),Z=pkSaring('daftar',T0),T=Z.list;
+ h+='<div class="card"><details data-pkd="daftar"'+(PK.tOpen?' open':'')+'><summary><b>Daftar tempat PKL ('+T.length+(Z.aktif?' dari '+T0.length:'')+')</b></summary>'+Z.bar+(T.length?T.map(function(x){return pkTempatCard(x,false)}).join(''):'<div class="note">'+(T0.length?'Tidak ada tempat PKL yang cocok dengan saringan.':'Belum ada tempat PKL.')+'</div>')+'</details></div>';
  return h;
 }
 function pkAbsenBaris(a){
@@ -330,49 +453,50 @@ function pkStaffView(){
  return h+f();
 }
 function pkTabTempat(){
- var T=pkList('tempat').sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
- return '<div class="card"><b>Daftar tempat PKL ('+T.length+')</b>'+pkTambah('tempat','Tempat PKL baru')+(T.length?T.map(function(t){
+ var T0=pkList('tempat').sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')}),Z=pkSaring('tempat',T0),T=Z.list;
+ return '<div class="card"><b>Daftar tempat PKL ('+T.length+(Z.aktif?' dari '+T0.length:'')+')</b>'+pkTambah('tempat','Tempat PKL baru')+Z.bar+(T.length?T.map(function(t){
   var ps=pkPksStatus(t),n=pkList('tugas').filter(function(x){return x.tempatId===t.id&&x.status==='aktif'}).length,k=pkKunjunganAkhir(t.id),h=k?pkHariSejak(k.tanggal):null;
   return '<div style="padding:8px 0;border-top:1px solid var(--line)">'+pkTempatCard(t,false)+
    '<div class="note">'+(t.pks?'PKS sekolah: '+esc(t.pks):'')+(t.pksMitra?' · PKS mitra: '+esc(t.pksMitra):'')+(t.pksSelesai?' · berlaku s.d. '+esc(t.pksSelesai):'')+(t.fasilitas?'<br>Fasilitas: '+esc(t.fasilitas):'')+
-   '<br>'+(k?'Kunjungan terakhir '+esc(k.tanggal)+' ('+h+' hari lalu)':'Belum pernah dikunjungi')+(n&&(h==null||h>30)?' '+pkPill('warn','Perlu monitoring'):'')+(t.lat&&t.lng?' · '+pkPill('plain','Koordinat terisi'):'')+'</div>'+pkAksi('tempat',t.id)+'</div>'}).join(''):'<div class="note">Belum ada tempat PKL.</div>')+'</div>';
+   '<br>'+(k?'Kunjungan terakhir '+esc(k.tanggal)+' ('+h+' hari lalu)':'Belum pernah dikunjungi')+(n&&(h==null||h>30)?' '+pkPill('warn','Perlu monitoring'):'')+(t.lat&&t.lng?' · '+pkPill('plain','Koordinat terisi'):'')+'</div>'+pkAksi('tempat',t.id)+'</div>'}).join(''):'<div class="note">'+(T0.length?'Tidak ada tempat PKL yang cocok dengan saringan.':'Belum ada tempat PKL.')+'</div>')+'</div>';
 }
 function pkTabTugas(){
- var G=pkList('tugas').sort(function(a,b){return pkTempatNama(a.tempatId).localeCompare(pkTempatNama(b.tempatId),'id')||pkNm(a).localeCompare(pkNm(b),'id')}),bel=pkSiswaAll().filter(function(u){return !pkTugasSiswa(u.id)});
- return '<div class="card"><b>Penempatan siswa ('+G.length+')</b>'+pkTambah('tugas','Penempatan baru')+
+ var G0=pkList('tugas').sort(function(a,b){return pkTempatNama(a.tempatId).localeCompare(pkTempatNama(b.tempatId),'id')||pkNm(a).localeCompare(pkNm(b),'id')}),Z=pkSaring('tugas',G0),G=Z.list,bel=pkSiswaAll().filter(function(u){return !pkTugasSiswa(u.id)});
+ return '<div class="card"><b>Penempatan siswa ('+G.length+(Z.aktif?' dari '+G0.length:'')+')</b>'+pkTambah('tugas','Penempatan baru')+Z.bar+
   (bel.length?'<details><summary class="note">'+bel.length+' siswa belum ditempatkan</summary><div class="note">'+bel.map(function(u){return esc(u.nama)+(u.kelas?' ('+esc(u.kelas)+')':'')}).join(', ')+'</div></details>':'')+
-  (G.length?G.map(function(g){var gu=g.guruId&&pkUser(g.guruId);return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="note"><b>'+esc(pkNm(g))+'</b>'+(pkKl(g)?' ('+esc(pkKl(g))+')':'')+' · '+esc(pkTempatNama(g.tempatId))+'<br>Pembimbing: '+esc(gu?gu.nama:(g.guruNama||'-'))+(g.instruktur?' · Instruktur: '+esc(g.instruktur):'')+'<br>'+esc(g.mulai||'-')+' s.d. '+esc(g.selesai||'-')+' '+pkPill(g.status==='aktif'?'ok':'plain',g.status||'aktif')+'</div>'+pkAksi('tugas',g.id)+'</div>'}).join(''):'<div class="note">Belum ada penempatan.</div>')+'</div>';
+  (G.length?G.map(function(g){var gu=g.guruId&&pkUser(g.guruId);return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="note"><b>'+esc(pkNm(g))+'</b>'+(pkKl(g)?' ('+esc(pkKl(g))+')':'')+' · '+esc(pkTempatNama(g.tempatId))+'<br>Pembimbing: '+esc(gu?gu.nama:(g.guruNama||'-'))+(g.instruktur?' · Instruktur: '+esc(g.instruktur):'')+'<br>'+esc(g.mulai||'-')+' s.d. '+esc(g.selesai||'-')+' '+pkPill(g.status==='aktif'?'ok':'plain',g.status||'aktif')+'</div>'+pkAksi('tugas',g.id)+'</div>'}).join(''):'<div class="note">'+(G0.length?'Tidak ada penempatan yang cocok dengan saringan.':'Belum ada penempatan.')+'</div>')+'</div>';
 }
 function pkTabAbsen(){
- var d=PK.ft||pkToday(),A=pkList('absen').filter(function(x){return x.tanggal===d}).sort(function(a,b){return String(a.jam).localeCompare(String(b.jam))}),G=pkList('tugas').filter(function(x){return x.status==='aktif'}),
+ var d=PK.ft||pkToday(),A0=pkList('absen').filter(function(x){return x.tanggal===d}).sort(function(a,b){return String(a.jam).localeCompare(String(b.jam))}),Z=pkSaring('absen',A0),A=Z.list,G=pkList('tugas').filter(function(x){return x.status==='aktif'}),
   sdh={};A.forEach(function(x){if(x.tipe==='masuk'||x.tipe==='izin'||x.tipe==='sakit')sdh[x.sid]=1});var blm=G.filter(function(g){return !sdh[g.sid]});
- return '<div class="card"><b>Absensi harian</b><label class="f">Tanggal<input type="date" data-pkft value="'+esc(d)+'"></label>'+
-  '<div class="note">'+A.length+' catatan · '+blm.length+' siswa belum absen'+(blm.length?': '+blm.map(function(g){return esc(pkNm(g))}).join(', '):'')+'</div>'+
-  (A.length?A.map(function(a){return pkAbsenBaris(a)+'<div class="row"><button type="button" class="btn small danger" data-act="pkl-del" data-k="absen" data-v="'+esc(a.id)+'">Hapus</button></div>'}).join(''):'<div class="note">Belum ada absen pada tanggal ini.</div>')+'</div>';
+ return '<div class="card"><b>Absensi harian</b><label class="f">Tanggal<input type="date" data-pkft value="'+esc(d)+'"></label>'+Z.bar+
+  '<div class="note">'+A.length+(Z.aktif?' dari '+A0.length:'')+' catatan · '+blm.length+' siswa belum absen'+(blm.length?': '+blm.map(function(g){return esc(pkNm(g))}).join(', '):'')+'</div>'+
+  (A.length?A.map(function(a){return pkAbsenBaris(a)+'<div class="row"><button type="button" class="btn small danger" data-act="pkl-del" data-k="absen" data-v="'+esc(a.id)+'">Hapus</button></div>'}).join(''):'<div class="note">'+(A0.length?'Tidak ada catatan yang cocok dengan saringan.':'Belum ada absen pada tanggal ini.')+'</div>')+'</div>';
 }
 function pkTabJurnal(){
- var J=pkList('jurnal').sort(function(a,b){return (a.verif?1:0)-(b.verif?1:0)||String(b.tanggal).localeCompare(String(a.tanggal))}).slice(0,60);
- return '<div class="card"><b>Jurnal kegiatan siswa ('+pkList('jurnal').length+')</b><div class="note">Yang belum diberi catatan tampil lebih dulu. Maksimal 60 terbaru.</div>'+(J.length?J.map(function(j){return pkJurnalBaris(j,true)}).join(''):'<div class="note">Belum ada jurnal.</div>')+'</div>';
+ var J0=pkList('jurnal').sort(function(a,b){return (a.verif?1:0)-(b.verif?1:0)||String(b.tanggal).localeCompare(String(a.tanggal))}),Z=pkSaring('jurnal',J0),J=Z.list.slice(0,60);
+ return '<div class="card"><b>Jurnal kegiatan siswa ('+(Z.aktif?Z.list.length+' dari ':'')+J0.length+')</b><div class="note">Yang belum diberi catatan tampil lebih dulu. Maksimal 60 terbaru.</div>'+Z.bar+(J.length?J.map(function(j){return pkJurnalBaris(j,true)}).join(''):'<div class="note">'+(J0.length?'Tidak ada jurnal yang cocok dengan saringan.':'Belum ada jurnal.')+'</div>')+'</div>';
 }
 function pkTabKunjungan(){
- var K=pkList('kunjungan').sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))});
- return '<div class="card"><b>Kunjungan monitoring ('+K.length+')</b><div class="note">Panduan: guru pembimbing memantau minimal sebulan sekali (kunjungan atau komunikasi dengan dunia kerja).</div>'+pkTambah('kunjungan','Kunjungan baru')+
-  (K.length?K.map(function(k){var gu=k.guruId&&pkUser(k.guruId);return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="note"><b>'+esc(k.tanggal)+'</b> · '+esc(pkTempatNama(k.tempatId))+' · '+(k.mode==='daring'?'daring':'langsung')+' · '+esc(gu?gu.nama:(k.guruNama||'-'))+(k.temuan?'<br>Temuan: '+esc(k.temuan):'')+(k.tindak?'<br>Tindak lanjut: '+esc(k.tindak):'')+'</div>'+pkAksi('kunjungan',k.id)+'</div>'}).join(''):'<div class="note">Belum ada kunjungan.</div>')+'</div>';
+ var K0=pkList('kunjungan').sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))}),Z=pkSaring('kunjungan',K0),K=Z.list;
+ return '<div class="card"><b>Kunjungan monitoring ('+K.length+(Z.aktif?' dari '+K0.length:'')+')</b><div class="note">Panduan: guru pembimbing memantau minimal sebulan sekali (kunjungan atau komunikasi dengan dunia kerja).</div>'+pkTambah('kunjungan','Kunjungan baru')+Z.bar+
+  (K.length?K.map(function(k){var gu=k.guruId&&pkUser(k.guruId);return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="note"><b>'+esc(k.tanggal)+'</b> · '+esc(pkTempatNama(k.tempatId))+' · '+(k.mode==='daring'?'daring':'langsung')+' · '+esc(gu?gu.nama:(k.guruNama||'-'))+(k.temuan?'<br>Temuan: '+esc(k.temuan):'')+(k.tindak?'<br>Tindak lanjut: '+esc(k.tindak):'')+'</div>'+pkAksi('kunjungan',k.id)+'</div>'}).join(''):'<div class="note">'+(K0.length?'Tidak ada kunjungan yang cocok dengan saringan.':'Belum ada kunjungan.')+'</div>')+'</div>';
 }
 function pkTabNilai(){
- var N=pkList('nilai').sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
- return '<div class="card"><b>Nilai PKL ('+N.length+')</b><div class="note">Empat TP (Lampiran 4 dan 5 panduan). Kehadiran diambil otomatis dari absensi.</div>'+pkTambah('nilai','Nilai baru').replace('</div>',N.length?'<button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="semua">PDF semua nilai</button></div>':'</div>')+
+ var N0=pkList('nilai').sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')}),Z=pkSaring('nilai',N0),N=Z.list;
+ PK.vis.nilai=N.map(function(x){return x.sid});
+ return '<div class="card"><b>Nilai PKL ('+N.length+(Z.aktif?' dari '+N0.length:'')+')</b><div class="note">Empat TP (Lampiran 4 dan 5 panduan). Kehadiran diambil otomatis dari absensi.</div>'+pkTambah('nilai','Nilai baru').replace('</div>',N.length?'<button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="semua">'+(Z.aktif?'PDF nilai yang tampil ('+N.length+')':'PDF semua nilai')+'</button></div>':'</div>')+Z.bar+
   (N.length?N.map(function(n){var v=pkNilaiAkhir(n),r=pkRekap(n.sid),tp=pkTP();return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="note"><b>'+esc(n.nama||'')+'</b>'+(n.kelas?' ('+esc(n.kelas)+')':'')+' · '+esc(pkTempatNama(n.tempatId))+
    '<br>'+[1,2,3,4].map(function(i){return 'TP'+i+': '+(n['tp'+i]===''||n['tp'+i]==null?'-':n['tp'+i])}).join(' · ')+'<br>Nilai akhir: <b>'+(v==null?'-':v)+'</b> '+(v==null?'':pkPill(v>=75?'ok':'warn',pkPredikat(v)))+
-   '<br>Kehadiran: sakit '+r.sakit+', izin '+r.izin+', tanpa keterangan '+r.alpa+(n.catGuru?'<br>Guru: '+esc(n.catGuru):'')+(n.catInstr?'<br>Instruktur: '+esc(n.catInstr):'')+'</div>'+pkAksi('nilai',n.id).replace('</div>','<button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="'+esc(n.sid)+'">PDF</button></div>')+'</div>'}).join(''):'<div class="note">Belum ada nilai.</div>')+'</div>';
+   '<br>Kehadiran: sakit '+r.sakit+', izin '+r.izin+', tanpa keterangan '+r.alpa+(n.catGuru?'<br>Guru: '+esc(n.catGuru):'')+(n.catInstr?'<br>Instruktur: '+esc(n.catInstr):'')+'</div>'+pkAksi('nilai',n.id).replace('</div>','<button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="'+esc(n.sid)+'">PDF</button></div>')+'</div>'}).join(''):'<div class="note">'+(N0.length?'Tidak ada nilai yang cocok dengan saringan.':'Belum ada nilai.')+'</div>')+'</div>';
 }
 function pkCekOf(sid){return pkById('cek','cek_'+sid)}
 function pkTabCek(){
- var G=pkList('tugas').filter(function(x){return x.status!=='dibatalkan'}).sort(function(a,b){return pkNm(a).localeCompare(pkNm(b),'id')});
- return '<div class="card"><b>Kelengkapan PKL per siswa</b><div class="note">Centang saat dokumen atau tahapan sudah terpenuhi. Tersimpan otomatis.</div>'+(G.length?G.map(function(g){
+ var G0=pkList('tugas').filter(function(x){return x.status!=='dibatalkan'}).sort(function(a,b){return pkNm(a).localeCompare(pkNm(b),'id')}),Z=pkSaring('cek',G0),G=Z.list;
+ return '<div class="card"><b>Kelengkapan PKL per siswa</b><div class="note">Centang saat dokumen atau tahapan sudah terpenuhi. Tersimpan otomatis.</div>'+Z.bar+(G.length?G.map(function(g){
   var c=pkCekOf(g.sid)||{items:{}},n=PK_CEK.filter(function(x){return c.items&&c.items[x[0]]}).length;
   return '<details style="padding:6px 0;border-top:1px solid var(--line)"><summary><b>'+esc(pkNm(g))+'</b> <span class="note">'+esc(pkTempatNama(g.tempatId))+'</span> '+pkPill(n===PK_CEK.length?'ok':'plain',n+'/'+PK_CEK.length)+'</summary>'+
-   PK_CEK.map(function(x){return '<label class="row" style="gap:8px;padding:4px 0"><input type="checkbox" data-pkcek="'+esc(g.sid)+'" data-i="'+x[0]+'"'+(c.items&&c.items[x[0]]?' checked':'')+'><span class="note">'+esc(x[1])+'</span></label>'}).join('')+'</details>'}).join(''):'<div class="note">Belum ada penempatan.</div>')+'</div>';
+   PK_CEK.map(function(x){return '<label class="row" style="gap:8px;padding:4px 0"><input type="checkbox" data-pkcek="'+esc(g.sid)+'" data-i="'+x[0]+'"'+(c.items&&c.items[x[0]]?' checked':'')+'><span class="note">'+esc(x[1])+'</span></label>'}).join('')+'</details>'}).join(''):'<div class="note">'+(G0.length?'Tidak ada siswa yang cocok dengan saringan.':'Belum ada penempatan.')+'</div>')+'</div>';
 }
 function pkRekapBaris(){
  return pkList('tugas').filter(function(x){return x.status!=='dibatalkan'}).sort(function(a,b){return pkNm(a).localeCompare(pkNm(b),'id')}).map(function(g){
@@ -381,8 +505,8 @@ function pkRekapBaris(){
  });
 }
 function pkTabRekap(){
- var R=pkRekapBaris();
- return '<div class="card"><b>Rekap PKL per siswa</b><div class="row"><button type="button" class="btn small primary" data-act="pkl-xls">Unduh Excel</button></div>'+
+ var R0=pkRekapBaris(),Z=pkSaring('rekap',R0,function(x){return x.g}),R=Z.list;
+ return '<div class="card"><b>Rekap PKL per siswa'+(Z.aktif?' ('+R.length+' dari '+R0.length+')':'')+'</b><div class="row"><button type="button" class="btn small primary" data-act="pkl-xls">Unduh Excel</button></div>'+Z.bar+
   '<div class="note">Tanpa keterangan = hari kerja Senin-Jumat sejak mulai PKL dikurangi hadir, izin, dan sakit (perkiraan; hari libur belum dikurangi).</div>'+
   '<div class="akd-twrap"><table class="akd-tbl akd-tbl-l"><thead><tr><th>Siswa</th><th>Tempat</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>T.ket</th><th>Di luar lokasi</th><th>Jurnal</th><th>Kelengkapan</th><th>Nilai</th><th>PDF</th></tr></thead><tbody>'+
   (R.length?R.map(function(x){return '<tr><td>'+esc(pkNm(x.g))+'</td><td>'+esc(pkTempatNama(x.g.tempatId))+'</td><td>'+x.r.hadir+'</td><td>'+x.r.izin+'</td><td>'+x.r.sakit+'</td><td>'+x.r.alpa+'</td><td>'+x.r.luar+'</td><td>'+x.jurnal+'</td><td>'+x.cek+'/'+PK_CEK.length+'</td><td>'+(x.nilai==null?'-':x.nilai)+'</td><td><button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="'+esc(x.g.sid)+'">Nilai</button> <button type="button" class="btn small" data-act="pkl-pdf-jurnal" data-v="'+esc(x.g.sid)+'">Jurnal</button></td></tr>'}).join(''):'<tr><td colspan="11">Belum ada penempatan.</td></tr>')+'</tbody></table></div></div>';
@@ -485,6 +609,7 @@ function pkPdfJurnal(sid){
 var PK_CSS=document.createElement('style');
 PK_CSS.textContent='.pk-row{display:flex;gap:10px;align-items:flex-start}.pk-pv{width:150px;aspect-ratio:3/4;object-fit:cover;border-radius:14px;border:1px solid var(--line);flex:none}'+
  '.pk-th{width:44px;height:58px;object-fit:cover;border-radius:8px;cursor:zoom-in;flex:none;border:1px solid var(--line)}.pk-kosong{display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:var(--muted);background:var(--surface)}'+
+ '.pk-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0}.pk-bar .f{margin:0}.pk-ket{display:block;margin-top:4px;font-size:12px;color:var(--muted)}.pk-ket[hidden]{display:none}'+
  '.pk-zoom{position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:14px}.pk-zoom img{max-width:100%;max-height:100%;border-radius:12px}';
 document.head.appendChild(PK_CSS);
 function viewPkl(){
@@ -557,18 +682,23 @@ document.addEventListener('click',function(e){
  else if(a==='pkl-absen-kirim')pkAbsenKirim();
  else if(a==='pkl-zoom')pkZoom(v);
  else if(a==='pkl-xls')pkXls();
- else if(a==='pkl-pdf-nilai'){if(!isStaff())return;pkPdfNilai(v==='semua'?pkList('nilai').map(function(x){return x.sid}):[v])}
+ else if(a==='pkl-pdf-nilai'){if(!isStaff())return;pkPdfNilai(v==='semua'?(PK.vis.nilai||pkList('nilai').map(function(x){return x.sid})):[v])}
+ else if(a==='pkl-flt-reset'){PK.flt[v]={};render()}
  else if(a==='pkl-pdf-jurnal'){if(!isStaff()&&v!==S.user.id)return;pkPdfJurnal(v)}
 });
 document.addEventListener('input',function(e){
  var t=e.target;if(!t||!t.dataset||PK.mode==='list')return;
  if(t.dataset.pkl&&PK.f){PK.f[t.dataset.pkl]=t.value;if(PK.fk==='nilai'&&/^tp[1-4]$/.test(t.dataset.pkl)){var el=document.getElementById('pk-na');if(el)el.innerHTML=pkNilaiTeks(PK.f)}}
 });
+document.addEventListener('toggle',function(e){var d=e.target;if(d&&d.getAttribute&&d.getAttribute('data-pkd')==='daftar')PK.tOpen=!!d.open},true);
 document.addEventListener('change',function(e){
  var t=e.target;if(!t||!t.dataset||!S.user)return;
- if(t.dataset.pkl&&PK.f&&t.tagName==='SELECT'){
+ if(t.dataset.pkfilter!==undefined&&t.tagName==='SELECT'){
+  var pf=String(t.dataset.pkfilter).split(':');(PK.flt[pf[0]]=PK.flt[pf[0]]||{})[pf[1]]=t.value;render();
+ }else if(t.dataset.pkl&&PK.f&&t.tagName==='SELECT'){
   PK.f[t.dataset.pkl]=t.value;
-  if(PK.fk==='tugas'&&t.dataset.pkl==='tempatId'){var tp=pkById('tempat',t.value);if(tp&&!PK.f.instruktur){PK.f.instruktur=tp.instruktur||''}render()}
+  var hk=(PK_HOOK[PK.fk]||{})[t.dataset.pkl];
+  if(hk&&hk(PK.f,t.value))render();else pkKetPerbarui(t);
  }else if(t.dataset.pklfoto!==undefined&&t.files&&t.files[0]){
   pkCompress(t.files[0],function(u){if(!u){PK.msg='Foto gagal diproses. Coba lagi.';render();return}PK.f.foto=u;PK.msg='';render()});
  }else if(t.dataset.pkft!==undefined){PK.ft=t.value;render()}

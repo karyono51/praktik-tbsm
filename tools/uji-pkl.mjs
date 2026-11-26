@@ -259,6 +259,100 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
     globalThis.fetch = asli;
   }
 
+  console.log('Pilihan sistematis (bank-pilihan)');
+  {
+    const b = boot({ peran: 'guru' }), x = b.ctx;
+    x.S.users.push({ id: 's3', nama: 'Cici', peran: 'siswa', kelas: 'XI', sekolah: 'MEDINA' });
+    x.PK.D.tempat.push(tempat({ id: 'tp1', nama: 'PT Maju Motor', kota: 'Bandung', kuota: 2 }), tempat({ id: 'tp2', nama: 'CV Bintang', kota: 'Cimahi', kuota: 1, pks: '', pksSelesai: '', bidang: 'Servis' }), tempat({ id: 'tp3', nama: 'Bengkel Sinar', kota: 'bandung', kuota: 0 }));
+    x.PK.D.tugas.push(tugas({ id: 'a1', sid: 's1', tempatId: 'tp2', guruId: 'g1' }));
+    x.PK.D.nilai.push({ id: 'n1', sid: 's1', nama: 'Ani', tempatId: 'tp2', tp1: 80, tp2: 80, tp3: 80, tp4: 80 });
+    const sel = (h, k) => (h.match(new RegExp('<select data-pkl="' + k + '"[\\s\\S]*?</select>')) || [''])[0];
+    b.klik('pkl-new', { k: 'tugas' });
+    const f1 = x.viewPkl(), ss = sel(f1, 'sid'), st = sel(f1, 'tempatId');
+    T('penempatan baru: judul lembar, kotak Cari paksa, dan kelompok siswa', /data-judul="Pilih siswa"/.test(ss) && /data-cari/.test(ss) && /<optgroup label="Belum ditempatkan">/.test(ss) && /<optgroup label="Sudah punya penempatan aktif">/.test(ss), ss);
+    T('siswa yang sudah punya penempatan aktif dinonaktifkan dan keterangannya menyebut tempat', /<option value="s1" data-ket="Sudah aktif di CV Bintang" disabled>/.test(ss) && !/<option value="s2"[^>]*disabled/.test(ss), ss);
+    T('pilihan kosong "(pilih siswa)" ada agar bisa dikosongkan', /<option value=""[^>]*>\(pilih siswa\)<\/option>/.test(ss));
+    T('tempat: kelompok kuota, keterangan kota dan isi, tempat penuh nonaktif, tanpa kuota tetap bisa dipilih', /<optgroup label="Masih ada kuota">/.test(st) && /<optgroup label="Kuota penuh">/.test(st) && /value="tp2" data-ket="Cimahi · 1\/1 siswa · Perjanjian belum diisi" disabled/.test(st) && /value="tp3"[^>]*>/.test(st) && !/value="tp3"[^>]*disabled/.test(st), st);
+    T('keterangan pilihan terpilih tampil di bawah kolom (kosong = tersembunyi)', /<span class="pk-ket" data-pkket hidden><\/span>/.test(f1));
+    x.PK.D.tugas.push(tugas({ id: 'a2', sid: 's2', tempatId: 'tp2', guruId: '', status: 'selesai' }));
+    x.PK.mode = 'list'; b.klik('pkl-edit', { k: 'tugas', v: 'a1' });
+    const f2 = x.viewPkl(), ss2 = sel(f2, 'sid'), st2 = sel(f2, 'tempatId');
+    T('ubah penempatan: siswa dan tempat yang sedang terpilih tidak dinonaktifkan', /<option value="s1"[^>]* selected>/.test(ss2) && !/<option value="s1"[^>]*disabled/.test(ss2) && /<option value="tp2"[^>]* selected>/.test(st2) && !/<option value="tp2"[^>]*disabled/.test(st2), [ss2, st2]);
+    T('ubah penempatan: keterangan pilihan terpilih terisi', /<span class="pk-ket" data-pkket>Cimahi/.test(f2), f2.match(/pk-ket[^<]*</g));
+    T('guru: keterangan jumlah siswa bimbingan aktif', /value="g1" data-ket="1 siswa bimbingan aktif"/.test(sel(f2, 'guruId')) || /data-ket="[^"]*bimbingan aktif"/.test(sel(f2, 'guruId')), sel(f2, 'guruId'));
+    x.PK.f = Object.assign({}, x.PK.f, { sid: 'zz', tempatId: 'hilang' });
+    const f3 = x.viewPkl();
+    T('nilai yang tidak ada lagi tetap tampil sebagai pilihan terpilih (tidak dikosongkan diam-diam)', /value="zz"[^>]* selected>\(siswa tidak ditemukan\)/.test(sel(f3, 'sid')) && /value="hilang"[^>]* selected>\(tempat dihapus\)/.test(sel(f3, 'tempatId')), [sel(f3, 'sid'), sel(f3, 'tempatId')]);
+    b.klik('pkl-cancel');
+    b.klik('pkl-new', { k: 'nilai' });
+    const fn = sel(x.viewPkl(), 'sid');
+    T('nilai: siswa dikelompokkan belum dinilai / sudah dinilai (dengan nilai akhir) / belum ditempatkan', /<optgroup label="Sudah dinilai"><option value="s1" data-ket="Nilai akhir 80 · CV Bintang">/.test(fn) && /<optgroup label="Belum ditempatkan">/.test(fn) && /value="s3" data-ket="Belum ditempatkan"/.test(fn), fn);
+    b.klik('pkl-cancel');
+    b.klik('pkl-new', { k: 'kunjungan' });
+    const fk = x.viewPkl(), sk = sel(fk, 'tempatId');
+    T('kunjungan: tempat berpenghuni tanpa kunjungan masuk kelompok "Perlu monitoring"', /<optgroup label="Perlu monitoring \(lebih dari 30 hari\)"><option value="tp2" data-ket="Cimahi · 1\/1 siswa · Belum pernah dikunjungi">/.test(sk) && /<optgroup label="Belum ada siswa aktif">/.test(sk), sk);
+    T('cara kunjungan punya keterangan', /data-judul="Cara kunjungan"/.test(sel(fk, 'mode')) && /data-ket="Datang ke tempat PKL"/.test(sel(fk, 'mode')));
+    T('status penempatan punya keterangan kuota', /data-ket="Dihitung dalam kuota tempat"/.test(sel(f2, 'status')));
+    // pemicu: memilih tempat kunjungan mengisi guru yang membimbing di tempat itu; memilih tempat penempatan mengisi instruktur
+    x.PK.f = { tanggal: '2026-11-26', mode: 'luring' }; let r0 = b.log.render;
+    b.hs.change.forEach((fx) => fx({ target: { tagName: 'SELECT', value: 'tp2', dataset: { pkl: 'tempatId' } } }));
+    T('kunjungan: pilih tempat mengisi guru pembimbing otomatis dan menggambar ulang', x.PK.f.tempatId === 'tp2' && x.PK.f.guruId === 'g1' && b.log.render === r0 + 1, x.PK.f);
+    x.PK.f.guruId = 'g9'; r0 = b.log.render;
+    b.hs.change.forEach((fx) => fx({ target: { tagName: 'SELECT', value: 'tp1', dataset: { pkl: 'tempatId' } } }));
+    T('kunjungan: guru yang sudah dipilih tidak ditimpa', x.PK.f.guruId === 'g9' && b.log.render === r0, x.PK.f);
+    x.PK.fk = 'tugas'; x.PK.f = { status: 'aktif' };
+    b.hs.change.forEach((fx) => fx({ target: { tagName: 'SELECT', value: 'tp1', dataset: { pkl: 'tempatId' } } }));
+    T('penempatan: pilih tempat mengisi instruktur dari tempat', x.PK.f.instruktur === 'Pak Dedi', x.PK.f);
+    b.klik('pkl-cancel');
+
+    console.log('Saringan (select) per tab');
+    x.PK.tab = 'tugas';
+    const t0 = x.viewPkl();
+    T('tab Penempatan: baris saringan tempat, kelas, guru, status dengan jumlah di keterangan', /data-pkfilter="tugas:tempat"/.test(t0) && /data-pkfilter="tugas:status"/.test(t0) && /data-judul="Saring: Tempat PKL"/.test(t0) && /data-ket="1 penempatan"/.test(t0), t0.match(/data-pkfilter[^>]*>/g));
+    b.hs.change.forEach((fx) => fx({ target: { tagName: 'SELECT', value: 'selesai', dataset: { pkfilter: 'tugas:status' } } }));
+    const t1 = x.viewPkl();
+    T('saringan status: hanya yang cocok tampil, judul memuat "n dari total", ada tombol setel ulang', x.PK.flt.tugas.status === 'selesai' && /Penempatan siswa \(1 dari 2\)/.test(t1) && /Menampilkan 1 dari 2 penempatan/.test(t1) && /pkl-flt-reset/.test(t1) && /Budi/.test(t1.replace(/<select[\s\S]*?<\/select>/g, '')) && !/<b>Ani<\/b>/.test(t1), x.PK.flt);
+    b.klik('pkl-flt-reset', { v: 'tugas' });
+    T('setel ulang mengosongkan saringan tab itu', Object.keys(x.PK.flt.tugas).length === 0);
+    x.PK.flt.tugas = { tempat: 'tidak-ada' }; const t2 = x.viewPkl();
+    T('saringan yang nilainya sudah tidak ada otomatis dikosongkan (tidak menampilkan daftar kosong)', x.PK.flt.tugas.tempat === '' && /Penempatan siswa \(2\)/.test(t2), x.PK.flt.tugas);
+    x.PK.tab = 'tempat'; x.PK.flt.tempat = { kota: 'bandung' }; const tt = x.viewPkl();
+    T('tab Tempat: kota disatukan tanpa beda huruf besar-kecil (Bandung = bandung), tersaring 2 dari 3', /Daftar tempat PKL \(2 dari 3\)/.test(tt) && /data-ket="2 tempat"/.test(tt) && !/CV Bintang/.test(tt.replace(/<select[\s\S]*?<\/select>/g, '')), tt.match(/Daftar tempat PKL \([^)]*\)/));
+    x.PK.flt.tempat = { monitor: 'perlu' }; const tm = x.viewPkl();
+    T('tab Tempat: saringan Monitoring memakai aturan 30 hari yang sama dengan ringkasan', /Daftar tempat PKL \(1 dari 3\)/.test(tm) && /CV Bintang/.test(tm), tm.match(/Daftar tempat PKL \([^)]*\)/));
+    x.PK.flt.tempat = {};
+    x.PK.tab = 'nilai'; x.PK.flt.nilai = {};
+    const tn0 = x.viewPkl();
+    T('tab Nilai tanpa saringan: tombol tetap "PDF semua nilai"', /PDF semua nilai/.test(tn0) && x.PK.vis.nilai.length === 1);
+    x.PK.D.nilai.push({ id: 'n2', sid: 's2', nama: 'Budi', kelas: 'XII', tempatId: 'tp2', tp1: 70 });
+    x.PK.flt.nilai = { siswa: 's2' }; const tn1 = x.viewPkl();
+    T('tab Nilai disaring: tombol PDF memuat jumlah yang tampil dan hanya mencetak yang tampil', /PDF nilai yang tampil \(1\)/.test(tn1) && JSON.stringify(x.PK.vis.nilai) === '["s2"]', x.PK.vis);
+    x.PK.flt.nilai = {};
+    x.PK.tab = 'rekap'; x.PK.flt.rekap = { tempat: 'tp2' }; const tr = x.viewPkl();
+    T('tab Rekap: tersaring menurut tempat dan tetap memuat tombol Excel', /Rekap PKL per siswa \(1 dari 1\)|Rekap PKL per siswa/.test(tr) && /pkl-xls/.test(tr));
+    x.PK.flt.rekap = {};
+    x.PK.tab = 'absen'; const ta = x.viewPkl();
+    T('tab Absensi: saringan jenis tersedia bersama pemilih tanggal', /data-pkfilter="absen:tipe"/.test(ta) || /Belum ada absen pada tanggal ini/.test(ta));
+    const hh = boot({ peran: 'siswa' }), xs = hh.ctx;
+    xs.PK.D.tempat.push(tempat({ id: 'tp1', nama: 'PT Maju', kota: 'Bandung', bidang: 'Otomotif' }), tempat({ id: 'tp2', nama: 'CV Bintang', kota: 'Cimahi', bidang: 'Servis' }));
+    let sv = xs.viewPkl();
+    T('siswa: daftar tempat punya saringan kota dan bidang, tertutup bila belum dibuka', /data-pkfilter="daftar:kota"/.test(sv) && /data-pkfilter="daftar:bidang"/.test(sv) && /<details data-pkd="daftar"><summary>/.test(sv), sv.match(/<details[^>]*>/));
+    hh.hs.toggle.forEach((fx) => fx({ target: { getAttribute: (a) => (a === 'data-pkd' ? 'daftar' : null), open: true } }));
+    hh.hs.change.forEach((fx) => fx({ target: { tagName: 'SELECT', value: 'cimahi', dataset: { pkfilter: 'daftar:kota' } } }));
+    sv = xs.viewPkl();
+    T('siswa: daftar tetap terbuka setelah menyaring dan hanya memuat tempat yang cocok', /<details data-pkd="daftar" open>/.test(sv) && /Daftar tempat PKL \(1 dari 2\)/.test(sv) && /CV Bintang/.test(sv.replace(/<select[\s\S]*?<\/select>/g, '')) && !/PT Maju/.test(sv.replace(/<select[\s\S]*?<\/select>/g, '')), sv.match(/Daftar tempat PKL \([^)]*\)/));
+  }
+  console.log('Semua <select> PKL lewat pembangun yang sama');
+  {
+    const src = baca('js/pkl.js');
+    T('tidak ada lagi <select> yang dirakit manual di luar pkSelectHtml', (src.match(/'<select/g) || []).length === 1, (src.match(/'<select/g) || []).length);
+    const x = boot().ctx;
+    const r = x.pkSelectHtml(' data-pkl="a"', [['', 'Kosong'], ['1', 'Satu', 'ket satu', true], { g: 'Grup', o: [{ v: '2', l: 'Dua', ket: '', off: false }] }, { g: 'Grup kosong', o: [] }], '1', { judul: 'Judul <b>', cari: true });
+    T('pembangun: judul di-escape, cari, ket, opsi nonaktif yang terpilih tetap bisa dipilih, kelompok kosong dibuang', /data-judul="Judul &lt;b&gt;"/.test(r.html) && /data-cari/.test(r.html) && /<option value="1" data-ket="ket satu" selected>/.test(r.html) && !/Grup kosong/.test(r.html) && r.ket === 'ket satu', r);
+    const r2 = x.pkSelectHtml('', [['a', 'A']], 'b', {});
+    T('pembangun: nilai di luar daftar ditambahkan sebagai pilihan terpilih', /<option value="b" data-ket="Pilih ulang" selected>\(data tidak ditemukan\)/.test(r2.html), r2.html);
+  }
+
   console.log('Konfigurasi');
   { const bb = boot({ peran: 'guru', cloud: true }); bb.ctx.PK.fk = 'tugas'; bb.ctx.PK.D.tempat.push(tempat({ id: 'tz', kuota: 5 })); bb.ctx.PK.f = { sid: 's2', tempatId: 'tz', mulai: '2026-11-02', selesai: '2027-05-02', status: 'aktif' }; bb.ctx.pkSimpan(); await new Promise((r) => setImmediate(r)); await new Promise((r) => setImmediate(r));
     const cd = bb.log.create[0]; T('penempatan terkirim ke pkl tanpa nama siswa (kolom nama kosong, payload tanpa nama)', cd && cd.col === 'pkl' && cd.doc.nama === '' && !/Budi/.test(cd.doc.payload) && cd.doc.sid === 's2', cd); }
