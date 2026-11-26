@@ -13,9 +13,9 @@
  function bangun(grup,halaman){
   var a=polos(grup),b=polos(halaman),ulang=!a||a===b||b.indexOf(a)===0||a.indexOf(b)===0;
   var li='<li><button type="button" class="bc-a" data-act="menu" data-v="beranda">Beranda</button></li>';
-  if(!ulang)li+='<li class="bc-g">'+esc2(grup)+'</li>';
-  li+='<li class="bc-now" aria-current="page">'+esc2(halaman)+'</li>';
-  return '<nav class="akd-crumb bc" data-bc="1" aria-label="Breadcrumb"><ol>'+li+'</ol></nav>';
+  if(!ulang)li+='<li class="bc-g"><span>'+esc2(grup)+'</span></li>';
+  li+='<li class="bc-now" aria-current="page"><span>'+esc2(halaman)+'</span></li>';
+  return '<nav class="bc" data-bc="1" aria-label="Breadcrumb"><ol>'+li+'</ol></nav>';
  }
 
  function pasang(){
@@ -25,7 +25,10 @@
    var c=daftar[i],h=c.parentNode&&c.parentNode.querySelector('h2');
    var grup=(c.textContent||'').trim(),hal=h?(h.textContent||'').trim():'';
    if(!hal)continue;
-   c.outerHTML=bangun(grup,hal);
+   /* taruh di baris sendiri di atas ikon + judul (bukan di sebelah ikon), supaya tidak terpotong dan tetap rata kiri */
+   var kepala=c.closest&&c.closest('.sechead');
+   if(kepala&&kepala.parentNode){kepala.insertAdjacentHTML('beforebegin',bangun(grup,hal));c.parentNode.removeChild(c)}
+   else c.outerHTML=bangun(grup,hal);
   }
  }
 
