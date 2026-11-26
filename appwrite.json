@@ -1392,6 +1392,101 @@
           ]
         }
       ]
+    },
+    {
+      "$id": "alumni",
+      "databaseId": "tbsm",
+      "name": "alumni",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "nisn",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 20
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "prodi",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 16
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "tahun",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 3000
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 16
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 20000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_nisn",
+          "type": "key",
+          "attributes": [
+            "nisn"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
     }
   ],
   "profilAman": {

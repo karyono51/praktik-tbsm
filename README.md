@@ -15,6 +15,7 @@ Dikelompokkan menurut menu di aplikasi. Rincian tiap fitur ada di berkas dokumen
   - **Penyimpanan**: lokal (peramban) atau Appwrite (Auth email, Google, database).
 - **Pembelajaran praktik**: LKPD modular per kelas (X, XI, XII) dengan Editor Guru, foto bukti ke Google Drive, dan pilot LKPD v2; Observasi guru, Observasi LKPD praktik, dan Observasi UKK; Administrasi akademik.
 - **Ujian**: Bank soal (PG, PG kompleks, PG kategori, uraian, soal grup, gambar), CBT Online dengan penilaian di server, ruang dan gelombang, Safe Exam Browser, pengawasan hari ujian.
+- **Alumni dan Tracer**: data alumni per sekolah, form tracer meniru Tracer Vokasi (diisi guru/BKK), dasbor status dan 15 aspek, pengingat WhatsApp, impor/ekspor Excel (`docs-ALUMNI.md`).
 - **Nilai dan analisis**: Rekap nilai, Rekap kompetensi, analisis nilai dan ekspor Excel, Cek sinkronisasi.
 - **Pengelolaan**: akun dan peran (termasuk Proktor dan Kepala Sekolah), hapus nilai, log audit.
 - **Offline**: dapat dipasang sebagai PWA; data baru diantre saat offline.
@@ -124,6 +125,7 @@ Dijalankan dari folder proyek dengan Node.js (tanpa pustaka tambahan).
 - `docs-SANDI-AKUN.md`: Mengatur sandi akun
 - `docs-PERAN-GANDA.md`: Peran ganda dan batas kolom peran
 - `docs-KEPSEK.md`: Peran Kepala Sekolah (hanya-lihat)
+- `docs-ALUMNI.md`: Modul Alumni dan Tracer (data alumni, form tracer, dasbor, impor/ekspor Excel)
 - `docs-LABEL-PROKTOR.md`: Label login proktor otomatis
 - `docs-PENGAWAS.md`: Rilis token, peran Proktor, log audit
 - `docs-HAPUS-NILAI.md`: Hapus nilai (khusus Admin)

@@ -1,3 +1,9 @@
+## Modul Alumni dan Tracer
+- `js/alumni.js` (baru, dimuat sebelum `menu-dasbor.js`): menu Alumni dan Tracer untuk admin, guru, dan Kepala Sekolah (hanya lihat). Data alumni, form tracer empat langkah meniru Tracer Vokasi, dasbor (status, kesesuaian, 15 aspek, belum mengisi + WhatsApp), impor/ekspor Excel, template.
+- **Appwrite**: koleksi baru `alumni` di `appwrite.json` (baca/buat/ubah label guru dan admin, hapus admin). Jalankan `appwrite push collections` atau `node tools/setup-appwrite.mjs` sebelum memakai menu. Tidak ada perubahan fungsi server, Neon, atau koleksi lain.
+- `js/menu-dasbor.js`: kelompok menu "Alumni dan Tracer". Tidak terhubung ke portal resmi; pengisian resmi tetap oleh alumni di portal.
+- Uji baru `tools/uji-alumni.mjs` (51). Uji lain tidak berubah (`uji-lkpd-banner` 3 gagal dan `uji-lkpd-struktur` 1 gagal sudah ada sebelum perubahan ini). Dokumen: `docs-ALUMNI.md`.
+
 ## Edit LKPD v2 mengikuti form siswa
 - `js/lkpd-v2-struktur.js` (baru, dimuat setelah `lkpd-v2-editor.js`): urutan tab editor LKPD v2 mengikuti form siswa (Info; Materi: Tujuan & teori, Rencana pertemuan, Gerbang masuk, Alat & K3; Lembar Kerja: Langkah, Tabel data, Pemeriksaan, Syarat kirim; Evaluasi; Penilaian). Soal gerbang masuk pindah dari tab Soal ke tab Gerbang masuk.
 - **Rencana pertemuan** bisa diedit: judul, JP, menit, target praktik, kegiatan tiap pertemuan, kartu Lembar Kerja (judul, pisah per kegiatan), latihan soal, nama kegiatan, serta kegiatan, menit, dan saksi guru tiap langkah. Total JP dan alokasi waktu mengikuti pertemuan.
