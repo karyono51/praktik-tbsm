@@ -389,7 +389,7 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   T('ketiga koleksi punya kolom jenis, sekolah, nama, ts, oleh, sid, tanggal, payload', ['pkl', 'pkl_catat', 'pkl_nilai'].every((id) => kol(id) === 'jenis,sekolah,nama,ts,oleh,sid,tanggal,payload'));
   T('indeks untuk kueri siswa (jenis, sid) ada', K.pkl.indexes.some((i) => i.attributes[0] === 'sid') && K.pkl.indexes.some((i) => i.attributes[0] === 'jenis') && K.pkl_catat.indexes.some((i) => i.attributes[0] === 'sid'));
   T('index.html memuat js/pkl.js', /js\/pkl\.js/.test(baca('index.html')));
-  T('menu-dasbor: kelompok Praktik Kerja Lapangan berisi baris pkl', /key:'pkl',label:'Praktik Kerja Lapangan'[^}]*keys:\['pkl'\]/.test(baca('js/menu-dasbor.js')));
+  T('menu-dasbor: kelompok Praktik Kerja Lapangan berisi baris pkl', /key:'pkl',label:'Praktik Kerja Lapangan'[^}]*keys:\['pkl'\]/.test(baca('js/menu-peta.js')));
   const m = boot(); T('tab pkl terdaftar di NAVTABS', m.ctx.NAVTABS.includes('pkl'));
   console.log(`\nUji PKL: ${pass} lulus, ${fail} gagal`); process.exit(fail ? 1 : 0);
 })();

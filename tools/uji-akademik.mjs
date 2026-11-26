@@ -381,9 +381,9 @@ const tugas = (id, g, m, k, jp, o = {}) => ({ id, guruId: g, mapelId: m, kelasId
   const g = { html: '', querySelector: () => null, insertAdjacentHTML(pos, html) { this.html += html; } };
   const gb = boot({ peran: 'guru', sbody: g }); gb.ctx.S.tab = 'akd-guru'; gb.ctx.render();
   T('submenu laci untuk guru: keterangan khusus lihat-saja', /Tugas mengajar saya/.test(g.html) && /Tahun ajaran dan pemeriksaan/.test(g.html));
-  const md = baca('js/menu-dasbor.js');
-  T('menu-dasbor.js: grup Administrasi Akademik memuat keenam tab', ctx.AKTABS.every((t) => new RegExp("key:'akd'[^\\n]*'" + t + "'").test(md)));
-  T('menu-dasbor.js: akd-guru tidak lagi tersisa di grup beranda', !/key:'home'[^\n]*akd-guru/.test(md));
+  const md = baca('js/menu-peta.js');
+  T('menu-peta.js: grup Administrasi Akademik memuat keenam tab', ctx.AKTABS.every((t) => new RegExp("key:'akd'[^\\n]*'" + t + "'").test(md)));
+  T('menu-peta.js: akd-guru tidak lagi tersisa di grup beranda', !/key:'home'[^\n]*akd-guru/.test(md));
 }
 
 /* 13. Katalog SKKNI selaras dengan Matriks_LKPD_TSM_Kelas_X-XII_SKKNI.xlsx (judul resmi, v105) */

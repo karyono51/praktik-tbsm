@@ -1,17 +1,21 @@
 /* judul-menu.js: judul gaya Administrasi Akademik untuk tiap menu, dari satu tempat. Dimuat paling akhir.
    Administrasi Akademik dan PKL sudah punya judul sendiri. Beranda, ujian berlangsung, dan hasil tidak diubah. */
 (function(){
- var A='Pembelajaran',U='Ujian dan nilai',V2='Supervisi',P='Pengaturan';
- var M={rekap:[U,'Rekap nilai','rekap'],banksoal:[U,'Bank soal','menu'],cbtonline:[U,'CBT Online','menu'],riwayatlatihan:[U,'Riwayat latihan siswa','rekap'],
-  kompetensi:[U,'Rekap kompetensi siswa','rekap'],'nilai-akhir-ukk':[U,'Rekap nilai akhir UKK','rekap'],ruangujian:[U,'Ruang ujian','menu'],
-  absensi:[A,'Absensi','absensi'],observasi:[V2,'Observasi guru','observasi'],'observasi-siswa':[V2,'Observasi LKPD Praktik','observasi'],'observasi-ukk':[V2,'Observasi UKK','observasi'],
-  alumni:['Alumni','Alumni dan Tracer','alumni'],acuan:[P,'Acuan dan aturan','acuan'],akun:[P,'Akun','akun'],hapusnilai:[P,'Hapus nilai','menu'],logaudit:[P,'Log audit','menu'],sinkron:[P,'Cek sinkronisasi','segarkan']};
+ /* [nama halaman, ikon]; nama kelompok diambil dari menu-peta.js agar selalu sama dengan laci menu */
+ var M={rekap:['Rekap nilai','rekap'],banksoal:['Bank soal','menu'],cbtonline:['CBT Online','menu'],riwayatlatihan:['Riwayat latihan siswa','rekap'],
+  kompetensi:['Rekap kompetensi siswa','rekap'],'nilai-akhir-ukk':['Rekap nilai akhir UKK','rekap'],ruangujian:['Ruang ujian','menu'],
+  absensi:['Absensi','absensi'],observasi:['Observasi guru','observasi'],'observasi-siswa':['Observasi LKPD Praktik','observasi'],'observasi-ukk':['Observasi UKK','observasi'],
+  alumni:['Alumni dan Tracer','alumni'],acuan:['Acuan dan aturan','acuan'],akun:['Akun','akun'],hapusnilai:['Hapus nilai','menu'],logaudit:['Log audit','menu'],sinkron:['Cek sinkronisasi','segarkan']};
+ function grup(id){
+  var siswa=!isStaff()&&actRole()!=='proktor';
+  return menuLabel(menuKelompok(id,siswa),siswa);
+ }
  function info(){
   var t=S.tab;
-  if(M[t])return M[t];
+  if(M[t])return [grup(t),M[t][0],M[t][1]];
   if(t==='beranda'||t==='pkl'||/^akd-/.test(t))return null;
   var k=typeof KELAS!=='undefined'&&KELAS[S.kelas];
-  return k?[A,(t==='lkpd'?'LKPD ':'Unit ujian ')+k.judul,'kelas']:null;
+  return k?[grup((t==='lkpd'?'lkpd:':'kelas:')+S.kelas),(t==='lkpd'?'LKPD ':'Unit ujian ')+k.judul,'kelas']:null;
  }
  function polos(x){return String(x||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
  /* judul lama yang sama dengan judul baru disembunyikan; tombol dan label di sebelahnya tetap ada */

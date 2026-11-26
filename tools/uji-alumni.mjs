@@ -168,7 +168,7 @@ function boot(opt = {}) {
   T('atribut sesuai pemetaan klien', ['nisn', 'nama', 'prodi', 'sekolah', 'tahun', 'status', 'ts', 'oleh', 'payload'].every((n) => col.attributes.some((a) => a.key === n)));
   const idx = baca('index.html');
   T('index.html memuat alumni.js sebelum menu-dasbor.js', idx.indexOf('js/alumni.js') > 0 && idx.indexOf('js/alumni.js') < idx.indexOf('js/menu-dasbor.js'));
-  T('menu-dasbor memuat kelompok alumni', /keys:\['alumni'\]/.test(baca('js/menu-dasbor.js')));
+  T('menu-dasbor memuat kelompok alumni', /keys:\['alumni'\]/.test(baca('js/menu-peta.js')));
   T('service worker menyimpan alumni.js', /js\/alumni\.js\?v=[0-9a-f]+/.test(baca('service-worker.js')));
 
   console.log('Jurusan per sekolah');

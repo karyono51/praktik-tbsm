@@ -17,24 +17,17 @@
   '#drawer .chip.grp::after{content:"";flex:none;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:-3px 0 0 4px;transition:transform .15s}'+
   '#drawer .chip.grp[aria-expanded="true"]::after{transform:rotate(225deg);margin-top:3px}'+
   '#drawer .chip.grp.rec{cursor:default;min-height:30px;padding:4px 6px;background:transparent;margin-top:6px}#drawer .chip.grp.rec::after{display:none}'+
+  '#drawer .mn-cari input{width:100%;box-sizing:border-box;min-height:44px;font-size:16px}'+
+  '#drawer .sbody.mencari>.chip,#drawer .sbody.mencari>.grpbox:not(.mn-hasil){display:none}'+
   '@media(prefers-reduced-motion:reduce){#drawer .chip.grp::after{transition:none}}';
  document.head.appendChild(st);
 
- /* Kelompok menurut urutan tampil. keys/pre: pengenal data-v baris; post: baris yang ditaruh setelah baris berawalan pre. */
- function groups(staff,admin){
-  return [
-   {key:'home',label:'',ic:null,keys:['beranda','barcode','ruangujian']},
-   {key:'ajar',label:staff?'Pembelajaran':'Pembelajaran kelas saya',ic:'kelas',pre:['lkpd:','kelas:'],post:['nilai-akhir-ukk']},
-   {key:'pkl',label:'Praktik Kerja Lapangan',ic:'pkl',keys:['pkl'],compact:true},
-   {key:'abs',label:'Absensi',ic:'absensi',keys:['absensi']},
-   {key:'akd',label:'Administrasi Akademik',ic:'akdTata',keys:['akd-guru','akd-kelas','akd-siswa','akd-mapel','akd-lkpd','akd-tata'],compact:true},
-   {key:'uji',label:staff?'Ujian dan nilai':'Ujian, nilai, dan acuan',ic:'menu',keys:staff?['banksoal','cbtonline','riwayatlatihan','rekap','kompetensi']:['banksoal','cbtonline','rekap','kompetensi','acuan']},
-   {key:'obs',label:'Supervisi',ic:'observasi',keys:['observasi','observasi-siswa','observasi-ukk']},
-   {key:'alm',label:'Alumni dan Tracer',ic:'alumni',keys:['alumni'],compact:true},
-   {key:'sys',label:'Pengaturan',ic:'menu',keys:['acuan','akun','hapusnilai','logaudit','sinkron']},
-   {key:'app',label:'Akun dan aplikasi',ic:'keluar',keys:['gantisandi','segarkan','perbarui'],compact:true},
-   {key:'keluar',label:'',ic:null,keys:['keluar'],compact:true}
-  ];
+ /* Susunan kelompok ada di menu-peta.js (satu sumber). Label disesuaikan untuk siswa. */
+ function groups(siswa){
+  return MENU_KELOMPOK.map(function(g){
+   var post=(g.post||[]).concat(siswa&&g.postSiswa||[]);
+   return {key:g.key,label:menuLabel(g,siswa),ic:g.ic,keys:g.keys,pre:g.pre,post:post,compact:g.compact};
+  });
  }
  function icon(n){try{return n&&typeof ICO!=='undefined'&&ICO[n]?svg(ICO[n],16):''}catch(e){return ''}}
 
@@ -47,13 +40,16 @@
  function tidy(){
   var sb=document.querySelector('#drawer .sbody');if(!sb||sb.getAttribute('data-tidy')==='1'||!S.user)return;
   try{if(typeof pkMenu==='function')pkMenu(sb)}catch(e){}
+  try{if(typeof tpMenu==='function')tpMenu(sb)}catch(e){}
   var rows=[].slice.call(sb.querySelectorAll('.srow'));if(!rows.length)return;
   var brand=sb.querySelector('.sbrand'),prof=sb.querySelector('.sprofile');
-  var staff=isStaff(),G=groups(staff,typeof can==='function'&&can('akun')),used=[],out=[];
+  var siswa=!isStaff(),G=groups(siswa),used=[],out=[];
   G.forEach(function(g){
    var mine=[];
+   /* acuan: siswa melihatnya di kelompok nilai (postSiswa), staf di Pengaturan */
+   var keys=(g.keys||[]).filter(function(k){return !(siswa&&k==='acuan')});
    /* urutan: baris keys, lalu baris berawalan pre (kelas dalam urutan aslinya), lalu baris post */
-   (g.keys||[]).forEach(function(k){rows.forEach(function(r){if(r.dataset.v===k&&used.indexOf(r)<0){mine.push(r);used.push(r)}})});
+   keys.forEach(function(k){rows.forEach(function(r){if(r.dataset.v===k&&used.indexOf(r)<0){mine.push(r);used.push(r)}})});
    [].concat(g.pre||[]).forEach(function(p){rows.forEach(function(r){if(String(r.dataset.v).indexOf(p)===0&&used.indexOf(r)<0){mine.push(r);used.push(r)}})});
    (g.post||[]).forEach(function(k){rows.forEach(function(r){if(r.dataset.v===k&&used.indexOf(r)<0){mine.push(r);used.push(r)}})});
    if(!mine.length)return;
@@ -102,7 +98,34 @@
     sb.appendChild(rl);sb.appendChild(rb);
    }
   });
+  pasangCari(sb);
   sb.setAttribute('data-tidy','1');
+ }
+ /* Cari menu: menyaring baris yang memang tersedia untuk peran aktif (nama, keterangan, dan nama kelompok). */
+ function saring(sb,q){
+  q=String(q||'').toLowerCase().trim();
+  var asli=sb.querySelector('.mn-hasil');if(!asli)return;
+  asli.textContent='';sb.classList.toggle('mencari',!!q);asli.hidden=!q;
+  if(!q)return;
+  var lihat={},n=0,label='';
+  [].forEach.call(sb.children,function(c){
+   if(c.classList.contains('grp'))label=c.textContent;
+   if(!c.classList.contains('grpbox')||c===asli)return;
+   [].forEach.call(c.querySelectorAll('.srow'),function(r){
+    var id=r.dataset.v;
+    if(lihat[id]||(label+' '+r.textContent).toLowerCase().indexOf(q)<0)return;
+    lihat[id]=1;n++;asli.appendChild(r.cloneNode(true));
+   });
+  });
+  if(!n){var p=document.createElement('p');p.className='note';p.textContent='Menu tidak ditemukan. Coba kata lain, misalnya "nilai" atau "ujian".';asli.appendChild(p)}
+ }
+ function pasangCari(sb){
+  if(sb.querySelectorAll('.srow').length<9)return;
+  var w=document.createElement('div');w.className='mn-cari';
+  w.innerHTML='<input type="search" placeholder="Cari menu" aria-label="Cari menu" autocomplete="off" enterkeyhint="search">';
+  var h=document.createElement('div');h.className='grpbox mn-hasil';h.hidden=true;h.setAttribute('aria-live','polite');
+  var first=sb.querySelector('.grpbox');sb.insertBefore(w,first);sb.insertBefore(h,first);
+  w.firstChild.addEventListener('input',function(){saring(sb,this.value)});
  }
  var _r=render;
  render=function(){_r.apply(this,arguments);try{tidy()}catch(e){}};

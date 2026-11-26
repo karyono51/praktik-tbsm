@@ -43,7 +43,12 @@ document.addEventListener('click',function(e){
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape')tpTutup()});
 tpTerap();
+/* baris menu Tampilan. Dipanggil menu-dasbor.js SEBELUM pengelompokan agar jumlah isi kelompok benar. */
+function tpMenu(sb){
+ if(!sb||sb.querySelector('[data-v="tampilan"]'))return;
+ var a=sb.querySelector('.srow[data-v="gantisandi"]')||sb.querySelector('.srow[data-v="keluar"]');
+ if(a)a.insertAdjacentHTML('beforebegin','<button type="button" class="srow" data-v="tampilan" data-tp="buka"><span class="ico">'+svg(ICO.gear||ICO.menu,22)+'</span><span class="st"><b>Tampilan</b><small>Huruf, sudut, jarak, header</small></span>'+svg(ICO.chev,18)+'</button>');
+}
 if(typeof render==='function'){var _tpRender=render;render=function(){var r=_tpRender.apply(this,arguments);
- try{var a=document.querySelector('#drawer .srow[data-v="gantisandi"]')||document.querySelector('#drawer .srow[data-v="keluar"]');
-  if(a&&!document.querySelector('#drawer [data-tp="buka"]'))a.insertAdjacentHTML('beforebegin','<button type="button" class="srow" data-tp="buka"><span class="ico">'+svg(ICO.gear||ICO.menu,22)+'</span><span class="st"><b>Tampilan</b><small>Huruf, sudut, jarak, header</small></span>'+svg(ICO.chev,18)+'</button>')}catch(e){}
+ try{tpMenu(document.querySelector('#drawer .sbody'))}catch(e){}
  return r}}

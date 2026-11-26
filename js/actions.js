@@ -108,4 +108,5 @@ document.addEventListener('change',function(e){
   if(e.target.id==='kkm'){var n=parseInt(e.target.value,10);if(n>=60&&n<=100){S.kkm=n;persist();toast('KKM '+n)}else{e.target.value=S.kkm}}
 });
 document.addEventListener('input',function(e){if(e.target.id==='peserta'&&V.mode==='exam')V.peserta=e.target.value});
-boot();
+/* mulai setelah SEMUA modul dimuat: gambar pertama tidak boleh mendahului modul di bawah berkas ini */
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){boot()});else boot();

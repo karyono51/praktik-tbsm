@@ -73,7 +73,7 @@ function viewLogin(){
  (A.err?'<p class="err" role="alert">'+esc(A.err)+'</p>':'')+
  '<button class="btn primary" type="submit">'+(reg?'Daftar':'Masuk')+'</button>'+
  (Cloud.on?'<button type="button" class="link" data-act="togglereg">'+(reg?'Sudah punya akun? Masuk':'Belum punya akun? Daftar')+'</button>':'')+
- '</form>'+(Cloud.on?'':'<p class="note center">Mode lokal, data tersimpan di peramban ini. Akun awal: <b>admin</b> / <b>admin123</b>. Ganti sandinya di menu Akun.</p>')+dev+'</div>';
+ '</form>'+(Cloud.on?'':'<p class="note center">Mode lokal, data tersimpan di peramban ini. Akun awal: <b>admin</b> / <b>admin123</b>. Ganti sandinya di menu Akun.</p>')+dev+'<p class="note center"><a href="tentang.html">Tentang aplikasi dan sekolah</a></p></div>';
 }
 
 function viewRekap(){

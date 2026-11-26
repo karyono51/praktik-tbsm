@@ -87,7 +87,7 @@ else newSw = newSw.replace(/^(.*\n)/, '$1/*build:' + gabung + '*/\n');
 const cdnSw = /^var CDN=(\[.*\]);$/m.exec(sw);
 if (cdnSw) {
   const daftar = new Function('return ' + cdnSw[1])();
-  for (const m of indexRaw.matchAll(/(?:src|href)="(https:\/\/[^"]+)"/g)) if (!daftar.includes(m[1]) && !/^https:\/\/[^/]+\/?$/.test(m[1])) log('Catatan: ' + m[1] + ' belum ada di daftar CDN service worker.');
+  for (const m of indexRaw.matchAll(/(?:src|href)="(https:\/\/[^"]+)"/g)) if (!daftar.includes(m[1]) && !m[1].startsWith('https://karyono51.github.io/') && !/^https:\/\/[^/]+\/?$/.test(m[1])) log('Catatan: ' + m[1] + ' belum ada di daftar CDN service worker.');
 }
 if (sisa.length) log('Catatan: berkas JS tidak dirujuk index.html (tidak dimuat aplikasi): ' + sisa.join(', '));
 

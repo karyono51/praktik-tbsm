@@ -1,3 +1,9 @@
+## Menu sistematis dan SEO
+- `js/menu-peta.js`: satu sumber susunan menu untuk laci, breadcrumb, dan judul. LKPD dan UKK dipisah; Observasi UKK masuk UKK; ujian dan nilai dipisah; Absensi masuk Pembelajaran; Cari menu.
+- `js/rute.js`: alamat dan judul tab per menu.
+- Perbaikan: gambar pertama mendahului modul yang belum dimuat (`boot()` kini setelah semua skrip); baris Tampilan tidak terhitung di jumlah kelompok.
+- SEO: deskripsi, canonical, Open Graph, data terstruktur, konten awal, `tentang.html`, `sitemap.xml`. Lihat `docs-MENU-SEO.md`.
+
 ## Breadcrumb Beranda | Menu | Menu
 - `js/breadcrumb.js` (baru) dan gaya `.bc` di `css/app.css`: jejak halaman di atas judul tiap menu, mis. *Beranda | Ujian dan nilai | Bank soal*, *Beranda | Administrasi Akademik | Guru*, *Beranda | Praktik Kerja Lapangan | Tempat PKL*.
 - Memakai label kelompok dan nama menu yang sudah ada (judul-menu.js, akademik.js, pkl.js), jadi tidak ada daftar menu baru. *Beranda* bisa diketuk (kembali ke beranda, tetap meminta konfirmasi bila ada hasil yang belum disimpan). Bila nama kelompok dan menu sama (mis. Alumni dan Tracer), kelompok dilewati.

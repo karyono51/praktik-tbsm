@@ -4,10 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>KBM Praktik TBSM | SMKS Darul Fatwa & SMKS Medina Bandung</title>
-<meta name="description" content="Aplikasi penilaian uji praktik Teknik Bisnis Sepeda Motor SMKS Darul Fatwa dan SMKS Medina Bandung: rubrik kompetensi, rekap nilai, ekspor Excel dan PDF.">
+<meta name="description" content="Aplikasi praktik Teknik Sepeda Motor SMKS Darul Fatwa dan SMKS Medina Bandung: LKPD, UKK, CBT, PKL, dan rekap nilai.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://karyono51.github.io/praktik-tbsm/">
 <meta property="og:title" content="KBM Praktik TBSM | SMKS Darul Fatwa & SMKS Medina Bandung">
-<meta property="og:description" content="Rubrik penilaian praktik, rekap nilai, dan manajemen akun guru dan siswa.">
+<meta property="og:description" content="Aplikasi praktik Teknik Sepeda Motor SMKS Darul Fatwa dan SMKS Medina Bandung: LKPD, UKK, CBT, PKL, dan rekap nilai.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://karyono51.github.io/praktik-tbsm/">
+<meta property="og:site_name" content="KBM Praktik TBSM">
+<meta property="og:locale" content="id_ID">
+<meta property="og:image" content="https://karyono51.github.io/praktik-tbsm/assets/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebApplication","@id":"https://karyono51.github.io/praktik-tbsm/#aplikasi","name":"KBM Praktik TBSM","url":"https://karyono51.github.io/praktik-tbsm/","description":"Aplikasi praktik Teknik Sepeda Motor SMKS Darul Fatwa dan SMKS Medina Bandung: LKPD, UKK, CBT, PKL, dan rekap nilai.","applicationCategory":"EducationalApplication","operatingSystem":"Web","inLanguage":"id","provider":[{"@id":"https://karyono51.github.io/praktik-tbsm/#df"},{"@id":"https://karyono51.github.io/praktik-tbsm/#medina"}]},{"@type":"HighSchool","@id":"https://karyono51.github.io/praktik-tbsm/#df","name":"SMKS Darul Fatwa","address":{"@type":"PostalAddress","streetAddress":"Jl. Letda Lukito No. 90, Jatiroke, Jatinangor","addressLocality":"Kabupaten Sumedang","addressRegion":"Jawa Barat","postalCode":"45363","addressCountry":"ID"}},{"@type":"HighSchool","@id":"https://karyono51.github.io/praktik-tbsm/#medina","name":"SMKS Medina Bandung","address":{"@type":"PostalAddress","streetAddress":"Jl. K.H. Ahmad Dahlan No. 13–15, Burangrang, Lengkong","addressLocality":"Kota Bandung","addressRegion":"Jawa Barat","postalCode":"40262","addressCountry":"ID"}}]}</script>
 <meta name="theme-color" content="#F3F7F4" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B130F" media="(prefers-color-scheme: dark)">
 <script>/* pilih manifest, ikon, dan favicon sesuai sekolah (?s=df atau ?s=medina) sebelum halaman diproses, agar tombol Pasang memakai logo sekolah yang benar */
@@ -21,8 +31,8 @@
 <link rel="stylesheet" href="css/tampilan.css?v=8e827fd3">
 </head>
 <body>
-<div class="wrap" id="app"><p class="center muted" style="padding:48px 0">Memuat aplikasi…</p></div>
-<noscript><p class="center">Aplikasi ini membutuhkan JavaScript.</p></noscript>
+<div class="wrap" id="app"><main class="auth"><h1>KBM Praktik TBSM</h1><p>Aplikasi pembelajaran dan penilaian praktik Teknik Sepeda Motor untuk SMKS Darul Fatwa dan SMKS Medina Bandung.</p><p class="muted" role="status">Memuat aplikasi…</p><p><a href="tentang.html">Tentang aplikasi dan sekolah</a></p></main></div>
+<noscript><p class="center">Aplikasi ini membutuhkan JavaScript. <a href="tentang.html">Baca tentang aplikasi</a>.</p></noscript>
 <script src="https://cdn.jsdelivr.net/npm/appwrite@16.0.2/dist/iife/sdk.js" integrity="sha384-AGHJG9uk3tDAZ3ukw48wjRW5OttguDjnKtjVaFR4v16+e6RBbH4+7T4BH9hDK5zi" crossorigin="anonymous"></script>
 <script src="js/config.js?v=2a1db95b"></script>
 <script src="js/pustaka.js?v=34c32766"></script>
@@ -45,7 +55,7 @@
 <script src="js/lkpd.js?v=9e31790f"></script>
 <script src="js/lkpd-kode.js?v=3030fa75"></script>
 <script src="js/lkpd-v2.js?v=13b7beed"></script>
-<script src="js/ui.js?v=5bda5bd5"></script>
+<script src="js/ui.js?v=1d4f8d0e"></script>
 <script src="js/nilai.js?v=40f03a44"></script>
 <script src="js/pwa.js?v=de61146d"></script>
 <script src="js/lkpd-kelas.js?v=ba20d89f"></script>
@@ -104,7 +114,8 @@
 <script src="js/akademik-data.js?v=d981d7cb"></script>
 <script src="js/akademik.js?v=17559477"></script>
 <script src="js/lkpd-elemen.js?v=7dd8bbe2"></script>
-<script src="js/menu-dasbor.js?v=62e32108"></script>
+<script src="js/menu-peta.js?v=66dc078a"></script>
+<script src="js/menu-dasbor.js?v=a336c988"></script>
 <script src="js/ukk-kelola.js?v=212420d7"></script>
 <script src="js/lkpd-samakan.js?v=7ec1f740"></script>
 <script src="js/lkpd-v2-editor.js?v=b0cf6b5c"></script>
@@ -112,7 +123,7 @@
 <script src="js/lkpd-master.js?v=613c9e17"></script>
 <script src="js/ukk-xls.js?v=9f78c96b"></script>
 <script src="js/nilai-analisis.js?v=4f9bd0e5"></script>
-<script src="js/actions.js?v=38cf72d0"></script>
+<script src="js/actions.js?v=166c5916"></script>
 <script src="js/uji-waktu.js?v=ce2ed0da"></script>
 <script src="js/ukk-foto.js?v=db0e35ba"></script>
 <script src="js/ukk-pdf.js?v=02b55afd"></script>
@@ -134,8 +145,9 @@
 <script src="js/hasil-izin.js?v=6ac6e18f"></script>
 <script src="js/lkpd-hapus.js?v=7ee93aa0"></script>
 <script src="js/lkpd-rekap-kelas.js?v=3b97d0c4"></script>
-<script src="js/tampilan.js?v=4e5391dd"></script>
-<script src="js/judul-menu.js?v=3cd3a395"></script>
+<script src="js/tampilan.js?v=4d7bd517"></script>
+<script src="js/judul-menu.js?v=6e1963ea"></script>
 <script src="js/breadcrumb.js?v=2f52209f"></script>
+<script src="js/rute.js?v=8ab02e36"></script>
 </body>
 </html>
