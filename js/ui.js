@@ -234,12 +234,18 @@ document.addEventListener('click',function(e){
  if(!t.closest('button,a,input,select,textarea,label,summary,[data-act],.chip.grp,.srow'))drOpen(false);
 });
 
-/* Header ringkas saat digulir: hanya basmalah, logo, dan nama. */
+/* Header ringkas saat digulir: hanya basmalah, logo, dan nama.
+   Tinggi yang berkurang diganti margin bawah, sehingga panjang halaman tetap dan posisi gulir tidak memantul. */
 function hdrRingkas(){
  var h=document.querySelector('header.top');if(!h)return;
  var y=window.scrollY||0,mini=h.classList.contains('mini');
- /* hanya bila halaman cukup panjang, supaya mengecilnya header tidak memantulkan posisi gulir */
- if(!mini&&y>140&&document.documentElement.scrollHeight-window.innerHeight>300)h.classList.add('mini');
- else if(mini&&y<12)h.classList.remove('mini');
+ if(!mini&&y>60){
+  var t0=h.offsetHeight,m0=parseFloat(getComputedStyle(h).marginBottom)||0;
+  h.classList.add('mini');
+  var d=t0-h.offsetHeight,m1=parseFloat(getComputedStyle(h).marginBottom)||0;
+  /* belum digulir melewati selisih tinggi: tunda, agar tidak muncul celah di bawah header */
+  if(y<d+8){h.classList.remove('mini');return}
+  h.style.marginBottom=(m1+d+(m0-m1))+'px';
+ }else if(mini&&y<12){h.classList.remove('mini');h.style.marginBottom=''}
 }
 if(window.addEventListener)window.addEventListener('scroll',hdrRingkas,{passive:true});

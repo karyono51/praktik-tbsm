@@ -1,3 +1,10 @@
+## PKL: judul dan menu gaya Administrasi Akademik
+- Judul: ikon, label PKL, nama tab; pil tahun ajaran dan semester, sekolah, kelas XII.
+- Menu: satu baris tab berikon yang bisa digeser, berurutan sesuai tahap.
+
+## Perbaikan header ringkas
+- Header tidak mengecil di halaman pendek (syarat panjang gulir 300 px dibuang; tinggi diganti margin bawah).
+
 ## Header ringkas dan PKL lebih padat
 - Sapaan tidak lagi diakhiri koma dari nama bergelar.
 - Header mengecil saat halaman digulir (basmalah, logo, nama) dan kembali penuh di posisi paling atas.

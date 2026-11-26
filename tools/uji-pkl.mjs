@@ -346,7 +346,7 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   {
     const b = boot({ peran: 'guru', ctx: { schNama: () => 'SMKS Medina Bandung' } }), x = b.ctx;
     const v = x.viewPkl();
-    T('judul "Praktik Kerja Lapangan (PKL)" dan nama sekolah tampil di paling atas', v.indexOf('Praktik Kerja Lapangan (PKL)') === v.indexOf('<div class="card pk-judul">') + '<div class="card pk-judul"><b>'.length && /SMKS Medina Bandung/.test(v.slice(0, 300)), v.slice(0, 200));
+    T('judul PKL gaya Akademik di paling atas: nama tab, sekolah, dan menu tab', v.indexOf('<div class="pk-judul">') === 0 && /akd-crumb">Praktik Kerja Lapangan<.*<h2>Tempat PKL</.test(v) && /SMKS Medina Bandung/.test(v) && /akd-tabs pk-tabs/.test(v), v.slice(0, 300));
     b.klik('pkl-new', { k: 'tempat' }); x.PK.msg = 'Lengkapi: Nama dunia kerja';
     const f = x.viewPkl(), iS = f.indexOf('data-act="pkl-save"'), iF = f.indexOf('<label class="f">'), iE = f.indexOf('Lengkapi: Nama');
     T('formulir: Simpan dan Batal di atas semua isian, pesan galat tepat di bawahnya, tidak ada tombol Simpan ganda di bawah', iS > -1 && iS < iF && iE > iS && iE < iF && f.split('data-act="pkl-save"').length === 2, [iS, iE, iF]);

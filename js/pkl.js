@@ -439,10 +439,23 @@ function pkJurnalBaris(j,staff){
 
 /* ---------- Tampilan guru dan admin ---------- */
 var PK_TABS=[['tempat','Tempat PKL'],['tugas','Penempatan'],['absen','Absensi'],['jurnal','Jurnal'],['kunjungan','Kunjungan'],['nilai','Nilai'],['cek','Kelengkapan'],['rekap','Rekap']];
-var PK_MENU=[['1. Persiapan',['tempat','tugas']],['2. Pelaksanaan',['absen','jurnal','kunjungan']],['3. Penilaian dan laporan',['nilai','cek','rekap']]];
+/* Judul dan menu mengikuti tampilan Administrasi Akademik (kelas akd-*). Urutan tab = urutan tahap PKL. */
+var PK_IKON={tempat:'<path d="M12 21s-6.5-5.600-6.500-11a6.500 6.500 0 0 1 13 0c0 5.4-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.300"/>',
+ tugas:'<circle cx="9" cy="8" r="3.200"/><path d="M3 20c0-3.300 2.700-6 6-6s6 2.700 6 6M16 11l2 2 3.500-4"/>',
+ absen:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M9 15l2 2 4-4"/>',
+ jurnal:'<path d="M5 4.500h13v15H8a3 3 0 0 1-3-3zM9 9h6M9 12.500h6"/>',
+ kunjungan:'<circle cx="6" cy="18" r="2.500"/><circle cx="18" cy="6" r="2.500"/><path d="M8.500 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.500"/>',
+ nilai:'<path d="m12 4 2.400 5 5.400.700-4 3.800 1 5.400-4.800-2.700L7.200 19l1-5.400-4-3.800 5.400-.700z"/>',
+ cek:'<path d="M4 7l1.700 1.700L9 5.500M4 16l1.700 1.700L9 14.500M12 7h8M12 16h8"/>',
+ rekap:'<path d="M5 20V10M12 20V4M19 20v-7"/>',saya:'<circle cx="12" cy="8" r="3.500"/><path d="M5 20c0-3.900 3.100-7 7-7s7 3.100 7 7"/>'};
+function pkIkon(k,n){return typeof svg==='function'?svg(PK_IKON[k],n):''}
 function pkMenuHtml(){
- var nm={};PK_TABS.forEach(function(x){nm[x[0]]=x[1]});
- return '<nav class="card pk-menu" aria-label="Menu PKL">'+PK_MENU.map(function(g){return '<div class="pk-grup"><span class="label">'+g[0]+'</span><div class="pk-tombol n'+g[1].length+'">'+g[1].map(function(k){return '<button type="button" data-act="pkl-tab" data-v="'+k+'" aria-pressed="'+(PK.tab===k)+'">'+nm[k]+'</button>'}).join('')+'</div></div>'}).join('')+'</nav>';
+ return '<div class="akd-tabs pk-tabs" role="tablist" aria-label="Menu PKL">'+PK_TABS.map(function(x){var on=PK.tab===x[0];return '<button type="button" role="tab" data-act="pkl-tab" data-v="'+x[0]+'" aria-selected="'+on+'" aria-pressed="'+on+'">'+pkIkon(x[0],16)+'<span>'+x[1]+'</span></button>'}).join('')+'</div>';
+}
+/* tab aktif digeser ke tengah setelah layar digambar ulang */
+function pkTabTampak(){
+ var bar=document.querySelector&&document.querySelector('.pk-tabs'),on=bar&&bar.querySelector('[aria-selected="true"]');
+ if(on&&bar.scrollTo)bar.scrollTo({left:Math.max(0,on.offsetLeft-bar.offsetLeft-(bar.clientWidth-on.offsetWidth)/2)});
 }
 function pkTambah(k,label){return '<div class="row"><button type="button" class="btn small primary" data-act="pkl-new" data-k="'+k+'">+ '+esc(label)+'</button></div>'}
 function pkAksi(k,id){return '<div class="row" style="gap:6px"><button type="button" class="btn small" data-act="pkl-edit" data-k="'+k+'" data-v="'+esc(id)+'">Ubah</button><button type="button" class="btn small danger" data-act="pkl-del" data-k="'+k+'" data-v="'+esc(id)+'">Hapus</button></div>'}
@@ -456,6 +469,7 @@ function pkRingkas(){
 }
 function pkStaffView(){
  var f={tempat:pkTabTempat,tugas:pkTabTugas,absen:pkTabAbsen,jurnal:pkTabJurnal,kunjungan:pkTabKunjungan,nilai:pkTabNilai,cek:pkTabCek,rekap:pkTabRekap}[PK.tab]||pkTabTempat;
+ if(typeof requestAnimationFrame==='function')requestAnimationFrame(pkTabTampak);
  return pkMenuHtml()+f()+pkRingkas();
 }
 function pkTabTempat(){
@@ -613,10 +627,8 @@ function pkPdfJurnal(sid){
 
 /* ---------- Tampilan utama ---------- */
 var PK_CSS=document.createElement('style');
-PK_CSS.textContent='.card.pk-judul{gap:2px;padding-top:12px;padding-bottom:12px}.pk-judul .note{margin:0;line-height:1.4}'+
+PK_CSS.textContent='.pk-judul{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}.pk-judul .akd-ctx{flex-wrap:wrap}'+
  '.stats.pk-stats{gap:8px}.stats.pk-stats .card{padding:8px 10px;gap:0;align-content:start}.pk-stats .label,.pk-stats .note{font-size:12px;line-height:1.3;margin:0}.pk-stats b{font-size:18px;line-height:1.35}'+
- '.pk-menu{display:grid;gap:10px}.pk-grup .label{display:block;margin-bottom:4px}.pk-tombol{display:grid;gap:6px}.pk-tombol.n2{grid-template-columns:1fr 1fr}.pk-tombol.n3{grid-template-columns:repeat(3,1fr)}'+
- '.pk-tombol button{min-height:44px;padding:6px 4px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:inherit;font:600 13px/1.25 inherit;font-family:inherit}.pk-tombol button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}'+
  '.pk-row{display:flex;gap:10px;align-items:flex-start}.pk-pv{width:150px;aspect-ratio:3/4;object-fit:cover;border-radius:14px;border:1px solid var(--line);flex:none}'+
  '.pk-th{width:44px;height:58px;object-fit:cover;border-radius:8px;cursor:zoom-in;flex:none;border:1px solid var(--line)}.pk-kosong{display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:var(--muted);background:var(--surface)}'+
  '.pk-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0}.pk-bar .f{margin:0}.pk-ket{display:block;margin-top:4px;font-size:12px;color:var(--muted)}.pk-ket[hidden]{display:none}'+
@@ -629,9 +641,12 @@ function pkTingkatXII(kl){return /^\s*(XII|12)(?![IVX0-9])/i.test(String(kl||'')
 /* Siswa XI ke bawah tidak ditawarkan; yang sudah punya penempatan tetap tampil. */
 function pkPeserta(u){return pkTingkatXII(u.kelas)||!!pkTugasSiswa(u.id)}
 function pkJudulHtml(){
- var sk=typeof schNama==='function'?schNama():'';
- var kd=typeof schKode==='function'?schKode():'',jd=PK_SEMESTER[kd]?'Peserta kelas XII, semester '+pkSemesterTeks(kd):'';
- return '<div class="card pk-judul"><b>Praktik Kerja Lapangan (PKL)</b>'+(sk?'<div class="note">'+esc(sk)+'</div>':'')+(jd?'<div class="note">'+jd+'</div>':'')+'</div>';
+ var sk=typeof schNama==='function'?schNama():'',kd=typeof schKode==='function'?schKode():'',staf=isStaff();
+ var d=new Date(),y=d.getMonth()>=6?d.getFullYear():d.getFullYear()-1;
+ var tab=PK_TABS.filter(function(x){return x[0]===PK.tab})[0]||PK_TABS[0];
+ function pil(t,n){return '<span class="pill'+(n?' plain':'')+'">'+esc(t)+'</span>'}
+ return '<div class="pk-judul"><div class="sechead akd-head"><span class="ico">'+pkIkon(staf?tab[0]:'saya',18)+'</span><div class="grow"><div class="akd-crumb">Praktik Kerja Lapangan</div><h2>'+(staf?tab[1]:'PKL saya')+'</h2></div></div>'+
+  '<div class="row akd-ctx">'+pil('Tahun ajaran '+y+'/'+(y+1)+(PK_SEMESTER[kd]?' · Semester '+pkSemesterTeks(kd):''))+(sk?pil(sk,1):'')+pil('Kelas XII',1)+(actRole()==='kepsek'?pil('Hanya lihat',1):'')+'</div></div>';
 }
 function viewPkl(){
  if(!PK.loaded&&!PK.loading)setTimeout(pkLoad,0);
