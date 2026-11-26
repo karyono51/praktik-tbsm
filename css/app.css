@@ -575,3 +575,7 @@ fieldset.roles .chk:has(input:focus-visible){outline:2px solid var(--accent);out
 .akd-tbl td.mono,.akd-tbl .mono{white-space:nowrap}
 /* modul Alumni: pertanyaan tracer lebih ringkas */
 .al-q b{font-size:14px;font-weight:600}.al-q label span{font-size:13px;line-height:1.4}
+
+/* basmalah di bar atas */
+.bsm{margin:0 0 1px;text-align:left;font-family:"Amiri","Scheherazade New","Noto Naskh Arabic","Traditional Arabic",serif;font-size:clamp(15px,4.6vw,19px);line-height:1.5;font-weight:400;color:rgba(255,255,255,.95);white-space:nowrap}
+.top:not(.big) .bsm{font-size:clamp(14px,4.2vw,17px)}

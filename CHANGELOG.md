@@ -525,3 +525,9 @@ Prodi `PKL` dengan empat elemen CP (SFT, HSP, HSG, WIR) ditambahkan ke matriks (
 - Pemicu terpusat (`PK_HOOK`): tempat di Penempatan mengisi instruktur; tempat di Kunjungan mengisi guru pembimbing bila masih kosong.
 - **Saringan per tab** (tabel `PK_SARING`): Tempat (kota, bidang, perjanjian, monitoring), Penempatan (tempat, kelas, guru, status), Absensi (tempat, kelas, siswa, jenis), Jurnal (tempat, kelas, siswa, catatan), Kunjungan (tempat, guru, cara), Nilai, Kelengkapan, Rekap, dan daftar tempat di tampilan siswa (kota, bidang). Jumlah data tampil di keterangan, saringan yang nilainya sudah hilang otomatis dikosongkan, ada tombol Setel ulang. Tombol PDF nilai di tab Nilai mencetak yang sedang tampil.
 - Tidak ada perubahan di `js/bank-pilihan.js`, data, atau Appwrite. `tools/uji-pkl.mjs` kini 130 butir.
+
+## Judul PKL, tombol Simpan di atas, basmalah di bar atas
+- **Judul**: semua layar PKL diawali kartu "Praktik Kerja Lapangan (PKL)" beserta nama sekolah aktif (`pkJudulHtml`). Kartu siswa yang lama berjudul "Penempatan saya".
+- **Simpan di atas**: tombol Simpan (Kirim absen pada form absen) dan Batal kini tepat di bawah judul formulir, dengan pesan galat langsung di bawahnya. Tombol di bagian bawah dihapus.
+- **Basmalah**: bar atas aplikasi (semua halaman dan semua peran) memuat lafaz basmalah di atas sapaan "Halo" (`.bsm` di `css/app.css`, `js/ui.js`).
+- `tools/uji-pkl.mjs` kini 134 butir.

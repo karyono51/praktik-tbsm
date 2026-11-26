@@ -342,6 +342,22 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
     sv = xs.viewPkl();
     T('siswa: daftar tetap terbuka setelah menyaring dan hanya memuat tempat yang cocok', /<details data-pkd="daftar" open>/.test(sv) && /Daftar tempat PKL \(1 dari 2\)/.test(sv) && /CV Bintang/.test(sv.replace(/<select[\s\S]*?<\/select>/g, '')) && !/PT Maju/.test(sv.replace(/<select[\s\S]*?<\/select>/g, '')), sv.match(/Daftar tempat PKL \([^)]*\)/));
   }
+  console.log('Judul, tombol Simpan di atas, basmalah');
+  {
+    const b = boot({ peran: 'guru', ctx: { schNama: () => 'SMKS Medina Bandung' } }), x = b.ctx;
+    const v = x.viewPkl();
+    T('judul "Praktik Kerja Lapangan (PKL)" dan nama sekolah tampil di paling atas', v.indexOf('Praktik Kerja Lapangan (PKL)') === v.indexOf('<div class="card pk-judul">') + '<div class="card pk-judul"><b>'.length && /SMKS Medina Bandung/.test(v.slice(0, 300)), v.slice(0, 200));
+    b.klik('pkl-new', { k: 'tempat' }); x.PK.msg = 'Lengkapi: Nama dunia kerja';
+    const f = x.viewPkl(), iS = f.indexOf('data-act="pkl-save"'), iF = f.indexOf('<label class="f">'), iE = f.indexOf('Lengkapi: Nama');
+    T('formulir: Simpan dan Batal di atas semua isian, pesan galat tepat di bawahnya, tidak ada tombol Simpan ganda di bawah', iS > -1 && iS < iF && iE > iS && iE < iF && f.split('data-act="pkl-save"').length === 2, [iS, iE, iF]);
+    b.klik('pkl-cancel');
+    const bs = boot({ peran: 'siswa', ctx: { schNama: () => 'SMKS Medina Bandung' } }), xs = bs.ctx;
+    xs.PK.D.tempat.push(tempat()); xs.PK.D.tugas.push(tugas()); xs.PK.msg = ''; xs.PK.mode = 'absen'; xs.PK.f = { tipe: 'masuk', foto: '', cat: '' };
+    const a = xs.viewPkl();
+    T('form absen: Kirim absen di atas, sebelum pilihan jenis dan selfie', a.indexOf('pkl-absen-kirim') > -1 && a.indexOf('pkl-absen-kirim') < a.indexOf('pkl-tipe') && a.split('pkl-absen-kirim').length === 2);
+    const ui = baca('js/ui.js'), css = baca('css/app.css');
+    T('bar atas memuat basmalah lengkap dan gayanya ada', /class="bsm" lang="ar" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ<\/p>/.test(ui) && /\.bsm\{/.test(css));
+  }
   console.log('Semua <select> PKL lewat pembangun yang sama');
   {
     const src = baca('js/pkl.js');
