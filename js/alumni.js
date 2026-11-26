@@ -3,7 +3,7 @@
    - Form tracer tiga langkah meniru instrumen Tracer Vokasi Kemendikdasmen. Diisi oleh guru/admin (misalnya BKK) atas nama alumni; bukan pengganti portal resmi.
    - Dasbor ringkasan: status alumni, kesesuaian kerja, skor 15 aspek, daftar belum mengisi dengan pengingat WhatsApp.
    - Ekspor dan impor Excel. Peran Kepala Sekolah hanya melihat. Lihat docs-ALUMNI.md. */
-var ALM={rows:null,loaded:false,busy:false,v:'list',cur:null,step:0,q:'',th:'',st:'',msg:''};
+var ALM={rows:null,loaded:false,busy:false,v:'list',cur:null,step:0,q:'',th:'',st:'',pr:'',msg:''};
 var AL_KOL='alumni',AL_LOCAL='tbsm-alumni',AL_PORTAL='https://tracervokasi.kemendikdasmen.go.id';
 var AL_STATUS=[['bekerja','Bekerja'],['kuliah','Melanjutkan studi'],['wirausaha','Berwirausaha'],['lainnya','Kegiatan lainnya'],['menganggur','Belum bekerja/kuliah']];
 var AL_DUDI=[['','Belum'],['diteruskan','Tautan diteruskan'],['terisi','Atasan sudah mengisi']];
@@ -16,6 +16,12 @@ var AL_YT=['Ya','Tidak'];
 var AL_PRODI_NAMA={TSM:'Teknik Sepeda Motor',TKR:'Teknik Kendaraan Ringan',TKJ:'Teknik Komputer dan Jaringan',OTKP:'Otomatisasi Tata Kelola Perkantoran'};
 var AL_PRODI_SEK={DF:['TSM','TKJ'],MEDINA:['TSM','TKR','TKJ','OTKP']};
 function alProdiList(sek){return AL_PRODI_SEK[sek]||['TSM','TKR','TKJ','OTKP']}
+/* pilihan jurusan form: hanya jurusan sekolah alumni; nilai lama di luar daftar tetap tampil supaya tidak hilang diam-diam */
+function alProdiOpsi(c){
+ var l=alProdiList(c.sekolah||alSek()).slice(),v=String(c.prodi||'');
+ if(v&&l.indexOf(v)<0)l.push(v);
+ return '<option value="">Pilih jurusan</option>'+l.map(function(k){return '<option value="'+esc(k)+'"'+(v===k?' selected':'')+'>'+esc(k+(AL_PRODI_NAMA[k]?' - '+AL_PRODI_NAMA[k]:''))+'</option>'}).join('');
+}
 /* nama lengkap atau kode (huruf besar/kecil, tanda baca bebas) menjadi kode jurusan; tidak dikenal = teks apa adanya dalam huruf besar */
 function alProdiKode(v){
  var t=String(v||'').trim();if(!t)return '';
@@ -131,6 +137,7 @@ function alFilter(rows){
  var q=ALM.q.trim().toLowerCase();
  return rows.filter(function(r){
   if(ALM.th&&String(r.tahun)!==ALM.th)return false;
+  if(ALM.pr&&r.prodi!==ALM.pr)return false;
   if(ALM.st==='belum'){if(alSudah(r))return false}
   else if(ALM.st&&r.status!==ALM.st)return false;
   if(q&&(String(r.nama).toLowerCase().indexOf(q)<0&&String(r.nisn).indexOf(q)<0))return false;
@@ -163,7 +170,7 @@ function viewAlumniDaftar(){
  var aksi=alTulis()?'<div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small primary" data-act="al-baru">Tambah alumni</button><label class="btn small" style="cursor:pointer">Impor Excel<input type="file" accept=".xlsx,.xls,.csv" data-act="al-imp" hidden></label><button type="button" class="btn small" data-act="al-tpl">Template</button><button type="button" class="btn small" data-act="al-xls">Ekspor Excel</button></div>':'<div class="row"><button type="button" class="btn small" data-act="al-xls">Ekspor Excel</button></div>';
  return '<section class="card"><p class="note">Data alumni untuk persiapan dan pemantauan Tracer Study Vokasi. Pengisian resmi tetap di portal <b>tracervokasi.kemendikdasmen.go.id</b> (alumni masuk dengan NISN). Modul ini menyimpan jawaban internal dan memantau siapa yang belum mengisi.</p>'+
   '<div class="row" style="gap:6px;flex-wrap:wrap"><a class="btn small" href="'+AL_PORTAL+'" target="_blank" rel="noopener noreferrer">Buka portal resmi</a></div></section>'+alTab()+aksi+
-  '<section class="card"><input id="al-q" type="search" placeholder="Cari nama atau NISN" value="'+esc(ALM.q)+'" autocomplete="off"><div class="row" style="gap:8px;margin-top:8px"><select id="al-th" aria-label="Tahun lulus"><option value="">Semua tahun</option>'+th.map(function(t){return '<option'+(ALM.th===t?' selected':'')+'>'+esc(t)+'</option>'}).join('')+'</select><select id="al-st" aria-label="Status"><option value="">Semua status</option><option value="belum"'+(ALM.st==='belum'?' selected':'')+'>Tracer belum diisi</option>'+alOpsi(AL_STATUS,ALM.st)+'</select></div></section>'+
+  '<section class="card"><input id="al-q" type="search" placeholder="Cari nama atau NISN" value="'+esc(ALM.q)+'" autocomplete="off"><div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap"><select id="al-pr" aria-label="Jurusan"><option value="">Semua jurusan</option>'+alProdiList(alSek()).map(function(k){return '<option value="'+k+'"'+(ALM.pr===k?' selected':'')+'>'+k+'</option>'}).join('')+'</select><select id="al-th" aria-label="Tahun lulus"><option value="">Semua tahun</option>'+th.map(function(t){return '<option'+(ALM.th===t?' selected':'')+'>'+esc(t)+'</option>'}).join('')+'</select><select id="al-st" aria-label="Status"><option value="">Semua status</option><option value="belum"'+(ALM.st==='belum'?' selected':'')+'>Tracer belum diisi</option>'+alOpsi(AL_STATUS,ALM.st)+'</select></div></section>'+
   '<div id="al-list">'+alDaftarHtml()+'</div>';
 }
 function alPct(n,t){return t?Math.round(n*1000/t)/10:0}
@@ -209,7 +216,7 @@ function viewAlumniForm(){
   h+='<section class="card">'+
    '<label>NISN (10 digit)<input data-alf="nisn" inputmode="numeric" maxlength="10" value="'+esc(c.nisn)+'"></label>'+
    '<label>Nama lengkap<input data-alf="nama" value="'+esc(c.nama)+'" autocomplete="off"></label>'+
-   '<label>Jurusan<input data-alf="prodi" list="al-prodi" value="'+esc(c.prodi)+'"><datalist id="al-prodi">'+alProdiList(c.sekolah||alSek()).map(function(k){return '<option value="'+k+'">'+esc(AL_PRODI_NAMA[k])+'</option>'}).join('')+'</datalist></label>'+
+   '<label>Jurusan<select data-alf="prodi">'+alProdiOpsi(c)+'</select></label>'+
    '<label>Tahun lulus<input data-alf="tahun" inputmode="numeric" maxlength="4" value="'+esc(c.tahun)+'"></label>'+
    '<label>No. HP/WhatsApp<input data-alf="hp" inputmode="tel" value="'+esc(c.hp||'')+'"></label>'+
    '<label>Email<input data-alf="email" type="email" value="'+esc(c.email||'')+'"></label>'+
@@ -301,7 +308,7 @@ function alTemplate(){
  if(!needX())return;
  var wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet([['NISN','Nama','Jurusan','Tahun lulus','HP','Email','Status'],['0061234567','Contoh Nama','TSM',2025,'081234567890','nama@contoh.id','bekerja']]);
  ws['!cols']=[{wch:14},{wch:26},{wch:10},{wch:12},{wch:16},{wch:26},{wch:14}];
- var ket=XLSX.utils.aoa_to_sheet([['Kolom Status (boleh kosong): '+AL_STATUS.map(function(s){return s[0]}).join(', ')],['NISN wajib 10 digit. Baris dengan NISN yang sudah ada akan memperbarui data, bukan menggandakan.']]);
+ var ket=XLSX.utils.aoa_to_sheet([['Kolom Status (boleh kosong): '+AL_STATUS.map(function(s){return s[0]}).join(', ')],['Kolom Jurusan: isi kode atau nama lengkap. Darul Fatwa: TSM, TKJ. Medina: TSM, TKR, TKJ, OTKP.'],['NISN wajib 10 digit. Baris dengan NISN yang sudah ada akan memperbarui data, bukan menggandakan.']]);
  XLSX.utils.book_append_sheet(wb,ws,'Alumni');XLSX.utils.book_append_sheet(wb,ket,'Petunjuk');
  XLSX.writeFile(wb,'Template_Impor_Alumni.xlsx');
 }
@@ -362,6 +369,7 @@ document.addEventListener('change',function(e){
  var t=e.target;if(!t||!t.dataset)return;
  if(t.dataset.act==='al-imp'){var f=t.files&&t.files[0];t.value='';alImpor(f);return}
  if(t.id==='al-th'){ALM.th=t.value;var l=document.getElementById('al-list');if(l)l.innerHTML=alDaftarHtml();return}
+ if(t.id==='al-pr'){ALM.pr=t.value;var l3=document.getElementById('al-list');if(l3)l3.innerHTML=alDaftarHtml();return}
  if(t.id==='al-st'){ALM.st=t.value;var l2=document.getElementById('al-list');if(l2)l2.innerHTML=alDaftarHtml();return}
  if(t.id==='al-dth'){ALM.th=t.value;render();return}
  if(!ALM.cur||!alTulis())return;

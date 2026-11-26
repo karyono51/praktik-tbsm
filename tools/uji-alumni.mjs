@@ -37,7 +37,7 @@ function boot(opt = {}) {
   };
   ctx.window.XLSX = null;
   vm.createContext(ctx);
-  vm.runInContext(baca('js/alumni.js') + '\n;this.ALM=ALM;this.alTurunStatus=alTurunStatus;this.alSimpan=alSimpan;this.alHapus=alHapus;this.alKolom=alKolom;this.alFilter=alFilter;this.alSudah=alSudah;this.alKosong=alKosong;this.viewAlumni=viewAlumni;this.alMuat=alMuat;this.alHp=alHp;this.alNisn=alNisn;this.alTulis=alTulis;this.alKeDoc=alKeDoc;this.alDariDoc=alDariDoc;this.alSimpanSatu=alSimpanSatu;this.alDaftarHtml=alDaftarHtml;this.AL_Q=AL_Q;this.alProdiList=alProdiList;this.alProdiKode=alProdiKode;this.AL_PRODI_NAMA=AL_PRODI_NAMA;', ctx, { filename: 'alumni.js' });
+  vm.runInContext(baca('js/alumni.js') + '\n;this.ALM=ALM;this.alTurunStatus=alTurunStatus;this.alSimpan=alSimpan;this.alHapus=alHapus;this.alKolom=alKolom;this.alFilter=alFilter;this.alSudah=alSudah;this.alKosong=alKosong;this.viewAlumni=viewAlumni;this.alMuat=alMuat;this.alHp=alHp;this.alNisn=alNisn;this.alTulis=alTulis;this.alKeDoc=alKeDoc;this.alDariDoc=alDariDoc;this.alSimpanSatu=alSimpanSatu;this.alDaftarHtml=alDaftarHtml;this.AL_Q=AL_Q;this.alProdiList=alProdiList;this.alProdiOpsi=alProdiOpsi;this.alProdiKode=alProdiKode;this.AL_PRODI_NAMA=AL_PRODI_NAMA;', ctx, { filename: 'alumni.js' });
   return { ctx, log, hs, store, dbDocs };
 }
 
@@ -178,6 +178,10 @@ function boot(opt = {}) {
   T('nama lengkap jurusan menjadi kode', x.alProdiKode('Teknik Komputer dan Jaringan') === 'TKJ' && x.alProdiKode('otomatisasi tata kelola perkantoran') === 'OTKP' && x.alProdiKode('Teknik Kendaraan Ringan') === 'TKR' && x.alProdiKode('Teknik Sepeda Motor') === 'TSM');
   T('kode tetap kode, kosong tetap kosong', x.alProdiKode('tkj') === 'TKJ' && x.alProdiKode(' ') === '');
   T('kode jurusan muat di kolom prodi (16)', Object.keys(x.AL_PRODI_NAMA).every((k) => k.length <= 16));
+  { const o = x.alProdiOpsi({ sekolah: 'DF', prodi: '' }); T('select jurusan DF: hanya TSM dan TKJ', /value="TSM"/.test(o) && /value="TKJ"/.test(o) && !/value="TKR"/.test(o) && !/value="OTKP"/.test(o)); }
+  { const o = x.alProdiOpsi({ sekolah: 'MEDINA', prodi: 'OTKP' }); T('select jurusan Medina: OTKP terpilih, 4 pilihan', /value="OTKP" selected/.test(o) && (o.match(/<option/g) || []).length === 5); }
+  { const o = x.alProdiOpsi({ sekolah: 'DF', prodi: 'TKR' }); T('nilai lama di luar daftar tetap tampil', /value="TKR" selected/.test(o)); }
+  { const rows = [{ nisn: '1', nama: 'A', prodi: 'TKJ', tahun: '2025', status: '', t: {} }, { nisn: '2', nama: 'B', prodi: 'TSM', tahun: '2025', status: '', t: {} }]; const lama = x.ALM.pr; x.ALM.pr = 'TKJ'; const h = x.alFilter(rows); x.ALM.pr = lama; T('filter jurusan menyaring daftar', h.length === 1 && h[0].nama === 'A'); }
   T('alKosong tidak menebak jurusan', x.alKosong().prodi === '');
 
   console.log(`\n${pass} lulus, ${fail} gagal`);
