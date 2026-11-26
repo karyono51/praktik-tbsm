@@ -24,9 +24,13 @@ Tanpa koleksi atau atribut Appwrite baru. Sesi disimpan di koleksi `observasi` (
 - Siswa belum bisa melihat riwayat absensinya sendiri di aplikasi, karena siswa tidak punya izin baca koleksi `observasi`.
 
 ## Pemindai dan peramban
-Pemindai memakai `BarcodeDetector` bawaan peramban: Chrome dan Edge di Android serta desktop. Peramban yang belum mendukung (umumnya Safari/iPhone) tidak bisa memindai; guru memakai tombol status manual. Kamera membutuhkan https dan izin kamera. QR dibuat sendiri oleh `js/qr.js` (tanpa pustaka luar, jalan offline).
+- **Siswa** (menampilkan barcode) bisa memakai HP apa pun, termasuk iPhone: kartu dibuat di canvas dan tidak butuh pemindai.
+- **Guru/admin** (memindai): Chrome dan Edge memakai `BarcodeDetector` bawaan. **Safari di iPhone/iPad tidak punya itu**, jadi aplikasi memuat pemindai cadangan **jsQR** dari `js/vendor/jsqr.js` hanya saat tombol Scan ditekan; berkas lalu disimpan service worker dan bisa dipakai offline.
+- Pasang sekali: `sh tools/pasang-jsqr.sh` (mengunduh jsQR 1.4.0, Apache-2.0, lalu `sh up.sh "pemindai iphone"`). Tanpa berkas itu iPhone tetap bisa mencatat lewat tombol status manual.
+- Kamera butuh https dan izin kamera. QR dibuat sendiri oleh `js/qr.js` (tanpa pustaka luar, jalan offline).
 
 ## Berkas
 - `js/qr.js` pembuat QR (mode byte, koreksi galat M, versi 1-20). Diperiksa dengan pembaca QR OpenCV untuk semua versi.
 - `js/absensi.js` seluruh fitur; dimuat setelah `observasi-ukk.js`. `js/menu-dasbor.js` (kelompok Absensi dan Barcode saya) dan `js/views.js` (ubin beranda) disesuaikan.
+- `tools/pasang-jsqr.sh` memasang pemindai cadangan iPhone.
 - Uji: `node tools/uji-absensi.mjs`.

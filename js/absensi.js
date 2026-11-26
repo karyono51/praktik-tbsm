@@ -122,12 +122,43 @@ function abProses(raw){
 function abCatat(h){AB.log.unshift(h);AB.log=AB.log.slice(0,12)}
 
 var abCam={stream:null,det:null,on:false,tm:null};
-function abAda(){return typeof window.BarcodeDetector==='function'}
-function abBuatDet(){try{return new BarcodeDetector({formats:['qr_code']})}catch(e){return null}}
-function abTolak(){toast('Pemindai belum didukung peramban ini. Pakai Chrome terbaru di Android, atau tandai manual dengan tombol status.')}
+/* Pemindai: BarcodeDetector bawaan (Chrome Android/desktop). Tanpa itu (Safari iPhone), pakai jsQR cadangan di js/vendor/jsqr.js,
+   dimuat hanya saat Scan ditekan lalu disimpan service worker. */
+function abNative(){return typeof window.BarcodeDetector==='function'}
+function abJsqr(){return typeof window.jsQR==='function'}
+function abAda(){return abNative()||abJsqr()}
+function abMuat(){
+ return new Promise(function(ok){
+  if(abAda()){ok(true);return}
+  var el=document.createElement('script');el.src='js/vendor/jsqr.js';
+  el.onload=function(){ok(abJsqr())};el.onerror=function(){ok(false)};
+  document.head.appendChild(el);
+ });
+}
+function abBuatDet(){
+ if(abNative()){try{return new BarcodeDetector({formats:['qr_code']})}catch(e){}}
+ if(abJsqr()){
+  var cv=document.createElement('canvas'),g=cv.getContext('2d',{willReadFrequently:true});
+  return {detect:async function(src,maks){
+   var w=src.videoWidth||src.naturalWidth||src.width,h=src.videoHeight||src.naturalHeight||src.height;
+   if(!w||!h)return [];
+   var k=Math.min(1,(maks||800)/Math.max(w,h));cv.width=Math.max(1,Math.round(w*k));cv.height=Math.max(1,Math.round(h*k));
+   g.drawImage(src,0,0,cv.width,cv.height);
+   var im=g.getImageData(0,0,cv.width,cv.height),r=window.jsQR(im.data,cv.width,cv.height,{inversionAttempts:'dontInvert'});
+   return r&&r.data?[{rawValue:r.data}]:[];
+  }};
+ }
+ return null;
+}
+function abTolak(){toast(/iPhone|iPad/.test(navigator.userAgent||'')?'Pemindai cadangan belum terpasang (js/vendor/jsqr.js). Tandai manual dengan tombol status.':'Pemindai belum didukung peramban ini. Pakai Chrome terbaru, atau tandai manual dengan tombol status.')}
+/* foto dari galeri -> sumber gambar yang bisa digambar ke canvas (Safari lama tanpa createImageBitmap) */
+function abGambarDari(f){
+ if(window.createImageBitmap)return createImageBitmap(f);
+ return new Promise(function(ok,gagal){var u=URL.createObjectURL(f),im=new Image();im.onload=function(){URL.revokeObjectURL(u);ok(im)};im.onerror=function(){URL.revokeObjectURL(u);gagal(new Error('gambar'))};im.src=u});
+}
 
 async function abKamera(){
- if(!abAda()||!abBuatDet()){abTolak();return}
+ if(!(await abMuat())||!abBuatDet()){abTolak();return}
  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Kamera butuh sambungan aman (https)');return}
  if(document.getElementById('abscan'))return;
  var ov=document.createElement('div');ov.id='abscan';ov.className='ab-scan';
@@ -148,7 +179,7 @@ async function abKamera(){
   if(!abCam.on)return;
   try{
    if(vid.readyState>=2){
-    var codes=await abCam.det.detect(vid);
+    var codes=await abCam.det.detect(vid,640);
     for(var i=0;i<codes.length;i++){
      var raw=codes[i].rawValue,now=Date.now();
      if(AB._last[raw]&&now-AB._last[raw]<2500)continue;
@@ -183,13 +214,13 @@ function abTutupKamera(){
 /* scan gambar dari galeri: satu gambar boleh memuat beberapa barcode */
 async function abGaleri(files){
  if(!files||!files.length)return;
- var det=abAda()?abBuatDet():null;
+ var det=(await abMuat())?abBuatDet():null;
  if(!det){abTolak();return}
  var nOk=0,nDup=0,nGagal=0,i,j;
  toast('Memindai '+files.length+' gambar...');
  for(i=0;i<files.length;i++){
   var codes=[];
-  try{var bm=await createImageBitmap(files[i]);codes=await det.detect(bm);if(bm.close)bm.close()}catch(e){codes=[]}
+  try{var bm=await abGambarDari(files[i]);codes=await det.detect(bm,1400);if(bm.close)bm.close()}catch(e){codes=[]}
   if(!codes.length){abCatat({ok:false,msg:'Tidak ada barcode terbaca: '+String(files[i].name||'gambar').slice(0,40)});nGagal++;continue}
   for(j=0;j<codes.length;j++){var h=abProses(codes[j].rawValue);abCatat(h);if(!h.ok)nGagal++;else if(h.dup)nDup++;else nOk++}
  }
@@ -237,7 +268,7 @@ function viewAbsensi(){
   '<div class="chips" role="group" aria-label="Jenis absensi"><button type="button" data-act="abjenis" data-v="h" aria-pressed="'+(AB.j==='h')+'">Kehadiran</button><button type="button" data-act="abjenis" data-v="p" aria-pressed="'+(AB.j==='p')+'">Praktik</button></div>'+ket+
   '<div class="row">'+pills+'</div>'+
   '<div class="row"><button type="button" class="btn primary grow" data-act="abscan">Scan kamera</button><label class="btn grow filebtn" style="text-align:center">Scan dari galeri<input id="abfile" type="file" accept="image/*" multiple hidden></label></div>'+
-  (abAda()?'':'<p class="note">Peramban ini belum mendukung pemindai. Pakai Chrome terbaru di Android, atau tandai manual dengan tombol status di bawah.</p>')+
+  (abNative()?'':'<p class="note">Peramban ini tidak punya pemindai bawaan (misalnya Safari di iPhone). Pemindai cadangan dimuat saat Scan ditekan; bila belum terpasang, tandai manual dengan tombol status di bawah.</p>')+
   '</div>'+log+
   (rows||'<div class="card"><p class="muted">Belum ada siswa di kelas '+esc(AB.kelas)+'.</p></div>')+
   (L.length?'<div class="row"><button type="button" class="btn" data-act="abalpa">Belum ada status → Alpa ('+c.B+')</button>'+(abRec(AB.kelas,AB.tgl,AB.j)?'<button type="button" class="btn danger" data-act="abhapus">Hapus sesi</button>':'')+'</div>':'')+

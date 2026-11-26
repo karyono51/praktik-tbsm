@@ -15,7 +15,7 @@ const ctx={console,JSON,Math,Date,Array,Object,String,Number,Error,Promise,parse
  viewKatalog:()=>'<k/>',viewAkun:()=>'<div><button type="button" class="btn small" data-act="akunedit" data-v="s1">Ubah</button><button type="button" class="btn small" data-act="akunedit" data-v="g2">Ubah</button></div>',schObsList:l=>l,obsTipe:r=>r&&r.tipe==='siswa'?'siswa':'guru'};
 ctx.window=ctx; vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(new URL('../js/qr.js',import.meta.url),'utf8'),ctx);
-vm.runInContext(fs.readFileSync(new URL('../js/absensi.js',import.meta.url),'utf8')+';this.__x={AB,abIsi,abUrai,abCek,abProses,abSet,abRec,abPay,abBaris,abDocId,abSiswa,abRekapData,abHitungSesi,viewAbsensi,abLembar,abViewRekap}',ctx);
+vm.runInContext(fs.readFileSync(new URL('../js/absensi.js',import.meta.url),'utf8')+';this.__x={AB,abIsi,abUrai,abCek,abProses,abSet,abRec,abPay,abBaris,abDocId,abSiswa,abRekapData,abHitungSesi,viewAbsensi,abLembar,abViewRekap,abBuatDet,abMuat,abNative}',ctx);
 const X=ctx.__x; X.AB.kelas='X'; X.AB.tgl='2026-11-26'; X.AB.rk={bulan:'2026-11',kelas:'X',j:'h'};
 
 /* barcode */
@@ -98,3 +98,17 @@ const big=[];for(let i=0;i<45;i++)big.push(siswa('a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5
 ctx.S.users=ctx.S.users.concat(big);big.forEach(u=>X.abSet('XII','2026-11-26','h',u.id,'H',{m:'s',c:'catatan lumayan panjang untuk uji ukuran'}));
 T('45 siswa ber-ID 36 karakter muat di payload (<20000)',X.abRec('XII','2026-11-26','h').payload.length<20000,X.abRec('XII','2026-11-26','h').payload.length);
 T('penyimpanan lokal dipanggil',saves>0,saves);
+
+/* pemindai cadangan (iPhone): tanpa BarcodeDetector, dengan jsQR */
+T('tanpa BarcodeDetector dan tanpa jsQR: tidak ada pemindai',X.abNative()===false&&X.abBuatDet()===null,0);
+let gambar=null;
+ctx.document.createElement=(t)=>t==='canvas'?{width:0,height:0,getContext:()=>({drawImage:(s,x,y,w,h)=>{gambar={w,h}},getImageData:(x,y,w,h)=>({data:new Uint8ClampedArray(4),width:w,height:h})})}:{style:{},appendChild:noop};
+ctx.jsQR=(d,w,h,o)=>({data:'TBSM|s1|'+X.abCek('s1'),w,h,o});
+const det=X.abBuatDet();
+const hasil=await det.detect({videoWidth:1920,videoHeight:1080},640);
+T('cadangan jsQR: frame video diperkecil dan kode terbaca',hasil.length===1&&hasil[0].rawValue===X.abIsi(ctx.S.users[0])&&gambar.w===640&&gambar.h===360,[hasil,gambar]);
+const g2=await det.detect({naturalWidth:4000,naturalHeight:3000},1400);
+T('cadangan jsQR: foto galeri besar diperkecil ke 1400',gambar.w===1400&&gambar.h===1050,gambar);
+ctx.jsQR=()=>null;
+T('jsQR tidak menemukan kode: daftar kosong',(await det.detect({width:100,height:100})).length===0,0);
+T('abMuat langsung benar bila jsQR sudah ada',(ctx.jsQR=()=>null,await X.abMuat())===true,0);
