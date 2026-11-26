@@ -1,3 +1,7 @@
+## Breadcrumb Beranda | Menu | Menu
+- `js/breadcrumb.js` (baru) dan gaya `.bc` di `css/app.css`: jejak halaman di atas judul tiap menu, mis. *Beranda | Ujian dan nilai | Bank soal*, *Beranda | Administrasi Akademik | Guru*, *Beranda | Praktik Kerja Lapangan | Tempat PKL*.
+- Memakai label kelompok dan nama menu yang sudah ada (judul-menu.js, akademik.js, pkl.js), jadi tidak ada daftar menu baru. *Beranda* bisa diketuk (kembali ke beranda, tetap meminta konfirmasi bila ada hasil yang belum disimpan). Bila nama kelompok dan menu sama (mis. Alumni dan Tracer), kelompok dilewati.
+
 ## Absensi per rombel (bukan tingkat kelas)
 - Pilihan kelas pada Absensi dan Rekap diganti **rombel** dari Administrasi Akademik (rombel aktif tahun ajaran aktif; anggota dari daftar anggota rombel). Siswa tanpa rombel masuk pilihan *Belum punya rombel*; tanpa rombel sama sekali, pilihan jatuh ke Kelas X/XI/XII. Scan menolak siswa yang bukan anggota rombel terpilih dan menyebut rombelnya.
 - Penyimpanan: `payload.rb` dan `payload.rn` memuat rombel, `kelas` berisi tingkat, nama rombel ikut di `mapel`; id dokumen memakai hash rombel. Tidak ada perubahan skema. `tools/uji-absensi.mjs` ditulis ulang (49 uji).
