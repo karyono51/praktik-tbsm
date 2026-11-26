@@ -1,3 +1,8 @@
+## Lembar pilihan untuk semua dropdown
+- `js/bank-pilihan.js` sekarang berlaku untuk semua `<select>` di aplikasi (sebelumnya hanya daftar filter Bank soal dan Atur latihan siswa), sehingga dialog bawaan Android yang hurufnya besar diganti lembar pilihan bertema. Huruf pilihan 14px seperti menu samping (`css/banksoal.css`).
+- Dikecualikan: select di dalam tabel (cetak dan UKK), `select multiple`, `select size`, dan select ber-atribut `data-native`. Nilai tetap ditulis ke select aslinya dengan peristiwa input dan change, jadi logika halaman tidak berubah.
+- Uji baru: `tools/uji-pilihan.mjs`.
+
 ## Alumni: jurusan per sekolah
 - Daftar jurusan di form Alumni mengikuti sekolah: Darul Fatwa = TSM, TKJ; Medina = TSM, TKR, TKJ, OTKP (admin lintas sekolah melihat keempatnya). Kode tetap disimpan di kolom `prodi`. Kolom Jurusan berupa pilihan (select), bukan daftar saran, karena daftar saran tidak tampil di sebagian Chrome Android.
 - Daftar Alumni punya filter Jurusan (ikut sekolah) di samping tahun dan status; ekspor Excel mengikuti filter itu. Template impor memuat petunjuk kolom Jurusan.

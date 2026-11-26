@@ -1,16 +1,22 @@
-/* bank-pilihan.js: daftar pilihan filter Bank soal (guru/admin) dengan huruf yang sama dengan kartu filter.
-   Daftar pilihan bawaan HP (dialog <select> Android) memakai huruf besar dan tidak bisa diatur lewat CSS, jadi untuk dropdown filter
-   Bank soal (Mapel, Kelas, Modul/LKPD, Elemen CP, Jenis, Peruntukan, Statistik ujian) dan Atur latihan siswa (Mata pelajaran, Jenis soal) ketukan dialihkan ke lembar pilihan buatan
-   aplikasi yang memakai huruf badan (15px). Nilai tetap ditulis ke <select> aslinya lalu peristiwa change dikirim, jadi semua logika
-   filter (bank-bertingkat.js, banksoal.js, butir.js) tidak berubah. Lembar memakai kelas ui-ov, sehingga tombol back HP
-   menutupnya lebih dulu (back.js). Dropdown lain di aplikasi tidak disentuh. Dimuat setelah bank-bertingkat.js. */
+/* bank-pilihan.js: lembar pilihan buatan aplikasi untuk SEMUA dropdown (<select>), dengan huruf seperti menu samping (14px).
+   Daftar pilihan bawaan HP (dialog <select> Android) memakai huruf besar dan tidak bisa diatur lewat CSS, jadi ketukan pada <select>
+   dialihkan ke lembar pilihan yang mengikuti tema. Nilai tetap ditulis ke <select> aslinya lalu peristiwa input dan change dikirim, jadi
+   logika halaman mana pun tidak berubah. Lembar memakai kelas ui-ov, sehingga tombol back HP menutupnya lebih dulu (back.js).
+   Dikecualikan: <select multiple>, <select size>, select di dalam tabel (cetak/UKK), dan select yang diberi atribut data-native.
+   */
 (function(){
- var SEL='#bq-mp,#bq-kls,#bq-mod,#bq-cp,#bl-mapel,#bl-tipe,#sf-kelas,#sf-sekolah,#sf-pilih,#sf-jm,#sf-aksi,#sf-mf,#sf-tf,select[data-bs="flt"]';
- function cari(e){var t=e.target;return t&&t.matches&&t.matches(SEL)&&!t.disabled?t:null}
+ function bolehGanti(t){return !!t&&t.tagName==='SELECT'&&!t.disabled&&!t.multiple&&!(t.size>1)&&!t.hasAttribute('data-native')&&!(t.closest&&t.closest('table,#bp-ov'))}
+ function cari(e){var t=e.target;return bolehGanti(t)?t:null}
  function tutup(){var o=document.getElementById('bp-ov');if(o)o.remove()}
  function judul(s){
+  var a=s.getAttribute('aria-label');if(a)return a;
   var l=s.closest&&s.closest('label'),n=l&&l.firstChild;
-  return n&&n.nodeType===3?String(n.nodeValue).trim():'Pilih';
+  if(n&&n.nodeType===3&&String(n.nodeValue).trim())return String(n.nodeValue).trim();
+  var p=s.previousElementSibling,t=p&&String(p.textContent||'').trim();
+  if(t&&t.length<=60&&!p.querySelector('select,input'))return t;
+  var c=s.closest&&s.closest('.card'),b=c&&c.querySelector('b,h2,h3,.label');
+  t=b&&String(b.textContent||'').trim();
+  return t&&t.length<=60?t:'Pilih';
  }
  function buka(s){
   tutup();
@@ -31,7 +37,7 @@
    if(t===ov||(t.closest&&t.closest('.bp-x'))){tutup();return}
    var b=t.closest&&t.closest('.bp-i');if(!b||b.disabled)return;
    var o=opts[+b.getAttribute('data-i')];tutup();
-   if(o&&s.value!==o.value){s.value=o.value;s.dispatchEvent(new Event('change',{bubbles:true}))}
+   if(o&&s.value!==o.value){s.value=o.value;s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}))}
   });
   document.body.appendChild(ov);
   var on=ov.querySelector('[aria-selected="true"]');if(on&&on.scrollIntoView)on.scrollIntoView({block:'center'});

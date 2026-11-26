@@ -136,7 +136,7 @@ body{--exfs:0px}body.ex-fs1{--exfs:2px}body.ex-fs2{--exfs:4px}
 .bp-x{border:0;background:none;color:var(--accent);font:inherit;font-weight:600;padding:4px 8px}
 .bp-l{overflow-y:auto;overscroll-behavior:contain;padding:6px 8px 12px}
 .bp-g{padding:10px 8px 4px;font-size:12px;font-weight:600;color:var(--muted)}
-.bp-i{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;min-height:48px;padding:12px;border-radius:12px}
+.bp-i{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);font:inherit;font-size:14px;line-height:1.4;font-weight:500;min-height:44px;padding:10px 12px;border-radius:12px}
 .bp-i[aria-selected=true]{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .bp-i:disabled{opacity:.5}
 /* label mapel/modul yang panjang tidak lagi terpotong: turun baris di dalam kartu */
