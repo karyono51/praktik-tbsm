@@ -3,9 +3,12 @@
    (Lampiran 2), daftar tempat PKL. Guru/Admin: Tempat PKL (perjanjian kerja sama, instruktur, kuota, koordinat), Penempatan, Absensi, Jurnal (catatan
    pembimbing), Kunjungan monitoring (minimal sebulan sekali), Nilai (4 TP, Lampiran 4-5), Kelengkapan per siswa, Rekap, dan unduh Excel.
    Penyimpanan: mode lokal di localStorage 'tbsm-pkl'; mode Appwrite di koleksi pkl (tempat, penempatan), pkl_catat (absen, jurnal; dibuat siswa),
-   pkl_nilai (kunjungan, nilai, kelengkapan; hanya guru/admin). Selfie dikecilkan (maks 480 px, sekitar 40 KB) dan disimpan di payload absen. */
+   pkl_nilai (kunjungan, nilai, kelengkapan; hanya guru/admin). Selfie dikecilkan (maks 480 px, sekitar 40 KB). Bila fungsi foto-drive terpasang, selfie diunggah ke Google Drive dan payload hanya menyimpan
+   'drive:<fileId>' (ditampilkan lewat aksi getpkl); bila belum terpasang, selfie tetap disimpan di payload absen.
+   PDF (jsPDF): Daftar Nilai PKL per siswa (Lampiran 5) dan Jurnal PKL (Lampiran 2). */
 var PKC={tempat:'pkl',tugas:'pkl',absen:'pkl_catat',jurnal:'pkl_catat',kunjungan:'pkl_nilai',nilai:'pkl_nilai',cek:'pkl_nilai'};
 var PKKEY='tbsm-pkl',PKFOTO=40000;
+var PKD={cache:{},loading:{},failed:{},q:[],run:0,off:false,tm:0};
 var PK={D:{tempat:[],tugas:[],absen:[],jurnal:[],kunjungan:[],nilai:[],cek:[]},loaded:false,loading:false,err:[],tab:'tempat',mode:'list',f:null,fk:'',gps:null,gpsMsg:'',ft:''};
 ICO.pkl='<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/>';
 var PK_TIPE={masuk:'Masuk',pulang:'Pulang',izin:'Izin',sakit:'Sakit'};
@@ -23,7 +26,7 @@ function pkById(k,id){return PK.D[k].filter(function(x){return x.id===id})[0]||n
 function pkSaveLocal(){
  var out={};
  Object.keys(PK.D).forEach(function(k){out[k]=PK.D[k].map(function(o){
-  if(Cloud.on&&o.r&&!o.d&&o.foto){var c=Object.assign({},o);delete c.foto;c.fotoAda=1;return c}return o})});
+  if(Cloud.on&&o.r&&!o.d&&typeof o.foto==='string'&&o.foto.indexOf('data:')===0){var c=Object.assign({},o);delete c.foto;c.fotoAda=1;return c}return o})});
  try{localStorage.setItem(PKKEY,JSON.stringify(out))}catch(e){toast('Penyimpanan perangkat penuh: data PKL tidak tersalin di perangkat.')}
 }
 function pkLoadLocal(){
@@ -38,10 +41,41 @@ function pkParse(d){
  var o={};try{o=JSON.parse(d.payload||'{}')}catch(e){}
  o.id=d.$id;o.jenis=d.jenis;o.ts=d.ts;o.sid=d.sid||o.sid||'';o.tanggal=d.tanggal||o.tanggal||'';o.sekolah=d.sekolah||o.sekolah||'';o.r=1;o.d=0;return o;
 }
+function pkSlug(x,n){return String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,n)}
+/* Unggah selfie ke Drive lewat fungsi foto-drive (ldCall di lkpd-drive.js). Fungsi belum dipasang: selfie tetap di payload. Galat lain: dilempar, absen diulang nanti. */
+async function pkUploadFoto(o){
+ if(!Cloud.on||PKD.off||typeof ldCall!=='function'||typeof o.foto!=='string'||o.foto.indexOf('data:')!==0)return;
+ var u=pkUser(o.sid)||S.user||{},nama=['PKL',pkSlug(o.kelas||u.kelas,8),pkSlug(o.nama||u.nama,30),o.tipe,String(o.tanggal||'').replace(/-/g,'')+'-'+String(o.jam||'').replace(':',''),pkSlug(String(o.id).slice(-4),4)].filter(Boolean).join('_');
+ try{
+  var r=await ldCall({action:'upload',data:o.foto,nama:nama});
+  PKD.cache[r.fileId]=o.foto;o.foto='drive:'+r.fileId;
+ }catch(e){
+  if(e&&(e.code===404||/could not be found|not found/i.test(e.message||''))&&!e.status){PKD.off=true;return}
+  throw e;
+ }
+}
+/* Sumber gambar selfie: data URL langsung, atau dari Drive (diambil bertahap, maks 3 sekaligus) */
+function pkFotoSrc(a){
+ var f=a&&a.foto||'';if(f.indexOf('drive:')!==0)return f;
+ var id=f.slice(6);if(PKD.cache[id])return PKD.cache[id];
+ if(typeof ldCall==='function'&&!PKD.loading[id]&&!(PKD.failed[id]&&Date.now()-PKD.failed[id]<30000)){PKD.loading[id]=1;PKD.q.push([a.id,id]);pkPump()}
+ return '';
+}
+function pkPump(){
+ while(PKD.run<3&&PKD.q.length){
+  var j=PKD.q.shift();PKD.run++;
+  (function(docId,id){
+   ldCall({action:'getpkl',docId:docId,fileId:id}).then(function(r){PKD.cache[id]=r.data}).catch(function(){PKD.failed[id]=Date.now()})
+    .then(function(){PKD.run--;delete PKD.loading[id];pkPump();if(!PKD.tm){PKD.tm=setTimeout(function(){PKD.tm=0;if(S.tab==='pkl'&&PK.mode!=='form')render()},200)}});
+  })(j[0],j[1]);
+ }
+}
 async function pkRemote(k,o){
  if(!Cloud.on||!Cloud.db)return true;
- var col=PKC[k],data=pkPack(k,o);
+ var col=PKC[k];
  try{
+  if(k==='absen')await pkUploadFoto(o);
+  var data=pkPack(k,o);
   if(!o.r){
    try{await Cloud.db.createDocument(CFG.DB,col,o.id,data)}
    catch(e){if(e&&e.code===409)await Cloud.db.updateDocument(CFG.DB,col,o.id,data);else throw e}
@@ -261,14 +295,14 @@ function pkSiswaView(){
   h+='<div class="stats"><div class="card"><span class="label">Hadir</span><b class="mono">'+r.hadir+'</b></div><div class="card"><span class="label">Izin · Sakit</span><b class="mono">'+r.izin+' · '+r.sakit+'</b></div><div class="card"><span class="label">Tanpa ket.</span><b class="mono">'+r.alpa+'</b></div></div>';
  }
  h+='<div class="card"><b>Riwayat absen</b>'+(mine.length?mine.slice(0,12).map(pkAbsenBaris).join(''):'<div class="note">Belum ada absen.</div>')+'</div>';
- h+='<div class="card"><b>Jurnal kegiatan</b>'+(jr.length?jr.slice(0,15).map(function(j){return pkJurnalBaris(j,false)}).join(''):'<div class="note">Belum ada jurnal.</div>')+'</div>';
+ h+='<div class="card"><b>Jurnal kegiatan</b>'+(jr.length?'<div class="row"><button type="button" class="btn small" data-act="pkl-pdf-jurnal" data-v="'+esc(me.id)+'">PDF jurnal saya</button></div>':'')+(jr.length?jr.slice(0,15).map(function(j){return pkJurnalBaris(j,false)}).join(''):'<div class="note">Belum ada jurnal.</div>')+'</div>';
  var T=pkList('tempat');
  h+='<div class="card"><details><summary><b>Daftar tempat PKL ('+T.length+')</b></summary>'+(T.length?T.map(function(x){return pkTempatCard(x,false)}).join(''):'<div class="note">Belum ada tempat PKL.</div>')+'</details></div>';
  return h;
 }
 function pkAbsenBaris(a){
  var lok=a.lokasi==='ya'?pkPill('ok','Di lokasi'):a.lokasi==='tidak'?pkPill('warn','Di luar lokasi'+(a.jarak!=null?' ±'+a.jarak+' m':'')):'';
- return '<div class="pk-row" style="padding:6px 0;border-top:1px solid var(--line)">'+(a.foto?'<img class="pk-th" data-act="pkl-zoom" data-v="'+esc(a.id)+'" src="'+a.foto+'" alt="Selfie '+esc(a.nama||'')+'">':(a.fotoAda?'<div class="pk-th pk-kosong">foto</div>':''))+
+ return '<div class="pk-row" style="padding:6px 0;border-top:1px solid var(--line)">'+(function(){var src=pkFotoSrc(a);return src?'<img class="pk-th" data-act="pkl-zoom" data-v="'+esc(a.id)+'" src="'+src+'" alt="Selfie '+esc(a.nama||'')+'">':((a.foto||a.fotoAda)?'<div class="pk-th pk-kosong">foto</div>':'')})()+
   '<div class="note" style="flex:1"><b>'+esc(PK_TIPE[a.tipe]||a.tipe)+'</b> · '+esc(a.tanggal)+' '+esc(a.jam||'')+(a.nama&&isStaff()?' · '+esc(a.nama)+(a.kelas?' ('+esc(a.kelas)+')':''):'')+' '+lok+(a.cat?'<br>'+esc(a.cat):'')+(a.r?'':'<br>'+pkPill('warn','Belum terkirim'))+'</div></div>';
 }
 function pkJurnalBaris(j,staff){
@@ -327,10 +361,10 @@ function pkTabKunjungan(){
 }
 function pkTabNilai(){
  var N=pkList('nilai').sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
- return '<div class="card"><b>Nilai PKL ('+N.length+')</b><div class="note">Empat TP (Lampiran 4 dan 5 panduan). Kehadiran diambil otomatis dari absensi.</div>'+pkTambah('nilai','Nilai baru')+
+ return '<div class="card"><b>Nilai PKL ('+N.length+')</b><div class="note">Empat TP (Lampiran 4 dan 5 panduan). Kehadiran diambil otomatis dari absensi.</div>'+pkTambah('nilai','Nilai baru').replace('</div>',N.length?'<button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="semua">PDF semua nilai</button></div>':'</div>')+
   (N.length?N.map(function(n){var v=pkNilaiAkhir(n),r=pkRekap(n.sid),tp=pkTP();return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="note"><b>'+esc(n.nama||'')+'</b>'+(n.kelas?' ('+esc(n.kelas)+')':'')+' · '+esc(pkTempatNama(n.tempatId))+
    '<br>'+[1,2,3,4].map(function(i){return 'TP'+i+': '+(n['tp'+i]===''||n['tp'+i]==null?'-':n['tp'+i])}).join(' · ')+'<br>Nilai akhir: <b>'+(v==null?'-':v)+'</b> '+(v==null?'':pkPill(v>=75?'ok':'warn',pkPredikat(v)))+
-   '<br>Kehadiran: sakit '+r.sakit+', izin '+r.izin+', tanpa keterangan '+r.alpa+(n.catGuru?'<br>Guru: '+esc(n.catGuru):'')+(n.catInstr?'<br>Instruktur: '+esc(n.catInstr):'')+'</div>'+pkAksi('nilai',n.id)+'</div>'}).join(''):'<div class="note">Belum ada nilai.</div>')+'</div>';
+   '<br>Kehadiran: sakit '+r.sakit+', izin '+r.izin+', tanpa keterangan '+r.alpa+(n.catGuru?'<br>Guru: '+esc(n.catGuru):'')+(n.catInstr?'<br>Instruktur: '+esc(n.catInstr):'')+'</div>'+pkAksi('nilai',n.id).replace('</div>','<button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="'+esc(n.sid)+'">PDF</button></div>')+'</div>'}).join(''):'<div class="note">Belum ada nilai.</div>')+'</div>';
 }
 function pkCekOf(sid){return pkById('cek','cek_'+sid)}
 function pkTabCek(){
@@ -350,8 +384,8 @@ function pkTabRekap(){
  var R=pkRekapBaris();
  return '<div class="card"><b>Rekap PKL per siswa</b><div class="row"><button type="button" class="btn small primary" data-act="pkl-xls">Unduh Excel</button></div>'+
   '<div class="note">Tanpa keterangan = hari kerja Senin-Jumat sejak mulai PKL dikurangi hadir, izin, dan sakit (perkiraan; hari libur belum dikurangi).</div>'+
-  '<div class="akd-twrap"><table class="akd-tbl akd-tbl-l"><thead><tr><th>Siswa</th><th>Tempat</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>T.ket</th><th>Di luar lokasi</th><th>Jurnal</th><th>Kelengkapan</th><th>Nilai</th></tr></thead><tbody>'+
-  (R.length?R.map(function(x){return '<tr><td>'+esc(pkNm(x.g))+'</td><td>'+esc(pkTempatNama(x.g.tempatId))+'</td><td>'+x.r.hadir+'</td><td>'+x.r.izin+'</td><td>'+x.r.sakit+'</td><td>'+x.r.alpa+'</td><td>'+x.r.luar+'</td><td>'+x.jurnal+'</td><td>'+x.cek+'/'+PK_CEK.length+'</td><td>'+(x.nilai==null?'-':x.nilai)+'</td></tr>'}).join(''):'<tr><td colspan="10">Belum ada penempatan.</td></tr>')+'</tbody></table></div></div>';
+  '<div class="akd-twrap"><table class="akd-tbl akd-tbl-l"><thead><tr><th>Siswa</th><th>Tempat</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>T.ket</th><th>Di luar lokasi</th><th>Jurnal</th><th>Kelengkapan</th><th>Nilai</th><th>PDF</th></tr></thead><tbody>'+
+  (R.length?R.map(function(x){return '<tr><td>'+esc(pkNm(x.g))+'</td><td>'+esc(pkTempatNama(x.g.tempatId))+'</td><td>'+x.r.hadir+'</td><td>'+x.r.izin+'</td><td>'+x.r.sakit+'</td><td>'+x.r.alpa+'</td><td>'+x.r.luar+'</td><td>'+x.jurnal+'</td><td>'+x.cek+'/'+PK_CEK.length+'</td><td>'+(x.nilai==null?'-':x.nilai)+'</td><td><button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="'+esc(x.g.sid)+'">Nilai</button> <button type="button" class="btn small" data-act="pkl-pdf-jurnal" data-v="'+esc(x.g.sid)+'">Jurnal</button></td></tr>'}).join(''):'<tr><td colspan="11">Belum ada penempatan.</td></tr>')+'</tbody></table></div></div>';
 }
 function pkXls(){
  if(typeof XLSX==='undefined'){toast('Pustaka Excel belum termuat.');return}
@@ -365,6 +399,86 @@ function pkXls(){
  sh('Nilai',pkList('nilai').map(function(n){var o={Siswa:n.nama||'',Kelas:n.kelas||'',Tempat:pkTempatNama(n.tempatId)};[1,2,3,4].forEach(function(i){o['TP'+i+' '+tp[i-1]]=n['tp'+i]==null?'':n['tp'+i]});o['Nilai akhir']=pkNilaiAkhir(n)==null?'':pkNilaiAkhir(n);o.Predikat=pkPredikat(pkNilaiAkhir(n));o['Catatan guru']=n.catGuru||'';o['Catatan instruktur']=n.catInstr||'';return o}));
  sh('Kelengkapan',pkList('tugas').filter(function(x){return x.status!=='dibatalkan'}).map(function(g){var c=pkCekOf(g.sid),o={Siswa:pkNm(g),Tempat:pkTempatNama(g.tempatId)};PK_CEK.forEach(function(x){o[x[1]]=c&&c.items&&c.items[x[0]]?'Ya':'Belum'});return o}));
  XLSX.writeFile(wb,'pkl-'+(typeof schKode==='function'&&schKode()||'semua').toLowerCase()+'-'+pkToday()+'.xlsx');
+}
+
+
+/* ---------- PDF: Daftar Nilai PKL (Lampiran 5) dan Jurnal PKL (Lampiran 2) ---------- */
+function pkTgl(s){if(!s)return '-';var d=new Date(s+'T00:00:00');return isNaN(d.getTime())?String(s):d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}
+function pkTglHari(s){if(!s)return '-';var d=new Date(s+'T00:00:00');return isNaN(d.getTime())?String(s):d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'short',year:'numeric'})}
+function pkPdfSiap(){
+ if(typeof needP==='function')return needP();
+ if(window.jspdf&&window.jspdf.jsPDF)return true;toast('Pustaka PDF belum termuat.');return false;
+}
+var PK_TH={fillColor:[11,107,58],textColor:255,fontStyle:'bold'};
+function pkAscii(x){return String(x==null?'':x).replace(/[\u2013\u2014]/g,'-').replace(/[\u2018\u2019]/g,"'").replace(/[\u201c\u201d]/g,'"').replace(/\u00b7/g,'-')}
+function pkKop(doc,judul){
+ var W=doc.internal.pageSize.getWidth(),sc=typeof schEf==='function'?schEf():{nama:'',alamat:'',program:''};
+ try{if(sc.logo)doc.addImage(sc.logo,'JPEG',14,10,18,18)}catch(e){}
+ doc.setFont('helvetica','bold').setFontSize(13).text(pkAscii(sc.nama).toUpperCase(),36,16);
+ doc.setFont('helvetica','normal').setFontSize(8.5).text(pkAscii(sc.alamat),36,21);
+ doc.setDrawColor(200).line(14,31,W-14,31);
+ doc.setFont('helvetica','bold').setFontSize(12).text(judul,W/2,40,{align:'center'});doc.setFont('helvetica','normal');
+}
+function pkTtd(doc,y,kiri,kanan){
+ var W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+ if(y>H-55){doc.addPage();y=24}
+ doc.setFontSize(10).setTextColor(0);
+ doc.text('Bandung, '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}),W-50,y,{align:'center'});
+ doc.text(kiri[0],50,y+6,{align:'center'});doc.text(kanan[0],W-50,y+6,{align:'center'});
+ doc.text('('+pkAscii(kiri[1]||'..............................')+')',50,y+30,{align:'center'});doc.text('('+pkAscii(kanan[1]||'..............................')+')',W-50,y+30,{align:'center'});
+}
+function pkPdfFoot(doc){
+ var n=doc.getNumberOfPages(),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+ for(var i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(8).setTextColor(120).text('KBM Praktik TBSM - PKL - dicetak '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}),14,H-8).text('Halaman '+i+'/'+n,W-14,H-8,{align:'right'})}
+ doc.setTextColor(0);
+}
+function pkPdfIdent(doc,rows,y){
+ doc.autoTable({startY:y,theme:'plain',styles:{fontSize:10,cellPadding:1},columnStyles:{0:{cellWidth:48,fontStyle:'bold'},1:{cellWidth:4}},body:rows.map(function(r){return [pkAscii(r[0]),':',pkAscii(r[1])]})});
+ return doc.lastAutoTable.finalY;
+}
+function pkIdentSiswa(sid){
+ var u=pkUser(sid)||{},tg=pkTugasSiswa(sid),tp=tg&&pkById('tempat',tg.tempatId),gu=tg&&tg.guruId&&pkUser(tg.guruId),sc=typeof schEf==='function'?schEf():{};
+ var nis='';try{nis=typeof akNis==='function'?akNis(u):''}catch(e){}
+ return {u:u,tg:tg,tp:tp,guru:gu?gu.nama:(tg&&tg.guruNama)||'',instr:(tg&&tg.instruktur)||(tp&&tp.instruktur)||'',
+  rows:[['Nama peserta didik',u.nama||'-'],['NISN/NIS',nis||'-'],['Kelas',u.kelas||'-'],['Program keahlian',sc.program||'-'],['Tempat PKL',tp?tp.nama:'-'],
+   ['Tanggal PKL','Mulai: '+pkTgl(tg&&tg.mulai)+'   Selesai: '+pkTgl(tg&&tg.selesai)],['Nama instruktur',(tg&&tg.instruktur)||(tp&&tp.instruktur)||'-'],['Nama pembimbing',gu?gu.nama:((tg&&tg.guruNama)||'-')]]};
+}
+function pkPdfNilaiHal(doc,sid){
+ var n=pkList('nilai').filter(function(x){return x.sid===sid})[0],I=pkIdentSiswa(sid),tp=pkTP(),v=pkNilaiAkhir(n),r=pkRekap(sid);
+ pkKop(doc,'DAFTAR NILAI PESERTA DIDIK MATA PELAJARAN PKL');
+ var d0=new Date(),y0=d0.getMonth()>=6?d0.getFullYear():d0.getFullYear()-1;
+ var y=pkPdfIdent(doc,[['Tahun ajaran',y0+'/'+(y0+1)]].concat(I.rows),44)+4;
+ var body=[1,2,3,4].map(function(i){var sk=n['tp'+i],ada=!(sk===''||sk==null);return [i+'. '+pkAscii(tp[i-1]),ada?String(sk):'-',ada?pkPredikat(+sk):'']});
+ body.push([{content:'Nilai akhir (rata-rata)',styles:{fontStyle:'bold'}},{content:v==null?'-':String(v),styles:{fontStyle:'bold'}},{content:v==null?'':pkPredikat(v),styles:{fontStyle:'bold'}}]);
+ doc.autoTable({startY:y,theme:'grid',styles:{fontSize:9.5,cellPadding:2.2},headStyles:PK_TH,head:[['Tujuan Pembelajaran','Skor','Deskripsi']],body:body,columnStyles:{0:{cellWidth:100},1:{cellWidth:18,halign:'center'}}});
+ y=doc.lastAutoTable.finalY+5;
+ var cat=[n.catGuru?'Guru pembimbing: '+n.catGuru:'',n.catInstr?'Instruktur: '+n.catInstr:''].filter(Boolean).join('\n');
+ doc.autoTable({startY:y,theme:'grid',styles:{fontSize:9.5,cellPadding:2.2},headStyles:PK_TH,head:[['Catatan']],body:[[pkAscii(cat)||'-']]});
+ y=doc.lastAutoTable.finalY+5;
+ doc.autoTable({startY:y,theme:'grid',styles:{fontSize:9.5,cellPadding:2.2},headStyles:PK_TH,head:[['Kehadiran','Hari']],body:[['Sakit',String(r.sakit)],['Izin',String(r.izin)],['Tanpa keterangan',String(r.alpa)]],columnStyles:{0:{cellWidth:60},1:{cellWidth:25,halign:'center'}},tableWidth:85});
+ pkTtd(doc,doc.lastAutoTable.finalY+10,['Guru Pembimbing',I.guru],['Pembimbing Dunia Kerja',I.instr]);
+}
+function pkPdfNilai(sids){
+ if(!pkPdfSiap())return;
+ var L=sids.filter(function(sid){return pkList('nilai').some(function(x){return x.sid===sid})});
+ if(!L.length){toast('Belum ada nilai PKL untuk dicetak.');return}
+ var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+ L.forEach(function(sid,i){if(i)doc.addPage();pkPdfNilaiHal(doc,sid)});
+ pkPdfFoot(doc);
+ var u=pkUser(L[0]);doc.save('Nilai-PKL-'+(L.length>1?'semua':pkSlug((u&&u.nama)||'siswa',30))+'.pdf');
+}
+function pkPdfJurnal(sid){
+ if(!pkPdfSiap())return;
+ var J=pkList('jurnal').filter(function(x){return x.sid===sid}).sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))}),I=pkIdentSiswa(sid);
+ if(!J.length){toast('Belum ada jurnal untuk dicetak.');return}
+ var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+ pkKop(doc,'JURNAL KEGIATAN PRAKTIK KERJA LAPANGAN');
+ var y=pkPdfIdent(doc,[I.rows[0],I.rows[2],I.rows[4],I.rows[5],I.rows[6],I.rows[7]],44)+4;
+ doc.autoTable({startY:y,theme:'grid',styles:{fontSize:8.5,cellPadding:2,valign:'top'},headStyles:PK_TH,head:[['No','Hari/Tanggal','Unit kerja/Pekerjaan','Uraian kegiatan','Catatan']],
+  body:J.map(function(j,i){return [String(i+1),pkAscii(pkTglHari(j.tanggal)),pkAscii(j.unit),pkAscii(j.uraian),pkAscii(j.cat||'')]}),columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:30},2:{cellWidth:34},4:{cellWidth:38}}});
+ pkTtd(doc,doc.lastAutoTable.finalY+10,['Guru Pembimbing',I.guru],['Instruktur Dunia Kerja',I.instr]);
+ pkPdfFoot(doc);
+ doc.save('Jurnal-PKL-'+pkSlug((I.u&&I.u.nama)||'siswa',30)+'.pdf');
 }
 
 /* ---------- Tampilan utama ---------- */
@@ -420,9 +534,9 @@ function pkCekToggle(sid,key,val){
  var u=pkUser(sid);c.nama=u?u.nama:c.nama||'';pkPut('cek',c);
 }
 function pkZoom(id){
- var a=pkById('absen',id);if(!a||!a.foto)return;
+ var a=pkById('absen',id),src=a&&pkFotoSrc(a);if(!src){toast('Foto sedang dimuat. Coba lagi sebentar.');return}
  var ov=document.createElement('div');ov.className='pk-zoom';ov.setAttribute('role','dialog');ov.setAttribute('aria-label','Selfie absen');
- ov.innerHTML='<img src="'+a.foto+'" alt="Selfie '+esc(a.nama||'')+'">';ov.addEventListener('click',function(){ov.remove()});document.body.appendChild(ov);
+ ov.innerHTML='<img src="'+src+'" alt="Selfie '+esc(a.nama||'')+'">';ov.addEventListener('click',function(){ov.remove()});document.body.appendChild(ov);
 }
 document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-act^="pkl-"]');if(!b||!S.user)return;
@@ -443,6 +557,8 @@ document.addEventListener('click',function(e){
  else if(a==='pkl-absen-kirim')pkAbsenKirim();
  else if(a==='pkl-zoom')pkZoom(v);
  else if(a==='pkl-xls')pkXls();
+ else if(a==='pkl-pdf-nilai'){if(!isStaff())return;pkPdfNilai(v==='semua'?pkList('nilai').map(function(x){return x.sid}):[v])}
+ else if(a==='pkl-pdf-jurnal'){if(!isStaff()&&v!==S.user.id)return;pkPdfJurnal(v)}
 });
 document.addEventListener('input',function(e){
  var t=e.target;if(!t||!t.dataset||PK.mode==='list')return;

@@ -30,7 +30,7 @@ function boot(opt = {}) {
       list: async (col, extra) => { log.list.push([col, extra]); return dbDocs.filter((d) => d._col === col).map((d) => ({ ...d })); },
       db: { createDocument: async (db, col, id, doc) => { log.create.push({ col, id, doc }); dbDocs.push({ $id: id, _col: col, ...doc }); },
         updateDocument: async (db, col, id, doc) => { log.update.push({ col, id, doc }); } } },
-    XLSX: null,
+    XLSX: null, ...(opt.ctx || {}),
   };
   vm.createContext(ctx);
   vm.runInContext(baca('js/pkl.js') + '\n;this.PK=PK;', ctx);
@@ -149,6 +149,115 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   b.klik('pkl-new', { k: 'tempat' }); T('kepsek: tambah data diblokir', x.PK.mode === 'list' && b.log.toast.some((m) => /hanya dapat melihat/.test(m)));
   b.klik('pkl-del', { k: 'tempat', v: 't1' }); T('kepsek: hapus diblokir', x.PK.D.tempat.length === 1);
   T('kepsek: tampilan tetap bisa dibuka', /pkl-tab/.test(x.viewPkl()));
+
+
+  console.log('Selfie ke Drive (foto-drive)');
+  {
+    const calls = [];
+    const ld = async (p) => { calls.push(p); if (p.action === 'upload') return { ok: true, fileId: 'FILEIDABC123' }; if (p.action === 'getpkl') return { ok: true, data: 'data:image/jpeg;base64,ZZZ' }; throw new Error('?'); };
+    let d = boot({ peran: 'siswa', cloud: true, ctx: { ldCall: ld } }); let x = d.ctx;
+    x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas());
+    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    const up = calls.find((c) => c.action === 'upload'), cr = d.log.create[0];
+    T('selfie diunggah ke Drive dengan nama PKL_Kelas_Nama_jenis_waktu', up && /^PKL_XII_Ani_masuk_20261126-\d{4}_[A-Za-z0-9]+$/.test(up.nama) && up.data.startsWith('data:image/jpeg'), up);
+    T('payload absen hanya menyimpan penanda drive:<fileId> (database tidak terisi foto)', cr && JSON.parse(cr.doc.payload).foto === 'drive:FILEIDABC123' && cr.doc.payload.length < 800, cr && cr.doc.payload.slice(0, 200));
+    T('selfie yang baru diunggah langsung tampil dari cache tanpa unduh ulang', x.pkFotoSrc(x.PK.D.absen[0]).startsWith('data:image/jpeg') && !calls.some((c) => c.action === 'getpkl'));
+    T('salinan perangkat menyimpan penanda drive (bukan hilang)', JSON.parse(d.store['tbsm-pkl']).absen[0].foto === 'drive:FILEIDABC123');
+    const asing = { id: 'absX', foto: 'drive:OTHERFILE9999' };
+    T('selfie dari Drive belum ada di cache: kosong dulu, lalu diminta lewat getpkl dengan docId dan fileId', x.pkFotoSrc(asing) === '' && calls.some((c) => c.action === 'getpkl' && c.docId === 'absX' && c.fileId === 'OTHERFILE9999'));
+    await new Promise((r) => setImmediate(r)); await new Promise((r) => setImmediate(r));
+    T('setelah selesai dimuat, selfie tampil dari cache', x.pkFotoSrc(asing) === 'data:image/jpeg;base64,ZZZ');
+    const bnyk = []; for (let i = 0; i < 8; i++) bnyk.push({ id: 'q' + i, foto: 'drive:BANYAKFILE' + i + 'XXXX' });
+    let aktif = 0, maks = 0; x.ldCall = async () => { aktif++; maks = Math.max(maks, aktif); await new Promise((r) => setImmediate(r)); aktif--; return { ok: true, data: 'data:image/jpeg;base64,A' }; };
+    bnyk.forEach((a) => x.pkFotoSrc(a)); for (let i = 0; i < 30; i++) await new Promise((r) => setImmediate(r));
+    T('pengambilan foto dari Drive dibatasi 3 sekaligus', maks > 0 && maks <= 3, maks);
+    // fungsi belum dipasang: selfie tetap di payload
+    d = boot({ peran: 'siswa', cloud: true, ctx: { ldCall: async () => { const e = new Error('Function with the requested ID could not be found'); e.code = 404; throw e; } } }); x = d.ctx;
+    x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas());
+    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    T('fungsi foto-drive belum dipasang: selfie tetap tersimpan di payload dan absen terkirim', d.log.create[0] && JSON.parse(d.log.create[0].doc.payload).foto.startsWith('data:image/jpeg') && x.PKD.off === true);
+    // galat lain: absen diulang, selfie tidak hilang
+    d = boot({ peran: 'siswa', cloud: true, ctx: { ldCall: async () => { const e = new Error('Google down'); e.status = 502; throw e; } } }); x = d.ctx;
+    x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas());
+    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    T('unggah Drive gagal (galat server): absen belum terkirim, selfie tetap utuh di perangkat untuk dicoba lagi', d.log.create.length === 0 && x.PK.D.absen[0].r !== 1 && x.PK.D.absen[0].foto.startsWith('data:image/jpeg') && JSON.parse(d.store['tbsm-pkl']).absen[0].foto.startsWith('data:image/jpeg'));
+  }
+
+  console.log('PDF nilai dan jurnal');
+  {
+    const saved = [], tabel = [], hal = { n: 0 };
+    class Doc { constructor() { this.internal = { pageSize: { getWidth: () => 210, getHeight: () => 297 } }; }
+      setFont() { return this; } setFontSize() { return this; } setDrawColor() { return this; } setTextColor() { return this; } text(...a) { (this.txt = this.txt || []).push(String(a[0])); return this; } line() { return this; } addImage() { return this; }
+      addPage() { hal.n++; return this; } setPage() { return this; } getNumberOfPages() { return hal.n + 1; } save(n) { saved.push(n); }
+      autoTable(o) { tabel.push(o); this.lastAutoTable = { finalY: 120 }; } }
+    const pdfCtx = { window: { addEventListener() {}, jspdf: { jsPDF: Doc } }, schEf: () => ({ nama: 'SMKS Medina', alamat: 'Jl. X', program: 'Teknik Otomotif', logo: '' }), akNis: () => '0012345' };
+    let d = boot({ peran: 'guru', ctx: pdfCtx }); let x = d.ctx;
+    x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas(), tugas({ id: 'g2x', sid: 's2' }));
+    x.PK.D.nilai.push({ id: 'n1', sid: 's1', nama: 'Ani', tp1: 80, tp2: 90, tp3: '', tp4: 70, catGuru: 'Rajin', catInstr: 'Disiplin', r: 1 }, { id: 'n2', sid: 's2', nama: 'Budi', tp1: 60, tp2: 60, tp3: 60, tp4: 60, r: 1 });
+    x.PK.D.jurnal.push({ id: 'j1', sid: 's1', nama: 'Ani', tanggal: '2026-11-03', unit: 'Servis berkala', uraian: 'Ganti oli – filter', cat: 'Bagus', r: 1 }, { id: 'j0', sid: 's1', nama: 'Ani', tanggal: '2026-11-02', unit: 'Orientasi', uraian: 'Mengenal bengkel', r: 1 });
+    d.klik('pkl-pdf-nilai', { v: 's1' });
+    T('PDF nilai satu siswa tersimpan: Nilai-PKL-Ani.pdf', saved[0] === 'Nilai-PKL-Ani.pdf', saved);
+    const th = tabel.find((o) => o.head && o.head[0][0] === 'Tujuan Pembelajaran');
+    T('PDF nilai: tabel TP, skor, deskripsi dengan 4 TP + nilai akhir 80', th && JSON.stringify(th.head) === '[["Tujuan Pembelajaran","Skor","Deskripsi"]]' && th.body.length === 5 && th.body[0][1] === '80' && th.body[2][1] === '-' && th.body[4][0].content === 'Nilai akhir (rata-rata)' && th.body[4][1].content === '80' && th.body[1][2] === 'Sangat baik', th && th.body);
+    const idn = tabel[0].body.map((r) => r[0] + r[2]).join('|');
+    T('PDF nilai: identitas (nama, NIS, kelas, program, tempat, periode, instruktur, pembimbing)', /Ani/.test(idn) && /0012345/.test(idn) && /XII/.test(idn) && /Teknik Otomotif/.test(idn) && /PT Maju Motor/.test(idn) && /Pak Dedi/.test(idn) && /Pak Guru/.test(idn) && /2 November 2026/.test(idn), idn);
+    T('PDF nilai: kehadiran dan catatan guru/instruktur ikut tercetak', tabel.some((o) => o.head && o.head[0][0] === 'Kehadiran' && o.body[2][0] === 'Tanpa keterangan') && tabel.some((o) => o.head && o.head[0][0] === 'Catatan' && /Rajin/.test(o.body[0][0]) && /Disiplin/.test(o.body[0][0])));
+    saved.length = 0; hal.n = 0; d.klik('pkl-pdf-nilai', { v: 'semua' });
+    T('PDF semua nilai: satu berkas, satu halaman per siswa', saved[0] === 'Nilai-PKL-semua.pdf' && hal.n === 1, [saved, hal.n]);
+    saved.length = 0; tabel.length = 0; d.klik('pkl-pdf-jurnal', { v: 's1' });
+    const tj = tabel.find((o) => o.head && o.head[0][0] === 'No');
+    T('PDF jurnal: Jurnal-PKL-Ani.pdf, diurutkan tanggal, tanda baca khusus diganti agar aman di PDF', saved[0] === 'Jurnal-PKL-Ani.pdf' && tj && tj.body.length === 2 && tj.body[0][3] === 'Mengenal bengkel' && tj.body[1][3] === 'Ganti oli - filter' && /Senin/.test(tj.body[0][1]), tj && tj.body);
+    saved.length = 0; d.klik('pkl-pdf-jurnal', { v: 's2' }); T('PDF jurnal tanpa data: tidak membuat berkas', saved.length === 0 && d.log.toast.some((m) => /Belum ada jurnal/.test(m)));
+    d = boot({ peran: 'siswa', ctx: pdfCtx }); x = d.ctx; x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas());
+    x.PK.D.jurnal.push({ id: 'j1', sid: 's1', nama: 'Ani', tanggal: '2026-11-03', unit: 'U', uraian: 'V', r: 1 }, { id: 'j2', sid: 's2', nama: 'Budi', tanggal: '2026-11-03', unit: 'U', uraian: 'V', r: 1 });
+    const s0 = saved.length; d.klik('pkl-pdf-jurnal', { v: 's2' }); T('siswa tidak bisa mencetak jurnal siswa lain', saved.length === s0);
+    d.klik('pkl-pdf-jurnal', { v: 's1' }); T('siswa bisa mencetak jurnal sendiri', saved.length === s0 + 1);
+    d.klik('pkl-pdf-nilai', { v: 's1' }); T('siswa tidak bisa mencetak daftar nilai', saved.length === s0 + 1);
+    T('tombol PDF jurnal ada di tampilan siswa', /pkl-pdf-jurnal/.test(x.viewPkl()));
+    d = boot({ peran: 'guru', ctx: pdfCtx }); x = d.ctx; x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas()); x.PK.D.nilai.push({ id: 'n1', sid: 's1', nama: 'Ani', tp1: 80, r: 1 });
+    x.PK.tab = 'nilai'; const vn = x.viewPkl(); x.PK.tab = 'rekap'; const vr = x.viewPkl();
+    T('tombol PDF ada di tab Nilai (per siswa dan semua) dan tab Rekap (Nilai, Jurnal)', /pkl-pdf-nilai" data-v="s1"/.test(vn) && /PDF semua nilai/.test(vn) && /pkl-pdf-nilai" data-v="s1">Nilai/.test(vr) && /pkl-pdf-jurnal" data-v="s1">Jurnal/.test(vr));
+    d = boot({ peran: 'guru' }); d.ctx.PK.D.nilai.push({ id: 'n1', sid: 's1', tp1: 80 }); d.klik('pkl-pdf-nilai', { v: 's1' });
+    T('pustaka PDF belum termuat: pesan, tanpa galat', d.log.toast.some((m) => /Pustaka PDF/.test(m)));
+  }
+
+  console.log('Fungsi foto-drive: aksi getpkl');
+  {
+    process.env.GOOGLE_CLIENT_ID = 'i'; process.env.GOOGLE_CLIENT_SECRET = 's'; process.env.GOOGLE_REFRESH_TOKEN = 'r'; process.env.APPWRITE_ENDPOINT = 'http://aw/v1'; process.env.APPWRITE_FUNCTION_PROJECT_ID = 'p';
+    const fn = (await import('../functions/foto-drive/src/main.js?' + Date.now())).default;
+    const aw = []; let docs = {}, labels = ['siswa'], driveHit = 0;
+    const asli = globalThis.fetch;
+    globalThis.fetch = async (url, opt = {}) => {
+      url = String(url);
+      if (url.includes('oauth2.googleapis.com')) return { ok: true, status: 200, json: async () => ({ access_token: 'tok', expires_in: 3600 }) };
+      if (url.includes('googleapis.com/drive/v3/files/')) { driveHit++; return { ok: true, status: 200, headers: { get: () => 'image/jpeg' }, arrayBuffer: async () => Buffer.from([0xff, 0xd8, 0xff, 0x01]) }; }
+      if (url.startsWith('http://aw/v1/users/')) { aw.push(url); return { ok: true, status: 200, json: async () => ({ labels }) }; }
+      if (url.startsWith('http://aw/v1/databases/tbsm/collections/pkl_catat/documents/')) {
+        aw.push({ url, h: opt.headers }); const id = decodeURIComponent(url.split('/').pop()); const dd = docs[id];
+        return dd ? { ok: true, status: 200, json: async () => dd } : { ok: false, status: 404, json: async () => ({ message: 'not found' }) };
+      }
+      throw new Error('fetch tak dikenal: ' + url);
+    };
+    const jalan = async (body, hdr) => { let out = null, code = 200; await fn({ req: { headers: { 'x-appwrite-user-id': 'u1', ...hdr }, bodyJson: body }, res: { json: (o, c) => { out = o; code = c || 200; return o; } }, error: () => {} }); return { out, code }; };
+    docs.DOC1 = { $id: 'DOC1', payload: JSON.stringify({ foto: 'drive:FILEIDABC123' }), $permissions: ['read("user:u1")'] };
+    let r = await jalan({ action: 'getpkl', docId: 'DOC1', fileId: 'FILEIDABC123' }, { 'x-appwrite-user-jwt': 'JWT' });
+    T('getpkl (JWT): dokumen dibaca atas nama pengguna, foto dikembalikan sebagai data URL', r.out.ok === true && r.out.data.startsWith('data:image/jpeg;base64,') && aw.some((a) => a.h && a.h['X-Appwrite-JWT'] === 'JWT'), r);
+    r = await jalan({ action: 'getpkl', docId: 'DOC1', fileId: 'LAINNYAFILE999' }, { 'x-appwrite-user-jwt': 'JWT' });
+    T('getpkl: fileId yang tidak sama dengan penanda di dokumen ditolak 404', r.code === 404 && r.out.ok === false);
+    const hit = driveHit; r = await jalan({ action: 'getpkl', docId: 'NOPE', fileId: 'FILEIDABC123' }, { 'x-appwrite-user-jwt': 'JWT' });
+    T('getpkl: dokumen tidak terbaca (izin Appwrite menolak) tidak menyentuh Drive', r.out.ok === false && driveHit === hit);
+    r = await jalan({ action: 'getpkl', docId: '../x', fileId: 'FILEIDABC123' }, { 'x-appwrite-user-jwt': 'JWT' }); T('getpkl: docId tidak valid ditolak 400', r.code === 400);
+    r = await jalan({ action: 'getpkl', docId: 'DOC1', fileId: 'pendek' }, { 'x-appwrite-user-jwt': 'JWT' }); T('getpkl: fileId tidak valid ditolak 400', r.code === 400);
+    docs.DOC2 = { $id: 'DOC2', payload: JSON.stringify({ foto: 'drive:FILEIDABC123' }), $permissions: ['read("user:lain")'] };
+    r = await jalan({ action: 'getpkl', docId: 'DOC2', fileId: 'FILEIDABC123' }, { 'x-appwrite-key': 'KEY' });
+    T('getpkl (mode kunci): non-guru yang bukan pemilik ditolak 403', r.code === 403, r);
+    labels = ['guru']; r = await jalan({ action: 'getpkl', docId: 'DOC2', fileId: 'FILEIDABC123' }, { 'x-appwrite-key': 'KEY' });
+    T('getpkl (mode kunci): guru boleh melihat', r.out.ok === true);
+    labels = ['siswa']; r = await jalan({ action: 'getpkl', docId: 'DOC1', fileId: 'FILEIDABC123' }, { 'x-appwrite-key': 'KEY' });
+    T('getpkl (mode kunci): pemilik boleh melihat', r.out.ok === true);
+    r = await fn({ req: { headers: {}, bodyJson: { action: 'getpkl' } }, res: { json: (o, c) => ({ o, c }) }, error() {} }); T('getpkl tanpa login ditolak 401', r.c === 401);
+    globalThis.fetch = asli;
+  }
 
   console.log('Konfigurasi');
   { const bb = boot({ peran: 'guru', cloud: true }); bb.ctx.PK.fk = 'tugas'; bb.ctx.PK.D.tempat.push(tempat({ id: 'tz', kuota: 5 })); bb.ctx.PK.f = { sid: 's2', tempatId: 'tz', mulai: '2026-11-02', selesai: '2027-05-02', status: 'aktif' }; bb.ctx.pkSimpan(); await new Promise((r) => setImmediate(r)); await new Promise((r) => setImmediate(r));

@@ -74,3 +74,7 @@ Fungsi yang sama dipakai untuk gambar soal. Dua aksi tambahan, dan **fungsi haru
 - `getsoal` dengan `fileId`: semua pengguna login boleh membaca, tetapi hanya berkas yang bertanda `kind=soal`. Foto bukti praktik tidak bisa dibaca lewat aksi ini; aksi `get` untuk foto bukti tidak berubah.
 
 Tanpa deploy ulang, soal bergambar tetap tersimpan di perangkat guru tetapi tidak terkirim (muncul pesan galat saat unggah), karena fungsi lama menolak `kind:'soal'` sebagai foto biasa. Uji: `node tools/uji-gambar.mjs`.
+
+## Selfie absen PKL (fungsi v1.2.0)
+Aksi baru `getpkl` `{docId, fileId}` menampilkan selfie absen PKL dari Drive. Dokumen `pkl_catat` dibaca atas nama pengguna (JWT), jadi hanya guru/admin atau pemilik absen yang berhasil; penanda `foto` di payload dokumen harus `drive:<fileId>`. Unggah memakai aksi `upload` yang sama. Tidak ada variabel lingkungan atau scope baru. Perbarui fungsi dengan mengunggah `functions/foto-drive.tar.gz` (Functions > foto-drive > Deployments > Create deployment, Entrypoint `src/main.js`, Build command `npm install`, lalu Activate). Lihat `docs-PKL.md`.
+

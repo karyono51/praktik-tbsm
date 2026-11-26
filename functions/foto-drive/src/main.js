@@ -9,6 +9,8 @@
      ping:   {action:'ping'} -> {ok:true, google:true, folder:true, pakaiMB, batasMB}   (cek token Google dan folder Drive)
      get:    {action:'get', lkpdId, fileId}                          -> {ok:true, data:'data:...'}
              hanya guru/admin (label) atau pemilik foto (izin baca dokumen lkpd_bukti).
+     getpkl: {action:'getpkl', docId, fileId}                          -> {ok:true, data:'data:...'}   (selfie absen PKL; dokumen pkl_catat dibaca atas nama pengguna,
+             jadi hanya guru/admin atau pemilik absen; penanda foto di payload harus 'drive:<fileId>')
      Gambar soal (bank soal):
      upload: {action:'upload', kind:'soal', data, nama}              -> {ok:true, fileId}   (hanya guru/admin; berkas ditandai kind=soal)
      getsoal:{action:'getsoal', fileId}                                -> {ok:true, data:'data:...'}   (semua pengguna login, tetapi hanya berkas bertanda kind=soal,
@@ -146,6 +148,29 @@ async function get(callerId, body, auth, asUser) {
   return { ok: true, data: 'data:' + (/^image\//.test(mime) ? mime : 'image/jpeg') + ';base64,' + b64 };
 }
 
+/* Selfie absen PKL: dokumen pkl_catat dibaca atas nama pengguna (JWT) sehingga izin Appwrite (guru/admin atau pemilik) yang menentukan.
+   Penanda foto di payload dokumen harus 'drive:<fileId>' agar fileId lain tidak bisa diminta. */
+async function getPkl(callerId, body, auth, asUser) {
+  const fileId = String(body.fileId || ''), docId = String(body.docId || '');
+  if (!ID_RE.test(fileId) || !/^[A-Za-z0-9_-]{1,36}$/.test(docId)) throw new Fail('Permintaan tidak valid.', 400);
+  const doc = await aw('/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/pkl_catat/documents/' + encodeURIComponent(docId), auth);
+  let foto = '';
+  try { foto = String(JSON.parse(doc.payload || '{}').foto || ''); } catch (e) { /* payload rusak */ }
+  if (foto !== 'drive:' + fileId) throw new Fail('Foto tidak ditemukan atau Anda tidak berhak melihatnya.', 404);
+  if (!asUser) {
+    const caller = await aw('/users/' + encodeURIComponent(callerId), auth);
+    const staff = (caller.labels || []).some((l) => l === 'guru' || l === 'admin');
+    const own = (doc.$permissions || []).includes('read("user:' + callerId + '")');
+    if (!staff && !own) throw new Fail('Tidak berhak melihat foto ini.', 403);
+  }
+  const tok = await accessToken();
+  const r = await gfetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?alt=media', {}, tok);
+  if (!r.ok) throw new Fail('Foto tidak bisa diambil dari Drive (' + r.status + ').', r.status === 404 ? 404 : 502);
+  const mime = (r.headers.get('content-type') || 'image/jpeg').split(';')[0];
+  const b64 = Buffer.from(await r.arrayBuffer()).toString('base64');
+  return { ok: true, data: 'data:' + (/^image\//.test(mime) ? mime : 'image/jpeg') + ';base64,' + b64 };
+}
+
 /* Gambar soal: boleh dibaca semua pengguna login, tetapi hanya berkas yang diunggah guru/admin dengan penanda kind=soal. */
 async function getSoal(body) {
   const fileId = String(body.fileId || '');
@@ -186,6 +211,11 @@ export default async ({ req, res, error }) => {
     if (body.action === 'upload') return res.json(await upload(callerId, body, req.headers['x-appwrite-key']));
     if (body.action === 'getsoal') return res.json(await getSoal(body));
     if (body.action === 'ping') return res.json(await ping());
+    if (body.action === 'getpkl') {
+      const jwt = req.headers['x-appwrite-user-jwt'];
+      const auth = jwt ? { 'X-Appwrite-JWT': jwt } : { 'X-Appwrite-Key': req.headers['x-appwrite-key'] || '' };
+      return res.json(await getPkl(callerId, body, auth, !!jwt));
+    }
     if (body.action === 'get') {
       // Utama: baca dokumen atas nama pengguna (JWT) sehingga izin dokumen Appwrite yang menentukan, tanpa scope tambahan.
       // Cadangan: kunci dinamis fungsi (butuh scope users.read dan documents.read).

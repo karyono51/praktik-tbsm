@@ -16,6 +16,7 @@ Menu **PKL** untuk Siswa, Guru, Admin (Kepala Sekolah hanya melihat). Mengacu pa
 - **Kunjungan**: monitoring minimal sebulan sekali (kunjungan atau daring), temuan dan tindak lanjut.
 - **Nilai**: skor 4 TP (0-100) dan catatan guru/instruktur (Lampiran 4 dan 5). Nilai akhir = rata-rata TP yang terisi; kehadiran diambil otomatis dari absensi.
 - **Kelengkapan** per siswa (11 butir): pembekalan, naskah kerja sama, jaminan K3, persetujuan orang tua, program TP-ATP, penyerahan, orientasi, laporan, presentasi, asesmen instruktur, sertifikat.
+- **Cetak PDF** (jsPDF, butuh pustaka PDF termuat): **Daftar Nilai PKL** per siswa atau semua siswa (satu halaman per siswa; format Lampiran 5: identitas, TP dengan skor dan deskripsi, nilai akhir, catatan, kehadiran, tanda tangan guru pembimbing dan pembimbing dunia kerja) dari tab Nilai dan Rekap; **Jurnal PKL** (Lampiran 2: hari/tanggal, unit kerja, uraian, catatan) dari tab Rekap. Siswa dapat mencetak jurnalnya sendiri dari menu PKL.
 - **Rekap** per siswa dan **unduh Excel** (Tempat PKL, Penempatan, Absensi, Rekap kehadiran, Jurnal, Kunjungan, Nilai, Kelengkapan).
 - "Tanpa keterangan" = hari kerja Senin-Jumat sejak mulai PKL dikurangi hadir, izin, sakit (perkiraan; hari libur belum dikurangi).
 
@@ -25,10 +26,13 @@ Menu **PKL** untuk Siswa, Guru, Admin (Kepala Sekolah hanya melihat). Mengacu pa
   - `pkl` (tempat, penempatan): **dibaca semua pengguna login** supaya siswa melihat tempat dan penempatannya; hanya guru/admin menulis. Penempatan **tidak menyimpan nama siswa** (hanya `sid`), jadi siswa lain tidak bisa melihat siapa ditempatkan di mana. Temuan audit izin `BACA-USERS:pkl` diterima dengan alasan ini.
   - `pkl_catat` (absen, jurnal): siswa membuat (document security: pemilik membaca/mengubah miliknya), guru/admin membaca, mengubah, menghapus.
   - `pkl_nilai` (kunjungan, nilai, kelengkapan): hanya guru/admin.
-- Selfie dikecilkan (maks 480 px, sekitar 40 KB, JPEG) dan disimpan di `payload` absen. Setelah terkirim, salinan di perangkat tidak menyimpan fotonya (hemat ruang). Foto tidak dikirim ke Google Drive.
+- Selfie dikecilkan (maks 480 px, sekitar 40 KB, JPEG).
+  - **Fungsi `foto-drive` v1.2.0 terpasang** (sama dengan foto bukti LKPD): selfie diunggah ke folder Drive **TBSM Bukti Praktik** dengan nama `PKL_<Kelas>_<Nama>_<jenis>_<tanggal-jam>_<xxxx>`, dan `payload` absen hanya menyimpan `drive:<fileId>`. Guru/admin dan pemilik absen melihatnya lewat aksi `getpkl` (izin dokumen `pkl_catat` dipakai; fileId harus sama dengan penanda di dokumen). Foto diambil bertahap, maksimal 3 sekaligus.
+  - **Fungsi belum dipasang atau versi lama**: selfie tetap disimpan di `payload` (tidak ada yang hilang). Bila Google/Drive sedang bermasalah, absen ditahan di perangkat dan dicoba lagi saat data PKL dimuat.
+  - Setelah terkirim, salinan di perangkat tidak menyimpan data fotonya (hemat ruang); penanda Drive tetap ada.
 - Absen yang dibuat saat offline tersimpan di perangkat dan dikirim saat data PKL dimuat lagi. Jika koleksi belum dibuat, aplikasi tetap berjalan dan menampilkan petunjuk.
 
 ## Batasan yang perlu diketahui
 - Jam absen berasal dari jam perangkat siswa dan lokasi dari GPS perangkat; keduanya bisa dimanipulasi. Selfie dan status lokasi membantu pemeriksaan guru, bukan bukti mutlak.
-- Belum ada cetak PDF daftar nilai (Lampiran 5) dan naskah perjanjian kerja sama; data tersedia di Excel.
+- Belum ada cetak naskah perjanjian kerja sama; datanya (nomor, masa berlaku) tersedia di Excel.
 - Nilai tidak ditampilkan ke siswa.

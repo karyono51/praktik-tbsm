@@ -512,3 +512,8 @@ Prodi `PKL` dengan empat elemen CP (SFT, HSP, HSG, WIR) ditambahkan ke matriks (
 - `appwrite.json`: koleksi baru `pkl`, `pkl_catat`, `pkl_nilai` (jalankan `node tools/setup-appwrite.mjs --only=pkl,pkl_catat,pkl_nilai`). Penempatan di `pkl` tanpa nama siswa; temuan audit `BACA-USERS:pkl` diterima di `tools/audit-izin.baseline.json`.
 - `tools/uji-pkl.mjs` (68 butir). `tools/uji-lkpd-struktur.mjs`: dua butir lama menguji penanda `lks-grp` yang sudah diganti bilah berkelompok (`lke-gt`); ujinya disesuaikan, aplikasi tidak berubah.
 
+## PKL: selfie ke Google Drive dan cetak PDF nilai dan jurnal
+- **Selfie ke Drive**: `js/pkl.js` mengunggah selfie lewat fungsi `foto-drive` (nama `PKL_<Kelas>_<Nama>_<jenis>_<tanggal-jam>`), payload absen hanya `drive:<fileId>`; ditampilkan lewat aksi baru `getpkl` (izin dokumen `pkl_catat`), maksimal 3 pengambilan sekaligus. Fungsi belum dipasang: selfie tetap di payload. `functions/foto-drive` v1.2.0 dan arsip `functions/foto-drive.tar.gz`.
+- **PDF**: Daftar Nilai PKL per siswa atau semua (Lampiran 5) dan Jurnal PKL (Lampiran 2); siswa dapat mencetak jurnalnya sendiri.
+- `tools/uji-pkl.mjs` kini 99 butir (Drive, PDF, dan fungsi `getpkl`).
+
