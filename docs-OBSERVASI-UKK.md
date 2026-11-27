@@ -115,3 +115,6 @@ Layar hasil unit UKK kini menampilkan alasan tiap butir yang belum dapat nilai (
 - Acuan angka sama dengan UKK-2 dan LKPD XI-3 (`docs-SOAL-HOTS-CVT.md`): V-belt 18,5 mm (batas servis 17,5), roller 17,92-18,08 mm (batas 17,3) bobot 15 g, kanvas batas 2,0 mm, mangkok kopling 112,0-112,2 mm (batas 112,5), per CVT 127,5 mm (batas 124,7). **Bila manual unit di sekolah berbeda, sesuaikan angka di `UKK_ATURAN`, `data.js`, dan `observasi-ukk.js`.**
 - Aturan angka (`js/ukk-aturan.js`): butir 2, 3, 4, 7, 8 berangka (`UKK-XI-1-1`, `-2`, `-3`, `-6`, `-7`); butir 3 dan 8 campuran (angka dan kondisi pegas). Keputusan memakai batas servis, bukan rentang standar. Butir 1, 5, 6, 9, 10 tanpa angka (Hasil aktual, Status, dan Catatan terisi).
 - Kode SKKNI unit 027 ditandai usulan (perlu verifikasi), seperti UKK-X-1.
+
+## Gerbang praktik
+Unit UKK-X-1 dan UKK-XI-1 memiliki gerbang praktik sebelum siswa memulai unit (bukan bagian nilai pasangan unit dan observasi). Lihat `docs-UKK-GERBANG.md`.

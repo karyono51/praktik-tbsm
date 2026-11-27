@@ -1,3 +1,8 @@
+## Gerbang praktik UKK kelas X dan XI
+- `js/ukk-gerbang.js` (baru): siswa harus lulus gerbang praktik (5 soal TKA: 3 PG, 1 PG kompleks, 1 PG kategori; KKM max(75, KKM aplikasi); tanpa batas percobaan) sebelum memulai `UKK-X-1` dan `UKK-XI-1`, di mode Latihan dan Ujian. Gerbang bukan komponen nilai UKK.
+- Kartu unit menampilkan status gerbang; guru punya tombol Pratinjau gerbang (dengan kunci dan pembahasan, tidak disimpan). Nilai gerbang ikut di rincian hasil (`payload.gb`) dan tampil di Hasil penilaian.
+- Terdaftar di `index.html` setelah `ukk-butir.js`. Uji: `tools/uji-ukk-gerbang.mjs`. Dokumen: `docs-UKK-GERBANG.md`. Tanpa perubahan skema Appwrite.
+
 ## Unit UKK kelas XI: Pemeriksaan Komponen Sistem CVT
 - `js/data.js`: unit `UKK-XI-1` (kelas XI, Honda Beat Pop, 30 menit, 10 butir: lepas cover dan komponen, V-belt, roller, weight set clutch, puli primer, puli sekunder, mangkok kopling, per CVT, pasang kembali, keputusan Layak pakai atau Ganti).
 - `js/ukk-aturan.js`: aturan angka butir V-belt, roller, kanvas dan pegas, mangkok kopling, per CVT (batas servis, sama dengan UKK-2).
