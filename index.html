@@ -26,14 +26,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
-<link rel="stylesheet" href="css/app.css?v=c32ba92c">
+<link rel="stylesheet" href="css/app.css?v=a82bb6a0">
 <link rel="stylesheet" href="css/banksoal.css?v=e35ab7d2">
 <link rel="stylesheet" href="css/tampilan.css?v=8e827fd3">
-<style>.auth.splash{align-items:center;gap:12px;padding-top:18vh}.splash img{object-fit:contain}.splash h1{margin:0}.splash p{margin:0}.splash-putar{width:34px;height:34px;border-radius:50%;border:3px solid var(--line,#cfddd3);border-top-color:var(--accent,#0b6b3a);animation:splash-putar .8s linear infinite}.splash-lambat{display:grid;gap:8px;justify-items:center;font-size:14px;visibility:hidden;animation:splash-muncul 0s 12s forwards}.splash footer{margin-top:10vh;font-size:13px;line-height:1.5;color:var(--muted,#5b6b61);display:grid;gap:8px}@keyframes splash-putar{to{transform:rotate(360deg)}}@keyframes splash-muncul{to{visibility:visible}}@media(prefers-reduced-motion:reduce){.splash-putar{animation:none}}</style>
+<style>.auth.splash{align-items:center;gap:12px;padding-top:18vh}.splash img{object-fit:contain}.splash h1{margin:0}.splash p{margin:0}.splash .splash-sek{font-weight:600;color:var(--accent,#0b6b3a)}.splash-putar{width:34px;height:34px;border-radius:50%;border:3px solid var(--line,#cfddd3);border-top-color:var(--accent,#0b6b3a);animation:splash-putar .8s linear infinite}.splash-lambat{display:grid;gap:8px;justify-items:center;font-size:14px;visibility:hidden;animation:splash-muncul 0s 12s forwards}.splash footer{margin-top:10vh;font-size:13px;line-height:1.5;color:var(--muted,#5b6b61);display:grid;gap:8px}@keyframes splash-putar{to{transform:rotate(360deg)}}@keyframes splash-muncul{to{visibility:visible}}@media(prefers-reduced-motion:reduce){.splash-putar{animation:none}}</style>
 </head>
 <body>
-<div class="wrap" id="app"><main class="auth splash"><img id="splash-logo" src="assets/icon-192.png" alt="" width="88" height="88"><h1>KBM Praktik TBSM</h1><div class="splash-putar" aria-hidden="true"></div><p class="muted" role="status">Memuat aplikasi…</p><div class="splash-lambat"><p>Terlalu lama? Periksa koneksi internet, lalu muat ulang.</p><button type="button" class="btn" onclick="location.reload()">Muat ulang</button></div><footer><p>Aplikasi pembelajaran dan penilaian praktik Teknik Sepeda Motor untuk SMKS Darul Fatwa dan SMKS Medina Bandung.</p><p><a href="tentang.html">Tentang aplikasi dan sekolah</a></p></footer></main></div>
-<script>(function(){try{var k=(new URLSearchParams(location.search).get("s")||localStorage.getItem("tbsm-sch")||"").toLowerCase();if(k==="df"||k==="medina")document.getElementById("splash-logo").src="./assets/logo-"+k+".png"}catch(e){}})();</script>
+<div class="wrap" id="app"><main class="auth splash"><img id="splash-logo" src="assets/icon-192.png" alt="" width="88" height="88"><h1>KBM Praktik TBSM</h1><p class="splash-sek" id="splash-sek" hidden></p><div class="splash-putar" aria-hidden="true"></div><p class="muted" role="status">Memuat aplikasi…</p><div class="splash-lambat"><p>Terlalu lama? Periksa koneksi internet, lalu muat ulang.</p><button type="button" class="btn" onclick="location.reload()">Muat ulang</button></div><footer><p id="splash-ket">Aplikasi pembelajaran dan penilaian praktik Teknik Sepeda Motor untuk SMKS Darul Fatwa dan SMKS Medina Bandung.</p><p><a href="tentang.html">Tentang aplikasi dan sekolah</a></p></footer></main></div>
+<script>(function(){try{var k=(new URLSearchParams(location.search).get("s")||localStorage.getItem("tbsm-sch")||"").toLowerCase();var N={df:"SMKS Darul Fatwa",medina:"SMKS Medina Bandung"};if(N[k]){document.getElementById("splash-logo").src="./assets/logo-"+k+".png";var e=document.getElementById("splash-sek");e.textContent=N[k];e.hidden=false;document.getElementById("splash-ket").textContent="Aplikasi pembelajaran dan penilaian praktik Teknik Sepeda Motor untuk "+N[k]+".";document.title="KBM Praktik TBSM | "+N[k]}}catch(e){}})();</script>
 <noscript><p class="center">Aplikasi ini membutuhkan JavaScript. <a href="tentang.html">Baca tentang aplikasi</a>.</p></noscript>
 <script src="https://cdn.jsdelivr.net/npm/appwrite@16.0.2/dist/iife/sdk.js" integrity="sha384-AGHJG9uk3tDAZ3ukw48wjRW5OttguDjnKtjVaFR4v16+e6RBbH4+7T4BH9hDK5zi" crossorigin="anonymous"></script>
 <script src="js/config.js?v=2a1db95b"></script>
@@ -46,7 +46,7 @@
 <script src="js/core.js?v=e03e0723"></script>
 <script src="js/neon-db.js?v=cdb532f0"></script>
 <script src="js/export.js?v=33eb2959"></script>
-<script src="js/views.js?v=6264bf77"></script>
+<script src="js/views.js?v=50e8b8b4"></script>
 <script src="js/ukk-aturan.js?v=8ccaa495"></script>
 <script src="js/lkpd-modul.js?v=fee9525f"></script>
 <script src="js/lkpd-v2-x06.js?v=0b905aba"></script>
@@ -57,7 +57,7 @@
 <script src="js/lkpd.js?v=9e31790f"></script>
 <script src="js/lkpd-kode.js?v=3030fa75"></script>
 <script src="js/lkpd-v2.js?v=13b7beed"></script>
-<script src="js/ui.js?v=1d4f8d0e"></script>
+<script src="js/ui.js?v=3d568b87"></script>
 <script src="js/nilai.js?v=40f03a44"></script>
 <script src="js/pwa.js?v=de61146d"></script>
 <script src="js/lkpd-kelas.js?v=ba20d89f"></script>

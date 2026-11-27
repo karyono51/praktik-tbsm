@@ -181,6 +181,7 @@ footer.school::before{content:'';position:absolute;left:18px;top:-1px;width:44px
 .top:not(.big) .hello b{font-size:clamp(15px,4.4vw,17px)}
 .top:not(.big) .hello span{font-size:13px}
 .mail{margin:0;font-size:clamp(11.5px,3.3vw,13px);color:rgba(255,255,255,.82);overflow-wrap:anywhere;line-height:1.3}
+.schname{margin:2px 0 0;font-size:clamp(11.5px,3.3vw,13px);font-weight:600;color:rgba(255,255,255,.95);line-height:1.3}
 .top .hmeta{margin-top:7px}
 .top:not(.big) .hmeta{margin-top:5px}
 .top:not(.big){align-items:center;padding-bottom:14px}
@@ -605,7 +606,7 @@ header.top.mini{padding-top:calc(4px + env(safe-area-inset-top));padding-bottom:
 header.top.mini .bsm-wrap{margin-bottom:0}
 header.top.mini .bsm{font-size:clamp(15px,4.6vw,20px);line-height:1.5}
 header.top.mini .logo{width:36px;height:36px;padding:2px}
-header.top.mini .hi .mail,header.top.mini .hi .hmeta,header.top.mini .netslot,header.top.mini .moto,header.top.mini .rings{display:none}
+header.top.mini .hi .mail,header.top.mini .hi .schname,header.top.mini .hi .hmeta,header.top.mini .netslot,header.top.mini .moto,header.top.mini .rings{display:none}
 header.top.mini .hello span{display:inline;font-size:13px}
 header.top.mini .hello b{display:inline;font-size:16px}
 
