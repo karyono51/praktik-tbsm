@@ -131,9 +131,19 @@ var Cloud={on:CLOUD_ON,busy:false,
  remove:async function(col,id){if(!this.on)return true;try{await this.db.deleteDocument(CFG.DB,col,id);return true}catch(e){toast('Gagal menghapus di server: '+(e.message||e));return false}}
 };
 
+function snapSegar(){
+ try{var mnt=(window.APP_CONFIG&&APP_CONFIG.SNAP_CEPAT_MENIT!=null)?+APP_CONFIG.SNAP_CEPAT_MENIT:10;if(!(mnt>0))return null;
+  var sn=JSON.parse(localStorage.getItem('tbsm-snap')||'null'),au=JSON.parse(localStorage.getItem('tbsm-auth')||'null');
+  if(!sn||!sn.user||!au||au.sid!==sn.user.id||!au.auth||!(Date.now()-sn.ts<mnt*60000))return null;
+  var ht=+localStorage.getItem('tbsm-hapus-ts')||0;if(ht&&!(sn.ts>ht))return null;
+  return au}catch(e){return null}}
 async function boot(){
  try{
-  if(Cloud.on){Cloud.init();var me=await Cloud.me();if(me==='offline'){loadSnap()}else if(me){await Cloud.enter(me)}else dropSnap()}
+  if(Cloud.on){Cloud.init();var fz=snapSegar();
+   /* buka kembali dalam beberapa menit (mis. Android membuang halaman saat di latar): langsung pakai salinan di perangkat,
+      tanpa membaca database lagi; sesi hanya diverifikasi di latar belakang (Account.get bukan pembacaan database) */
+   if(fz&&loadSnap()){Cloud.authId=fz.auth;Cloud.me().then(function(m){if(m==='offline')return;if(!m||m.$id!==fz.auth){dropSnap();location.reload()}})}
+   else{var me=await Cloud.me();if(me==='offline'){loadSnap()}else if(me){await Cloud.enter(me)}else dropSnap()}}
   else{await seed();var sid=localStorage.getItem(SES),u=S.users.find(function(x){return x.id===sid&&x.aktif!==false});if(u)enter(u)}
  }catch(e){A.err=e.message||String(e)}
  schTerap();render();
