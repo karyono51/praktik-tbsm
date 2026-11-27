@@ -88,3 +88,8 @@ Untuk setiap aspek penguji memilih tombol **1-4**, lalu mengisi **nilai** sesuai
 - Siswa dicocokkan lewat akun (ID), bila tidak ada lewat nama. Guru hanya melihat observasi miliknya, jadi rekap lengkap paling cocok dilihat admin. Unduhan Excel tersedia.
 
 Layar hasil unit UKK kini menampilkan alasan tiap butir yang belum dapat nilai ("Belum lengkap: ..." atau "Status tidak cocok dengan hasil aktual dan standar"), termasuk butir yang bertanda Wajib.
+
+## Pilih rombel dulu
+- Kolom **Rombel / Kelas** kini di paling atas dan awalnya kosong (*Pilih rombel / kelas dulu*).
+- Sebelum rombel dipilih, lembar observasi, info tugas, statistik, daftar, dan tombol **+ Observasi baru** disembunyikan; tampil petunjuk singkat.
+- Setelah rombel dipilih, daftar lembar menyesuaikan tingkat kelas, lalu observasi bisa dibuat.
