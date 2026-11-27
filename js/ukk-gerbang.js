@@ -8,8 +8,8 @@
      - Siswa yang sudah punya pekerjaan berjalan (draf) tidak dihadang ulang.
    PENYIMPANAN: jawaban gerbang di perangkat (localStorage, per akun dan per unit), seperti penghitung kesempatan ujian: penegak di sisi aplikasi, bukan server.
    Nilai gerbang ikut ke rincian hasil unit (payload.gb) saat siswa menyimpan hasil, sehingga guru melihatnya di Hasil penilaian. Tidak ada perubahan skema Appwrite.
-   Soal terikat ID unit; unit hasil Duplikat (ID baru) tidak memiliki gerbang. */
-var UKG={KEY:'tbsm-ukk-gerbang-v1',KKM_MIN:75,job:null,jwb:{},fase:'soal',pv:false};
+   Soal bawaan terikat ID unit; unit hasil Duplikat (ID baru) tidak membawa gerbang, tetapi guru dapat membuatnya di editor (js/ukk-gerbang-editor.js, maks. 20 soal). */
+var UKG={KEY:'tbsm-ukk-gerbang-v1',KKM_MIN:75,MAX:20,job:null,jwb:{},fase:'soal',pv:false,ovr:null};
 var UKK_GERBANG={
  'UKK-X-1':[
   {t:'pg',lvl:'Aplikasi',q:'Sebelum mengukur tegangan baterai sepeda motor 12 V dengan multimeter digital, selector dan colokan probe yang tepat adalah ...',
@@ -46,15 +46,38 @@ var UKK_GERBANG={
    e:'Benar: 17,2 < 17,5 mm; 112,1 mm di bawah 112,5 mm; keputusan memakai batas servis. Salah: kanvas masih di atas 2,0 mm sehingga layak; per CVT 124,5 mm sudah di bawah batas servis 124,7 mm sehingga diganti, bukan dinilai dari selisih terhadap standar.'}
  ]
 };
-function ukgSoal(j){return (j&&UKK_GERBANG[j.id])||[]}
+/* Sumber soal, berurutan: (1) pratinjau draf editor, (2) gerbang buatan guru di unit (j.gerbang: {on,soal}), (3) soal bawaan UKK_GERBANG.
+   Gerbang buatan guru yang dimatikan (on:false) berarti unit tidak bergerbang. Maksimal UKG.MAX soal; soal tidak sah dilewati. */
+function ukgBersih(l){return (Array.isArray(l)?l:[]).filter(function(q){return typeof lkqValid==='function'?lkqValid(q):!!q}).slice(0,UKG.MAX)}
+function ukgSoal(j){
+ if(!j)return [];
+ if(UKG.pv&&UKG.ovr&&UKG.ovr.id===j.id)return UKG.ovr.soal;
+ var g=j.gerbang;
+ if(g&&typeof g==='object')return g.on===false?[]:ukgBersih(g.soal);
+ return UKK_GERBANG[j.id]||[];
+}
+/* Guru dan admin dapat mengatur gerbang unit kelas X dan XI (bawaan, buatan sendiri, dan hasil duplikat). */
+function ukgBisa(j){return !!(j&&j.ukk&&isStaff()&&(j.kelas==='X'||j.kelas==='XI'))}
+/* Tanda tangan isi soal (jenis, teks, pilihan, kunci; tanpa pembahasan): jawaban untuk soal lama tidak dibaca sebagai jawaban soal baru. */
+function ukgSig(soal){
+ var s=JSON.stringify((soal||[]).map(function(q){return [lkqType(q),q.q,q.o||null,q.rows||null,q.a===undefined?null:q.a]})),h=5381;
+ for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;
+ return 'g'+(soal||[]).length+'-'+(h>>>0).toString(36);
+}
 function ukgPerlu(j){return !isStaff()&&ukgSoal(j).length>0}
 function ukgKkm(){return Math.max(UKG.KKM_MIN,+(typeof S!=='undefined'&&S.kkm)||0)}
 function ukgDb(){try{return JSON.parse(localStorage.getItem(UKG.KEY)||'{}')||{}}catch(e){return {}}}
 function ukgUid(){return (typeof S!=='undefined'&&S.user&&S.user.id)?String(S.user.id):''}
 function ukgRec(jid){var d=ukgDb()[ukgUid()];return (d&&d[jid])||null}
+/* Rekaman jawaban yang masih cocok dengan soal sekarang. Rekaman lama tanpa tanda tangan hanya berlaku untuk soal bawaan. */
+function ukgRecOk(j){
+ var r=ukgRec(j.id);if(!r)return null;
+ if(r.sig)return r.sig===ukgSig(ukgSoal(j))?r:null;
+ return j.gerbang?null:r;
+}
 function ukgSimpanJwb(j){
  if(UKG.pv||!ukgUid())return;
- var db=ukgDb(),u=ukgUid();db[u]=db[u]||{};db[u][j.id]={jwb:UKG.jwb,ts:Date.now()};
+ var db=ukgDb(),u=ukgUid();db[u]=db[u]||{};db[u][j.id]={jwb:UKG.jwb,ts:Date.now(),sig:ukgSig(ukgSoal(j))};
  try{localStorage.setItem(UKG.KEY,JSON.stringify(db))}catch(e){}
 }
 /* Nilai gerbang: poin soal TKA (lkqPoint) / jumlah soal x 100. Soal belum dijawab bernilai 0. */
@@ -66,7 +89,7 @@ function ukgNilai(soal,jwb){
  return {n:n,total:soal.length,poin:poin,nilai:nilai,kkm:kkm,lulus:soal.length>0&&n===soal.length&&nilai>=kkm};
 }
 /* Lulus dihitung ulang dari jawaban tersimpan: KKM yang naik atau soal yang berubah ikut berlaku. */
-function ukgInfo(j){var r=ukgRec(j.id);return r&&r.jwb?ukgNilai(ukgSoal(j),r.jwb):null}
+function ukgInfo(j){var r=ukgRecOk(j);return r&&r.jwb?ukgNilai(ukgSoal(j),r.jwb):null}
 function ukgLulus(j){var g=ukgInfo(j);return !!(g&&g.lulus)}
 function ukgModeTeks(j){return j&&j.cfg&&j.cfg.mode==='ujian'?'ujian':'latihan'}
 
@@ -90,11 +113,11 @@ function ukgGambar(){
  ov.scrollTop=0;
 }
 function ukgBuka(j,pv){
- var r=pv?null:ukgRec(j.id);
+ var r=pv?null:ukgRecOk(j);
  UKG.job=j.id;UKG.pv=!!pv;UKG.fase='soal';UKG.jwb=(r&&r.jwb)?JSON.parse(JSON.stringify(r.jwb)):{};
  ukgGambar();
 }
-function ukgTutup(){var ov=ukgEl();if(ov&&ov.parentNode)ov.parentNode.removeChild(ov);document.body.style.overflow='';UKG.job=null}
+function ukgTutup(){UKG.ovr=null;var ov=ukgEl();if(ov&&ov.parentNode)ov.parentNode.removeChild(ov);document.body.style.overflow='';UKG.job=null}
 function ukgJenis(q){var t=lkqType(q);return t==='kompleks'?'PG kompleks (pilih semua yang benar)':t==='kategori'?'PG kategori (tentukan '+esc(q.lab[0])+' atau '+esc(q.lab[1])+')':'Pilihan ganda'}
 function ukgKartu(q,i){
  var a=UKG.jwb[i],t=lkqType(q),L='ABCDE',h='<section class="card ukg-q" data-i="'+i+'"><span class="label">Soal '+(i+1)+' · '+esc(q.lvl||'')+' · '+ukgJenis(q)+'</span><p>'+esc(q.q)+'</p>';
@@ -192,8 +215,12 @@ document.addEventListener('click',function(e){
  var c0=window.ukkCardAction;
  window.ukkCardAction=function(j){
   var h=c0.apply(this,arguments);
+  if(isStaff()){
+   var bt=(ukgSoal(j).length?'<button type="button" class="btn small" data-ukg="pratinjau" data-v="'+esc(j.id)+'">Pratinjau gerbang</button>':'')+
+    (ukgBisa(j)?'<button type="button" class="btn small" data-uge="buka" data-v="'+esc(j.id)+'">Editor gerbang</button>':'');
+   return bt?h+'<div class="lks-acts">'+bt+'</div>':h;
+  }
   if(!ukgSoal(j).length)return h;
-  if(isStaff())return h+'<div class="lks-acts"><button type="button" class="btn small" data-ukg="pratinjau" data-v="'+esc(j.id)+'">Pratinjau gerbang</button></div>';
   var g=ukgInfo(j);
   return (g&&g.lulus?'<span class="pill ok">Gerbang lulus · '+g.nilai+'</span> ':'<span class="pill warn">Gerbang praktik belum lulus</span> ')+h;
  };

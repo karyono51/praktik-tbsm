@@ -17,7 +17,7 @@ Siswa harus lulus **gerbang praktik** sebelum memulai unit UKK. Aturannya disama
 | `UKK-X-1` Pengukuran Arus, Tegangan, dan Hambatan pada Rangkaian Lampu | X | multimeter VDC dan jack, rata-rata tiga kali ukur (standar min. 12,4 V), bahaya ammeter paralel, ohmmeter dan nol alat, kasus data rangkaian |
 | `UKK-XI-1` Pemeriksaan Komponen Sistem CVT | XI | V-belt (nilai terkecil terhadap batas servis 17,5 mm), mangkok kopling (batas servis 112,5 mm), SST dan pegas puli sekunder, roller dan kanvas satu set, kasus keputusan Layak pakai atau Ganti |
 
-Soal ada di `UKK_GERBANG` (kunci ID unit). Unit lain (UKK-1 sampai UKK-4) dan unit hasil **Duplikat** (ID baru) **tidak** bergerbang.
+Soal bawaan ada di `UKK_GERBANG` (kunci ID unit); guru dapat menggantinya lewat editor. Unit lain (UKK-1 sampai UKK-4) tidak bergerbang. Unit hasil **Duplikat** (ID baru) tidak membawa soal, tetapi gerbangnya dapat dibuat di editor (bagian Editor gerbang).
 
 ## Alur siswa
 1. Di kartu unit, siswa melihat penanda **Gerbang praktik belum lulus** (atau **Gerbang lulus · nilai**) dan tombol Mulai latihan / Mulai ujian seperti biasa.
@@ -35,5 +35,28 @@ Soal ada di `UKK_GERBANG` (kunci ID unit). Unit lain (UKK-1 sampai UKK-4) dan un
 - **Pratinjau gerbang**: tombol di kartu unit (Guru dan Admin). Hasilnya **tidak disimpan** dan memuat kunci serta pembahasan tiap soal.
 - Saat siswa menyimpan hasil unit, nilai gerbang ikut ke rincian hasil (`payload.gb = {nilai, kkm, lulus}`). Di **Hasil penilaian** unit, baris tiap siswa menampilkan "Penilaian · Gerbang 80".
 
-## Mengubah soal
-Soal dan angka (batas servis, standar tegangan) ada di `UKK_GERBANG` dalam `js/ukk-gerbang.js`. Bila manual unit di sekolah berbeda, sesuaikan angka di soal CVT dan juga di unit (`data.js`), aturan angka (`ukk-aturan.js`), dan lembar observasi (`observasi-ukk.js`). Editor gerbang UKK di aplikasi belum ada.
+## Editor gerbang (guru dan admin)
+Berkas: `js/ukk-gerbang-editor.js`. Uji: `node tools/uji-ukk-gerbang-editor.mjs`. Tidak ada perubahan skema Appwrite.
+
+**Membuka.** Untuk unit UKK **kelas X dan XI** (bawaan, buatan sendiri, dan hasil Duplikat): tombol **Editor gerbang** di kartu unit, dan kartu **Gerbang praktik** di halaman Kelola unit (di atas tab Hasil penilaian dan Pengaturan). Unit kelas XII tidak punya editor gerbang. Siswa tidak melihat tombolnya.
+
+**Aturan soal (maksimal 20 per unit, minimal 1 bila gerbang aktif):**
+| Jenis | Pilihan atau pernyataan | Kunci |
+|---|---|---|
+| Pilihan ganda | 2 sampai 5 pilihan, tanpa pilihan kembar | tepat satu |
+| PG kompleks | 3 sampai 5 pilihan | satu atau lebih |
+| PG kategori | 2 sampai 8 pernyataan Benar/Salah | harus ada Benar dan Salah |
+Pertanyaan maks. 1000 karakter, pilihan atau pernyataan maks. 300, pembahasan maks. 1500 (pembahasan boleh kosong). Level: Pemahaman, Aplikasi, Penalaran. Tiap soal yang belum lengkap diberi penanda dan alasannya; **Simpan gerbang** menolak daftar yang masih ada soal belum lengkap dan langsung membuka soal itu.
+
+**Fitur:** tambah soal (3 jenis), edit, naik, turun, duplikat, hapus, kosongkan semua, **Muat soal bawaan**, **Kembalikan ke soal bawaan** (atau Hapus gerbang buatan bila unit tidak punya soal bawaan), saklar **Gerbang aktif** (dimatikan = siswa langsung masuk unit), dan **Pratinjau** yang memakai draf yang sedang diedit (memuat kunci dan pembahasan, tidak menyimpan apa pun).
+
+**Penyimpanan.** Soal gerbang disimpan di dalam dokumen unit sebagai `doc.gerbang = {on, soal, v}`, jadi ikut sinkronisasi `lkpd_modules`, antrean offline, dan penyimpanan lokal yang sama dengan unit. Penyimpanan lewat `ukkStore`, yang kini juga memeriksa gerbang (maks. 20 soal, tiap soal sah). Urutan sumber soal gerbang: pratinjau draf, gerbang buatan guru, lalu soal bawaan `UKK_GERBANG`. `gerbang:null` berarti kembali ke bawaan. Menyimpan unit dari editor unit (Edit isi) **tidak menghapus** gerbang buatan: dokumen tanpa kolom gerbang mewarisinya. Unit bawaan yang gerbangnya diedit tersimpan sebagai salinan penimpa (tombol Kembalikan bawaan milik unit ikut muncul); Kembalikan bawaan di tingkat unit juga mengembalikan gerbangnya.
+
+**Draf.** Perubahan yang belum disimpan tersimpan otomatis di perangkat (`tbsm-ukk-gerbang-draft`, 14 hari) dan ditawarkan untuk dipulihkan saat editor dibuka lagi.
+
+**Jawaban siswa dan perubahan soal.** Rekaman jawaban siswa kini membawa tanda tangan soal (jenis, teks, pilihan, kunci; tanpa pembahasan). Bila guru mengubah teks, pilihan, kunci, atau urutan soal, jawaban lama tidak dipakai dan siswa mengerjakan gerbang lagi. Mengubah hanya pembahasan atau level tidak menghapus kelulusan. Rekaman lama tanpa tanda tangan tetap berlaku untuk soal bawaan, tetapi tidak untuk soal buatan guru.
+
+**Batasan.** Hasil Duplikat unit tidak membawa soal gerbang (guru membuatnya sendiri di editor). Gerbang tetap diperiksa di sisi aplikasi dan kuncinya terbaca di sisi klien. Ekspor dan impor Excel unit tidak membawa soal gerbang. Soal bawaan di `UKK_GERBANG` tetap tidak diubah oleh editor; angka CVT dan multimeter pada soal bawaan perlu diperiksa terhadap manual sekolah.
+
+## Mengubah soal bawaan
+Soal bawaan ada di `UKK_GERBANG` dalam `js/ukk-gerbang.js`. Bila manual unit di sekolah berbeda, cukup ubah soalnya lewat editor (jadi soal buatan guru). Untuk mengubah bawaan itu sendiri, sesuaikan angka di soal CVT dan juga di unit (`data.js`), aturan angka (`ukk-aturan.js`), dan lembar observasi (`observasi-ukk.js`).
