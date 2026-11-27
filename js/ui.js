@@ -240,13 +240,17 @@ function hdrRingkas(){
  var h=document.querySelector('header.top');if(!h)return;
  if(document.documentElement&&document.documentElement.getAttribute('data-tp-ringkas')==='mati')return;
  var y=window.scrollY||0,mini=h.classList.contains('mini');
- if(!mini&&y>60){
+ /* selisih tinggi diukur sekali (header besar vs ringkas) lalu disimpan; tidak ada lagi pasang-lepas kelas di tiap peristiwa gulir,
+    karena itulah yang membuat gulir pelan di dekat atas terasa mantul */
+ if(!mini&&(h._d==null||h._w!==h.offsetWidth)){
   var t0=h.offsetHeight,m0=parseFloat(getComputedStyle(h).marginBottom)||0;
   h.classList.add('mini');
-  var d=t0-h.offsetHeight,m1=parseFloat(getComputedStyle(h).marginBottom)||0;
-  /* belum digulir melewati selisih tinggi: tunda, agar tidak muncul celah di bawah header */
-  if(y<d+8){h.classList.remove('mini');return}
-  h.style.marginBottom=(m1+d+(m0-m1))+'px';
+  h._d=t0-h.offsetHeight;h._m=m0+h._d;
+  h.classList.remove('mini');h._w=h.offsetWidth;
+ }
+ if(!mini&&y>(h._d||0)+40){
+  h.classList.add('mini');
+  h.style.marginBottom=(h._m||0)+'px';
  }else if(mini&&y<12){h.classList.remove('mini');h.style.marginBottom=''}
 }
 if(window.addEventListener)window.addEventListener('scroll',hdrRingkas,{passive:true});

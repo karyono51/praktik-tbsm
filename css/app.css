@@ -662,3 +662,6 @@ header.top,header.top .logo{transition:none}
 .pk-sc-mode button[aria-pressed=true]{background:#fff;color:#0c1110}
 .pk-sc-act{display:grid;grid-template-columns:1fr 2fr;gap:10px;padding:4px 14px calc(14px + env(safe-area-inset-bottom,0px))}
 .pk-sc.kilat .pk-sc-view::after{content:"";position:absolute;inset:0;background:#fff;opacity:.55}
+
+/* gulir: cegah penyesuaian otomatis browser saat tinggi header berubah */
+html,body{overflow-anchor:none}
