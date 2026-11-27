@@ -14,7 +14,7 @@ OBU.lembar.forEach(function(L){
 });
 function obuLb(k){return OBU.lb[k]||OBU.lb.vario}
 function obuKey(r){var p=obsPay(r);return p.lembar&&OBU.lb[p.lembar]?p.lembar:'vario'}
-var OU={mode:'list',d:null,view:null,q:'',lembar:'vario',kel:''};
+var OU={mode:'list',d:null,view:null,q:'',lembar:'vario',kel:'',rb:''};
 ICO['observasi-ukk']=ICO.observasi;
 
 /* Observasi bertipe 'ukk' tidak boleh muncul di daftar Observasi guru (obsTipe lama menganggap semua selain 'siswa' sebagai guru) */
@@ -41,7 +41,19 @@ function obuVisible(){
  var L=schObsList(S.observasi||[]).filter(function(r){return r.tipe==='ukk'&&(can('observasi-semua')||(!!S.user&&r.pengamatId===S.user.id))});
  return L.sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))||b.ts-a.ts});
 }
-function obuBaru(){return {id:'',lembar:OU.lembar,sel:'',nama:'',nis:'',kelas:KELAS.XII?'XII':Object.keys(KELAS)[0],tanggal:ymd(Date.now()),penguji:(S.user&&S.user.nama)||'',v:2,nilai:{},lvl:{},cat:{},catatan:''}}
+/* Rombel/Kelas: memakai rombel aktif dari Administrasi Akademik (abPilihan); tanpa rombel, jatuh ke Kelas X, XI, XII */
+function obuRbOpsi(){
+ try{if(typeof abPilihan==='function'){var o=abPilihan();if(o&&o.length)return o}}catch(e){}
+ return Object.keys(KELAS).map(function(t){return {key:'k'+t,nama:'Kelas '+t,tingkat:t,kelas:t}})}
+function obuRbPilih(){var o=obuRbOpsi().filter(function(x){return x.key===OU.rb})[0];return o||null}
+function obuTingkat(op){var t=op&&(op.kelas||op.tingkat);return t&&KELAS[t]?t:''}
+function obuDalamRb(r,op){
+ if(!op)return true;
+ var t=obuTingkat(op);
+ if(op.ids)return op.ids.indexOf(r.guruId)>-1&&(!t||r.kelas===t);
+ if(op.tanpa)return !(op.used&&op.used[r.guruId]);
+ return !t||r.kelas===t}
+function obuBaru(){return {id:'',lembar:OU.lembar,sel:'',nama:'',nis:'',kelas:obuTingkat(obuRbPilih())||(KELAS.XII?'XII':Object.keys(KELAS)[0]),tanggal:ymd(Date.now()),penguji:(S.user&&S.user.nama)||'',v:2,nilai:{},lvl:{},cat:{},catatan:''}}
 function obuDraftDari(r){
  var p=obsPay(r),sel=(r.guruId&&S.users.some(function(u){return u.id===r.guruId}))?r.guruId:'__lain';
  return {id:r.id,lembar:obuKey(r),sel:sel,nama:sel==='__lain'?r.guru:'',nis:p.nis||'',kelas:r.kelas||Object.keys(KELAS)[0],tanggal:r.tanggal||ymd(Date.now()),penguji:p.penguji||r.pengamat||'',v:2,lama:p.v!==2,nilai:p.v===2?p.nilai:{},lvl:p.v===2?(p.lvl||{}):{},cat:p.cat,catatan:p.catatan||''};
@@ -59,7 +71,8 @@ function obuInfoCard(lk){
  return '<div class="card"><span class="label">Judul tugas</span><b>'+esc(m.judul)+'</b><div class="note">'+esc(m.satuan)+' · '+esc(m.konsentrasi)+' · Kode '+esc(m.kode)+' · Alokasi waktu '+esc(m.waktu)+' · Tahun pelajaran '+esc(m.tahun)+'</div></div>';
 }
 function obuListView(){
- var L=obuVisible(),q=OU.q.toLowerCase(),admin=can('observasi-semua');
+ if(typeof akLoad==='function'&&typeof AKD!=='undefined'&&!AKD.loaded&&!OU._ak){OU._ak=1;try{akLoad().then(function(){if(S.tab==='observasi-ukk'&&OU.mode==='list')render()})}catch(e){}}
+ var rbOp=obuRbPilih(),L=obuVisible().filter(function(r){return obuDalamRb(r,rbOp)}),q=OU.q.toLowerCase(),admin=can('observasi-semua');
  var F=L.filter(function(r){return !q||(r.guru+' '+r.kelas+' '+(r.pengamat||'')).toLowerCase().indexOf(q)>-1});
  var kom=L.filter(function(r){return (+r.skor||0)>=75}).length;
  var avg=L.length?Math.round(L.reduce(function(t,r){return t+(+r.skor||0)},0)/L.length):0;
@@ -71,7 +84,9 @@ function obuListView(){
    '<div class="row obu-act" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="obu-view" data-v="'+esc(r.id)+'">Lihat</button><button type="button" class="btn small" data-act="obu-pdf" data-v="'+esc(r.id)+'">PDF</button>'+
    (obsBoleh(r)?'<button type="button" class="btn small" data-act="obu-edit" data-v="'+esc(r.id)+'">Ubah</button><button type="button" class="btn small danger" data-act="obu-del" data-v="'+esc(r.id)+'">Hapus</button>':'')+'</div></article>';
  }).join('');
- return '<div class="row sb"><div><h2>Observasi UKK</h2><p class="note">Lembar observasi praktik uji kompetensi keahlian. Hanya untuk Admin dan Guru.</p></div></div>'+'<label class="f">Lembar observasi<select id="obulb">'+OBU.lembar.map(function(L){return '<option value="'+L.k+'"'+(OU.lembar===L.k?' selected':'')+'>'+esc(L.nama)+'</option>'}).join('')+'</select></label>'+obuInfoCard(OU.lembar)+
+ return '<div class="row sb"><div><h2>Observasi UKK</h2><p class="note">Lembar observasi praktik uji kompetensi keahlian. Hanya untuk Admin dan Guru.</p></div></div>'+'<label class="f">Lembar observasi<select id="obulb">'+OBU.lembar.map(function(L){return '<option value="'+L.k+'"'+(OU.lembar===L.k?' selected':'')+'>'+esc(L.nama)+'</option>'}).join('')+'</select></label>'+
+  '<label class="f">Rombel / Kelas<select id="oburb"><option value="">Semua rombel dan kelas</option>'+obuRbOpsi().map(function(o){return '<option value="'+esc(o.key)+'"'+(OU.rb===o.key?' selected':'')+'>'+esc(o.nama)+(o.tingkat&&o.tingkat!=='-'&&o.nama!=='Kelas '+o.tingkat?' · Kelas '+esc(o.tingkat):'')+'</option>'}).join('')+'</select></label>'+
+  (rbOp?'<p class="note">Menampilkan observasi UKK '+esc(rbOp.nama)+(obuTingkat(rbOp)?' (tingkat '+esc(obuTingkat(rbOp))+')':'')+'.</p>':'')+obuInfoCard(OU.lembar)+
   '<div class="stats"><div class="card"><span class="label">Observasi</span><b class="mono">'+L.length+'</b></div><div class="card"><span class="label">Kompeten ke atas</span><b class="mono">'+kom+'</b></div><div class="card"><span class="label">Rata-rata</span><b class="mono">'+avg+'</b></div></div>'+
   '<div class="row obu-act" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn small primary" data-act="obu-new">+ Observasi baru</button>'+(L.length?'<button type="button" class="btn small" data-act="obu-rekap">Rekap nilai</button><details class="obu-exp"><summary class="btn small">Ekspor</summary><div class="obu-exp-menu"><button type="button" class="btn small" data-act="obu-rekapxls">Rekap nilai (Excel)</button><button type="button" class="btn small" data-act="obu-xls">Rincian aspek (Excel)</button></div></details>':'')+'</div>'+
   (L.length>3?'<label class="f">Cari<input id="obuq" type="search" value="'+esc(OU.q)+'" placeholder="Nama siswa, kelas, penguji"></label>':'')+
@@ -341,6 +356,7 @@ document.addEventListener('change',function(e){
  var t=e.target;
  if(t.id==='obuq'){OU.q=t.value;render();return}
  if(t.id==='obukel'){OU.kel=t.value;render();return}
+ if(t.id==='oburb'){OU.rb=t.value;OU.q='';render();return}
  if(t.id==='obulb'){OU.lembar=OBU.lb[t.value]?t.value:'vario';render();return}
  if(!OU.d||OU.mode!=='form'||!t.dataset||!t.dataset.obu)return;
  OU.d[t.dataset.obu]=t.value;
