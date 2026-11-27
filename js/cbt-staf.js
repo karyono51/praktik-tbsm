@@ -54,8 +54,22 @@
   PN.busy=true;
   try{
    var Q=Appwrite.Query;
-   var r=await Promise.all([Cloud.list('soal_run',[Q.equal('sesiId',ids)]),Cloud.list('soal_hasil',[Q.equal('sesiId',ids)])]);
-   PN.runs=r[0];PN.hasil=r[1];PN.at=Date.now();PN.err='';PN.sesiLoaded=PN.sesi;
+   /* baca hemat: setelah pemuatan penuh, tiap 10 detik hanya dokumen yang berubah ($updatedAt) yang diambil; penuh lagi tiap 5 menit */
+   var key=ids.slice().sort().join(','),inc=PN.inc,mnd=function(iso){var t=Date.parse(iso);return isNaN(t)?iso:new Date(t-10000).toISOString()},
+    mx=function(L,d){var m=d;(L||[]).forEach(function(x){if(x.$updatedAt&&x.$updatedAt>m)m=x.$updatedAt});return m},
+    gab=function(dst,src){src.forEach(function(d){var i=dst.findIndex(function(y){return y.$id===d.$id});if(i<0)dst.push(d);else dst[i]=d})},done=false;
+   if(inc&&inc.key===key&&Date.now()-inc.full<300000&&PN.sesiLoaded===PN.sesi){
+    try{
+     var c=await Promise.all([Cloud.list('soal_run',[Q.equal('sesiId',ids),Q.greaterThan('$updatedAt',mnd(inc.sr))]),Cloud.list('soal_hasil',[Q.equal('sesiId',ids),Q.greaterThan('$updatedAt',mnd(inc.sh))])]);
+     gab(PN.runs,c[0]);gab(PN.hasil,c[1]);inc.sr=mx(c[0],inc.sr);inc.sh=mx(c[1],inc.sh);done=true;
+    }catch(e){done=false}
+   }
+   if(!done){
+    var r=await Promise.all([Cloud.list('soal_run',[Q.equal('sesiId',ids)]),Cloud.list('soal_hasil',[Q.equal('sesiId',ids)])]);
+    var now0=new Date(window.Jam&&Jam.now?Jam.now():Date.now()).toISOString();
+    PN.runs=r[0];PN.hasil=r[1];PN.inc={key:key,full:Date.now(),sr:mx(r[0],now0),sh:mx(r[1],now0)};
+   }
+   PN.at=Date.now();PN.err='';PN.sesiLoaded=PN.sesi;
    await autoNilai();
    await sebMuat(ids);
   }catch(e){PN.err=(e&&e.message)||String(e)}
@@ -220,7 +234,7 @@
  function pnPaint(){var e=document.getElementById('pn-body');if(e)e.innerHTML=pnBody()}
  function inPantau(){return !!S.user&&bsOn()&&BS.tab==='pantau'&&isStaff()&&Cloud.on}
  function pnTimer(){
-  if(inPantau()&&!PN.timer){PN.timer=setInterval(function(){if(!inPantau()){pnStop();return}if(document.hidden)return;if(PN.runs.length>150&&Date.now()-PN.at<14000)return;pnLoad().then(pnPaint)},8000)}
+  if(inPantau()&&!PN.timer){PN.timer=setInterval(function(){if(!inPantau()){pnStop();return}if(document.hidden)return;if(PN.runs.length>150&&Date.now()-PN.at<14000)return;pnLoad().then(pnPaint)},10000)}
   else if(!inPantau())pnStop();
  }
  function pnStop(){if(PN.timer){clearInterval(PN.timer);PN.timer=0}}

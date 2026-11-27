@@ -55,6 +55,6 @@
  /* isi kartu ulang setelah layar digambar ulang (Ruang ujian dan Pantau mengganti isi wadahnya sendiri) */
  var jadwal=0;
  try{new MutationObserver(function(){if(jadwal)return;jadwal=requestAnimationFrame(function(){jadwal=0;if(wadah()&&boleh()){if(TB.rows.length)pasang();if(!TB.t||sesiAktif()!==TB.sesi)muat()}else{TB.rows=[];TB.t=0}})}).observe(document.body,{childList:true,subtree:true})}catch(e){}
- setInterval(function(){if(document.hidden)return;muat()},8000);
+ setInterval(function(){if(document.hidden)return;muat()},15000);
  window.tebakToken={muat:muat,html:html,state:TB};
 })();

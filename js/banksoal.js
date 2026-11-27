@@ -35,6 +35,7 @@ function bsSaveLocal(){['soal','sesi','hasil'].forEach(function(k){try{localStor
 function bsClear(){
  BS.kc={};BS.tk={};BS.tkR={};BS.kcLoaded=false;
  try{Object.keys(BSK).forEach(function(k){localStorage.removeItem(BSK[k])});if(Cloud.on)localStorage.removeItem(BSQ)}catch(e){}
+ try{Object.keys(localStorage).filter(function(k){return k.indexOf('tbsm.inc.')===0}).forEach(function(k){localStorage.removeItem(k)})}catch(e){}
  if(BS.timer){clearInterval(BS.timer);BS.timer=null}
  BS.D={soal:[],sesi:[],hasil:[]};BS.loaded=false;BS.resumed=false;BS.run=null;BS.res=null;BS.sub='home';BS.form=null;BS.sf=null;BS.all=null;
 }
@@ -107,6 +108,28 @@ async function bsDel(k,id){
  var o=a[i];a.splice(i,1);BS.all=null;bsSaveLocal();
  if(Cloud.on&&o.r){var ok=await Cloud.remove(BSC[k],id);if(!ok){a.push(o);BS.all=null;bsSaveLocal()}}
 }
+/* Baca hemat: Appwrite menghitung tiap dokumen yang dibaca. Setelah pemuatan penuh, berikutnya hanya dokumen yang berubah
+   sejak pembacaan terakhir ($updatedAt) yang diambil dan digabung ke salinan di perangkat. Pemuatan penuh diulang tiap 6 jam
+   (mendeteksi dokumen yang dihapus) dan bila ada galat. */
+var BS_FULL_MS=6*3600*1000;
+function bsIncSkew(){try{return window.Jam&&Jam.now?Jam.now():Date.now()}catch(e){return Date.now()}}
+function bsIncMax(docs,dasar){var m=dasar||'';(docs||[]).forEach(function(d){if(d.$updatedAt&&d.$updatedAt>m)m=d.$updatedAt});return m}
+function bsIncMundur(iso){var t=Date.parse(iso);return isNaN(t)?iso:new Date(t-10000).toISOString()}
+async function bsBacaInc(k,extra){
+ var col=BSC[k],key='tbsm.inc.'+k+'.'+S.user.id,st=null,Q=Appwrite.Query;
+ try{st=JSON.parse(localStorage.getItem(key)||'null')}catch(e){}
+ var punya=(BS.D[k]||[]).some(function(x){return x.r&&!x.d});
+ if(st&&st.since&&punya&&Date.now()-st.full<BS_FULL_MS){
+  try{
+   var d=await Cloud.list(col,[Q.greaterThan('$updatedAt',bsIncMundur(st.since))].concat(extra||[]));
+   try{localStorage.setItem(key,JSON.stringify({since:bsIncMax(d,st.since),full:st.full}))}catch(e){}
+   return {full:false,docs:d};
+  }catch(e){}
+ }
+ var all=await Cloud.list(col,extra||[]);
+ try{localStorage.setItem(key,JSON.stringify({since:bsIncMax(all,new Date(bsIncSkew()).toISOString()),full:Date.now()}))}catch(e){}
+ return {full:true,docs:all};
+}
 async function bsLoad(){
  if(BS.loading||!S.user)return;
  BS.loading=true;BS.err=[];
@@ -119,9 +142,14 @@ async function bsLoad(){
    await Promise.all(jobs.map(async function(jb){
     var k=jb[0];
     try{
-     var rows=(await Cloud.list(BSC[k],jb[1])).map(bsFromDoc),keep=BS.D[k].filter(function(x){return !x.r||x.d});
-     BS.D[k]=rows;
-     keep.forEach(function(x){var j=BS.D[k].findIndex(function(y){return y.id===x.id});if(j<0)BS.D[k].push(x);else BS.D[k][j]=x});
+     var inc=await bsBacaInc(k,jb[1]);
+     if(inc.full){
+      var rows=inc.docs.map(bsFromDoc),keep=BS.D[k].filter(function(x){return !x.r||x.d});
+      BS.D[k]=rows;
+      keep.forEach(function(x){var j=BS.D[k].findIndex(function(y){return y.id===x.id});if(j<0)BS.D[k].push(x);else BS.D[k][j]=x});
+     }else{
+      inc.docs.map(bsFromDoc).forEach(function(o){var j=BS.D[k].findIndex(function(y){return y.id===o.id});if(j<0)BS.D[k].push(o);else if(BS.D[k][j].r&&!BS.D[k][j].d)BS.D[k][j]=o});
+     }
     }catch(e){BS.err.push(BSC[k]+': '+((e&&e.message)||e))}
    }));
    bsSaveLocal();
