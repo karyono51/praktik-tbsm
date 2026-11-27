@@ -1,0 +1,36 @@
+name: Deploy ke GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Periksa sintaks, berkas, SRI, dan rahasia
+        run: node tools/periksa.mjs
+      - name: Siapkan versi berkas (hash isi, nama cache, daftar offline)
+        run: node tools/rilis.mjs
+      - name: Audit izin koleksi (gagal hanya bila ada temuan baru)
+        run: node tools/audit-izin.mjs
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
