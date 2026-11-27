@@ -1,11 +1,14 @@
-## Rilis produksi: offline, pencegahan data ganda, monitoring database, audit hak akses
-- **Data ganda**: catatan hasil/LKPD belum terkirim yang identik dijadikan satu sebelum dikirim; ID tidak sah ditandai dan tidak dicoba tanpa akhir (`js/pwa.js`).
-- **Pemulihan offline**: peringatan bila penyimpanan perangkat penuh; meminta penyimpanan persisten agar antrean tidak dibuang peramban.
-- **Monitoring database**: `js/pantau-db.js` (baru) menghitung dokumen dibaca, ditulis, dihapus per koleksi per hari; kartu di Cek sinkronisasi; batas peringatan opsional `DB_BATAS_BACA`.
-- **Hak akses**: `can()` aman untuk peran tanpa daftar izin (`js/core.js`). `tools/uji-hak-akses.mjs` menjaga matriks izin Siswa, Guru, Admin dan batas atribut server. Tabel di `docs-HAK-AKSES.md`.
-- **Uji**: `tools/uji-offline.mjs` (39), `tools/uji-beban.mjs` (15), `tools/uji-hak-akses.mjs` (36), `tools/regresi.mjs` menjalankan semua uji sebelum rilis.
-- **Rilis**: `tools/cadangan.sh` (tag dan zip cadangan, pemulihan lewat commit baru), `docs-RILIS.md`, `docs-OFFLINE.md`.
-- Tidak ada perubahan skema Appwrite, izin koleksi, variabel fungsi, tabel Neon, atau akun. `CBT_LEGACY` tetap `true`.
+## Offline dan monitoring (dipasang di atas hemat baca)
+- `js/pwa.js`: catatan belum terkirim yang identik (mis. tombol simpan dua kali) dijadikan satu; ID tidak sah ditandai `bad` dan tidak dikirim; peringatan bila penyimpanan perangkat penuh.
+- `js/pantau-db.js` (baru): penghitung dokumen dibaca/ditulis/dihapus per koleksi per hari, tampil di Cek sinkronisasi; batas peringatan opsional `DB_BATAS_BACA` di `config.js`; meminta penyimpanan persisten.
+- `js/core.js`: `can()` tidak error untuk peran tanpa daftar izin.
+- Pembacaan bertahap (`core.js`, `nav.js`, `hasil-izin.js`, `hapus-nilai.js`) dikembalikan ke versi #456 yang sempat tertimpa.
+
+## Hemat kuota baca Appwrite: login, Segarkan, dan izin nilai bertahap
+- **Login dan Segarkan** (`Cloud.muatData` di `js/core.js`, `js/nav.js`): setelah pembacaan penuh pertama, hanya dokumen yang berubah ($updatedAt) yang dibaca, digabung ke salinan di perangkat (snapshot `tbsm-snap`, kini memuat penanda `inc`). Guru/admin: akun, nilai, LKPD, modul LKPD, observasi. Siswa: nilai dan LKPD miliknya, modul LKPD. Pembacaan penuh diulang tiap 8 jam (staf) atau 3 jam (siswa), setelah penghapusan di perangkat ini (`tbsm-hapus-ts`), setelah Hapus nilai (`window.TBSM_PENUH`), dan bila pembacaan bertahap gagal. Dokumen terhapus di perangkat lain baru hilang saat pembacaan penuh berikutnya.
+- **Izin nilai** (`js/hasil-izin.js`): sebelumnya tiap login staf (10 detik sesudahnya) dan tiap sinkron (maksimal tiap 2 menit) membaca SELURUH koleksi hasil dan uid_map. Kini daftar uid_map disimpan di perangkat (`tbsm-izin`), hasil yang berubah dibaca bertahap, hasil siswa yang baru mendaftarkan login dibaca per siswa, dan pembacaan penuh hanya tiap 3 hari.
+- **up.sh**: zip kecil (berkas langsung di akar) kini dipasang di folder repo; zip penuh (berisi folder `tbsm/`) tetap dipasang di folder induk. Sebelumnya zip kecil jatuh ke folder induk sehingga git melihat "tidak ada perubahan".
+- Uji: `tools/uji-baca-bertahap.mjs` (25), `tools/uji-izin-bertahap.mjs` (11).
 
 ## PKL: Pengaturan, tolak absen di luar zona, foto jurnal, pindai surat perjanjian
 - **Tab Pengaturan (Admin)**: absen di luar zona Tolak atau Tandai, foto wajib per item (masuk, pulang, izin, sakit, jurnal), dan tampilan daftar tempat PKL untuk siswa (bawaan: hanya sebelum ditempatkan). Disimpan sebagai dokumen `setelan` di koleksi `pkl`; tanpa perubahan skema.
@@ -609,9 +612,3 @@ Prodi `PKL` dengan empat elemen CP (SFT, HSP, HSG, WIR) ditambahkan ke matriks (
 - **Simpan di atas**: tombol Simpan (Kirim absen pada form absen) dan Batal kini tepat di bawah judul formulir, dengan pesan galat langsung di bawahnya. Tombol di bagian bawah dihapus.
 - **Basmalah**: bar atas aplikasi (semua halaman dan semua peran) memuat lafaz basmalah di atas sapaan "Halo" (`.bsm` di `css/app.css`, `js/ui.js`).
 - `tools/uji-pkl.mjs` kini 134 butir.
-
-## 2026-11-27 — Optimasi Database Reads Appwrite
-- Tambah cache 8 detik dan deduplikasi permintaan identik pada `Cloud.list`, dengan invalidasi setelah sinkronisasi dan penghapusan.
-- Batasi pemindaian massal izin dokumen `hasil` otomatis menjadi maksimal sekali per 24 jam per browser; cache `uid_map` menjadi 5 menit.
-- Pertahankan `CBT_DB:'neon'` dan `CBT_LEGACY:true` karena status data live Neon dan variabel fungsi tidak dapat diverifikasi dari source ZIP.
-- Validasi: periksa source, audit izin, uji Neon server dan klien lulus.
