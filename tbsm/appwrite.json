@@ -1,0 +1,1799 @@
+{
+  "projectId": "6af2a76d00199ba40ab0",
+  "projectName": "Uji Praktik TBSM",
+  "databases": [
+    {
+      "$id": "tbsm",
+      "name": "tbsm",
+      "enabled": true
+    }
+  ],
+  "collections": [
+    {
+      "$id": "akun",
+      "databaseId": "tbsm",
+      "name": "akun",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"users\")",
+        "update(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "nama",
+          "type": "string",
+          "size": 128,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "username",
+          "type": "string",
+          "size": 64,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "email",
+          "type": "string",
+          "size": 128,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "peran",
+          "type": "string",
+          "size": 64,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "kelas",
+          "type": "string",
+          "size": 8,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "size": 8,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "aktif",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_email",
+          "type": "unique",
+          "attributes": [
+            "email"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "hasil",
+      "databaseId": "tbsm",
+      "name": "hasil",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "ts",
+          "type": "integer",
+          "min": 0,
+          "max": 9007199254740991,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "jobId",
+          "type": "string",
+          "size": 16,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "kelas",
+          "type": "string",
+          "size": 8,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "siswa",
+          "type": "string",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "tipe",
+          "type": "string",
+          "size": 16,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "score",
+          "type": "integer",
+          "min": 0,
+          "max": 100,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "kompeten",
+          "type": "boolean",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "catatan",
+          "type": "string",
+          "size": 1000,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "detik",
+          "type": "integer",
+          "min": 0,
+          "max": 86400,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "penilai",
+          "type": "string",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "size": 36,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 100000,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_sid",
+          "type": "key",
+          "attributes": [
+            "sid"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "lkpd",
+      "databaseId": "tbsm",
+      "name": "lkpd",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "ts",
+          "type": "integer",
+          "min": 0,
+          "max": 9007199254740991,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "moduleId",
+          "type": "string",
+          "size": 32,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "moduleTitle",
+          "type": "string",
+          "size": 180,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "kelas",
+          "type": "string",
+          "size": 8,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "siswa",
+          "type": "string",
+          "size": 128,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "score",
+          "type": "integer",
+          "min": 0,
+          "max": 100,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "practice",
+          "type": "integer",
+          "min": 0,
+          "max": 100,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "theory",
+          "type": "integer",
+          "min": 0,
+          "max": 100,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "kompeten",
+          "type": "boolean",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 500000,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "koreksi",
+          "type": "integer",
+          "min": 0,
+          "max": 100,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "umpan",
+          "type": "string",
+          "size": 1000,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "verifOleh",
+          "type": "string",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "verifTs",
+          "type": "integer",
+          "min": 0,
+          "max": 9007199254740991,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_lkpd_sid",
+          "type": "key",
+          "attributes": [
+            "sid"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_lkpd_module",
+          "type": "key",
+          "attributes": [
+            "moduleId"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "lkpd_modules",
+      "databaseId": "tbsm",
+      "name": "lkpd_modules",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"label:lkpdeditor\")",
+        "read(\"label:lkpdeditor\")",
+        "update(\"label:lkpdeditor\")",
+        "delete(\"label:lkpdeditor\")"
+      ],
+      "attributes": [
+        {
+          "key": "moduleId",
+          "type": "string",
+          "size": 32,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "size": 180,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "kelas",
+          "type": "string",
+          "size": 16,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "fase",
+          "type": "string",
+          "size": 8,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "duration",
+          "type": "integer",
+          "min": 1,
+          "max": 600,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "size": 16,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "active",
+          "type": "boolean",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 500000,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "updatedAt",
+          "type": "integer",
+          "min": 0,
+          "max": 9007199254740991,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "updatedBy",
+          "type": "string",
+          "size": 64,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_lkpd_modules_id",
+          "type": "unique",
+          "attributes": [
+            "moduleId"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_lkpd_modules_status",
+          "type": "key",
+          "attributes": [
+            "status",
+            "active"
+          ],
+          "orders": [
+            "ASC",
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_lkpd_modules_kelas",
+          "type": "key",
+          "attributes": [
+            "kelas"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "lkpd_bukti",
+      "databaseId": "tbsm",
+      "name": "lkpd_bukti",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "lkpdId",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "moduleId",
+          "type": "string",
+          "size": 32,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "min": 0,
+          "max": 9007199254740991,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "label",
+          "type": "string",
+          "size": 100,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "data",
+          "type": "string",
+          "size": 300000,
+          "required": true,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_bukti_lkpd",
+          "type": "key",
+          "attributes": [
+            "lkpdId"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "observasi",
+      "databaseId": "tbsm",
+      "name": "observasi",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "read(\"label:admin\")",
+        "update(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "tipe",
+          "type": "string",
+          "size": 8,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "guruId",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "guru",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 120
+        },
+        {
+          "key": "mapel",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 120
+        },
+        {
+          "key": "kelas",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "tanggal",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 10
+        },
+        {
+          "key": "pengamat",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 120
+        },
+        {
+          "key": "pengamatId",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "skor",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 100
+        },
+        {
+          "key": "kategori",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 16
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 20000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_obs_pengamat",
+          "type": "key",
+          "attributes": [
+            "pengamatId"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_obs_ts",
+          "type": "key",
+          "attributes": [
+            "ts"
+          ],
+          "orders": [
+            "DESC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "banksoal",
+      "databaseId": "tbsm",
+      "name": "banksoal",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"users\")",
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "tipe",
+          "type": "string",
+          "size": 10,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "mapel",
+          "type": "string",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "topik",
+          "type": "string",
+          "size": 120,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "kelas",
+          "type": "string",
+          "size": 8,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "tujuan",
+          "type": "string",
+          "size": 10,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "aktif",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 12000,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_bs_ts",
+          "type": "key",
+          "attributes": [
+            "ts"
+          ],
+          "orders": [
+            "DESC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "soal_sesi",
+      "databaseId": "tbsm",
+      "name": "soal_sesi",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"users\")",
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "judul",
+          "type": "string",
+          "size": 160,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "kelas",
+          "type": "string",
+          "size": 8,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "durasi",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 600
+        },
+        {
+          "key": "jumlah",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 500
+        },
+        {
+          "key": "acak",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "mulai",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "selesai",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "aktif",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "kkm",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 100
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 20000,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_bss_ts",
+          "type": "key",
+          "attributes": [
+            "ts"
+          ],
+          "orders": [
+            "DESC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "soal_hasil",
+      "databaseId": "tbsm",
+      "name": "soal_hasil",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "size": 36,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "siswa",
+          "type": "string",
+          "size": 128,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "kelas",
+          "type": "string",
+          "size": 8,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "mode",
+          "type": "string",
+          "size": 8,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "sesiId",
+          "type": "string",
+          "size": 36,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "sesiJudul",
+          "type": "string",
+          "size": 160,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "score",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 100
+        },
+        {
+          "key": "benar",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 500
+        },
+        {
+          "key": "total",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 500
+        },
+        {
+          "key": "detik",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 100000
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 60000,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_bsh_sid",
+          "type": "key",
+          "attributes": [
+            "sid"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_bsh_ts",
+          "type": "key",
+          "attributes": [
+            "ts"
+          ],
+          "orders": [
+            "DESC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "uid_map",
+      "databaseId": "tbsm",
+      "name": "uid_map",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "sid",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "email",
+          "type": "string",
+          "required": true,
+          "array": false,
+          "size": 128
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_sid",
+          "type": "key",
+          "attributes": [
+            "sid"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "soal_run",
+      "databaseId": "tbsm",
+      "name": "soal_run",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "size": 36,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "sesiId",
+          "type": "string",
+          "size": 36,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "done",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 60000,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "ext",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 86400
+        },
+        {
+          "key": "stop",
+          "type": "boolean",
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "pb",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 999
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_bsr_sid",
+          "type": "key",
+          "attributes": [
+            "sid"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_bsr_sesi",
+          "type": "key",
+          "attributes": [
+            "sesiId"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "soal_kunci",
+      "databaseId": "tbsm",
+      "name": "soal_kunci",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "payload",
+          "type": "string",
+          "size": 12000,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "audit",
+      "databaseId": "tbsm",
+      "name": "audit",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "aktor",
+          "type": "string",
+          "size": 36,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "peran",
+          "type": "string",
+          "size": 16,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "aksi",
+          "type": "string",
+          "size": 40,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "sesiId",
+          "type": "string",
+          "size": 36,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "target",
+          "type": "string",
+          "size": 64,
+          "required": false,
+          "array": false
+        },
+        {
+          "key": "ket",
+          "type": "string",
+          "size": 300,
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "$id": "akademik",
+      "databaseId": "tbsm",
+      "name": "akademik",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "create(\"label:admin\")",
+        "update(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "jenis",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 12
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 60000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_akd_jenis",
+          "type": "key",
+          "attributes": [
+            "jenis"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "akademik_sdm",
+      "databaseId": "tbsm",
+      "name": "akademik_sdm",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"label:admin\")",
+        "create(\"label:admin\")",
+        "update(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "jenis",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 12
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 60000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_akdsdm_jenis",
+          "type": "key",
+          "attributes": [
+            "jenis"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "alumni",
+      "databaseId": "tbsm",
+      "name": "alumni",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "nisn",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 20
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "prodi",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 16
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "tahun",
+          "type": "integer",
+          "required": false,
+          "array": false,
+          "min": 0,
+          "max": 3000
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 16
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 20000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_nisn",
+          "type": "key",
+          "attributes": [
+            "nisn"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "pkl",
+      "databaseId": "tbsm",
+      "name": "pkl",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"users\")",
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "jenis",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 12
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "tanggal",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 10
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 60000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_pkl_jenis",
+          "type": "key",
+          "attributes": [
+            "jenis"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_pkl_sid",
+          "type": "key",
+          "attributes": [
+            "sid"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "pkl_catat",
+      "databaseId": "tbsm",
+      "name": "pkl_catat",
+      "enabled": true,
+      "documentSecurity": true,
+      "$permissions": [
+        "create(\"users\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "jenis",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 12
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "tanggal",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 10
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 60000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_pkc_sid",
+          "type": "key",
+          "attributes": [
+            "sid"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        },
+        {
+          "key": "idx_pkc_jenis",
+          "type": "key",
+          "attributes": [
+            "jenis"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "pkl_nilai",
+      "databaseId": "tbsm",
+      "name": "pkl_nilai",
+      "enabled": true,
+      "documentSecurity": false,
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "create(\"label:guru\")",
+        "create(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "attributes": [
+        {
+          "key": "jenis",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 12
+        },
+        {
+          "key": "sekolah",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 8
+        },
+        {
+          "key": "nama",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 200
+        },
+        {
+          "key": "ts",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 9007199254740991
+        },
+        {
+          "key": "oleh",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "sid",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 64
+        },
+        {
+          "key": "tanggal",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 10
+        },
+        {
+          "key": "payload",
+          "type": "string",
+          "required": false,
+          "array": false,
+          "size": 60000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_pkn_jenis",
+          "type": "key",
+          "attributes": [
+            "jenis"
+          ],
+          "orders": [
+            "ASC"
+          ]
+        }
+      ]
+    }
+  ],
+  "profilAman": {
+    "_catatan": "Izin yang dipakai bila setup dijalankan dengan --profil=aman (mode CBT aman, CFG.CBT_AMAN:true). Siswa tidak lagi boleh membuat atau mengubah soal_run dan soal_hasil; hanya fungsi cbt yang menulisnya.",
+    "soal_hasil": {
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "documentSecurity": true
+    },
+    "soal_run": {
+      "$permissions": [
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
+        "update(\"label:guru\")",
+        "update(\"label:admin\")",
+        "delete(\"label:guru\")",
+        "delete(\"label:admin\")"
+      ],
+      "documentSecurity": true
+    }
+  }
+}

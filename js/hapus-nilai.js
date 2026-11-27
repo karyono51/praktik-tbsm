@@ -86,7 +86,7 @@ async function hnJalan(){
   HN.log.push('Berhenti karena galat: '+String((e&&e.message)||e).slice(0,160));
  }
  HN.busy=false;render();
- try{if(Cloud.on&&typeof refreshData==='function'){window.TBSM_PENUH=true;refreshData()}}catch(e){}
+ try{if(Cloud.on&&typeof refreshData==='function')refreshData()}catch(e){}
 }
 
 function viewHapusNilai(){
