@@ -1,3 +1,9 @@
+## Skema: payload banksoal dan soal_kunci 20000
+- `appwrite.json`: atribut `payload` pada `banksoal` dan `soal_kunci` dari 12000 ke 20000. Project Appwrite baru menolak 12000 ("maximum number or size of attributes") karena kolom varchar sebesar itu melampaui batas ukuran baris; ukuran di atas sekitar 16000 disimpan sebagai teks dan lolos. Tidak ada kode yang membatasi 12000, jadi ini hanya melonggarkan.
+
+## Pindah ke project Appwrite Pakar 1501
+- `js/config.js`, `appwrite.json`: project `6b08f9a2001e88fb5ac6` (sgp). Alat `tools/pindah-project.mjs <ID>` mengganti ID di tiga berkas. Panduan: `docs-PINDAH-PROJECT.md`. **Jangan push sebelum langkah 1 sampai 6 di panduan selesai**, karena situs langsung memakai project kosong dan login gagal.
+
 ## CBT_LEGACY dimatikan
 - `js/config.js`: `CBT_LEGACY:false`. Jalur CBT hanya membaca Neon. Di Console Appwrite, variabel fungsi `akun-admin` harus diisi `CBT_LEGACY=0` lalu fungsi dideploy ulang. Hasil ujian lama yang hanya ada di Appwrite tidak tampil lagi.
 

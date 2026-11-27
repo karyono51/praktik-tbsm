@@ -1,6 +1,6 @@
 {
-  "projectId": "6af2a76d00199ba40ab0",
-  "projectName": "Uji Praktik TBSM",
+  "projectId": "6b08f9a2001e88fb5ac6",
+  "projectName": "Pakar 1501",
   "databases": [
     {
       "$id": "tbsm",
@@ -753,7 +753,7 @@
         {
           "key": "payload",
           "type": "string",
-          "size": 12000,
+          "size": 20000,
           "required": false,
           "array": false
         }
@@ -1175,7 +1175,7 @@
         {
           "key": "payload",
           "type": "string",
-          "size": 12000,
+          "size": 20000,
           "required": false,
           "array": false
         }

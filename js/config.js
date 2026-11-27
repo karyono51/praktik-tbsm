@@ -1,6 +1,6 @@
 window.APP_CONFIG={
   APPWRITE_ENDPOINT:'https://sgp.cloud.appwrite.io/v1',
-  APPWRITE_PROJECT:'6af2a76d00199ba40ab0',
+  APPWRITE_PROJECT:'6b08f9a2001e88fb5ac6',
   DB:'tbsm',
   /* Opsional: peringatan bila satu perangkat membaca sekian dokumen dalam sehari (monitoring di Cek sinkronisasi). Contoh: DB_BATAS_BACA:3000 */
   PENDAFTARAN_TERBUKA:false,
