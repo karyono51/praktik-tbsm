@@ -121,7 +121,18 @@ JOBS=[
    {id:"UKK-X-1-6",a:'R',no:7,t:"Arus rangkaian lampu (ammeter seri)",std:"Dipasang seri, rentang arus terbesar, kabel berfuse; probe kembali ke jack V setelah selesai",k:true},
    {id:"UKK-X-1-7",a:'R',no:8,t:"Perhitungan R = V ÷ I dan perbandingan dengan hasil ukur",std:"Satuan benar (V, A, Ω); selisih dengan hasil ohmmeter dijelaskan",k:false},
    {id:"UKK-X-1-8",a:'R',no:9,t:"Keputusan kondisi rangkaian dan tindak lanjut",std:"Sesuai atau Tidak sesuai terhadap standar manual servis atau penguji; tindakan disebutkan",k:false},
-   {id:"UKK-X-1-9",a:'R',no:10,t:"Selector OFF dan 5R",std:"Multimeter OFF, kabel digulung, alat dan baterai kembali, area bersih",k:false}]}
+   {id:"UKK-X-1-9",a:'R',no:10,t:"Selector OFF dan 5R",std:"Multimeter OFF, kabel digulung, alat dan baterai kembali, area bersih",k:false}]},
+ {id:'UKK-XI-1',kelas:'XI',judul:"Pemeriksaan Komponen Sistem CVT",unit:"Honda Beat Pop",menit:30,ukk:true,skkni:'unit 027 (usulan, verifikasi)',form:FORM_UKK,
+  items:[{id:"UKK-XI-1-0",a:'R',no:1,t:"Melepas cover dan komponen CVT",std:"Sesuai urutan buku manual servis; engine mati dan dingin; pegas puli sekunder dilepas dengan SST; baut dikelompokkan menurut letaknya; komponen tidak rusak",k:false},
+   {id:"UKK-XI-1-1",a:'R',no:2,t:"V-belt (lebar dan keausan)",std:"Lebar standar 18,5 mm; batas servis 17,5 mm; tidak retak, gosong, atau berminyak; diukur di beberapa titik, pakai nilai terkecil",k:false},
+   {id:"UKK-XI-1-2",a:'R',no:3,t:"Roller weight (diameter dan keausan)",std:"Diameter 17,92–18,08 mm; batas servis 17,3 mm; bobot 15 g; keenam roller seragam",k:false},
+   {id:"UKK-XI-1-3",a:'R',no:4,t:"Weight set clutch (kanvas dan pegas)",std:"Tebal kanvas batas servis 2,0 mm; pegas tidak patah atau lemah",k:false},
+   {id:"UKK-XI-1-4",a:'R',no:5,t:"Puli primer",std:"Bidang puli licin, tidak bergelombang atau tergores; boss dan bushing dalam batas servis (sesuai buku manual)",k:false},
+   {id:"UKK-XI-1-5",a:'R',no:6,t:"Puli sekunder",std:"Bidang puli licin, tidak bergelombang atau tergores; boss, bushing, dan alur luncur dalam batas servis (sesuai buku manual)",k:false},
+   {id:"UKK-XI-1-6",a:'R',no:7,t:"Mangkok kopling CVT (diameter dalam dan keausan)",std:"112,0–112,2 mm; batas servis 112,5 mm; permukaan tidak bergelombang",k:false},
+   {id:"UKK-XI-1-7",a:'R',no:8,t:"Per CVT (panjang bebas dan kekenduran)",std:"Panjang bebas 127,5 mm; batas servis 124,7 mm",k:false},
+   {id:"UKK-XI-1-8",a:'R',no:9,t:"Memasang komponen CVT",std:"Sesuai urutan buku manual; mur dikencangkan dengan kunci torsi sesuai manual; V-belt dan puli bebas dari oli dan gemuk",k:true},
+   {id:"UKK-XI-1-9",a:'R',no:10,t:"Keputusan kondisi komponen dan tindak lanjut",std:"Tiap komponen diputuskan Layak pakai atau Ganti menurut batas servis (bukan rentang standar); roller dan kanvas diganti satu set; alasan dicatat",k:false}]}
 ];
 JOBS_ARSIP=JOBS_ARSIP.concat(JOBS);
 function jobById(id){return JOBS.filter(function(j){return j.id===id})[0]||JOBS_ARSIP.filter(function(j){return j.id===id})[0]}

@@ -1,3 +1,9 @@
+## Unit UKK kelas XI: Pemeriksaan Komponen Sistem CVT
+- `js/data.js`: unit `UKK-XI-1` (kelas XI, Honda Beat Pop, 30 menit, 10 butir: lepas cover dan komponen, V-belt, roller, weight set clutch, puli primer, puli sekunder, mangkok kopling, per CVT, pasang kembali, keputusan Layak pakai atau Ganti).
+- `js/ukk-aturan.js`: aturan angka butir V-belt, roller, kanvas dan pegas, mangkok kopling, per CVT (batas servis, sama dengan UKK-2).
+- `js/observasi-ukk.js`: lembar **Observasi XI-1** (`cvt11`, tingkat XI, 20 aspek: 4+10+3+3); `js/ukk-observasi.js`: berpasangan otomatis dengan UKK-XI-1.
+- Tanpa perubahan skema Appwrite. Uji: unit, aturan nilai, dan lembar (`tools/uji-ukk-xi1.mjs`).
+
 ## Skema: payload banksoal dan soal_kunci 20000
 - `appwrite.json`: atribut `payload` pada `banksoal` dan `soal_kunci` dari 12000 ke 20000. Project Appwrite baru menolak 12000 ("maximum number or size of attributes") karena kolom varchar sebesar itu melampaui batas ukuran baris; ukuran di atas sekitar 16000 disimpan sebagai teks dan lolos. Tidak ada kode yang membatasi 12000, jadi ini hanya melonggarkan.
 

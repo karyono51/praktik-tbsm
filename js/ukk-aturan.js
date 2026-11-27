@@ -30,7 +30,12 @@ var UKK_ATURAN={
  'UKK-3-8':{p:[{r:[20,30]}],h:'Jarak main (mm)'},
  'UKK-3-9':{p:[{max:111}],h:'Diameter dalam (mm)'},
  'UKK-X-1-2':{p:[{min:12.4}],h:'Tegangan rata-rata (V)'},
- 'UKK-X-1-5':{p:[{max:1}],h:'Hambatan (Ω)'}
+ 'UKK-X-1-5':{p:[{max:1}],h:'Hambatan (Ω)'},
+ 'UKK-XI-1-1':{p:[{min:17.5}],h:'Lebar terkecil (mm)'},
+ 'UKK-XI-1-2':{p:[{min:17.3}],h:'Diameter terkecil (mm)'},
+ 'UKK-XI-1-3':{p:[{min:2}],tk:1,h:'Tebal kanvas (mm) dan kondisi pegas'},
+ 'UKK-XI-1-6':{p:[{max:112.5}],h:'Diameter dalam (mm)'},
+ 'UKK-XI-1-7':{p:[{min:124.7}],tk:1,h:'Panjang bebas (mm) dan kekenduran'}
 };
 var UKK_EPS=1e-9;
 var UKK_KURANG={hasil:'hasil aktual',status:'status',angka:'angka',teks:'teks',catatan:'catatan'};

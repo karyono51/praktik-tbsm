@@ -9,6 +9,13 @@ Menu **Observasi UKK** (Admin dan Guru) berisi **4 lembar** observasi praktik Uj
 | Observasi 3 | Perawatan Berkala Sistem Rem (Honda Supra X 125 Karburator) | 23 (4+13+3+3) |
 | Observasi 4 | Perawatan Berkala Sistem Kelistrikan Bodi (Honda Supra Fit) | 20 (4+10+3+3) |
 
+Lembar kelas lain (muncul bila rombel tingkat itu dipilih):
+
+| Lembar | Tingkat | Judul tugas | Aspek |
+|---|---|---|---|
+| Observasi X-1 | X | Pengukuran Tegangan Baterai Tanpa Beban | 9 |
+| Observasi XI-1 | XI | Pemeriksaan Komponen Sistem CVT (Honda Beat Pop), 30 menit | 20 (4+10+3+3) |
+
 Pilih lembar lewat kolom **Lembar observasi** di atas daftar, lalu ketuk **+ Observasi baru**. Setiap kartu di daftar menampilkan nama lembarnya.
 
 ## Isi lembar
@@ -96,8 +103,15 @@ Layar hasil unit UKK kini menampilkan alasan tiap butir yang belum dapat nilai (
 
 ## Tata kelola observasi per unit
 - Edit isi unit, tab **Observasi**: **Satu paket**, **Berpasangan**, atau **Tanpa observasi**, lalu pilih lembar setingkat. Satu lembar hanya untuk satu unit pada sekolah yang sama.
-- Bawaan: UKK-1..4 dan UKK-X-1 Berpasangan dengan lembar masing-masing. Unit buatan sendiri dan duplikat: Tanpa observasi.
+- Bawaan: UKK-1..4, UKK-X-1, dan UKK-XI-1 Berpasangan dengan lembar masing-masing. Unit buatan sendiri dan duplikat: Tanpa observasi.
 - Identitas lembar observasi (layar dan PDF) mengikuti unit, termasuk alokasi waktu dan tempat. Perubahan unit juga berlaku pada observasi lama.
 - Satu paket: nilai gabungan tampil di detail dan PDF observasi (bobot dari halaman Nilai Akhir UKK).
 - Nilai Akhir UKK memakai daftar unit menurut kelas dan sekolah siswa, termasuk kelas X.
 - Berkas: `js/ukk-observasi.js`.
+
+## Unit UKK kelas XI: Pemeriksaan Komponen Sistem CVT (UKK-XI-1)
+- Unit `UKK-XI-1` (kelas XI, Honda Beat Pop, 30 menit, 10 butir) di `js/data.js`, berpasangan dengan lembar **Observasi XI-1** (`cvt11`, 20 aspek, `js/observasi-ukk.js`; pasangan bawaan di `UO_BAWAAN`, `js/ukk-observasi.js`). Muncul di menu UKK Kelas XI; Nilai Akhir UKK kelas XI memakai pasangan ini (bobot unit:observasi bawaan 40:60).
+- Beda dengan UKK-2 (kelas XII, perawatan berkala): fokus pemeriksaan dan pengukuran tiap komponen CVT, lalu butir terakhir **Keputusan kondisi komponen dan tindak lanjut** (Layak pakai atau Ganti menurut batas servis, roller dan kanvas satu set).
+- Acuan angka sama dengan UKK-2 dan LKPD XI-3 (`docs-SOAL-HOTS-CVT.md`): V-belt 18,5 mm (batas servis 17,5), roller 17,92-18,08 mm (batas 17,3) bobot 15 g, kanvas batas 2,0 mm, mangkok kopling 112,0-112,2 mm (batas 112,5), per CVT 127,5 mm (batas 124,7). **Bila manual unit di sekolah berbeda, sesuaikan angka di `UKK_ATURAN`, `data.js`, dan `observasi-ukk.js`.**
+- Aturan angka (`js/ukk-aturan.js`): butir 2, 3, 4, 7, 8 berangka (`UKK-XI-1-1`, `-2`, `-3`, `-6`, `-7`); butir 3 dan 8 campuran (angka dan kondisi pegas). Keputusan memakai batas servis, bukan rentang standar. Butir 1, 5, 6, 9, 10 tanpa angka (Hasil aktual, Status, dan Catatan terisi).
+- Kode SKKNI unit 027 ditandai usulan (perlu verifikasi), seperti UKK-X-1.

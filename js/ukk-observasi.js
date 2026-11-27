@@ -4,7 +4,7 @@
      pasangan = dinilai dan dicetak terpisah, digabung berbobot di Nilai Akhir UKK.
      tanpa    = unit tanpa observasi (tidak masuk Nilai Akhir).
    Identitas lembar observasi (sekolah, konsentrasi, kode, tahun, bentuk, paket, tempat, waktu, kendaraan) mengikuti unit yang terhubung. */
-var UO_BAWAAN={'UKK-1':'vario','UKK-2':'cvt','UKK-3':'rem','UKK-4':'bodi','UKK-X-1':'tegangan'};
+var UO_BAWAAN={'UKK-1':'vario','UKK-2':'cvt','UKK-3':'rem','UKK-4':'bodi','UKK-X-1':'tegangan','UKK-XI-1':'cvt11'};
 var UO_MODE={paket:'Satu paket',pasangan:'Berpasangan',tanpa:'Tanpa observasi'};
 function uoNorm(o,id,kelas){
  if(!o||!UO_MODE[o.mode]){var l=UO_BAWAAN[id]||'';return {mode:l?'pasangan':'tanpa',lembar:l}}
