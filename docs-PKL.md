@@ -20,6 +20,31 @@ Menu **PKL** untuk Siswa, Guru, Admin (Kepala Sekolah hanya melihat). Mengacu pa
 - **Rekap** per siswa dan **unduh Excel** (Tempat PKL, Penempatan, Absensi, Rekap kehadiran, Jurnal, Kunjungan, Nilai, Kelengkapan).
 - "Tanpa keterangan" = hari kerja Senin-Jumat sejak mulai PKL dikurangi hadir, izin, sakit (perkiraan; hari libur belum dikurangi).
 
+## Excel dan PDF per tab (Guru/Admin; Kepala Sekolah hanya ekspor dan cetak)
+Tombol ada di bawah judul tiap tab (`js/pkl-xls.js` untuk Tempat PKL, `js/pkl-io.js` untuk tab lain, `js/pkl-pdf.js` untuk PDF). Ekspor dan PDF mengikuti **saringan yang aktif** di tab (yang tampil = yang diekspor/dicetak); keterangan saringan tercantum di PDF. Siswa tidak melihat tombol ini.
+
+| Tab | Ekspor Excel | Template + Impor Excel | Cetak PDF |
+|---|---|---|---|
+| Tempat PKL | semua kolom formulir + info siswa aktif, status PKS, monitoring terakhir | ya (kunci Nama + Kota) | daftar tempat (kuota terisi, PKS, monitoring terakhir) |
+| Penempatan | siswa, NIS, kelas, tempat, kota, guru, instruktur, periode, status | ya (kunci Siswa + Tempat) | daftar penempatan |
+| Absensi | per tanggal terpilih: lembar per siswa (Hadir/Izin/Sakit/Belum absen) + lembar catatan absen | tidak | daftar hadir harian |
+| Jurnal | semua jurnal yang tampil (layar hanya 60) | tidak | jurnal banyak siswa, satu siswa per halaman (format Lampiran 2) |
+| Monitoring | tanggal, tempat, guru, cara, temuan, tindak lanjut | ya (kunci Tanggal + Tempat) | laporan monitoring |
+| Nilai | TP1-TP4, nilai akhir, predikat, catatan | ya, template berisi siswa dan nilai saat ini (kunci siswa) | rekap nilai (Lampiran 5 per siswa tetap ada) |
+| Kelengkapan | 11 tahapan Ya/Belum + jumlah | ya, template berisi kondisi saat ini | matriks v/- |
+| Rekap | tabel rekap sesuai saringan (tombol Unduh Excel lama tetap = workbook lengkap) | tidak | rekap kehadiran dan nilai |
+
+Absensi dan Jurnal **sengaja tanpa impor**: keduanya dibuat siswa dengan selfie, jam perangkat, dan GPS sebagai bukti, sehingga impor akan melewati bukti itu.
+
+Aturan impor (semua jenis; Guru/Admin; `.xlsx`, `.xls`, `.csv`; maksimal 500 baris):
+- Judul kolom dikenali tanpa memandang huruf besar/kecil dan tanda baca, jadi berkas hasil ekspor bisa diedit lalu diimpor kembali.
+- Siswa dikenali dari **NIS/Username** (angka dengan atau tanpa titik dan nol di depan) atau, bila kosong, dari nama (isi Kelas/NIS bila nama kembar). Tempat dari Nama + Kota; guru dari nama akun guru. Yang tidak dikenali ditolak per baris, baris lain tetap jalan.
+- **Sel kosong tidak menghapus** isi yang sudah ada; baris yang tidak berubah dilewati; baris bertanda `(CONTOH)` dilewati. Pada Nilai dan Kelengkapan, baris yang hanya berisi identitas dilewati.
+- Pratinjau (baru, diperbarui, tidak berubah, ditolak, alasan per baris) tampil sebelum data disimpan. Penyimpanan lewat `pkPut` seperti formulir (mode lokal, Appwrite tanpa koleksi baru, antrean offline).
+- Penempatan: kuota tempat dan satu penempatan aktif per siswa dijaga selama impor. Memindahkan siswa: tulis baris tempat lama dengan Status Selesai dan baris tempat baru dengan Status Aktif; baris Selesai/Dibatalkan diproses lebih dulu. Siswa + Tempat yang sudah ada diperbarui (tanggal dan guru boleh diubah); Mulai/Selesai wajib untuk penempatan baru.
+- Template Penempatan dan Monitoring menyertakan lembar Rujukan (siswa beserta status penempatan, tempat beserta sisa kuota, guru) agar nama tidak salah ketik.
+- Uji: `node tools/uji-pkl-xls.mjs` (Tempat PKL) dan `node tools/uji-pkl-io.mjs` (tab lain dan PDF); SheetJS dan jsPDF diganti tiruan kecil di node.
+
 ## Penyimpanan
 - Mode lokal: `localStorage` kunci `tbsm-pkl`.
 - Mode Appwrite, tiga koleksi dengan kolom sama (`jenis, sekolah, nama, ts, oleh, sid, tanggal, payload`): jalankan `node tools/setup-appwrite.mjs --only=pkl,pkl_catat,pkl_nilai` (atau `appwrite push collections`).
@@ -35,6 +60,7 @@ Menu **PKL** untuk Siswa, Guru, Admin (Kepala Sekolah hanya melihat). Mengacu pa
 ## Batasan yang perlu diketahui
 - Jam absen berasal dari jam perangkat siswa dan lokasi dari GPS perangkat; keduanya bisa dimanipulasi. Selfie dan status lokasi membantu pemeriksaan guru, bukan bukti mutlak.
 - Belum ada cetak naskah perjanjian kerja sama; datanya (nomor, masa berlaku) tersedia di Excel.
+- Impor tidak tersedia untuk Absensi dan Jurnal (lihat alasan di atas) dan belum ada cetak PDF per siswa untuk absensi bulanan; rekap kehadiran tersedia di PDF Rekap dan Daftar hadir harian.
 - Nilai tidak ditampilkan ke siswa.
 
 ## Pilihan dan saringan (select)

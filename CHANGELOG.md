@@ -1,3 +1,10 @@
+## PKL: Excel dan PDF di semua tab
+- Tempat PKL: tombol **Impor Excel**, **Template**, **Ekspor Excel**, **Cetak PDF** (`js/pkl-xls.js`, baru).
+- Penempatan, Monitoring, Nilai, Kelengkapan: ekspor, template, impor (dengan pratinjau dan alasan penolakan per baris), dan cetak PDF (`js/pkl-io.js`, `js/pkl-pdf.js`, baru). Penempatan menjaga kuota dan satu penempatan aktif per siswa; template Nilai dan Kelengkapan sudah berisi siswa dan kondisi saat ini.
+- Absensi (daftar hadir harian per tanggal), Jurnal (semua yang tampil, PDF banyak siswa), dan Rekap (sesuai saringan): ekspor Excel dan cetak PDF. Absensi dan Jurnal sengaja tanpa impor karena dibuat siswa dengan bukti selfie/GPS.
+- Ekspor dan PDF mengikuti saringan tab. Kepala Sekolah hanya ekspor dan cetak. PDF jurnal per siswa (Lampiran 2) dipecah per halaman agar bisa dipakai banyak siswa; hasilnya sama.
+- Tidak ada perubahan skema Appwrite. Uji baru: `tools/uji-pkl-xls.mjs`, `tools/uji-pkl-io.mjs`.
+
 ## Layar muat
 - Layar sebelum login kini berisi logo sekolah, penanda memuat, dan tombol Muat ulang bila lebih dari 12 detik.
 

@@ -5,7 +5,8 @@
    Penyimpanan: mode lokal di localStorage 'tbsm-pkl'; mode Appwrite di koleksi pkl (tempat, penempatan), pkl_catat (absen, jurnal; dibuat siswa),
    pkl_nilai (kunjungan, nilai, kelengkapan; hanya guru/admin). Selfie dikecilkan (maks 480 px, sekitar 40 KB). Bila fungsi foto-drive terpasang, selfie diunggah ke Google Drive dan payload hanya menyimpan
    'drive:<fileId>' (ditampilkan lewat aksi getpkl); bila belum terpasang, selfie tetap disimpan di payload absen.
-   PDF (jsPDF): Daftar Nilai PKL per siswa (Lampiran 5) dan Jurnal PKL (Lampiran 2). */
+   PDF (jsPDF): Daftar Nilai PKL per siswa (Lampiran 5) dan Jurnal PKL (Lampiran 2).
+   Excel dan PDF daftar per tab: js/pkl-xls.js (Tempat PKL), js/pkl-io.js (tab lain), js/pkl-pdf.js. */
 var PKC={tempat:'pkl',tugas:'pkl',absen:'pkl_catat',jurnal:'pkl_catat',kunjungan:'pkl_nilai',nilai:'pkl_nilai',cek:'pkl_nilai'};
 var PKKEY='tbsm-pkl',PKFOTO=40000;
 var PKD={cache:{},loading:{},failed:{},q:[],run:0,off:false,tm:0};
@@ -547,7 +548,7 @@ function pkStaffView(){
 }
 function pkTabTempat(){
  var T0=pkList('tempat').sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')}),Z=pkSaring('tempat',T0),T=Z.list;
- return '<div class="card"><b>Daftar tempat PKL ('+T.length+(Z.aktif?' dari '+T0.length:'')+')</b>'+pkTambah('tempat','Tempat PKL baru')+Z.bar+(T.length?T.map(function(t){
+ return '<div class="card"><b>Daftar tempat PKL ('+T.length+(Z.aktif?' dari '+T0.length:'')+')</b>'+pkTambah('tempat','Tempat PKL baru')+(typeof pkxBar==='function'?pkxBar():'')+Z.bar+(T.length?T.map(function(t){
   var ps=pkPksStatus(t),n=pkList('tugas').filter(function(x){return x.tempatId===t.id&&x.status==='aktif'}).length,k=pkKunjunganAkhir(t.id),h=k?pkHariSejak(k.tanggal):null;
   return '<div style="padding:8px 0;border-top:1px solid var(--line)">'+pkTempatCard(t,false)+
    '<div class="note">'+(t.pks?'PKS sekolah: '+esc(t.pks):'')+(t.pksMitra?' · PKS mitra: '+esc(t.pksMitra):'')+(t.pksSelesai?' · berlaku s.d. '+esc(t.pksSelesai):'')+(t.fasilitas?'<br>Fasilitas: '+esc(t.fasilitas):'')+
@@ -555,30 +556,30 @@ function pkTabTempat(){
 }
 function pkTabTugas(){
  var G0=pkList('tugas').sort(function(a,b){return pkTempatNama(a.tempatId).localeCompare(pkTempatNama(b.tempatId),'id')||pkNm(a).localeCompare(pkNm(b),'id')}),Z=pkSaring('tugas',G0),G=Z.list,bel=pkSiswaAll().filter(pkPeserta).filter(function(u){return !pkTugasSiswa(u.id)});
- return '<div class="card"><b>Penempatan siswa ('+G.length+(Z.aktif?' dari '+G0.length:'')+')</b>'+pkTambah('tugas','Penempatan baru')+Z.bar+
+ return '<div class="card"><b>Penempatan siswa ('+G.length+(Z.aktif?' dari '+G0.length:'')+')</b>'+pkTambah('tugas','Penempatan baru')+(typeof pkoBar==='function'?pkoBar('tugas'):'')+Z.bar+
   (bel.length?'<details><summary class="note">'+bel.length+' siswa belum ditempatkan</summary><div class="note">'+bel.map(function(u){return esc(u.nama)+(u.kelas?' ('+esc(u.kelas)+')':'')}).join(', ')+'</div></details>':'')+
   (G.length?G.map(function(g){var gu=g.guruId&&pkUser(g.guruId);return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="note"><b>'+esc(pkNm(g))+'</b>'+(pkKl(g)?' ('+esc(pkKl(g))+')':'')+' · '+esc(pkTempatNama(g.tempatId))+'<br>Pembimbing: '+esc(gu?gu.nama:(g.guruNama||'-'))+(g.instruktur?' · Instruktur: '+esc(g.instruktur):'')+'<br>'+esc(g.mulai||'-')+' s.d. '+esc(g.selesai||'-')+' '+pkPill(g.status==='aktif'?'ok':'plain',g.status||'aktif')+'</div>'+pkAksi('tugas',g.id)+'</div>'}).join(''):'<div class="note">'+(G0.length?'Tidak ada penempatan yang cocok dengan saringan.':'Belum ada penempatan.')+'</div>')+'</div>';
 }
 function pkTabAbsen(){
  var d=PK.ft||pkToday(),A0=pkList('absen').filter(function(x){return x.tanggal===d}).sort(function(a,b){return String(a.jam).localeCompare(String(b.jam))}),Z=pkSaring('absen',A0),A=Z.list,G=pkList('tugas').filter(function(x){return x.status==='aktif'}),
   sdh={};A.forEach(function(x){if(x.tipe==='masuk'||x.tipe==='izin'||x.tipe==='sakit')sdh[x.sid]=1});var blm=G.filter(function(g){return !sdh[g.sid]});
- return '<div class="card"><b>Absensi harian</b><label class="f">Tanggal<input type="date" data-pkft value="'+esc(d)+'"></label>'+Z.bar+
+ return '<div class="card"><b>Absensi harian</b><label class="f">Tanggal<input type="date" data-pkft value="'+esc(d)+'"></label>'+(typeof pkoBar==='function'?pkoBar('absen'):'')+Z.bar+
   '<div class="note">'+A.length+(Z.aktif?' dari '+A0.length:'')+' catatan · '+blm.length+' siswa belum absen'+(blm.length?': '+blm.map(function(g){return esc(pkNm(g))}).join(', '):'')+'</div>'+
   (A.length?A.map(function(a){return pkAbsenBaris(a)+'<div class="row"><button type="button" class="btn small danger" data-act="pkl-del" data-k="absen" data-v="'+esc(a.id)+'">Hapus</button></div>'}).join(''):'<div class="note">'+(A0.length?'Tidak ada catatan yang cocok dengan saringan.':'Belum ada absen pada tanggal ini.')+'</div>')+'</div>';
 }
 function pkTabJurnal(){
  var J0=pkList('jurnal').sort(function(a,b){return (a.verif?1:0)-(b.verif?1:0)||String(b.tanggal).localeCompare(String(a.tanggal))}),Z=pkSaring('jurnal',J0),J=Z.list.slice(0,60);
- return '<div class="card"><b>Jurnal kegiatan siswa ('+(Z.aktif?Z.list.length+' dari ':'')+J0.length+')</b><div class="note">Yang belum diberi catatan tampil lebih dulu. Maksimal 60 terbaru.</div>'+Z.bar+(J.length?J.map(function(j){return pkJurnalBaris(j,true)}).join(''):'<div class="note">'+(J0.length?'Tidak ada jurnal yang cocok dengan saringan.':'Belum ada jurnal.')+'</div>')+'</div>';
+ return '<div class="card"><b>Jurnal kegiatan siswa ('+(Z.aktif?Z.list.length+' dari ':'')+J0.length+')</b><div class="note">Yang belum diberi catatan tampil lebih dulu. Maksimal 60 terbaru di layar; Excel dan PDF memuat semua yang tampil sesuai saringan.</div>'+(typeof pkoBar==='function'?pkoBar('jurnal'):'')+Z.bar+(J.length?J.map(function(j){return pkJurnalBaris(j,true)}).join(''):'<div class="note">'+(J0.length?'Tidak ada jurnal yang cocok dengan saringan.':'Belum ada jurnal.')+'</div>')+'</div>';
 }
 function pkTabKunjungan(){
  var K0=pkList('kunjungan').sort(function(a,b){return String(b.tanggal).localeCompare(String(a.tanggal))}),Z=pkSaring('kunjungan',K0),K=Z.list;
- return '<div class="card"><b>Daftar monitoring ('+K.length+(Z.aktif?' dari '+K0.length:'')+')</b><div class="note">Panduan: guru pembimbing memantau minimal sebulan sekali (kunjungan atau komunikasi dengan dunia kerja).</div>'+pkTambah('kunjungan','Monitoring baru')+Z.bar+
+ return '<div class="card"><b>Daftar monitoring ('+K.length+(Z.aktif?' dari '+K0.length:'')+')</b><div class="note">Panduan: guru pembimbing memantau minimal sebulan sekali (kunjungan atau komunikasi dengan dunia kerja).</div>'+pkTambah('kunjungan','Monitoring baru')+(typeof pkoBar==='function'?pkoBar('kunjungan'):'')+Z.bar+
   (K.length?K.map(function(k){var gu=k.guruId&&pkUser(k.guruId);return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="note"><b>'+esc(k.tanggal)+'</b> · '+esc(pkTempatNama(k.tempatId))+' · '+(k.mode==='daring'?'daring':'langsung')+' · '+esc(gu?gu.nama:(k.guruNama||'-'))+(k.temuan?'<br>Temuan: '+esc(k.temuan):'')+(k.tindak?'<br>Tindak lanjut: '+esc(k.tindak):'')+'</div>'+pkAksi('kunjungan',k.id)+'</div>'}).join(''):'<div class="note">'+(K0.length?'Tidak ada monitoring yang cocok dengan saringan.':'Belum ada monitoring.')+'</div>')+'</div>';
 }
 function pkTabNilai(){
  var N0=pkList('nilai').sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')}),Z=pkSaring('nilai',N0),N=Z.list;
  PK.vis.nilai=N.map(function(x){return x.sid});
- return '<div class="card"><b>Nilai PKL ('+N.length+(Z.aktif?' dari '+N0.length:'')+')</b><div class="note">Empat TP (Lampiran 4 dan 5 panduan). Kehadiran diambil otomatis dari absensi.</div>'+pkTambah('nilai','Nilai baru').replace('</div>',N.length?'<button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="semua">'+(Z.aktif?'PDF nilai yang tampil ('+N.length+')':'PDF semua nilai')+'</button></div>':'</div>')+Z.bar+
+ return '<div class="card"><b>Nilai PKL ('+N.length+(Z.aktif?' dari '+N0.length:'')+')</b><div class="note">Empat TP (Lampiran 4 dan 5 panduan). Kehadiran diambil otomatis dari absensi.</div>'+pkTambah('nilai','Nilai baru').replace('</div>',N.length?'<button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="semua">'+(Z.aktif?'PDF nilai yang tampil ('+N.length+')':'PDF semua nilai')+'</button></div>':'</div>')+(typeof pkoBar==='function'?pkoBar('nilai'):'')+Z.bar+
   (N.length?N.map(function(n){var v=pkNilaiAkhir(n),r=pkRekap(n.sid),tp=pkTP();return '<div style="padding:8px 0;border-top:1px solid var(--line)"><div class="note"><b>'+esc(n.nama||'')+'</b>'+(n.kelas?' ('+esc(n.kelas)+')':'')+' · '+esc(pkTempatNama(n.tempatId))+
    '<br>'+[1,2,3,4].map(function(i){return 'TP'+i+': '+(n['tp'+i]===''||n['tp'+i]==null?'-':n['tp'+i])}).join(' · ')+'<br>Nilai akhir: <b>'+(v==null?'-':v)+'</b> '+(v==null?'':pkPill(v>=75?'ok':'warn',pkPredikat(v)))+
    '<br>Kehadiran: sakit '+r.sakit+', izin '+r.izin+', tanpa keterangan '+r.alpa+(n.catGuru?'<br>Guru: '+esc(n.catGuru):'')+(n.catInstr?'<br>Instruktur: '+esc(n.catInstr):'')+'</div>'+pkAksi('nilai',n.id).replace('</div>','<button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="'+esc(n.sid)+'">PDF</button></div>')+'</div>'}).join(''):'<div class="note">'+(N0.length?'Tidak ada nilai yang cocok dengan saringan.':'Belum ada nilai.')+'</div>')+'</div>';
@@ -586,7 +587,7 @@ function pkTabNilai(){
 function pkCekOf(sid){return pkById('cek','cek_'+sid)}
 function pkTabCek(){
  var G0=pkList('tugas').filter(function(x){return x.status!=='dibatalkan'}).sort(function(a,b){return pkNm(a).localeCompare(pkNm(b),'id')}),Z=pkSaring('cek',G0),G=Z.list;
- return '<div class="card"><b>Kelengkapan PKL per siswa</b><div class="note">Centang saat dokumen atau tahapan sudah terpenuhi. Tersimpan otomatis.</div>'+Z.bar+(G.length?G.map(function(g){
+ return '<div class="card"><b>Kelengkapan PKL per siswa</b><div class="note">Centang saat dokumen atau tahapan sudah terpenuhi. Tersimpan otomatis.</div>'+(typeof pkoBar==='function'?pkoBar('cek'):'')+Z.bar+(G.length?G.map(function(g){
   var c=pkCekOf(g.sid)||{items:{}},n=PK_CEK.filter(function(x){return c.items&&c.items[x[0]]}).length;
   return '<details style="padding:6px 0;border-top:1px solid var(--line)"><summary><b>'+esc(pkNm(g))+'</b> <span class="note">'+esc(pkTempatNama(g.tempatId))+'</span> '+pkPill(n===PK_CEK.length?'ok':'plain',n+'/'+PK_CEK.length)+'</summary>'+
    PK_CEK.map(function(x){return '<label class="row" style="gap:8px;padding:4px 0"><input type="checkbox" data-pkcek="'+esc(g.sid)+'" data-i="'+x[0]+'"'+(c.items&&c.items[x[0]]?' checked':'')+'><span class="note">'+esc(x[1])+'</span></label>'}).join('')+'</details>'}).join(''):'<div class="note">'+(G0.length?'Tidak ada siswa yang cocok dengan saringan.':'Belum ada penempatan.')+'</div>')+'</div>';
@@ -599,7 +600,7 @@ function pkRekapBaris(){
 }
 function pkTabRekap(){
  var R0=pkRekapBaris(),Z=pkSaring('rekap',R0,function(x){return x.g}),R=Z.list;
- return '<div class="card"><b>Rekap PKL per siswa'+(Z.aktif?' ('+R.length+' dari '+R0.length+')':'')+'</b><div class="row"><button type="button" class="btn small primary" data-act="pkl-xls">Unduh Excel</button></div>'+Z.bar+
+ return '<div class="card"><b>Rekap PKL per siswa'+(Z.aktif?' ('+R.length+' dari '+R0.length+')':'')+'</b><div class="row"><button type="button" class="btn small primary" data-act="pkl-xls">Unduh Excel</button></div>'+(typeof pkoBar==='function'?pkoBar('rekap'):'')+Z.bar+
   '<div class="note">Tanpa keterangan = hari kerja Senin-Jumat sejak mulai PKL dikurangi hadir, izin, dan sakit (perkiraan; hari libur belum dikurangi).</div>'+
   '<div class="akd-twrap"><table class="akd-tbl akd-tbl-l"><thead><tr><th>Siswa</th><th>Tempat</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>T.ket</th><th>Di luar lokasi</th><th>Jurnal</th><th>Kelengkapan</th><th>Nilai</th><th>PDF</th></tr></thead><tbody>'+
   (R.length?R.map(function(x){return '<tr><td>'+esc(pkNm(x.g))+'</td><td>'+esc(pkTempatNama(x.g.tempatId))+'</td><td>'+x.r.hadir+'</td><td>'+x.r.izin+'</td><td>'+x.r.sakit+'</td><td>'+x.r.alpa+'</td><td>'+x.r.luar+'</td><td>'+x.jurnal+'</td><td>'+x.cek+'/'+PK_CEK.length+'</td><td>'+(x.nilai==null?'-':x.nilai)+'</td><td><button type="button" class="btn small" data-act="pkl-pdf-nilai" data-v="'+esc(x.g.sid)+'">Nilai</button> <button type="button" class="btn small" data-act="pkl-pdf-jurnal" data-v="'+esc(x.g.sid)+'">Jurnal</button></td></tr>'}).join(''):'<tr><td colspan="11">Belum ada penempatan.</td></tr>')+'</tbody></table></div></div>';
@@ -684,16 +685,21 @@ function pkPdfNilai(sids){
  pkPdfFoot(doc);
  var u=pkUser(L[0]);doc.save('Nilai-PKL-'+(L.length>1?'semua':pkSlug((u&&u.nama)||'siswa',30))+'.pdf');
 }
-function pkPdfJurnal(sid){
- if(!pkPdfSiap())return;
- var J=pkList('jurnal').filter(function(x){return x.sid===sid}).sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))}),I=pkIdentSiswa(sid);
- if(!J.length){toast('Belum ada jurnal untuk dicetak.');return}
- var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+function pkJurnalSiswa(sid){return pkList('jurnal').filter(function(x){return x.sid===sid}).sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))})}
+function pkPdfJurnalHal(doc,sid){
+ var J=pkJurnalSiswa(sid),I=pkIdentSiswa(sid);
  pkKop(doc,'JURNAL KEGIATAN PRAKTIK KERJA LAPANGAN');
  var y=pkPdfIdent(doc,[I.rows[0],I.rows[2],I.rows[4],I.rows[5],I.rows[6],I.rows[7]],44)+4;
  doc.autoTable({startY:y,theme:'grid',styles:{fontSize:8.5,cellPadding:2,valign:'top'},headStyles:PK_TH,head:[['No','Hari/Tanggal','Unit kerja/Pekerjaan','Uraian kegiatan','Catatan']],
   body:J.map(function(j,i){return [String(i+1),pkAscii(pkTglHari(j.tanggal)),pkAscii(j.unit),pkAscii(j.uraian),pkAscii(j.cat||'')]}),columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:30},2:{cellWidth:34},4:{cellWidth:38}}});
  pkTtd(doc,doc.lastAutoTable.finalY+10,['Guru Pembimbing',I.guru],['Instruktur Dunia Kerja',I.instr]);
+}
+function pkPdfJurnal(sid){
+ if(!pkPdfSiap())return;
+ var J=pkJurnalSiswa(sid),I=pkIdentSiswa(sid);
+ if(!J.length){toast('Belum ada jurnal untuk dicetak.');return}
+ var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+ pkPdfJurnalHal(doc,sid);
  pkPdfFoot(doc);
  doc.save('Jurnal-PKL-'+pkSlug((I.u&&I.u.nama)||'siswa',30)+'.pdf');
 }
