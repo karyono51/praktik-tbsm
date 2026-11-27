@@ -9,7 +9,12 @@ if [ -z "$Z" ]; then echo "Tidak ada tbsm*.zip di Downloads."; exit 1; fi
 echo "Memasang: $Z"
 # Jaga CBT_DB (CBT_DB_PAKSA=1 sh up.sh untuk memakai nilai dari zip): ambil nilainya dari js/config.js di repo SEBELUM zip dipasang, pulihkan sesudahnya.
 DB_LAMA=$(sed -n "s/.*CBT_DB:'\([a-z]*\)'.*/\1/p" js/config.js | head -n 1)
-unzip -oq "$Z" -d "$(dirname "$PWD")"
+# Zip penuh berisi folder tbsm/ di akarnya (dipasang di folder induk). Zip kecil berisi berkas langsung di akar repo (dipasang di folder ini).
+if unzip -Z1 "$Z" | grep -q '^tbsm/'; then
+  unzip -oq "$Z" -d "$(dirname "$PWD")"
+else
+  unzip -oq "$Z" -d "$PWD"
+fi
 # Berkas mati yang sudah dibuang dari proyek (zip tidak bisa menghapus): tidak dimuat index.html dan tidak dirujuk berkas lain.
 rm -f js/lkpd-v2-banner.js js/lkpd-v2-x07.js tools/uji-lkpd-banner.mjs
 if [ -n "$DB_LAMA" ] && [ -z "$CBT_DB_PAKSA" ]; then

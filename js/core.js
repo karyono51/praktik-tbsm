@@ -47,9 +47,46 @@ var FLM=['moduleId','title','kelas','fase','duration','status','active','payload
 function pick(o,F){var x={};F.forEach(function(k){if(o[k]!==undefined&&o[k]!==null)x[k]=o[k]});return x}
 function fromDoc(d){var o={id:d.$id};Object.keys(d).forEach(function(k){if(k[0]!=='$')o[k]=d[k]});o.r=1;return o}
 async function loadObsDocs(cloud){try{return (await cloud.list('observasi')).map(fromDoc)}catch(e){console.warn('Koleksi observasi belum dapat dibaca:',e);return []}}
-async function loadLKPDModuleDocs(cloud){try{return (await cloud.list('lkpd_modules')).map(function(d){var o=fromDoc(d);try{var x=JSON.parse(o.payload||'{}');o=Object.assign(o,x)}catch(e){}o.id=d.$id;o.r=1;o.d=0;return o})}catch(e){console.warn('Koleksi lkpd_modules belum dapat dibaca:',e);return []}}
+function lkModDoc(d){var o=fromDoc(d);try{var x=JSON.parse(o.payload||'{}');o=Object.assign(o,x)}catch(e){}o.id=d.$id;o.r=1;o.d=0;return o}
+async function loadLKPDModuleDocs(cloud){try{return (await cloud.list('lkpd_modules')).map(lkModDoc)}catch(e){console.warn('Koleksi lkpd_modules belum dapat dibaca:',e);return []}}
+/* Pembacaan bertahap, untuk menghemat kuota "database reads" Appwrite (dihitung per dokumen yang dibaca, bukan per permintaan).
+   Setelah pembacaan penuh pertama, login dan Segarkan hanya mengambil dokumen yang berubah sejak pembacaan terakhir ($updatedAt),
+   lalu menggabungkannya ke salinan di perangkat (snapshot tbsm-snap, atau data yang sedang dipakai saat Segarkan).
+   Pembacaan penuh diulang bila: belum ada salinan, sudah melewati INC_PENUH (supaya dokumen yang dihapus di perangkat lain ikut hilang),
+   dipaksa (window.TBSM_PENUH=true), atau pembacaan bertahap gagal. Dokumen lokal yang belum terkirim (r kosong atau d=1) tidak ditimpa. */
+var INC_V=1,INC_MUNDUR=15000,INC_PENUH={staf:8*3600000,siswa:3*3600000};
+function incIso(t){return new Date(t).toISOString()}
+function incMax(docs,prev){var m=prev?Date.parse(prev):0;docs.forEach(function(d){var t=Date.parse(d.$updatedAt);if(t>m)m=t});return m?incIso(m):null}
+function incGabung(arr,items){var idx={};arr.forEach(function(o,i){idx[o.id]=i});
+ items.forEach(function(o){var i=idx[o.id];if(i===undefined){idx[o.id]=arr.length;arr.push(o)}else if(!arr[i]||(arr[i].r&&!arr[i].d))arr[i]=o});
+ return arr}
+function incBase(p,sc,mem){
+ var s=null;
+ if(mem)s={user:S.user,users:S.users,results:S.results,lkpd:S.lkpd,lkpdModules:S.lkpdModules,observasi:S.observasi,inc:S.inc};
+ else{try{s=JSON.parse(localStorage.getItem('tbsm-snap')||'null')}catch(e){s=null}
+  try{var ht=+localStorage.getItem('tbsm-hapus-ts')||0;if(s&&ht&&!(s.ts>ht))s=null}catch(e){}}
+ var c=s&&s.inc;
+ if(!s||!s.user||s.user.id!==p.id||!c||c.v!==INC_V||c.sc!==sc||c.uid!==p.id||c.db!==CFG.DB)return null;
+ return {s:s,c:c.c||{},lim:INC_PENUH[sc]}}
+async function incMuat(cloud,col,extra,map,base,arr,kunci){
+ var st=base&&arr&&base.c[kunci];
+ if(st&&st.s&&st.f&&Date.now()-st.f<base.lim){
+  try{
+   var d=await cloud.list(col,[Appwrite.Query.greaterThan('$updatedAt',incIso(Date.parse(st.s)-INC_MUNDUR))].concat(extra||[]));
+   return {arr:incGabung(arr.slice(),d.map(map)),st:{s:incMax(d,st.s),f:st.f},n:d.length,inc:true}
+  }catch(e){console.warn('Baca bertahap gagal ('+col+'), memuat penuh:',e)}
+ }
+ var all=await cloud.list(col,extra||[]);
+ return {arr:all.map(map),st:{s:incMax(all,null),f:Date.now()},n:all.length,inc:false}}
+/* koleksi yang boleh belum ada/terbaca (observasi, modul LKPD): galat menghasilkan daftar kosong dan tidak dicatat sebagai pembacaan penuh */
+async function incMuatAman(cloud,col,extra,map,base,arr,kunci){
+ try{return await incMuat(cloud,col,extra,map,base,arr,kunci)}
+ catch(e){console.warn('Koleksi '+col+' belum dapat dibaca:',e);return {arr:[],st:null,n:0,inc:false}}}
 var Cloud={on:CLOUD_ON,busy:false,
- init:function(){var c=new Appwrite.Client().setEndpoint(CFG.APPWRITE_ENDPOINT).setProject(CFG.APPWRITE_PROJECT);this.acc=new Appwrite.Account(c);this.db=new Appwrite.Databases(c)},
+ init:function(){var c=new Appwrite.Client().setEndpoint(CFG.APPWRITE_ENDPOINT).setProject(CFG.APPWRITE_PROJECT);this.acc=new Appwrite.Account(c);this.db=new Appwrite.Databases(c);
+  /* catat waktu penghapusan dokumen di perangkat ini: snapshot yang lebih tua tidak dipakai sebagai dasar pembacaan bertahap (dokumen terhapus akan muncul lagi) */
+  var db=this.db,dd=db.deleteDocument;
+  if(typeof dd==='function')db.deleteDocument=function(dbId,col){var a=arguments;return dd.apply(db,a).then(function(r){if(/^(akun|hasil|lkpd|lkpd_modules|observasi)$/.test(col)){try{localStorage.setItem('tbsm-hapus-ts',String(Date.now()))}catch(e){}}return r})}},
  me:async function(){try{return await this.acc.get()}catch(e){if(e&&e.code===401)return null;if(navigator.onLine===false||!(e&&e.code))return 'offline';return null}},
  login:async function(e,p){await this.acc.createEmailPasswordSession(e,p)},
  register:async function(n,e,p){await this.acc.create(Appwrite.ID.unique(),e,p,n);await this.login(e,p)},
@@ -65,9 +102,23 @@ var Cloud={on:CLOUD_ON,busy:false,
   await this.db.createDocument(CFG.DB,'akun',p.id,pick(p,FA));p.r=1;return p},
  enter:async function(me){var p=await this.resolve(me);this.authId=me.$id;try{localStorage.setItem('tbsm-auth',JSON.stringify({sid:p.id,auth:me.$id}))}catch(e){}if(p.aktif===false){await this.logout();throw new Error('Akun dinonaktifkan. Hubungi admin.')}
   S.user=p;S.users=[p];
-  if(roleList(p).some(function(r){return r!=='siswa'&&r!=='proktor'})){var pr=await Promise.all([this.list('akun'),this.list('hasil'),this.list('lkpd'),loadLKPDModuleDocs(this)]);S.users=pr[0].map(fromDoc);S.results=pr[1].map(fromDoc);S.lkpd=pr[2].map(fromDoc);S.lkpdModules=pr[3]}
-  else {var qs=[Appwrite.Query.equal('sid',[p.id])],ps=await Promise.all([this.list('hasil',qs),this.list('lkpd',qs),loadLKPDModuleDocs(this)]);S.results=ps[0].map(fromDoc);S.lkpd=ps[1].map(fromDoc);S.lkpdModules=ps[2]}
+  var staf=roleList(p).some(function(r){return r!=='siswa'&&r!=='proktor'});
+  var D=await this.muatData(p,staf,false,false);
+  if(D.users)S.users=D.users;S.results=D.results;S.lkpd=D.lkpd;S.lkpdModules=D.mods;if(D.obs)S.observasi=D.obs;
   enter(S.users.find(function(u){return u.id===p.id})||p)},
+ /* Muat data login/Segarkan. staf: akun, nilai, LKPD, modul, observasi semua; siswa: nilai dan LKPD miliknya, serta modul.
+    paksa: pembacaan penuh. mem: pakai data yang sedang dipakai (Segarkan) sebagai dasar, bukan snapshot di localStorage (login). */
+ muatData:async function(p,staf,paksa,mem){
+  var sc=staf?'staf':'siswa',b=paksa?null:incBase(p,sc,mem),sn=b&&b.s,qs=staf?[]:[Appwrite.Query.equal('sid',[p.id])],P={};
+  P.hasil=incMuat(this,'hasil',qs,fromDoc,b,sn&&sn.results,'hasil');
+  P.lkpd=incMuat(this,'lkpd',qs,fromDoc,b,sn&&sn.lkpd,'lkpd');
+  P.mods=incMuatAman(this,'lkpd_modules',[],lkModDoc,b,sn&&sn.lkpdModules,'mods');
+  if(staf){P.akun=incMuat(this,'akun',[],fromDoc,b,sn&&sn.users,'akun');P.obs=incMuatAman(this,'observasi',[],fromDoc,b,sn&&sn.observasi,'obs')}
+  var ks=Object.keys(P),vs=await Promise.all(ks.map(function(k){return P[k]})),R={},c={},n=0,nPenuh=0;
+  ks.forEach(function(k,i){R[k]=vs[i];n+=vs[i].n;if(!vs[i].inc)nPenuh++;if(vs[i].st)c[k]=vs[i].st});
+  S.inc={v:INC_V,sc:sc,uid:p.id,db:CFG.DB,c:c};
+  S.bacaLog={ts:Date.now(),n:n,penuh:nPenuh,bertahap:ks.length-nPenuh};
+  return {users:R.akun&&R.akun.arr,results:R.hasil.arr,lkpd:R.lkpd.arr,mods:R.mods.arr,obs:R.obs&&R.obs.arr}},
  flush:async function(){
   if(!this.on||!S.user||this.busy)return;this.busy=true;
   try{var jobs=[[S.users,'akun',FA],[S.results,'hasil',FH],[S.lkpd||[],'lkpd',FL]];

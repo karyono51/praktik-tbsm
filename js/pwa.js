@@ -8,7 +8,7 @@ function pendingCount(){var p=pendingList();return p.akun.length+p.hasil.length+
 function savePending(){
  try{var p=pendingList();if(p.akun.length||p.hasil.length||p.lkpd.length||(p.lkpd_modules||[]).length||(p.lkpd_bukti||[]).length||(p.observasi||[]).length)localStorage.setItem(QK,JSON.stringify(p));else localStorage.removeItem(QK)}catch(e){}}
 function saveSnap(){
- try{if(Cloud.on&&S.user&&pendingCount()===0)localStorage.setItem(SK,JSON.stringify({user:S.user,users:S.users,results:S.results,lkpd:S.lkpd||[],lkpdModules:S.lkpdModules||[],observasi:S.observasi||[],ts:Date.now()}))}catch(e){}}
+ try{if(Cloud.on&&S.user&&pendingCount()===0)localStorage.setItem(SK,JSON.stringify({user:S.user,users:S.users,results:S.results,lkpd:S.lkpd||[],lkpdModules:S.lkpdModules||[],observasi:S.observasi||[],inc:S.inc||null,ts:Date.now()}))}catch(e){}}
 function restorePending(){
  try{var q=JSON.parse(localStorage.getItem(QK)||'null');if(!q)return;
   [[q.akun||[],S.users],[q.hasil||[],S.results],[q.lkpd||[],S.lkpd||(S.lkpd=[])],[q.lkpd_modules||[],S.lkpdModules||(S.lkpdModules=[])],[q.lkpd_bukti||[],S.lkpdBukti||(S.lkpdBukti=[])],[q.observasi||[],S.observasi||(S.observasi=[])]].forEach(function(pair){
@@ -17,7 +17,7 @@ function restorePending(){
   syncRoster()}catch(e){}}
 function loadSnap(){
  try{var s=JSON.parse(localStorage.getItem(SK)||'null');if(!s||!s.user)return false;
-  S.users=s.users||[s.user];S.results=s.results||[];S.lkpd=s.lkpd||[];S.lkpdModules=s.lkpdModules||[];S.observasi=s.observasi||[];S.user=s.user;restorePending();
+  S.users=s.users||[s.user];S.results=s.results||[];S.lkpd=s.lkpd||[];S.lkpdModules=s.lkpdModules||[];S.observasi=s.observasi||[];S.inc=s.inc||null;S.user=s.user;restorePending();
   var me=S.users.find(function(u){return u.id===s.user.id})||s.user;enter(me);return true}catch(e){return false}}
 function dropSnap(){try{localStorage.removeItem(SK)}catch(e){}}
 
@@ -46,7 +46,7 @@ function netbar(){
 (function(){
  if(Cloud.on){
   var e0=Cloud.enter;
-  Cloud.enter=async function(me){await e0.call(this,me);if(S.user&&roleList(S.user).some(function(r){return r!=='siswa'&&r!=='proktor'}))S.observasi=await loadObsDocs(this);restorePending();if(pendingCount())Cloud.flush();else saveSnap();netbar()};
+  Cloud.enter=async function(me){await e0.call(this,me);/* observasi sudah dimuat bersama data lain di Cloud.muatData (bertahap); cadangan hanya bila belum ada */if(S.user&&S.observasi===undefined&&roleList(S.user).some(function(r){return r!=='siswa'&&r!=='proktor'}))S.observasi=await loadObsDocs(this);restorePending();if(pendingCount())Cloud.flush();else saveSnap();netbar()};
   /* Sinkron per item: kegagalan satu item tidak menghentikan yang lain. Item yang sudah ada di server (ID sama) diperbarui, bukan membuat error berulang. */
   Cloud.flush=async function(){
    if(!this.on||!S.user||this.busy)return;

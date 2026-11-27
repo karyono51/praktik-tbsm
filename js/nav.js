@@ -62,14 +62,13 @@ function navApply(u){
 /* ---- Segarkan data dari Appwrite tanpa pindah halaman ---- */
 if(Cloud.on){
  Cloud.refresh=async function(){
-  var p=S.user,Q=Appwrite.Query,staff=roleList(p).some(function(r){return r!=='siswa'&&r!=='proktor'});
-  var res,lk,mods,obs=null,us=null,qs=[Q.equal('sid',[p.id])];
-  /* semua koleksi dimuat bersamaan (dulu satu per satu) */
-  if(staff){var r=await Promise.all([this.list('akun'),this.list('hasil'),this.list('lkpd'),loadLKPDModuleDocs(this),loadObsDocs(this)]);us=r[0].map(fromDoc);res=r[1].map(fromDoc);lk=r[2].map(fromDoc);mods=r[3];obs=r[4]}
-  else{var r2=await Promise.all([this.list('hasil',qs),this.list('lkpd',qs),loadLKPDModuleDocs(this)]);res=r2[0].map(fromDoc);lk=r2[1].map(fromDoc);mods=r2[2]}
-  if(staff)S.observasi=obs;
-  if(us){S.users=us;S.user=us.find(function(u){return u.id===p.id})||p}
-  S.results=res;S.lkpd=lk;S.lkpdModules=mods;
+  var p=S.user,staff=roleList(p).some(function(r){return r!=='siswa'&&r!=='proktor'});
+  /* Segarkan hanya mengambil dokumen yang berubah (lihat Cloud.muatData di core.js). window.TBSM_PENUH=true memaksa pembacaan penuh sekali. */
+  var paksa=!!window.TBSM_PENUH;window.TBSM_PENUH=false;
+  var D=await this.muatData(p,staff,paksa,true);
+  if(staff)S.observasi=D.obs;
+  if(D.users){S.users=D.users;S.user=D.users.find(function(u){return u.id===p.id})||p}
+  S.results=D.results;S.lkpd=D.lkpd;S.lkpdModules=D.mods;
   LK.remote={};
   syncRoster();saveSnap();
  };

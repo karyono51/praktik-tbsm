@@ -1,3 +1,9 @@
+## Hemat kuota baca Appwrite: login, Segarkan, dan izin nilai bertahap
+- **Login dan Segarkan** (`Cloud.muatData` di `js/core.js`, `js/nav.js`): setelah pembacaan penuh pertama, hanya dokumen yang berubah ($updatedAt) yang dibaca, digabung ke salinan di perangkat (snapshot `tbsm-snap`, kini memuat penanda `inc`). Guru/admin: akun, nilai, LKPD, modul LKPD, observasi. Siswa: nilai dan LKPD miliknya, modul LKPD. Pembacaan penuh diulang tiap 8 jam (staf) atau 3 jam (siswa), setelah penghapusan di perangkat ini (`tbsm-hapus-ts`), setelah Hapus nilai (`window.TBSM_PENUH`), dan bila pembacaan bertahap gagal. Dokumen terhapus di perangkat lain baru hilang saat pembacaan penuh berikutnya.
+- **Izin nilai** (`js/hasil-izin.js`): sebelumnya tiap login staf (10 detik sesudahnya) dan tiap sinkron (maksimal tiap 2 menit) membaca SELURUH koleksi hasil dan uid_map. Kini daftar uid_map disimpan di perangkat (`tbsm-izin`), hasil yang berubah dibaca bertahap, hasil siswa yang baru mendaftarkan login dibaca per siswa, dan pembacaan penuh hanya tiap 3 hari.
+- **up.sh**: zip kecil (berkas langsung di akar) kini dipasang di folder repo; zip penuh (berisi folder `tbsm/`) tetap dipasang di folder induk. Sebelumnya zip kecil jatuh ke folder induk sehingga git melihat "tidak ada perubahan".
+- Uji: `tools/uji-baca-bertahap.mjs` (25), `tools/uji-izin-bertahap.mjs` (11).
+
 ## PKL: Pengaturan, tolak absen di luar zona, foto jurnal, pindai surat perjanjian
 - **Tab Pengaturan (Admin)**: absen di luar zona Tolak atau Tandai, foto wajib per item (masuk, pulang, izin, sakit, jurnal), dan tampilan daftar tempat PKL untuk siswa (bawaan: hanya sebelum ditempatkan). Disimpan sebagai dokumen `setelan` di koleksi `pkl`; tanpa perubahan skema.
 - **Absen masuk/pulang ditolak di luar zona tempat PKL** (bawaan). Lokasi dibaca ulang bila usang; GPS tidak terbaca atau akurasi di atas 500 m ditolak; tempat tanpa koordinat tetap diterima dan diberi peringatan di daftar tempat.
