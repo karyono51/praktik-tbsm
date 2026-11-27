@@ -28,7 +28,9 @@ var UKK_ATURAN={
  'UKK-3-3':{p:[{min:3},{max:0.3}],h:'Tebal (mm); keolengan (mm)'},
  'UKK-3-6':{p:[{r:[20,30]}],h:'Jarak main (mm)'},
  'UKK-3-8':{p:[{r:[20,30]}],h:'Jarak main (mm)'},
- 'UKK-3-9':{p:[{max:111}],h:'Diameter dalam (mm)'}
+ 'UKK-3-9':{p:[{max:111}],h:'Diameter dalam (mm)'},
+ 'UKK-X-1-2':{p:[{min:12.4}],h:'Tegangan rata-rata (V)'},
+ 'UKK-X-1-5':{p:[{max:1}],h:'Hambatan (Ω)'}
 };
 var UKK_EPS=1e-9;
 var UKK_KURANG={hasil:'hasil aktual',status:'status',angka:'angka',teks:'teks',catatan:'catatan'};
