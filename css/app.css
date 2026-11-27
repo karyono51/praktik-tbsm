@@ -354,6 +354,8 @@ h3.lk-grouplabel.big{font-size:13px;margin:16px 0 4px;color:var(--accent)}
 .tile>span:last-child{line-height:1.25;overflow-wrap:anywhere}
 .tiles.n7 .tile:last-child{grid-column:1/-1;flex-direction:row;justify-content:center;padding:12px 8px}
 .tiles.n7 .tile:last-child .ico{width:40px;height:40px;border-radius:14px}
+.tiles.n13 .tile:last-child{grid-column:1/-1;flex-direction:row;justify-content:center;padding:12px 8px}
+.tiles.n13 .tile:last-child .ico{width:40px;height:40px;border-radius:14px}
 /* Observasi UKK: tombol, bar bawah, warna skala 1-4 */
 .obu-act .btn{min-height:42px}
 .obu-exp{position:relative;display:inline-block}

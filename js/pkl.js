@@ -493,10 +493,11 @@ function pkScanPdf(pages){
 var PK_SC_IK={x:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
  bolt:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 3L5 13.500h6L10 21l8-10.500h-6z"/></svg>',
  gal:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linecap="round" stroke-linejoin="round"><rect x="3.500" y="4.500" width="17" height="15" rx="3"/><circle cx="9" cy="10" r="1.600"/><path d="M4 17l5-4.500 4 3.500 3-2.500 4 3.500"/></svg>'};
-function pkScan(){
+function pkScan(opt){
+ opt=opt||{};var jdl=opt.judul||'Pindai surat perjanjian';
  var pages=[],mode='dok',stream=null,busy=false,torch=false,ov=document.createElement('div');
- ov.className='pk-sc';ov.setAttribute('role','dialog');ov.setAttribute('aria-label','Pindai surat perjanjian');
- ov.innerHTML='<div class="pk-sc-top"><button type="button" class="pk-sc-ic" data-sc="x" aria-label="Tutup">'+PK_SC_IK.x+'</button><div class="pk-sc-jd"><b>Pindai surat perjanjian</b><span data-sc="cnt"></span></div><button type="button" class="pk-sc-ic" data-sc="torch" aria-label="Lampu kamera" aria-pressed="false" hidden>'+PK_SC_IK.bolt+'</button></div>'+
+ ov.className='pk-sc';ov.setAttribute('role','dialog');ov.setAttribute('aria-label',jdl);
+ ov.innerHTML='<div class="pk-sc-top"><button type="button" class="pk-sc-ic" data-sc="x" aria-label="Tutup">'+PK_SC_IK.x+'</button><div class="pk-sc-jd"><b>'+esc(jdl)+'</b><span data-sc="cnt"></span></div><button type="button" class="pk-sc-ic" data-sc="torch" aria-label="Lampu kamera" aria-pressed="false" hidden>'+PK_SC_IK.bolt+'</button></div>'+
   '<div class="pk-sc-view"><video playsinline muted autoplay data-sc="vid"></video><div class="pk-sc-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="pk-sc-hint" data-sc="hint" role="status">Menyalakan kamera…</div><div class="pk-sc-off" data-sc="off" hidden></div></div>'+
   '<div class="pk-sc-strip" data-sc="strip"></div>'+
   '<div class="pk-sc-bar"><button type="button" class="pk-sc-sd" data-sc="gal">'+PK_SC_IK.gal+'<span>Galeri</span></button><button type="button" class="pk-sc-shut" data-sc="shot" aria-label="Ambil foto halaman" disabled><i></i></button>'+
@@ -569,9 +570,24 @@ function pkScan(){
   try{
    var d=pkScanPdf(pages);
    if(d.length>5000000){toast('PDF terlalu besar. Kurangi jumlah halaman.');return}
+   if(typeof opt.onPdf==='function'){tutup();opt.onPdf(d,pages.length);return}
    PK.pksPdf={data:d,hal:pages.length};tutup();render();
   }catch(e){toast('PDF gagal dibuat.')}
  });
+}
+/* Pemindai mandiri dari pintasan dasbor admin: hasil langsung diunduh sebagai PDF, tidak disimpan ke data PKL. */
+function pkUnduhPdf(dataUrl,nama){
+ var a=String(dataUrl).split(','),b=atob(a[1]||''),u=new Uint8Array(b.length),i;
+ for(i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
+ var url=URL.createObjectURL(new Blob([u],{type:'application/pdf'})),l=document.createElement('a');
+ l.href=url;l.download=nama||'pindai.pdf';document.body.appendChild(l);l.click();l.remove();
+ setTimeout(function(){URL.revokeObjectURL(url)},60000);
+}
+function pkPindaiMandiri(){
+ pkScan({judul:'Pindai dokumen',onPdf:function(d,n){
+  pkUnduhPdf(d,'Pindai_'+pkToday().replace(/-/g,'')+'.pdf');
+  toast('PDF '+n+' halaman diunduh.');
+ }});
 }
 async function pkSuratUnggah(){
  var p=PK.pksPdf,f=PK.f;if(!p)return true;
@@ -1018,6 +1034,7 @@ document.addEventListener('click',function(e){
  else if(a==='pkl-fotoj'){var fj=document.querySelector('[data-pklfotoj]');if(fj)fj.click()}
  else if(a==='pkl-fotoj-hapus'){PK.f.foto='';render()}
  else if(a==='pkl-scan')pkScan();
+ else if(a==='pkl-pindai')pkPindaiMandiri();
  else if(a==='pkl-surat-buka')pkSuratBuka(PK.pksPdf||PK.f);
  else if(a==='pkl-surat-lihat')pkSuratBuka(pkById('tempat',v));
  else if(a==='pkl-surat-hapus'){PK.pksPdf=null;PK.f.pksFile='';PK.f.pksHal='';render()}
