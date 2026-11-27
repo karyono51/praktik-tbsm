@@ -2,6 +2,7 @@ window.APP_CONFIG={
   APPWRITE_ENDPOINT:'https://sgp.cloud.appwrite.io/v1',
   APPWRITE_PROJECT:'6af2a76d00199ba40ab0',
   DB:'tbsm',
+  /* Opsional: peringatan bila satu perangkat membaca sekian dokumen dalam sehari (monitoring di Cek sinkronisasi). Contoh: DB_BATAS_BACA:3000 */
   PENDAFTARAN_TERBUKA:false,
   ADMIN_EMAIL:'2603039008@uhamka.ac.id',
   /* CBT aman (kunci jawaban dan penilaian di server). Aktifkan HANYA setelah fungsi terpasang; lihat docs-CBT.md */

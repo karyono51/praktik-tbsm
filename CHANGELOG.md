@@ -1,3 +1,12 @@
+## Rilis produksi: offline, pencegahan data ganda, monitoring database, audit hak akses
+- **Data ganda**: catatan hasil/LKPD belum terkirim yang identik dijadikan satu sebelum dikirim; ID tidak sah ditandai dan tidak dicoba tanpa akhir (`js/pwa.js`).
+- **Pemulihan offline**: peringatan bila penyimpanan perangkat penuh; meminta penyimpanan persisten agar antrean tidak dibuang peramban.
+- **Monitoring database**: `js/pantau-db.js` (baru) menghitung dokumen dibaca, ditulis, dihapus per koleksi per hari; kartu di Cek sinkronisasi; batas peringatan opsional `DB_BATAS_BACA`.
+- **Hak akses**: `can()` aman untuk peran tanpa daftar izin (`js/core.js`). `tools/uji-hak-akses.mjs` menjaga matriks izin Siswa, Guru, Admin dan batas atribut server. Tabel di `docs-HAK-AKSES.md`.
+- **Uji**: `tools/uji-offline.mjs` (39), `tools/uji-beban.mjs` (15), `tools/uji-hak-akses.mjs` (36), `tools/regresi.mjs` menjalankan semua uji sebelum rilis.
+- **Rilis**: `tools/cadangan.sh` (tag dan zip cadangan, pemulihan lewat commit baru), `docs-RILIS.md`, `docs-OFFLINE.md`.
+- Tidak ada perubahan skema Appwrite, izin koleksi, variabel fungsi, tabel Neon, atau akun. `CBT_LEGACY` tetap `true`.
+
 ## PKL: Pengaturan, tolak absen di luar zona, foto jurnal, pindai surat perjanjian
 - **Tab Pengaturan (Admin)**: absen di luar zona Tolak atau Tandai, foto wajib per item (masuk, pulang, izin, sakit, jurnal), dan tampilan daftar tempat PKL untuk siswa (bawaan: hanya sebelum ditempatkan). Disimpan sebagai dokumen `setelan` di koleksi `pkl`; tanpa perubahan skema.
 - **Absen masuk/pulang ditolak di luar zona tempat PKL** (bawaan). Lokasi dibaca ulang bila usang; GPS tidak terbaca atau akurasi di atas 500 m ditolak; tempat tanpa koordinat tetap diterima dan diberi peringatan di daftar tempat.

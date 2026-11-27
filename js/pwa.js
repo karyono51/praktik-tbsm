@@ -1,12 +1,24 @@
 /* pwa.js: pendaftaran service worker, tombol pasang, status jaringan di header, antrean sinkron Appwrite */
 var QK='tbsm-queue',SK='tbsm-snap';
 function pendingList(){
- var u=S.users.filter(function(o){return !o.r||o.d}),h=S.results.filter(function(o){return !o.r||o.d}),l=(S.lkpd||[]).filter(function(o){return !o.r||o.d}),m=(S.lkpdModules||[]).filter(function(o){return !o.r||o.d}),b=(S.lkpdBukti||[]).filter(function(o){return !o.r||o.d}),ob=(S.observasi||[]).filter(function(o){return !o.r||o.d});
+ var P=function(o){return (!o.r||o.d)&&!o.bad},u=S.users.filter(P),h=S.results.filter(P),l=(S.lkpd||[]).filter(P),m=(S.lkpdModules||[]).filter(P),b=(S.lkpdBukti||[]).filter(P),ob=(S.observasi||[]).filter(P);
  return {akun:u,hasil:h,lkpd:l,lkpd_modules:m,lkpd_bukti:b,observasi:ob}}
 /* modul LKPD hanya bisa dikirim akun berlabel lkpdeditor (guru/admin): antrean modul sisa sesi guru tidak dihitung dan tidak dikirim saat siswa login di perangkat yang sama, tetapi tetap disimpan sampai guru/admin masuk */
 function pendingCount(){var p=pendingList();return p.akun.length+p.hasil.length+p.lkpd.length+(isStaff()?(p.lkpd_modules||[]).length:0)+(p.lkpd_bukti||[]).length+(p.observasi||[]).length}
 function savePending(){
- try{var p=pendingList();if(p.akun.length||p.hasil.length||p.lkpd.length||(p.lkpd_modules||[]).length||(p.lkpd_bukti||[]).length||(p.observasi||[]).length)localStorage.setItem(QK,JSON.stringify(p));else localStorage.removeItem(QK)}catch(e){}}
+ try{var p=pendingList();if(p.akun.length||p.hasil.length||p.lkpd.length||(p.lkpd_modules||[]).length||(p.lkpd_bukti||[]).length||(p.observasi||[]).length)localStorage.setItem(QK,JSON.stringify(p));else localStorage.removeItem(QK)}catch(e){if(!window._qw||Date.now()-window._qw>60000){window._qw=Date.now();try{toast('Penyimpanan perangkat penuh: data yang belum terkirim bisa hilang bila halaman ditutup. Sambungkan internet lalu tekan Kirim sekarang, atau kosongkan ruang perangkat.')}catch(e2){}}}}
+/* Pencegahan data ganda: dua catatan belum terkirim dengan isi pengenal yang sama (mis. tombol simpan ditekan dua kali) dijadikan satu. ID harus sah di Appwrite; ID tidak sah ditandai bad agar tidak dicoba tanpa akhir. */
+var ID_SAH=/^[A-Za-z0-9][A-Za-z0-9._-]{0,35}$/;
+function bersihkanAntrean(){
+ var n={dup:0,bad:0},kunci={hasil:function(o){return o.ts?['h',o.sid,o.jobId,o.ts,o.siswa,o.score,o.tipe].join('|'):null},lkpd:function(o){return o.ts?['l',o.sid,o.moduleId,o.ts,o.score].join('|'):null}};
+ [[S.results,'hasil'],[S.lkpd||[],'lkpd'],[S.observasi||[],'observasi'],[S.users,'akun'],[S.lkpdBukti||[],'lkpd_bukti']].forEach(function(pr){
+  var arr=pr[0],kf=kunci[pr[1]],lihat={};
+  for(var i=0;i<arr.length;i++){var o=arr[i];
+   if(!o.r&&!o.bad&&!ID_SAH.test(String(o.id||''))){o.bad=1;n.bad++;continue}
+   if(!kf)continue;var k=kf(o);if(!k)continue;
+   if(lihat[k]!==undefined&&!o.r&&!o.d){arr.splice(i,1);i--;n.dup++}else if(lihat[k]===undefined)lihat[k]=i}
+ });
+ Cloud.dupN=(Cloud.dupN||0)+n.dup;Cloud.badN=(Cloud.badN||0)+n.bad;return n}
 function saveSnap(){
  try{if(Cloud.on&&S.user&&pendingCount()===0)localStorage.setItem(SK,JSON.stringify({user:S.user,users:S.users,results:S.results,lkpd:S.lkpd||[],lkpdModules:S.lkpdModules||[],observasi:S.observasi||[],ts:Date.now()}))}catch(e){}}
 function restorePending(){
@@ -50,13 +62,13 @@ function netbar(){
   /* Sinkron per item: kegagalan satu item tidak menghentikan yang lain. Item yang sudah ada di server (ID sama) diperbarui, bukan membuat error berulang. */
   Cloud.flush=async function(){
    if(!this.on||!S.user||this.busy)return;
-   savePending();
+   bersihkanAntrean();savePending();
    if(navigator.onLine===false){netbar();toast('Offline: data disimpan di perangkat, disinkronkan saat online');return}
    this.busy=true;var fails=[];
    try{
     /* Urutan prioritas: hasil nilai, LKPD, observasi, akun, foto bukti (paling berat). Dikirim 4 item sekaligus. */
     var todo=[],self=this,idx=0;
-    [[S.results,'hasil',FH],[S.lkpd||[],'lkpd',FL],[S.observasi||[],'observasi',FO],[S.users,'akun',FA],[S.lkpdBukti||[],'lkpd_bukti',FB]].forEach(function(jb){jb[0].forEach(function(o){if(!(o.r&&!o.d))todo.push([o,jb[1],jb[2]])})});
+    [[S.results,'hasil',FH],[S.lkpd||[],'lkpd',FL],[S.observasi||[],'observasi',FO],[S.users,'akun',FA],[S.lkpdBukti||[],'lkpd_bukti',FB]].forEach(function(jb){jb[0].forEach(function(o){if(!(o.r&&!o.d)&&!o.bad)todo.push([o,jb[1],jb[2]])})});
     var worker=async function(){
      while(idx<todo.length){var t=todo[idx++],o=t[0],col=t[1],F=t[2],wasNew=!o.r;
       try{

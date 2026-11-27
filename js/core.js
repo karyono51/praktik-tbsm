@@ -17,7 +17,7 @@ function hasRole(u,r){return roleList(u).indexOf(r)>-1}
 function peranLabel(p){return roleList({peran:p}).map(function(r){return PERAN[r]}).join(' + ')}
 function actRole(){return S.act||(S.user?roleList(S.user)[0]:'siswa')}
 function setAct(r){S.act=r;S.role=r;try{localStorage.setItem('tbsm-act-'+S.user.id,r)}catch(e){}}
-function can(p){return !!S.user&&PERM[actRole()].indexOf(p)>-1}
+function can(p){return !!S.user&&(PERM[actRole()]||[]).indexOf(p)>-1}
 function kelasBoleh(){var ks=Object.keys(KELAS);if(!S.user||actRole()!=='siswa'||hasRole(S.user,'admin'))return ks;return ks.indexOf(S.user.kelas)>-1?[S.user.kelas]:ks}
 function isStaff(){return !!S.user&&actRole()!=='siswa'&&actRole()!=='proktor'}
 function syncRoster(){S.roster=S.users.filter(function(u){return hasRole(u,'siswa')&&u.aktif!==false&&schAkunOk(u)}).map(function(u){return {id:u.id,nama:u.nama,kelas:u.kelas}})}
