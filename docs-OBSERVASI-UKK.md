@@ -93,3 +93,11 @@ Layar hasil unit UKK kini menampilkan alasan tiap butir yang belum dapat nilai (
 - Kolom **Rombel / Kelas** kini di paling atas dan awalnya kosong (*Pilih rombel / kelas dulu*).
 - Sebelum rombel dipilih, lembar observasi, info tugas, statistik, daftar, dan tombol **+ Observasi baru** disembunyikan; tampil petunjuk singkat.
 - Setelah rombel dipilih, daftar lembar menyesuaikan tingkat kelas, lalu observasi bisa dibuat.
+
+## Tata kelola observasi per unit
+- Edit isi unit, tab **Observasi**: **Satu paket**, **Berpasangan**, atau **Tanpa observasi**, lalu pilih lembar setingkat. Satu lembar hanya untuk satu unit pada sekolah yang sama.
+- Bawaan: UKK-1..4 dan UKK-X-1 Berpasangan dengan lembar masing-masing. Unit buatan sendiri dan duplikat: Tanpa observasi.
+- Identitas lembar observasi (layar dan PDF) mengikuti unit, termasuk alokasi waktu dan tempat. Perubahan unit juga berlaku pada observasi lama.
+- Satu paket: nilai gabungan tampil di detail dan PDF observasi (bobot dari halaman Nilai Akhir UKK).
+- Nilai Akhir UKK memakai daftar unit menurut kelas dan sekolah siswa, termasuk kelas X.
+- Berkas: `js/ukk-observasi.js`.

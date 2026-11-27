@@ -32,12 +32,12 @@ function ukkMakeJob(d,base){
  var items=(d.items||[]).map(function(i,k){return {id:d.id+'-'+k,a:'R',no:k+1,t:String(i.t||''),std:String(i.std||''),k:!!i.k,f:!!i.f}});
  return {id:d.id,kelas:d.kelas,sekolah:d.sekolah||'',judul:d.title,unit:d.unit||'',menit:Number(d.duration)||20,ukk:true,skkni:d.skkni||'',form:f,items:items,
   cfg:{tampil:d.status==='published'&&d.active!==false,mode:d.mode==='ujian'?'ujian':'latihan',maxTry:Math.max(0,parseInt(d.maxTry,10)||0),buka:d.buka||'',tutup:d.tutup||''},
-  custom:!base,dihapus:!!d.dihapus,diubah:!!base};
+  obs:uoNorm(d.obs,d.id,d.kelas),custom:!base,dihapus:!!d.dihapus,diubah:!!base};
 }
 function ukkRebuild(){
  var docs=ukkDocs(),map={},arsip=[],order=[];
  UKK_BASE.forEach(function(j){
-  var b=Object.assign({},j);b.cfg={tampil:true,mode:'latihan',maxTry:0,buka:'',tutup:''};map[j.id]=b;order.push(j.id)});
+  var b=Object.assign({},j);b.obs=uoNorm(null,j.id,j.kelas);b.cfg={tampil:true,mode:'latihan',maxTry:0,buka:'',tutup:''};map[j.id]=b;order.push(j.id)});
  docs.forEach(function(d){
   if(d.reset){return}
   var base=UKK_BASE.filter(function(j){return j.id===d.id})[0];
@@ -80,6 +80,7 @@ function ukkSimpanDoc(d){
  S.lkpdModules=S.lkpdModules||[];
  delete d.payload;
  var i=S.lkpdModules.findIndex(function(x){return x.id===d.id}),old=i>=0?S.lkpdModules[i]:null;
+ if(d.obs===undefined&&old){var ox=ukkDocOf(d.id);if(ox&&ox.obs)d.obs=ox.obs}
  d.jenis='ukk';d.version=1;d.updatedAt=Date.now();d.updatedBy=S.user.username||S.user.id;d.r=old&&old.r?1:0;d.d=1;
  if(i<0)S.lkpdModules.push(d);else S.lkpdModules[i]=d;
  lkSaveModules();lkRefreshModules();
@@ -92,7 +93,7 @@ function ukkIdTaken(id){
 }
 function ukkDocFromJob(j){
  return {id:j.id,jenis:'ukk',title:j.judul,kelas:j.kelas,fase:(KELAS[j.kelas]||{}).fase||'F',unit:j.unit,duration:j.menit,skkni:j.skkni||'',
-  form:Object.assign({},j.form),items:j.items.map(function(i){return {t:i.t,std:i.std,k:!!i.k,f:!!i.f}}),
+  form:Object.assign({},j.form),obs:uoNorm(j.obs,j.id,j.kelas),items:j.items.map(function(i){return {t:i.t,std:i.std,k:!!i.k,f:!!i.f}}),
   status:j.cfg&&j.cfg.tampil===false?'draft':'published',active:!(j.cfg&&j.cfg.tampil===false),mode:j.cfg&&j.cfg.mode==='ujian'?'ujian':'latihan',maxTry:j.cfg?j.cfg.maxTry:0,buka:j.cfg?j.cfg.buka:'',tutup:j.cfg?j.cfg.tutup:''};
 }
 function ukkValidateDoc(d){
@@ -103,6 +104,7 @@ function ukkValidateDoc(d){
  if(!u)return 'Tipe kendaraan / unit wajib diisi.';
  if(u.length>120)return 'Tipe kendaraan / unit maksimal 120 karakter.';
  if(!KELAS[d.kelas])return 'Kelas tidak valid.';
+ var eo=uoCek(d);if(eo)return eo;
  if(['draft','published'].indexOf(d.status)<0)return 'Status unit tidak valid.';
  if(d.mode!==undefined&&['latihan','ujian'].indexOf(d.mode)<0)return 'Mode unit harus Latihan atau Ujian.';
  var m=Number(d.duration);if(!(m>=1&&m<=600))return 'Alokasi waktu 1 sampai 600 menit.';
@@ -218,7 +220,7 @@ function ukkHub(){
   '<button type="button" class="btn small" data-act="ukm-toggle" data-v="'+id+'">'+(pub?'Sembunyikan':'Tampilkan')+'</button>'+
   (j.diubah&&ukkIsBase(j.id)?'<button type="button" class="btn small" data-act="ukm-reset" data-v="'+id+'">Kembalikan bawaan</button>':'')+
   (!ukkIsBase(j.id)?'<button type="button" class="btn small danger" data-act="ukm-hapus" data-v="'+id+'">Hapus</button>':'')+'</div></section>'+
-  ukkTabs()+body;
+  uoHubCard(j)+ukkTabs()+body;
 }
 
 /* ---------- Pratinjau tampilan siswa ---------- */
@@ -238,14 +240,14 @@ function ukkPreview(){
 }
 
 /* ---------- Editor terstruktur ---------- */
-var UKE={DKEY:'tbsm-ukk-ed-draft',timer:null,TABS:[['info','Info'],['identitas','Identitas lembar'],['butir','Butir pemeriksaan']]};
+var UKE={DKEY:'tbsm-ukk-ed-draft',timer:null,TABS:[['info','Info'],['identitas','Identitas lembar'],['observasi','Observasi'],['butir','Butir pemeriksaan']]};
 function ukeCp(x){return JSON.parse(JSON.stringify(x))}
 function ukeT(v){return String(v==null?'':v).trim()}
 function ukeNum(v){var s=ukeT(v).replace(',','.');return s===''?NaN:Number(s)}
 function ukeBlank(i){return !ukeT(i.t)&&!ukeT(i.std)}
 function ukeNew(src,mode){
  var f=Object.assign({},FORM_UKK,(src&&src.form)||{});
- var S0={id:mode==='edit'?src.id:ukkIdBaru(),sekolah:src?(src.sekolah||''):(schKode()||''),title:src?src.title:'',unit:src?src.unit:'',kelas:src?src.kelas:S.kelas,duration:src?src.duration:20,skkni:src?(src.skkni||''):'',
+ var S0={id:mode==='edit'?src.id:ukkIdBaru(),sekolah:src?(src.sekolah||''):(schKode()||''),title:src?src.title:'',unit:src?src.unit:'',kelas:src?src.kelas:S.kelas,duration:src?src.duration:20,obs:mode==='dup'?{mode:'tanpa',lembar:''}:uoNorm(src&&src.obs,src?src.id:'',src?src.kelas:S.kelas),skkni:src?(src.skkni||''):'',
   status:src&&mode==='edit'?(src.status==='published'?'published':'draft'):'draft',active:src?src.active!==false:true,form:{satuan:f.satuan||'',konsentrasi:f.konsentrasi||'',kode:f.kode||'',tahun:f.tahun||'',bentuk:f.bentuk||'',paket:f.paket||'1',tempat:f.tempat||'Sumedang'},
   items:src&&src.items&&src.items.length?src.items.map(function(i){return {t:i.t||'',std:i.std||'',k:!!i.k,f:!!i.f}}):[{t:'',std:'',k:false}]};
  if(mode==='dup')S0.title=S0.title+' (salinan)';
@@ -273,6 +275,7 @@ function ukeIssues(d){
  if(!ukeT(s.title))add('info','Judul unit belum diisi');else if(ukeT(s.title).length>180)add('info','Judul maksimal 180 karakter');
  if(!ukeT(s.unit))add('info','Tipe kendaraan / unit belum diisi');else if(ukeT(s.unit).length>120)add('info','Tipe kendaraan maksimal 120 karakter');
  if(!KELAS[s.kelas])add('info','Kelas tidak valid');
+ var eo=uoCek({id:id,kelas:s.kelas,sekolah:s.sekolah,obs:s.obs});if(eo)add('observasi',eo);
  var du=ukeNum(s.duration);if(!(du>=1&&du<=600))add('info','Alokasi waktu harus 1–600 menit');
  [['satuan','Sekolah'],['konsentrasi','Konsentrasi keahlian'],['kode','Kode'],['tahun','Tahun pelajaran'],['bentuk','Bentuk']].forEach(function(k){
   if(!ukeT(s.form[k[0]]))add('identitas',k[1]+' belum diisi');else if(ukeT(s.form[k[0]]).length>120)add('identitas',k[1]+' maksimal 120 karakter')});
@@ -291,7 +294,7 @@ function ukeBuild(d){
  var doc=Object.assign({},src,{id:ukeT(s.id),jenis:'ukk',version:1,sekolah:(schNorm(s.sekolah)==='ALL'?'':schNorm(s.sekolah)),title:ukeT(s.title),unit:ukeT(s.unit),kelas:s.kelas,fase:(KELAS[s.kelas]||{}).fase||'F',duration:Number(ukeNum(s.duration)),skkni:ukeT(s.skkni),
   form:{satuan:ukeT(s.form.satuan),konsentrasi:ukeT(s.form.konsentrasi),kode:ukeT(s.form.kode),tahun:ukeT(s.form.tahun),bentuk:ukeT(s.form.bentuk),paket:ukeT(s.form.paket)||'1',tempat:ukeT(s.form.tempat)||'Sumedang'},
   items:s.items.filter(function(i){return !ukeBlank(i)}).map(function(i){return {t:ukeT(i.t),std:ukeT(i.std),k:!!i.k,f:!!i.f}}),
-  status:s.status==='published'?'published':'draft',active:!!s.active,maxTry:src.maxTry||0,buka:src.buka||'',tutup:src.tutup||''});
+  status:s.status==='published'?'published':'draft',active:!!s.active,obs:uoNorm(s.obs,ukeT(s.id),s.kelas),maxTry:src.maxTry||0,buka:src.buka||'',tutup:src.tutup||''});
  /* pengaturan jadwal dan kesempatan dipertahankan dari panel Pengaturan */
  delete doc.reset;delete doc.dihapus;delete doc.payload;
  if(!doc.buka)delete doc.buka;if(!doc.tutup)delete doc.tutup;
@@ -362,7 +365,7 @@ function ukeForm(){
  if(d.rec)h+='<section class="card lke-rec"><b>Ada draf yang belum tersimpan</b><p class="note">Dari '+new Date(d.rec.ts).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'. Pulihkan untuk melanjutkan pekerjaan sebelumnya.</p><div class="row"><button type="button" class="btn small" data-uke-a="rec-drop">Buang draf</button><button type="button" class="btn small primary" data-uke-a="rec-use">Pulihkan</button></div></section>';
  h+='<div class="lke-top"><div><h2>'+(d.isNew?'UKK baru':'Edit unit')+'</h2><p class="note">'+(ukeT(d.S.id)?esc(ukeT(d.S.id))+' · ':'')+'Disimpan otomatis di perangkat ini sebagai draf.</p></div><div class="row"><button type="button" class="btn small" data-uke-a="cancel">Kembali</button><button type="button" class="btn small primary" data-uke-a="save">Simpan unit</button></div></div>';
  h+='<div id="uke-bar">'+ukeBar(d)+'</div>';
- h+=d.tab==='info'?ukeTabInfo(d):(d.tab==='identitas'?ukeTabIdentitas(d):ukeTabButir(d));
+ h+=d.tab==='info'?ukeTabInfo(d):(d.tab==='identitas'?ukeTabIdentitas(d):(d.tab==='observasi'?uoTabEditor(d):ukeTabButir(d)));
  h+='<div class="lke-nav"><button type="button" class="btn"'+(idx<=0?' disabled':'')+' data-uke-a="prev">← Sebelumnya</button>'+
   (idx>=UKE.TABS.length-1?'<div class="row"><button type="button" class="btn" data-uke-a="save-prev">Simpan dan pratinjau</button><button type="button" class="btn primary" data-uke-a="save">Simpan unit</button></div>':'<button type="button" class="btn primary" data-uke-a="next">Berikutnya →</button>')+'</div>';
  return '<div class="stack">'+h+'</div>';

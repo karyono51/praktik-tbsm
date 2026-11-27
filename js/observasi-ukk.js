@@ -71,7 +71,9 @@ function obuDalamRb(r,op){
  return !t||r.kelas===t}
 function obuLembarTampil(){
  var t=obuTingkat(obuRbPilih()),a=t?OBU.lembar.filter(function(L){return L.tk===t}):OBU.lembar;
- return a.length?a:OBU.lembar}
+ a=a.length?a:OBU.lembar;
+ var b=a.filter(function(L){return !!uoUnit(L.k,'')||obuVisible().some(function(r){return obuKey(r)===L.k})});
+ return b.length?b:a}
 function obuBaru(){return {id:'',lembar:OU.lembar,sel:'',nama:'',nis:'',kelas:obuTingkat(obuRbPilih())||(KELAS.XII?'XII':Object.keys(KELAS)[0]),tanggal:ymd(Date.now()),penguji:(S.user&&S.user.nama)||'',v:2,nilai:{},lvl:{},cat:{},catatan:''}}
 function obuDraftDari(r){
  var p=obsPay(r),sel=(r.guruId&&S.users.some(function(u){return u.id===r.guruId}))?r.guruId:'__lain';
@@ -86,8 +88,8 @@ function viewObservasiUkk(){
  return obuListView();
 }
 function obuInfoCard(lk){
- var L=obuLb(lk),m=Object.assign({},OBU.meta,{judul:L.judul,waktu:L.waktu||OBU.meta.waktu});
- return '<div class="card"><span class="label">Judul tugas</span><b>'+esc(m.judul)+'</b><div class="note">'+esc(m.satuan)+' · '+esc(m.konsentrasi)+' · Kode '+esc(m.kode)+' · Alokasi waktu '+esc(m.waktu)+' · Tahun pelajaran '+esc(m.tahun)+'</div></div>';
+ var m=uoMeta(lk,'');
+ return '<div class="card"><span class="label">Judul tugas</span><b>'+esc(m.judul)+'</b><div class="note">'+esc(m.satuan)+' · '+esc(m.konsentrasi)+' · Kode '+esc(m.kode)+' · Alokasi waktu '+esc(m.waktu)+' · Tahun pelajaran '+esc(m.tahun)+'</div><div class="note">'+esc(uoKet(m.job))+'</div></div>';
 }
 function obuListView(){
  if(typeof akLoad==='function'&&typeof AKD!=='undefined'&&!AKD.loaded&&!OU._ak){OU._ak=1;try{akLoad().then(function(){if(S.tab==='observasi-ukk'&&OU.mode==='list')render()})}catch(e){}}
@@ -161,14 +163,14 @@ function obuBusy(b,fn){
 function obuRingkas(h){return h.done?h.sum+' / '+h.n+' = '+h.nilai+(h.done>=h.n?' · '+h.hasil:''):'-'}
 function obuSync(){if(!OU.d)return;var h=obuHitung(OU.d,OU.d.lembar),a=$('#obuprog'),b=$('#obunilai'),a2=$('#obuprog2'),b2=$('#obunilai2'),nx=$('#obunext');if(a)a.textContent=h.done;if(b)b.textContent=obuRingkas(h);if(a2)a2.textContent=h.done;if(b2)b2.textContent=obuBarTxt(h);if(nx){if(h.done>=h.n)nx.setAttribute('hidden','');else nx.removeAttribute('hidden')}}
 function obuDetailView(){
- var r=OU.view,p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p,lk),kt=obuKat(r.skor),m=Object.assign({},OBU.meta,{judul:LB.judul,waktu:LB.waktu||OBU.meta.waktu});
+ var r=OU.view,p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p,lk),kt=obuKat(r.skor),m=uoMeta(lk,uoSek(r.guruId));
  var rows=LB.grup.map(function(g){return '<h3 class="obs-group">'+esc(g.g)+'</h3>'+g.items.map(function(it){
   var v=p.nilai[it.id],l=h.v2?((p.lvl||{})[it.id]||0):0,pill=h.v2?(l?'<span class="pill '+obuPill(OBU_LVL[l].k)+'">'+l+' · '+esc(OBU_LVL[l].k)+' · '+esc(v)+'</span>':'<span class="pill plain">-</span>'):'<span class="pill '+(v===1?'ok':v===0?'bad':'plain')+'">'+(v===1?'Kompeten':v===0?'Belum Kompeten':'-')+'</span>';
   return '<div class="card" style="gap:4px"><div class="row sb"><span>'+it.no+'. '+esc(it.t)+'</span>'+pill+'</div>'+(it.d?'<div class="note" style="font-style:italic">'+esc(it.d)+'</div>':'')+(p.cat[it.id]?'<div class="note">'+esc(p.cat[it.id])+'</div>':'')+'</div>'}).join('')}).join('');
  return '<div class="row sb"><h2>Detail observasi UKK</h2><button type="button" class="btn small" data-act="obu-back">Kembali</button></div>'+
   '<div class="card"><h3>'+esc(r.guru)+'</h3><div class="meta"><span>NIS '+esc(p.nis||'-')+'</span><span>Kelas '+esc(r.kelas)+'</span><span>'+esc(obsTgl(r.tanggal))+'</span></div>'+
   '<div class="note">'+esc(m.judul)+' · Kode '+esc(m.kode)+'</div><div class="note">Penguji: '+esc(p.penguji||r.pengamat||'-')+'</div>'+
-  '<div class="row sb"><span class="pill '+obuPill(kt)+'">'+esc(kt)+'</span><b class="mono">Nilai '+(+r.skor||0)+(h.v2?' · jumlah '+h.sum+' / '+h.n:' · '+h.kom+'/'+h.n+' kompeten')+'</b></div></div>'+rows+
+  '<div class="row sb"><span class="pill '+obuPill(kt)+'">'+esc(kt)+'</span><b class="mono">Nilai '+(+r.skor||0)+(h.v2?' · jumlah '+h.sum+' / '+h.n:' · '+h.kom+'/'+h.n+' kompeten')+'</b></div></div>'+uoPaketCard(r)+rows+
   (p.catatan?'<div class="card"><b>Catatan penguji</b><p>'+esc(p.catatan).replace(/\n/g,'<br>')+'</p></div>':'')+
   '<div class="row obu-act" style="flex-wrap:wrap;gap:6px"><button type="button" class="btn primary" data-act="obu-pdf" data-v="'+esc(r.id)+'">Unduh PDF</button>'+(obsBoleh(r)?'<button type="button" class="btn" data-act="obu-edit" data-v="'+esc(r.id)+'">Ubah</button>':'')+'</div>';
 }
@@ -182,8 +184,8 @@ function obuSave(){
  if(!d.tanggal){toast('Isi tanggal observasi');return}
  if(h.done<h.n){var ms=LB.flat.filter(function(i){return !obuValid(d.lvl[i.id],d.nilai[i.id])})[0];toast('Aspek '+(ms?ms.no:'')+' belum lengkap: pilih skala 1-4 dan isi nilai sesuai rentang ('+h.done+' dari '+h.n+' terisi)');obuKeBelum();return}
  var penguji=String(d.penguji||'').trim()||S.user.nama;
- var payload=JSON.stringify({v:2,nis:String(d.nis||'').trim(),penguji:penguji,nilai:d.nilai,lvl:d.lvl,cat:d.cat,catatan:String(d.catatan||'').trim(),kode:OBU.meta.kode,lembar:LB.k});
- var f={tipe:'ukk',guruId:gid,guru:nama.slice(0,120),mapel:LB.judul.slice(0,120),kelas:(KELAS[kelas]?kelas:Object.keys(KELAS)[0]),tanggal:d.tanggal,skor:h.nilai,kategori:h.hasil,payload:payload,pengamat:penguji.slice(0,120)};
+ var payload=JSON.stringify({v:2,nis:String(d.nis||'').trim(),penguji:penguji,nilai:d.nilai,lvl:d.lvl,cat:d.cat,catatan:String(d.catatan||'').trim(),kode:uoMeta(LB.k,uoSek(gid)).kode,lembar:LB.k});
+ var f={tipe:'ukk',guruId:gid,guru:nama.slice(0,120),mapel:uoMeta(LB.k,uoSek(gid)).judul.slice(0,120),kelas:(KELAS[kelas]?kelas:Object.keys(KELAS)[0]),tanggal:d.tanggal,skor:h.nilai,kategori:h.hasil,payload:payload,pengamat:penguji.slice(0,120)};
  S.observasi=S.observasi||[];
  var rec=d.id?S.observasi.find(function(x){return x.id===d.id}):null;
  if(rec){Object.assign(rec,f);if(rec.r)rec.d=1}
@@ -205,8 +207,8 @@ function obuTglPanjang(t){
    Penguji 1 = nama akun yang mengisi (login), Penguji 2 = Tim AHASS. */
 function obuPdf(id){
  var r=(S.observasi||[]).find(function(x){return x.id===id});if(!r||r.tipe!=='ukk'||!needP())return;
- var p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p,lk),m=OBU.meta,doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
- var tempat=(typeof FORM_UKK!=='undefined'&&FORM_UKK.tempat)||'Sumedang',tgl=obuTglPanjang(r.tanggal),paket='P'+String((typeof FORM_UKK!=='undefined'&&FORM_UKK.paket)||'1'),pg1=p.penguji||r.pengamat||'',pg2=m.penguji2,kat=obuKat(r.skor);
+ var p=obsPay(r),lk=obuKey(r),LB=obuLb(lk),h=obuHitung(p,lk),m=uoMeta(lk,uoSek(r.guruId)),doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+ var tempat=m.tempat,tgl=obuTglPanjang(r.tanggal),paket='P'+String(m.paket),pg1=p.penguji||r.pengamat||'',pg2=m.penguji2,kat=obuKat(r.skor);
  /* Kop */
  doc.setLineWidth(.3).rect(14,10,44,9);
  doc.setFont('helvetica','normal').setFontSize(9).text('RAHASIA',36,16,{align:'center'});
@@ -219,8 +221,8 @@ function obuPdf(id){
  doc.setFont('helvetica','normal').setFontSize(10).text('UJIAN PRAKTIK KEJURUAN',W/2,63,{align:'center'});
  /* Identitas */
  doc.autoTable({startY:70,theme:'plain',styles:{fontSize:10,cellPadding:1,textColor:0},columnStyles:{0:{cellWidth:48}},body:[
-  ['Satuan Pendidikan',': '+m.satuan],['Kompetensi Keahlian',': '+m.konsentrasi],['Kode',': '+m.kode],['Alokasi Waktu',': '+(LB.waktu||m.waktu)],
-  ['Tipe kendaraan',': '+(m.unit[lk]||'')],['Judul tugas',': '+LB.judul],['Nama Peserta',': '+(r.guru||'………………………………')],['Kelas',': '+r.kelas],['Tanggal',': '+tgl]]});
+  ['Satuan Pendidikan',': '+m.satuan],['Kompetensi Keahlian',': '+m.konsentrasi],['Kode',': '+m.kode],['Alokasi Waktu',': '+m.waktu],['Bentuk',': '+m.bentuk],
+  ['Tipe kendaraan',': '+m.kendaraan],['Judul tugas',': '+m.judul],['Nama Peserta',': '+(r.guru||'………………………………')],['Kelas',': '+r.kelas],['Tanggal',': '+tgl]]});
  var y=doc.lastAutoTable.finalY+4;
  doc.setFontSize(10).text('Nomor Peserta (NIS)',14,y+4);
  var nis=String(p.nis||'').toUpperCase().replace(/\s/g,''),bx=62,bw=6.5;
@@ -250,8 +252,17 @@ function obuPdf(id){
  var bh=52,lx=14,lw=78,rx=W-14-86,rw=86,mid=rx+rw/2;
  doc.setFont('helvetica','bold').setFontSize(10).text('NILAI',lx+lw/2,y+6,{align:'center'});
  doc.rect(lx,y,lw,bh).line(lx,y+10,lx+lw,y+10);
- doc.setFont('helvetica','bold').setFontSize(16).text(String(r.skor),lx+lw/2,y+26,{align:'center'});
- doc.setFont('helvetica','normal').setFontSize(10).text(kat,lx+lw/2,y+36,{align:'center'});
+ var pk=uoPaket(r);
+ if(pk&&pk.nilai!=null){
+  doc.setFont('helvetica','bold').setFontSize(16).text(String(pk.nilai),lx+lw/2,y+22,{align:'center'});
+  doc.setFont('helvetica','normal').setFontSize(10).text(obuKat(pk.nilai),lx+lw/2,y+30,{align:'center'});
+  doc.setFontSize(8).text('Nilai paket',lx+lw/2,y+39,{align:'center'});
+  doc.text('Unit '+pk.unit+' x '+pk.wU+'% + Observasi '+pk.obs+' x '+(100-pk.wU)+'%',lx+lw/2,y+45,{align:'center'});
+ }else{
+  doc.setFont('helvetica','bold').setFontSize(16).text(String(r.skor),lx+lw/2,y+26,{align:'center'});
+  doc.setFont('helvetica','normal').setFontSize(10).text(kat,lx+lw/2,y+36,{align:'center'});
+  if(pk)doc.setFontSize(8).text('Nilai observasi (nilai unit belum ada)',lx+lw/2,y+45,{align:'center'});
+ }
  doc.setFontSize(9).text(tempat+', '+tgl,rx+rw,y-3,{align:'right'});
  doc.setFont('helvetica','bold').setFontSize(10).text('PENGUJI',rx+rw/2,y+6,{align:'center'});
  doc.setFont('helvetica','normal').setFontSize(9);
@@ -317,12 +328,12 @@ function obuRekapView(){
 function obuRekapXls(){
  if(!needX())return;var kel=OU.kel,R=obuRekapData(kel),L=obuRekapSumber(kel).sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))||a.ts-b.ts});
  if(!L.length){toast('Belum ada data untuk diunduh');return}
- var m=OBU.meta,nm=OBU.lembar.map(function(x){return x.nama.replace(' · ',' - ')});
+ var m=uoMetaRekap(),nm=OBU.lembar.map(function(x){return x.nama.replace(' · ',' - ')});
  var rek=[['No','Nama siswa','NIS','Kelas'].concat(nm).concat(['Lembar dinilai','Rata-rata','Kesimpulan'])].concat(R.map(function(o,i){
   return [i+1,o.nama,o.nis,o.kelas].concat(OBU.lembar.map(function(x){return o.per[x.k]?o.per[x.k].nilai:''})).concat([o.n,o.n?o.avg:'',o.n?o.kat:''])}));
  var dft=[['No','Tanggal','Nama siswa','NIS','Kelas','Lembar','Judul tugas','Penguji 1','Penguji 2','Jumlah nilai','Jumlah aspek (N)','Nilai','Kesimpulan','Catatan']].concat(L.map(function(r,i){
   var p=obsPay(r),lk=obuKey(r),h=obuHitung(p,lk);
-  return [i+1,r.tanggal,r.guru,p.nis||'',r.kelas,obuLb(lk).nama.replace(' · ',' - '),obuLb(lk).judul,p.penguji||r.pengamat||'',m.penguji2,h.v2?h.sum:'',h.n,r.skor,obuKat(r.skor),p.catatan||'']}));
+  return [i+1,r.tanggal,r.guru,p.nis||'',r.kelas,obuLb(lk).nama.replace(' · ',' - '),uoMeta(lk,uoSek(r.guruId)).judul,p.penguji||r.pengamat||'',m.penguji2,h.v2?h.sum:'',h.n,r.skor,obuKat(r.skor),p.catatan||'']}));
  var dist={};R.forEach(function(o){if(o.n)dist[o.kat]=(dist[o.kat]||0)+1});
  var n=R.length,avg=n?Math.round(R.reduce(function(t,o){return t+o.avg},0)/n):0;
  var info=[['Rekap Nilai Observasi UKK'],['Tahun pelajaran',m.tahun],['Satuan pendidikan',m.satuan],['Kompetensi keahlian',m.konsentrasi],['Kode',m.kode],['Kelas',kel||'Semua kelas'],['Jumlah siswa',n],['Jumlah observasi',L.length],['Rata-rata nilai siswa',n?avg:''],[],
