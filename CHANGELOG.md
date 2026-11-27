@@ -3,7 +3,8 @@
 - **Absen masuk/pulang ditolak di luar zona tempat PKL** (bawaan). Lokasi dibaca ulang bila usang; GPS tidak terbaca atau akurasi di atas 500 m ditolak; tempat tanpa koordinat tetap diterima dan diberi peringatan di daftar tempat.
 - **Jurnal**: kolom Foto kegiatan (wajib menurut Pengaturan), unggah ke Drive, miniatur di daftar jurnal.
 - **Surat perjanjian**: Pindai dengan kamera, jadi PDF, diunggah ke Drive, hanya dibuka guru/admin. **Deploy ulang fungsi `foto-drive`** (aksi `upload kind:'pks'` dan `getpks`).
-- Uji: `tools/uji-pkl.mjs` 184 lulus (zona, akurasi, pengaturan, foto jurnal, surat, fungsi). Dokumen: `docs-PKL.md`.
+- Pemindai surat memakai kamera langsung (bingkai pemandu, lampu, deretan halaman, mode Dokumen/Warna) dengan cadangan kamera perangkat dan galeri bila kamera tidak terdeteksi atau izin ditolak.
+- Uji: `tools/uji-pkl.mjs` 191 lulus (zona, akurasi, pengaturan, foto jurnal, surat, fungsi). Dokumen: `docs-PKL.md`.
 
 ## PKL: Excel dan PDF di semua tab
 - Tempat PKL: tombol **Impor Excel**, **Template**, **Ekspor Excel**, **Cetak PDF** (`js/pkl-xls.js`, baru).

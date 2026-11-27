@@ -512,5 +512,28 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
     T('Lepas surat: fungsi tersedia', typeof y.pkSuratBuka === 'function' && typeof y.pkScan === 'function' && typeof y.pkScanDok === 'function');
   }
 
+  console.log('Pemindai surat: kamera langsung dan cadangan');
+  {
+    const mulai = (md) => {
+      const cache = {}; const stub = (sel) => cache[sel] || (cache[sel] = { hidden: false, disabled: false, textContent: '', innerHTML: '', style: {}, files: [], ls: {}, classList: { add() {}, remove() {} },
+        addEventListener(t, f) { (this.ls[t] = this.ls[t] || []).push(f); }, setAttribute() {}, getAttribute() { return null; }, hasAttribute() { return false; }, click() {}, scrollTo() {}, play() { return Promise.resolve(); } });
+      const ov = { innerHTML: '', className: '', setAttribute() {}, remove() {}, querySelector: stub, querySelectorAll: () => [], addEventListener() {}, classList: { add() {}, remove() {} } };
+      const d = boot({ peran: 'guru', ctx: { navigator: { onLine: true, mediaDevices: md }, document: { addEventListener() {}, getElementById: () => null, querySelector: () => null, createElement: () => ov, head: { appendChild() {} }, body: { appendChild() {}, contains: () => true } } } });
+      d.ctx.pkScan(); return { cache, ov };
+    };
+    let r = mulai(undefined);
+    T('tanpa kamera langsung: muncul pilihan kamera perangkat dan galeri dengan penjelasan', /Buka kamera perangkat/.test(r.cache['[data-sc="off"]'].innerHTML) && /Pilih dari galeri/.test(r.cache['[data-sc="off"]'].innerHTML) && /https/.test(r.cache['[data-sc="off"]'].innerHTML) && r.cache['[data-sc="off"]'].hidden === false && r.cache['[data-sc="shot"]'].disabled === true);
+    T('markup pemindai memuat semua elemen yang dipakai kode', ['x', 'cnt', 'torch', 'vid', 'hint', 'off', 'strip', 'gal', 'shot', 'pdf', 'batal', 'fk', 'fg'].every((k) => r.ov.innerHTML.includes('data-sc="' + k + '"')));
+    r = mulai({ getUserMedia: () => Promise.reject(Object.assign(new Error('x'), { name: 'NotAllowedError' })) }); await new Promise((q) => setImmediate(q));
+    T('izin kamera ditolak: pesan jelas dan cadangan tersedia', /Izin kamera ditolak/.test(r.cache['[data-sc="off"]'].innerHTML) && /Buka kamera perangkat/.test(r.cache['[data-sc="off"]'].innerHTML));
+    r = mulai({ getUserMedia: () => Promise.reject(Object.assign(new Error('x'), { name: 'NotFoundError' })) }); await new Promise((q) => setImmediate(q));
+    T('kamera tidak ditemukan: pesan sesuai', /tidak ditemukan/.test(r.cache['[data-sc="off"]'].innerHTML));
+    let berhenti = 0; const trk = { getCapabilities: () => ({ torch: true }), applyConstraints: async () => {}, stop() { berhenti++; } };
+    r = mulai({ getUserMedia: async (c) => { T('meminta kamera belakang resolusi tinggi tanpa audio', c.video.facingMode.ideal === 'environment' && c.video.width.ideal >= 1920 && c.audio === false); return { getTracks: () => [trk], getVideoTracks: () => [trk] }; } }); await new Promise((q) => setImmediate(q)); await new Promise((q) => setImmediate(q));
+    T('kamera menyala: tombol rana aktif, petunjuk bingkai, tombol lampu muncul bila didukung', r.cache['[data-sc="shot"]'].disabled === false && /bingkai/.test(r.cache['[data-sc="hint"]'].textContent) && r.cache['[data-sc="torch"]'].hidden === false && !r.cache['[data-sc="off"]']);
+    r.cache['[data-sc="x"]'].ls.click[0]();
+    T('menutup pemindai mematikan kamera', berhenti === 1);
+  }
+
   console.log(`\nUji PKL: ${pass} lulus, ${fail} gagal`); process.exit(fail ? 1 : 0);
 })();

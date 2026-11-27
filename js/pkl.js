@@ -490,41 +490,82 @@ function pkScanPdf(pages){
  });
  return doc.output('datauristring').replace(/^data:application\/pdf;[^,]*base64,/,'data:application/pdf;base64,');
 }
+var PK_SC_IK={x:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+ bolt:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 3L5 13.500h6L10 21l8-10.500h-6z"/></svg>',
+ gal:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linecap="round" stroke-linejoin="round"><rect x="3.500" y="4.500" width="17" height="15" rx="3"/><circle cx="9" cy="10" r="1.600"/><path d="M4 17l5-4.500 4 3.500 3-2.500 4 3.500"/></svg>'};
 function pkScan(){
- var pages=[],mode='dok',ov=document.createElement('div');
- ov.className='pk-peta';ov.setAttribute('role','dialog');ov.setAttribute('aria-label','Pindai surat perjanjian');
- ov.innerHTML='<div class="pk-peta-bar"><b>Pindai surat perjanjian</b><div class="note">Foto tiap halaman tegak lurus dan terang. Urutan halaman = urutan foto. Maksimal '+PK_SCAN_HAL+' halaman.</div></div><div class="pk-scan-isi" data-sc="isi"></div>'+
-  '<div class="pk-peta-ft"><div class="chips" role="group" aria-label="Mode pindai"><button type="button" data-sc-mode="dok" aria-pressed="true">Dokumen (hitam putih)</button><button type="button" data-sc-mode="warna" aria-pressed="false">Warna asli</button></div><div class="note" data-sc="info"></div>'+
-  '<div class="row" style="gap:8px;flex-wrap:wrap"><button type="button" class="btn primary" data-sc="kam">Foto halaman</button><button type="button" class="btn" data-sc="gal">Dari galeri</button><button type="button" class="btn primary" data-sc="pdf" disabled>Buat PDF</button><button type="button" class="btn" data-sc="x">Batal</button></div>'+
-  '<input type="file" accept="image/*" capture="environment" data-sc="fk" hidden><input type="file" accept="image/*" multiple data-sc="fg" hidden></div>';
+ var pages=[],mode='dok',stream=null,busy=false,torch=false,ov=document.createElement('div');
+ ov.className='pk-sc';ov.setAttribute('role','dialog');ov.setAttribute('aria-label','Pindai surat perjanjian');
+ ov.innerHTML='<div class="pk-sc-top"><button type="button" class="pk-sc-ic" data-sc="x" aria-label="Tutup">'+PK_SC_IK.x+'</button><div class="pk-sc-jd"><b>Pindai surat perjanjian</b><span data-sc="cnt"></span></div><button type="button" class="pk-sc-ic" data-sc="torch" aria-label="Lampu kamera" aria-pressed="false" hidden>'+PK_SC_IK.bolt+'</button></div>'+
+  '<div class="pk-sc-view"><video playsinline muted autoplay data-sc="vid"></video><div class="pk-sc-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="pk-sc-hint" data-sc="hint" role="status">Menyalakan kamera…</div><div class="pk-sc-off" data-sc="off" hidden></div></div>'+
+  '<div class="pk-sc-strip" data-sc="strip"></div>'+
+  '<div class="pk-sc-bar"><button type="button" class="pk-sc-sd" data-sc="gal">'+PK_SC_IK.gal+'<span>Galeri</span></button><button type="button" class="pk-sc-shut" data-sc="shot" aria-label="Ambil foto halaman" disabled><i></i></button>'+
+  '<div class="pk-sc-mode" role="group" aria-label="Mode pindai"><button type="button" data-sc-mode="dok" aria-pressed="true">Dokumen</button><button type="button" data-sc-mode="warna" aria-pressed="false">Warna</button></div></div>'+
+  '<div class="pk-sc-act"><button type="button" class="btn" data-sc="batal">Batal</button><button type="button" class="btn primary" data-sc="pdf" disabled>Buat PDF</button></div>'+
+  '<input type="file" accept="image/*" capture="environment" data-sc="fk" hidden><input type="file" accept="image/*" multiple data-sc="fg" hidden>';
  document.body.appendChild(ov);
- var $=function(k){return ov.querySelector('[data-sc="'+k+'"]')},tutup=function(){ov.remove()},
-  paint=function(msg){
-   $('isi').innerHTML=pages.length?'<div class="pk-scan-grid">'+pages.map(function(p,i){return '<div class="pk-scan-th"><img src="'+p.d+'" alt="Halaman '+(i+1)+'"><span>'+(i+1)+'</span><button type="button" data-sc-del="'+i+'" aria-label="Hapus halaman '+(i+1)+'">×</button></div>'}).join('')+'</div>':'<div class="note">Belum ada halaman.</div>';
-   var kb=Math.round(pages.reduce(function(a,p){return a+p.d.length},0)*.75/1024);
-   $('info').textContent=msg||(pages.length+' halaman'+(pages.length?' · ±'+kb+' KB':'')+'. Mode berlaku untuk halaman berikutnya.');
-   $('pdf').disabled=!pages.length;
+ var $=function(k){return ov.querySelector('[data-sc="'+k+'"]')},vid=$('vid'),
+  hint=function(t){$('hint').textContent=t},
+  henti=function(){if(stream){stream.getTracks().forEach(function(t){try{t.stop()}catch(e){}});stream=null}},
+  tutup=function(){henti();ov.remove()},
+  paint=function(){
+   $('cnt').textContent=pages.length?pages.length+' dari '+PK_SCAN_HAL+' halaman':'Belum ada halaman';
+   $('strip').innerHTML=pages.length?pages.map(function(p,i){return '<div class="pk-sc-th"><img src="'+p.d+'" alt="Halaman '+(i+1)+'"><b>'+(i+1)+'</b><button type="button" data-sc-del="'+i+'" aria-label="Hapus halaman '+(i+1)+'">×</button></div>'}).join(''):'<span class="pk-sc-kosong">Halaman yang sudah difoto tampil di sini.</span>';
+   var st=$('strip');if(st.scrollTo)st.scrollTo({left:st.scrollWidth});
+   $('pdf').disabled=!pages.length;$('pdf').textContent=pages.length?'Buat PDF ('+pages.length+' hal.)':'Buat PDF';
+   $('shot').disabled=!stream||busy||pages.length>=PK_SCAN_HAL;
   },
   tambah=function(files){
    var q=Array.prototype.slice.call(files||[]);
    (function next(){
-    if(!q.length||pages.length>=PK_SCAN_HAL){if(q.length)toast('Maksimal '+PK_SCAN_HAL+' halaman.');return paint()}
-    paint('Memproses foto…');
+    if(!q.length||pages.length>=PK_SCAN_HAL){if(q.length)toast('Maksimal '+PK_SCAN_HAL+' halaman.');busy=false;hint(stream?'Sejajarkan halaman di dalam bingkai':'Kamera mati');return paint()}
+    busy=true;hint('Memproses halaman…');paint();
     pkScanProses(q.shift(),mode,function(r){if(r)pages.push(r);else toast('Foto gagal diproses.');next()});
    })();
+  },
+  mati=function(msg){
+   henti();vid.hidden=true;var o=$('off');o.hidden=false;
+   o.innerHTML='<div class="pk-sc-offt">'+esc(msg)+'</div><button type="button" class="btn primary" data-sc="fkbtn">Buka kamera perangkat</button><button type="button" class="btn" data-sc="galbtn">Pilih dari galeri</button>';
+   $('fkbtn').addEventListener('click',function(){$('fk').click()});$('galbtn').addEventListener('click',function(){$('fg').click()});
+   hint('Kamera langsung tidak aktif');paint();
+  },
+  mulai=function(){
+   var md=navigator.mediaDevices;
+   if(!(md&&md.getUserMedia)||window.isSecureContext===false)return mati('Kamera langsung butuh sambungan aman (https) dan peramban yang mendukung.');
+   md.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:2560},height:{ideal:1440}},audio:false}).then(function(s){
+    if(!document.body.contains(ov)){s.getTracks().forEach(function(t){t.stop()});return}
+    stream=s;vid.srcObject=s;var pl=vid.play();if(pl&&pl.catch)pl.catch(function(){});
+    hint('Sejajarkan halaman di dalam bingkai');paint();
+    var tr=s.getVideoTracks()[0],cap=(tr&&tr.getCapabilities&&tr.getCapabilities())||{};
+    if(cap.torch)$('torch').hidden=false;
+    try{if(cap.focusMode&&cap.focusMode.indexOf('continuous')>-1)tr.applyConstraints({advanced:[{focusMode:'continuous'}]})}catch(e){}
+   }).catch(function(e){
+    var n=String((e&&e.name)||'')+' '+String((e&&e.message)||'');
+    mati(/NotAllowed|Permission|Denied/i.test(n)?'Izin kamera ditolak. Izinkan kamera untuk situs ini di pengaturan peramban, atau pakai kamera perangkat.':/NotFound|DevicesNotFound|Overconstrained/i.test(n)?'Kamera tidak ditemukan di perangkat ini.':'Kamera tidak bisa dibuka (mungkin sedang dipakai aplikasi lain).');
+   });
   };
- paint();
- $('x').addEventListener('click',tutup);
- $('kam').addEventListener('click',function(){$('fk').click()});
+ paint();mulai();
+ $('x').addEventListener('click',tutup);$('batal').addEventListener('click',tutup);
  $('gal').addEventListener('click',function(){$('fg').click()});
  ['fk','fg'].forEach(function(k){$(k).addEventListener('change',function(e){var fl=e.target.files;tambah(fl);setTimeout(function(){e.target.value=''},0)})});
+ $('torch').addEventListener('click',function(){
+  var tr=stream&&stream.getVideoTracks()[0];if(!tr)return;torch=!torch;
+  tr.applyConstraints({advanced:[{torch:torch}]}).then(function(){$('torch').setAttribute('aria-pressed',String(torch))}).catch(function(){torch=false;toast('Lampu kamera tidak didukung.')});
+ });
+ $('shot').addEventListener('click',function(){
+  if(!stream||busy||pages.length>=PK_SCAN_HAL)return;
+  var w=vid.videoWidth,h=vid.videoHeight;if(!w||!h)return;
+  var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(vid,0,0,w,h);
+  ov.classList.add('kilat');setTimeout(function(){ov.classList.remove('kilat')},140);
+  c.toBlob(function(b){if(b)tambah([b]);else toast('Foto gagal diambil.')},'image/jpeg',.92);
+ });
  ov.addEventListener('click',function(e){
   var b=e.target.closest&&e.target.closest('[data-sc-del],[data-sc-mode]');if(!b)return;
   if(b.hasAttribute('data-sc-del')){pages.splice(+b.getAttribute('data-sc-del'),1);paint()}
   else{mode=b.getAttribute('data-sc-mode');Array.prototype.forEach.call(ov.querySelectorAll('[data-sc-mode]'),function(x){x.setAttribute('aria-pressed',String(x===b))})}
  });
  $('pdf').addEventListener('click',function(){
-  if(!pages.length||!pkPdfSiap())return;
+  if(!pages.length||busy||!pkPdfSiap())return;
   try{
    var d=pkScanPdf(pages);
    if(d.length>5000000){toast('PDF terlalu besar. Kurangi jumlah halaman.');return}
