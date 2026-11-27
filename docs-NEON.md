@@ -21,7 +21,7 @@ Fungsi `akun-admin` (Settings, Variables):
 | `CBT_LEGACY` | bawaan aktif. `0` mematikan pembacaan cadangan dari Appwrite. |
 | `NEON_POOL` | opsional, maksimum sambungan per instans fungsi (bawaan 5). |
 
-`js/config.js`: `CBT_DB:'neon'` dan `CBT_LEGACY:true` (ubah ke `false` pada tahap terakhir).
+`js/config.js`: `CBT_DB:'neon'` dan `CBT_LEGACY:false` (cadangan Appwrite dimatikan; ubah ke `true` untuk menyalakan lagi).
 
 ## Urutan pasang (lakukan saat tidak ada ujian berjalan)
 Ujian yang sedang berjalan saat peralihan tidak boleh dipindah di tengah; catatannya tetap di Appwrite dan ikut terbaca lewat cadangan, tetapi lebih aman memilih waktu tanpa ujian.

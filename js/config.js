@@ -17,7 +17,7 @@ window.APP_CONFIG={
      JANGAN dikembalikan ke 'appwrite' saat push. up.sh menjaga nilai ini dari config.js di repo, tetapi bila zip baru
      memuat nilai lain dan Anda memang ingin mengganti, jalankan: CBT_DB_PAKSA=1 sh up.sh (lihat docs-NEON.md). */
   CBT_DB:'neon',
-  /* Selama data lama masih di Appwrite, tetap dibaca. Ubah ke false setelah data disalin (docs-NEON.md), bersamaan dengan CBT_LEGACY=0 di fungsi. */
-  CBT_LEGACY:true
+  /* Dimatikan: CBT hanya membaca Neon, tidak lagi membaca cadangan lama di Appwrite. Samakan dengan CBT_LEGACY=0 di variabel fungsi (docs-NEON.md). Untuk menyalakan lagi, ubah ke true. */
+  CBT_LEGACY:false
   /* CBT_DENYUT: selang simpan jawaban ke server dalam ms (bawaan 15000) */
 };

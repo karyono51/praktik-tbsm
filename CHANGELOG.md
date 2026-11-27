@@ -1,3 +1,6 @@
+## CBT_LEGACY dimatikan
+- `js/config.js`: `CBT_LEGACY:false`. Jalur CBT hanya membaca Neon. Di Console Appwrite, variabel fungsi `akun-admin` harus diisi `CBT_LEGACY=0` lalu fungsi dideploy ulang. Hasil ujian lama yang hanya ada di Appwrite tidak tampil lagi.
+
 ## Offline dan monitoring (dipasang di atas hemat baca)
 - `js/pwa.js`: catatan belum terkirim yang identik (mis. tombol simpan dua kali) dijadikan satu; ID tidak sah ditandai `bad` dan tidak dikirim; peringatan bila penyimpanan perangkat penuh.
 - `js/pantau-db.js` (baru): penghitung dokumen dibaca/ditulis/dihapus per koleksi per hari, tampil di Cek sinkronisasi; batas peringatan opsional `DB_BATAS_BACA` di `config.js`; meminta penyimpanan persisten.
