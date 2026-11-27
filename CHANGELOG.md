@@ -1,3 +1,10 @@
+## PKL: Pengaturan, tolak absen di luar zona, foto jurnal, pindai surat perjanjian
+- **Tab Pengaturan (Admin)**: absen di luar zona Tolak atau Tandai, foto wajib per item (masuk, pulang, izin, sakit, jurnal), dan tampilan daftar tempat PKL untuk siswa (bawaan: hanya sebelum ditempatkan). Disimpan sebagai dokumen `setelan` di koleksi `pkl`; tanpa perubahan skema.
+- **Absen masuk/pulang ditolak di luar zona tempat PKL** (bawaan). Lokasi dibaca ulang bila usang; GPS tidak terbaca atau akurasi di atas 500 m ditolak; tempat tanpa koordinat tetap diterima dan diberi peringatan di daftar tempat.
+- **Jurnal**: kolom Foto kegiatan (wajib menurut Pengaturan), unggah ke Drive, miniatur di daftar jurnal.
+- **Surat perjanjian**: Pindai dengan kamera, jadi PDF, diunggah ke Drive, hanya dibuka guru/admin. **Deploy ulang fungsi `foto-drive`** (aksi `upload kind:'pks'` dan `getpks`).
+- Uji: `tools/uji-pkl.mjs` 184 lulus (zona, akurasi, pengaturan, foto jurnal, surat, fungsi). Dokumen: `docs-PKL.md`.
+
 ## PKL: Excel dan PDF di semua tab
 - Tempat PKL: tombol **Impor Excel**, **Template**, **Ekspor Excel**, **Cetak PDF** (`js/pkl-xls.js`, baru).
 - Penempatan, Monitoring, Nilai, Kelengkapan: ekspor, template, impor (dengan pratinjau dan alasan penolakan per baris), dan cetak PDF (`js/pkl-io.js`, `js/pkl-pdf.js`, baru). Penempatan menjaga kuota dan satu penempatan aktif per siswa; template Nilai dan Kelengkapan sudah berisi siswa dan kondisi saat ini.

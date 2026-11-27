@@ -11,6 +11,10 @@
              hanya guru/admin (label) atau pemilik foto (izin baca dokumen lkpd_bukti).
      getpkl: {action:'getpkl', docId, fileId}                          -> {ok:true, data:'data:...'}   (selfie absen PKL; dokumen pkl_catat dibaca atas nama pengguna,
              jadi hanya guru/admin atau pemilik absen; penanda foto di payload harus 'drive:<fileId>')
+     Surat perjanjian PKL (PDF hasil pindai kamera):
+     upload: {action:'upload', kind:'pks', data:'data:application/pdf;base64,...', nama}  -> {ok:true, fileId}   (hanya guru/admin; berkas ditandai kind=pks)
+     getpks: {action:'getpks', docId, fileId}                          -> {ok:true, data:'data:application/pdf;base64,...'}   (hanya guru/admin; dokumen koleksi pkl
+             harus memuat payload.pksFile = 'drive:<fileId>'; siswa tidak bisa membuka surat)
      Gambar soal (bank soal):
      upload: {action:'upload', kind:'soal', data, nama}              -> {ok:true, fileId}   (hanya guru/admin; berkas ditandai kind=soal)
      getsoal:{action:'getsoal', fileId}                                -> {ok:true, data:'data:...'}   (semua pengguna login, tetapi hanya berkas bertanda kind=soal,
@@ -18,6 +22,7 @@
 // Tanpa pustaka node-appwrite: panggilan ke Appwrite memakai fetch bawaan Node (pustaka lama gagal di runtime Node terbaru: "fetch failed").
 
 const FOLDER_NAME = 'TBSM Bukti Praktik';
+const MAX_PDF_B64 = 6000000;        // batas teks base64 PDF surat perjanjian (maks 8 halaman hasil pindai, sekitar 2 MB)
 const MAX_B64 = 420000;            // batas panjang teks base64 (foto aplikasi <= sekitar 260.000)
 const ID_RE = /^[A-Za-z0-9_-]{10,100}$/;
 let tokenCache = { t: null, exp: 0 };
@@ -77,6 +82,15 @@ function decodeImage(dataUrl) {
   return { mime: m[1], buf, ext: m[1] === 'image/png' ? 'png' : m[1] === 'image/webp' ? 'webp' : 'jpg' };
 }
 
+function decodePdf(dataUrl) {
+  const m = /^data:application\/pdf;base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl || ''));
+  if (!m) throw new Fail('Format PDF tidak valid.', 400);
+  if (m[1].length > MAX_PDF_B64) throw new Fail('PDF terlalu besar.', 413);
+  const buf = Buffer.from(m[1], 'base64');
+  if (buf.slice(0, 5).toString() !== '%PDF-') throw new Fail('Isi berkas bukan PDF.', 400);
+  return { mime: 'application/pdf', buf, ext: 'pdf' };
+}
+
 async function bolehSoal(callerId, key) {
   if (!key) throw new Fail('Izin fungsi belum lengkap: beri scope users.read agar peran guru/admin bisa diperiksa.', 500);
   const caller = await aw('/users/' + encodeURIComponent(callerId), { 'X-Appwrite-Key': key });
@@ -84,16 +98,17 @@ async function bolehSoal(callerId, key) {
 }
 
 async function upload(callerId, body, key) {
-  const soal = body.kind === 'soal';
+  const soal = body.kind === 'soal', pks = body.kind === 'pks';
   if (soal && !(await bolehSoal(callerId, key))) throw new Fail('Hanya guru atau admin yang boleh mengunggah gambar soal.', 403);
-  const img = decodeImage(body.data);
+  if (pks && !(await bolehSoal(callerId, key))) throw new Fail('Hanya guru atau admin yang boleh mengunggah surat perjanjian.', 403);
+  const img = pks ? decodePdf(body.data) : decodeImage(body.data);
   const tok = await accessToken();
   const parent = await folderId(tok);
   // Nama berkas dari aplikasi (Kelas_Nama_Modul_Item_Waktu), disaring agar aman. Bila kosong, pakai ID pengguna + waktu.
   const label = String(body.nama || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 150);
   const name = (label || callerId.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 36) + '_' + Date.now()) + '.' + img.ext;
   const boundary = 'tbsm' + Date.now().toString(36);
-  const meta = JSON.stringify({ name, parents: [parent], mimeType: img.mime, appProperties: soal ? { uid: callerId, kind: 'soal' } : { uid: callerId } });
+  const meta = JSON.stringify({ name, parents: [parent], mimeType: img.mime, appProperties: soal ? { uid: callerId, kind: 'soal' } : pks ? { uid: callerId, kind: 'pks' } : { uid: callerId } });
   const payload = Buffer.concat([
     Buffer.from('--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + meta + '\r\n--' + boundary + '\r\nContent-Type: ' + img.mime + '\r\n\r\n'),
     img.buf,
@@ -202,6 +217,22 @@ async function ping() {
   return out;
 }
 
+/* Surat perjanjian PKL: dokumen koleksi pkl dibaca atas nama pengguna; hanya guru/admin (label) yang boleh membuka PDF. */
+async function getPks(callerId, body, auth, key) {
+  const fileId = String(body.fileId || ''), docId = String(body.docId || '');
+  if (!ID_RE.test(fileId) || !/^[A-Za-z0-9_-]{1,36}$/.test(docId)) throw new Fail('Permintaan tidak valid.', 400);
+  if (!(await bolehSoal(callerId, key))) throw new Fail('Hanya guru atau admin yang boleh membuka surat perjanjian.', 403);
+  const doc = await aw('/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/pkl/documents/' + encodeURIComponent(docId), auth);
+  let ref = '';
+  try { ref = String(JSON.parse(doc.payload || '{}').pksFile || ''); } catch (e) { /* payload rusak */ }
+  if (ref !== 'drive:' + fileId) throw new Fail('Surat perjanjian tidak ditemukan.', 404);
+  const tok = await accessToken();
+  const r = await gfetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?alt=media', {}, tok);
+  if (!r.ok) throw new Fail('Surat tidak bisa diambil dari Drive (' + r.status + ').', r.status === 404 ? 404 : 502);
+  const b64 = Buffer.from(await r.arrayBuffer()).toString('base64');
+  return { ok: true, data: 'data:application/pdf;base64,' + b64 };
+}
+
 export default async ({ req, res, error }) => {
   try {
     const callerId = req.headers['x-appwrite-user-id'];
@@ -211,6 +242,11 @@ export default async ({ req, res, error }) => {
     if (body.action === 'upload') return res.json(await upload(callerId, body, req.headers['x-appwrite-key']));
     if (body.action === 'getsoal') return res.json(await getSoal(body));
     if (body.action === 'ping') return res.json(await ping());
+    if (body.action === 'getpks') {
+      const jwt = req.headers['x-appwrite-user-jwt'];
+      const auth = jwt ? { 'X-Appwrite-JWT': jwt } : { 'X-Appwrite-Key': req.headers['x-appwrite-key'] || '' };
+      return res.json(await getPks(callerId, body, auth, req.headers['x-appwrite-key']));
+    }
     if (body.action === 'getpkl') {
       const jwt = req.headers['x-appwrite-user-jwt'];
       const auth = jwt ? { 'X-Appwrite-JWT': jwt } : { 'X-Appwrite-Key': req.headers['x-appwrite-key'] || '' };

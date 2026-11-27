@@ -619,3 +619,11 @@ header.top,header.top .logo{transition:none}
 .pk-peta-map{flex:1;min-height:0;position:relative;z-index:0}
 .pk-peta-ft{padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px))}
 .pk-pin span{display:block;width:22px;height:22px;margin:3px;background:#d32f2f;border:3px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 1px 4px rgba(0,0,0,.5)}
+
+/* Pindai surat perjanjian */
+.pk-scan-isi{flex:1;min-height:0;overflow:auto;padding:0 10px}
+.pk-scan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pk-scan-th{position:relative}
+.pk-scan-th img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.pk-scan-th span{position:absolute;left:4px;bottom:4px;background:rgba(0,0,0,.6);color:#fff;border-radius:6px;padding:0 6px;font-size:12px}
+.pk-scan-th button{position:absolute;right:4px;top:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:18px;line-height:1}

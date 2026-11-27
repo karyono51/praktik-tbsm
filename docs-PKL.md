@@ -4,7 +4,7 @@ Menu **PKL** untuk Siswa, Guru, Admin (Kepala Sekolah hanya melihat). Mengacu pa
 
 ## Siswa
 - Tempat PKL, guru pembimbing, instruktur, jam kerja, dan periode penempatan.
-- **Absen dengan selfie**: Masuk, Pulang, Izin, Sakit. Selfie wajib untuk Masuk dan Pulang (kamera depan; jam dan tanggal dicetak pada foto), opsional untuk Izin/Sakit (keterangan wajib). Lokasi GPS ikut tercatat dan dibandingkan dengan koordinat tempat PKL: **Di lokasi** atau **Di luar lokasi ±N m**. Lokasi tidak memblokir absen (GPS bisa gagal); hasilnya tampil untuk guru. Satu absen Masuk dan satu Pulang per hari; Pulang butuh Masuk.
+- **Absen dengan selfie**: Masuk, Pulang, Izin, Sakit. Selfie wajib untuk Masuk dan Pulang (bisa diubah Admin di tab Pengaturan) (kamera depan; jam dan tanggal dicetak pada foto), opsional untuk Izin/Sakit (keterangan wajib). Lokasi GPS ikut tercatat dan dibandingkan dengan koordinat tempat PKL: **Di lokasi** atau **Di luar lokasi ±N m**. Lokasi tidak memblokir absen (GPS bisa gagal); hasilnya tampil untuk guru. Satu absen Masuk dan satu Pulang per hari; Pulang butuh Masuk.
 - **Jurnal kegiatan** (Lampiran 2): tanggal, unit kerja/pekerjaan, uraian. Catatan instruktur/pembimbing tampil setelah diberi guru. Jurnal yang belum diberi catatan bisa diubah 7 hari.
 - Rekap kehadiran sendiri (hadir, izin, sakit, tanpa keterangan), riwayat absen, dan daftar tempat PKL.
 
@@ -56,6 +56,16 @@ Aturan impor (semua jenis; Guru/Admin; `.xlsx`, `.xls`, `.csv`; maksimal 500 bar
   - **Fungsi belum dipasang atau versi lama**: selfie tetap disimpan di `payload` (tidak ada yang hilang). Bila Google/Drive sedang bermasalah, absen ditahan di perangkat dan dicoba lagi saat data PKL dimuat.
   - Setelah terkirim, salinan di perangkat tidak menyimpan data fotonya (hemat ruang); penanda Drive tetap ada.
 - Absen yang dibuat saat offline tersimpan di perangkat dan dikirim saat data PKL dimuat lagi. Jika koleksi belum dibuat, aplikasi tetap berjalan dan menampilkan petunjuk.
+
+## Pengaturan PKL, zona absen, foto wajib, surat perjanjian
+- **Tab Pengaturan** (hanya Admin): satu dokumen jenis `setelan` per sekolah di koleksi `pkl` (id `setelan_<kode sekolah>`, dibaca semua pengguna login, ditulis guru/admin; tanpa perubahan skema). Perubahan langsung tersimpan.
+  - **Absen masuk/pulang di luar zona**: *Tolak* (bawaan) atau *Terima, tandai Di luar lokasi*. Zona = radius tempat PKL dari titik koordinatnya. Saat Tolak: lokasi dibaca ulang bila lebih dari 90 detik; GPS belum terbaca atau akurasi lebih buruk dari 500 m ditolak; tempat **tanpa koordinat tidak bisa dicek**, absen tetap diterima (kartu tempat di tab Tempat PKL memberi peringatan). Izin dan sakit tidak dibatasi lokasi.
+  - **Foto wajib per item**: absen masuk, absen pulang, izin, sakit, jurnal. Bawaan: masuk, pulang, jurnal wajib; izin dan sakit opsional.
+  - **Daftar tempat PKL di halaman siswa**: *Hanya sebelum ditempatkan* (bawaan), *Selalu*, atau *Disembunyikan*.
+- **Jurnal siswa** kini punya **Foto kegiatan** (kamera atau galeri, ikut tersimpan ke Drive lewat fungsi yang sama dengan selfie; miniatur tampil di jurnal siswa dan guru). Wajib atau tidaknya mengikuti Pengaturan.
+- **Surat perjanjian (PDF)**: di formulir Tempat PKL, tombol **Pindai dengan kamera** (hingga 8 halaman, kamera belakang atau galeri, mode *Dokumen* hitam putih berkontras atau *Warna asli*), lalu **Buat PDF** (jsPDF). PDF diunggah ke Drive saat **Simpan**; di data tempat hanya tersimpan `pksFile` (`drive:<fileId>`) dan `pksHal`. Dibuka guru/admin lewat tombol *Surat perjanjian (PDF)* di kartu tempat atau *Buka PDF* di formulir. Siswa tidak bisa membukanya. **Lepas** hanya menghapus tautan; berkas di Drive tetap ada. Mode lokal (tanpa Appwrite): PDF maks ±500 KB disimpan di perangkat.
+- **Perlu deploy ulang fungsi `foto-drive`** (folder `functions/foto-drive`, atau `foto-drive.tar.gz`): menambah `upload` dengan `kind:'pks'` (hanya guru/admin, hanya PDF, cek byte awal `%PDF-`, batas 6.000.000 karakter base64) dan aksi `getpks` (hanya guru/admin; dokumen `pkl` harus memuat `pksFile` yang sama). Tanpa deploy ulang, fitur lain tetap jalan; unggah surat gagal dengan pesan yang menyebut pembaruan fungsi, dan tempat tidak tersimpan sampai PDF dilepas atau fungsi diperbarui.
+- Batas yang perlu diketahui: pemeriksaan zona dilakukan **di aplikasi siswa**, jadi lokasi palsu (aplikasi mock GPS) tidak bisa dicegah; selfie dan jarak tetap tersimpan sebagai bukti. Pindai tidak memotong tepi atau meluruskan halaman otomatis.
 
 ## Batasan yang perlu diketahui
 - Jam absen berasal dari jam perangkat siswa dan lokasi dari GPS perangkat; keduanya bisa dimanipulasi. Selfie dan status lokasi membantu pemeriksaan guru, bukan bukti mutlak.

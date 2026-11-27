@@ -74,19 +74,32 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   T('sakit tanpa keterangan ditolak', /keterangan/i.test(x.PK.msg));
   x.PK.f = { tipe: 'pulang', foto: 'data:image/jpeg;base64,BBB', cat: '' }; x.PK.gps = { lat: -6.80, lng: 107.6191, acc: 10 }; x.pkAbsenKirim();
   await Promise.resolve(); await Promise.resolve();
-  T('absen pulang jauh dari tempat ditandai di luar lokasi', x.PK.D.absen[1] && x.PK.D.absen[1].lokasi === 'tidak' && x.PK.D.absen[1].jarak > 10000, x.PK.D.absen[1]);
+  T('absen pulang di luar zona ditolak (bawaan: tolak)', x.PK.D.absen.length === 1 && /ditolak/.test(x.PK.msg) && /±\d+ m/.test(x.PK.msg), x.PK.msg);
+  x.PK.D.setelan.push({ id: 'st1', jenis: 'setelan', tolak: 'tandai', daftar: 'belum', sekolah: 'MEDINA', r: 1, d: 0 });
+  x.pkAbsenKirim();
+  await Promise.resolve(); await Promise.resolve();
+  T('absen pulang jauh dari tempat ditandai di luar lokasi (pengaturan tandai)', x.PK.D.absen[1] && x.PK.D.absen[1].lokasi === 'tidak' && x.PK.D.absen[1].jarak > 10000, x.PK.D.absen[1]);
   T('rekap: 1 hari hadir, hari kerja dihitung dari mulai PKL', x.pkRekap('s1').hadir === 1 && x.pkRekap('s1').hk === 19 && x.pkRekap('s1').alpa === 18, x.pkRekap('s1'));
   let b2 = boot({ peran: 'siswa', me: USERS[2] }); b2.ctx.PK.D.tempat.push(tempat());
   b2.ctx.PK.f = { tipe: 'masuk', foto: 'data:x', cat: '' }; b2.ctx.pkAbsenKirim();
   T('siswa belum ditempatkan tidak bisa absen', /belum ditempatkan/.test(b2.ctx.PK.msg));
+  T('siswa belum ditempatkan melihat daftar tempat PKL (bawaan)', /Daftar tempat PKL/.test(b2.ctx.viewPkl()));
   b2.ctx.PK.f = { tipe: 'pulang', foto: 'x', cat: '' }; b2.ctx.PK.D.tugas.push(tugas({ id: 'g2x', sid: 's2', nama: 'Budi' })); b2.ctx.pkAbsenKirim();
   T('pulang tanpa masuk ditolak', /masuk hari ini belum/.test(b2.ctx.PK.msg), b2.ctx.PK.msg);
   const vs = x.viewPkl();
-  T('tampilan siswa: tempat, tombol absen selfie, riwayat, jurnal, daftar tempat', /PT Maju Motor/.test(vs) && /pkl-absen/.test(vs) && /Riwayat absen/.test(vs) && /Jurnal kegiatan/.test(vs) && /Daftar tempat PKL/.test(vs) && /Di lokasi/.test(vs));
+  T('tampilan siswa: tempat, tombol absen selfie, riwayat, jurnal', /PT Maju Motor/.test(vs) && /pkl-absen/.test(vs) && /Riwayat absen/.test(vs) && /Jurnal kegiatan/.test(vs) && /Di lokasi/.test(vs));
+  T('daftar tempat PKL disembunyikan setelah siswa ditempatkan (bawaan)', !/Daftar tempat PKL/.test(vs));
+  x.PK.D.setelan[0].daftar = 'selalu'; T('daftar tempat tampil bila pengaturan Selalu', /Daftar tempat PKL/.test(x.viewPkl()));
+  x.PK.D.setelan[0].daftar = 'tidak'; T('daftar tempat tersembunyi bila pengaturan Disembunyikan', !/Daftar tempat PKL/.test(x.viewPkl()));
+  x.PK.D.setelan[0].daftar = 'belum';
   T('tampilan siswa tidak memuat menu kelola (Penempatan, Nilai, Kelengkapan)', !/pkl-tab/.test(vs));
   x.PK.mode = 'absen'; const va = x.viewPkl();
   T('form absen: pilihan Masuk/Pulang/Izin/Sakit, input kamera depan, lokasi', /pkl-tipe/.test(va) && /capture="user"/.test(va) && /Muat ulang lokasi/.test(va) && /Sakit/.test(va));
-  x.PK.mode = 'list'; x.PK.fk = 'jurnal'; x.PK.f = { tanggal: '2026-11-26', unit: 'Servis berkala', uraian: 'Ganti oli dan filter' }; x.pkSimpan(); await Promise.resolve(); await Promise.resolve();
+  x.PK.mode = 'list'; x.PK.fk = 'jurnal'; x.PK.f = { tanggal: '2026-11-26', unit: 'Servis berkala', uraian: 'Ganti oli dan filter' };
+  T('formulir jurnal memuat tombol foto kegiatan wajib', /pkl-fotoj/.test(x.pkFormView()) && /Foto kegiatan \*/.test(x.pkFormView()));
+  x.pkSimpan();
+  T('jurnal tanpa foto ditolak (foto wajib bawaan)', /foto/i.test(x.PK.msg) && x.PK.D.jurnal.length === 0, x.PK.msg);
+  x.PK.f = { tanggal: '2026-11-26', unit: 'Servis berkala', uraian: 'Ganti oli dan filter', foto: 'data:image/jpeg;base64,CCC' }; x.pkSimpan(); await Promise.resolve(); await Promise.resolve();
   T('jurnal siswa tersimpan atas nama sendiri', x.PK.D.jurnal.length === 1 && x.PK.D.jurnal[0].sid === 's1' && x.PK.D.jurnal[0].tempatId === 't1');
   x.PK.fk = 'jurnal'; x.PK.f = { tanggal: '2026-11-26', unit: '', uraian: '' }; x.pkSimpan();
   T('jurnal wajib diisi', /Lengkapi/.test(x.PK.msg));
@@ -164,11 +177,14 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
     const ld = async (p) => { calls.push(p); if (p.action === 'upload') return { ok: true, fileId: 'FILEIDABC123' }; if (p.action === 'getpkl') return { ok: true, data: 'data:image/jpeg;base64,ZZZ' }; throw new Error('?'); };
     let d = boot({ peran: 'siswa', cloud: true, ctx: { ldCall: ld } }); let x = d.ctx;
     x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas());
-    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20 }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
     const up = calls.find((c) => c.action === 'upload'), cr = d.log.create[0];
     T('selfie diunggah ke Drive dengan nama PKL_Kelas_Nama_jenis_waktu', up && /^PKL_XII_Ani_masuk_20261126-\d{4}_[A-Za-z0-9]+$/.test(up.nama) && up.data.startsWith('data:image/jpeg'), up);
     T('payload absen hanya menyimpan penanda drive:<fileId> (database tidak terisi foto)', cr && JSON.parse(cr.doc.payload).foto === 'drive:FILEIDABC123' && cr.doc.payload.length < 800, cr && cr.doc.payload.slice(0, 200));
     T('selfie yang baru diunggah langsung tampil dari cache tanpa unduh ulang', x.pkFotoSrc(x.PK.D.absen[0]).startsWith('data:image/jpeg') && !calls.some((c) => c.action === 'getpkl'));
+    x.PK.fk = 'jurnal'; x.PK.f = { tanggal: '2026-11-26', unit: 'Servis', uraian: 'Ganti oli', foto: 'data:image/jpeg;base64,JJ==' }; x.pkSimpan(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    const upJ = calls.filter((c) => c.action === 'upload')[1];
+    T('foto jurnal diunggah ke Drive (nama memuat jurnal) dan payload hanya penanda', upJ && /_jurnal_/.test(upJ.nama) && d.log.create.some((c) => c.doc.jenis === 'jurnal' && JSON.parse(c.doc.payload).foto === 'drive:FILEIDABC123'), upJ);
     T('salinan perangkat menyimpan penanda drive (bukan hilang)', JSON.parse(d.store['tbsm-pkl']).absen[0].foto === 'drive:FILEIDABC123');
     const asing = { id: 'absX', foto: 'drive:OTHERFILE9999' };
     T('selfie dari Drive belum ada di cache: kosong dulu, lalu diminta lewat getpkl dengan docId dan fileId', x.pkFotoSrc(asing) === '' && calls.some((c) => c.action === 'getpkl' && c.docId === 'absX' && c.fileId === 'OTHERFILE9999'));
@@ -181,12 +197,12 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
     // fungsi belum dipasang: selfie tetap di payload
     d = boot({ peran: 'siswa', cloud: true, ctx: { ldCall: async () => { const e = new Error('Function with the requested ID could not be found'); e.code = 404; throw e; } } }); x = d.ctx;
     x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas());
-    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20 }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
     T('fungsi foto-drive belum dipasang: selfie tetap tersimpan di payload dan absen terkirim', d.log.create[0] && JSON.parse(d.log.create[0].doc.payload).foto.startsWith('data:image/jpeg') && x.PKD.off === true);
     // galat lain: absen diulang, selfie tidak hilang
     d = boot({ peran: 'siswa', cloud: true, ctx: { ldCall: async () => { const e = new Error('Google down'); e.status = 502; throw e; } } }); x = d.ctx;
     x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas());
-    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20 }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
     T('unggah Drive gagal (galat server): absen belum terkirim, selfie tetap utuh di perangkat untuk dicoba lagi', d.log.create.length === 0 && x.PK.D.absen[0].r !== 1 && x.PK.D.absen[0].foto.startsWith('data:image/jpeg') && JSON.parse(d.store['tbsm-pkl']).absen[0].foto.startsWith('data:image/jpeg'));
   }
 
@@ -232,7 +248,7 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   {
     process.env.GOOGLE_CLIENT_ID = 'i'; process.env.GOOGLE_CLIENT_SECRET = 's'; process.env.GOOGLE_REFRESH_TOKEN = 'r'; process.env.APPWRITE_ENDPOINT = 'http://aw/v1'; process.env.APPWRITE_FUNCTION_PROJECT_ID = 'p';
     const fn = (await import('../functions/foto-drive/src/main.js?' + Date.now())).default;
-    const aw = []; let docs = {}, labels = ['siswa'], driveHit = 0;
+    const aw = []; let docs = {}, labels = ['siswa'], driveHit = 0, upBody = ''; process.env.DRIVE_FOLDER_ID = 'FOLDERX';
     const asli = globalThis.fetch;
     globalThis.fetch = async (url, opt = {}) => {
       url = String(url);
@@ -243,6 +259,11 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
         aw.push({ url, h: opt.headers }); const id = decodeURIComponent(url.split('/').pop()); const dd = docs[id];
         return dd ? { ok: true, status: 200, json: async () => dd } : { ok: false, status: 404, json: async () => ({ message: 'not found' }) };
       }
+      if (url.startsWith('http://aw/v1/databases/tbsm/collections/pkl/documents/')) {
+        aw.push({ url, h: opt.headers }); const id = decodeURIComponent(url.split('/').pop()); const dd = docs[id];
+        return dd ? { ok: true, status: 200, json: async () => dd } : { ok: false, status: 404, json: async () => ({ message: 'not found' }) };
+      }
+      if (url.includes('upload/drive/v3/files')) { upBody = Buffer.from(opt.body).toString('latin1'); return { ok: true, status: 200, json: async () => ({ id: 'NEWPDF12345' }) }; }
       throw new Error('fetch tak dikenal: ' + url);
     };
     const jalan = async (body, hdr) => { let out = null, code = 200; await fn({ req: { headers: { 'x-appwrite-user-id': 'u1', ...hdr }, bodyJson: body }, res: { json: (o, c) => { out = o; code = c || 200; return o; } }, error: () => {} }); return { out, code }; };
@@ -263,6 +284,30 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
     labels = ['siswa']; r = await jalan({ action: 'getpkl', docId: 'DOC1', fileId: 'FILEIDABC123' }, { 'x-appwrite-key': 'KEY' });
     T('getpkl (mode kunci): pemilik boleh melihat', r.out.ok === true);
     r = await fn({ req: { headers: {}, bodyJson: { action: 'getpkl' } }, res: { json: (o, c) => ({ o, c }) }, error() {} }); T('getpkl tanpa login ditolak 401', r.c === 401);
+    // surat perjanjian PKL (PDF): kind pks dan getpks
+    const PDF = 'data:application/pdf;base64,' + Buffer.from('%PDF-1.4 isi').toString('base64');
+    labels = ['siswa']; r = await jalan({ action: 'upload', kind: 'pks', data: PDF, nama: 'PKS_X' }, { 'x-appwrite-key': 'KEY' });
+    T('upload pks: siswa ditolak 403', r.code === 403, r);
+    labels = ['guru']; r = await jalan({ action: 'upload', kind: 'pks', data: 'data:image/jpeg;base64,/9j/AA==', nama: 'PKS_X' }, { 'x-appwrite-key': 'KEY' });
+    T('upload pks: gambar ditolak 400 (harus PDF)', r.code === 400 && /PDF/.test(r.out.error), r);
+    r = await jalan({ action: 'upload', kind: 'pks', data: 'data:application/pdf;base64,' + Buffer.from('bukan pdf').toString('base64'), nama: 'PKS_X' }, { 'x-appwrite-key': 'KEY' });
+    T('upload pks: isi bukan PDF ditolak 400 (cek byte awal)', r.code === 400 && /bukan PDF/.test(r.out.error), r);
+    r = await jalan({ action: 'upload', kind: 'pks', data: 'data:application/pdf;base64,' + 'A'.repeat(6000001), nama: 'PKS_X' }, { 'x-appwrite-key': 'KEY' });
+    T('upload pks: PDF di atas batas ditolak 413', r.code === 413, r);
+    r = await jalan({ action: 'upload', kind: 'pks', data: PDF, nama: 'PKS_CV Bintang_20261126' }, { 'x-appwrite-key': 'KEY' });
+    T('upload pks: guru berhasil, berkas PDF bertanda kind pks dan berekstensi .pdf', r.out.ok === true && r.out.fileId === 'NEWPDF12345' && /"mimeType":"application\/pdf"/.test(upBody) && /"kind":"pks"/.test(upBody) && /\.pdf"/.test(upBody), upBody.slice(0, 300));
+    r = await jalan({ action: 'upload', data: PDF, nama: 'X' }, { 'x-appwrite-key': 'KEY' });
+    T('upload biasa (foto) tetap menolak PDF', r.out.ok === false && r.code === 400, r);
+    docs.TMP1 = { $id: 'TMP1', payload: JSON.stringify({ pksFile: 'drive:PKSFILE12345', nama: 'CV Bintang' }), $permissions: ['read("users")'] };
+    labels = ['siswa']; r = await jalan({ action: 'getpks', docId: 'TMP1', fileId: 'PKSFILE12345' }, { 'x-appwrite-user-jwt': 'JWT', 'x-appwrite-key': 'KEY' });
+    T('getpks: siswa ditolak 403 walau dokumen pkl dapat dibaca semua pengguna', r.code === 403, r);
+    labels = ['guru']; const h2 = driveHit; r = await jalan({ action: 'getpks', docId: 'TMP1', fileId: 'PKSFILE12345' }, { 'x-appwrite-user-jwt': 'JWT', 'x-appwrite-key': 'KEY' });
+    T('getpks: guru mendapat PDF sebagai data URL', r.out.ok === true && r.out.data.startsWith('data:application/pdf;base64,') && driveHit === h2 + 1, r);
+    r = await jalan({ action: 'getpks', docId: 'TMP1', fileId: 'LAINNYAFILE999' }, { 'x-appwrite-user-jwt': 'JWT', 'x-appwrite-key': 'KEY' });
+    T('getpks: fileId tidak sama dengan pksFile di dokumen ditolak 404', r.code === 404);
+    r = await jalan({ action: 'getpks', docId: '../x', fileId: 'PKSFILE12345' }, { 'x-appwrite-user-jwt': 'JWT', 'x-appwrite-key': 'KEY' }); T('getpks: docId tidak valid ditolak 400', r.code === 400);
+    r = await jalan({ action: 'getpks', docId: 'NOPE', fileId: 'PKSFILE12345' }, { 'x-appwrite-user-jwt': 'JWT', 'x-appwrite-key': 'KEY' }); T('getpks: dokumen tidak ada ditolak', r.out.ok === false);
+    delete process.env.DRIVE_FOLDER_ID;
     globalThis.fetch = asli;
   }
 
@@ -391,5 +436,81 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   T('index.html memuat js/pkl.js', /js\/pkl\.js/.test(baca('index.html')));
   T('menu-dasbor: kelompok Praktik Kerja Lapangan berisi baris pkl', /key:'pkl',label:'Praktik Kerja Lapangan'[^}]*keys:\['pkl'\]/.test(baca('js/menu-peta.js')));
   const m = boot(); T('tab pkl terdaftar di NAVTABS', m.ctx.NAVTABS.includes('pkl'));
+
+  console.log('Absen: zona, akurasi, tanpa koordinat, izin');
+  {
+    const mk = (o = {}) => { const b = boot({ peran: 'siswa' }); b.ctx.PK.D.tempat.push(tempat(o)); b.ctx.PK.D.tugas.push(tugas()); return b.ctx; };
+    const FT = 'data:image/jpeg;base64,AAA';
+    let y = mk(); y.PK.f = { tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 800, t: Date.now() }; y.pkAbsenKirim();
+    T('akurasi GPS lebih buruk dari 500 m ditolak', /Akurasi/.test(y.PK.msg) && y.PK.D.absen.length === 0, y.PK.msg);
+    y = mk(); y.PK.f = { tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = null; y.pkAbsenKirim(); await Promise.resolve();
+    T('lokasi belum terbaca: absen masuk ditolak', /Lokasi belum terbaca/.test(y.PK.msg) && y.PK.D.absen.length === 0, y.PK.msg);
+    y = mk(); y.PK.f = { tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20, t: Date.now() - 200000 }; y.pkAbsenKirim(); await Promise.resolve();
+    T('lokasi lebih dari 90 detik dibaca ulang sebelum diperiksa (tanpa GPS: ditolak)', y.PK.gps === null && y.PK.D.absen.length === 0, y.PK.msg);
+    y = mk({ lat: '', lng: '' }); y.PK.f = { tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = null; y.pkAbsenKirim(); await Promise.resolve(); await Promise.resolve();
+    T('tempat tanpa koordinat: absen diterima, lokasi tidak bisa dicek', y.PK.D.absen.length === 1 && y.PK.D.absen[0].lokasi === '?', y.PK.msg);
+    y = mk(); y.PK.f = { tipe: 'izin', foto: '', cat: 'Ke dokter' }; y.PK.gps = { lat: -6.80, lng: 107.6191, acc: 10, t: Date.now() }; y.pkAbsenKirim(); await Promise.resolve(); await Promise.resolve();
+    T('izin tidak dibatasi zona dan fotonya opsional (bawaan)', y.PK.D.absen.length === 1 && y.PK.D.absen[0].tipe === 'izin', y.PK.msg);
+    y = mk(); y.PK.D.setelan.push({ id: 'st1', jenis: 'setelan', foto: { sakit: 1 }, sekolah: 'MEDINA', r: 1, d: 0 });
+    y.PK.f = { tipe: 'sakit', foto: '', cat: 'Demam' }; y.pkAbsenKirim();
+    T('foto sakit diwajibkan lewat pengaturan', /foto/i.test(y.PK.msg) && y.PK.D.absen.length === 0, y.PK.msg);
+    y.PK.D.setelan[0].foto = { masuk: 0 }; y.PK.f = { tipe: 'masuk', foto: '', cat: '' }; y.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20, t: Date.now() }; y.pkAbsenKirim(); await Promise.resolve(); await Promise.resolve();
+    T('selfie masuk bisa dijadikan tidak wajib lewat pengaturan', y.PK.D.absen.length === 1 && y.PK.D.absen[0].tipe === 'masuk', y.PK.msg);
+  }
+
+  console.log('Pengaturan PKL (admin)');
+  {
+    let b = boot({ peran: 'admin', me: USERS[3], cloud: true }), y = b.ctx;
+    T('tab Pengaturan hanya untuk admin', y.pkTabs().some((t) => t[0] === 'setelan') && !boot({ peran: 'guru' }).ctx.pkTabs().some((t) => t[0] === 'setelan'));
+    y.PK.tab = 'setelan'; const v = y.viewPkl();
+    T('tampilan pengaturan: zona, foto wajib per item, daftar tempat', /data-pkset="tolak"/.test(v) && /data-pksetf="jurnal"/.test(v) && /data-pksetf="masuk" checked/.test(v) && /data-pkset="daftar"/.test(v));
+    y.pkSetSimpan({ tolak: 'tandai' }); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    T('pengaturan tersimpan sebagai dokumen jenis setelan di koleksi pkl', b.log.create.some((c) => c.col === 'pkl' && c.doc.jenis === 'setelan' && /^setelan_/.test(c.id) && JSON.parse(c.doc.payload).tolak === 'tandai'), b.log.create.map((c) => c.id));
+    y.pkSetSimpan({ foto: { jurnal: 0 } }); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    T('mengubah satu item foto wajib tidak menghapus yang lain, dan memakai dokumen yang sama', y.pkSet().foto.jurnal === 0 && y.pkSet().foto.masuk === 1 && y.pkSet().tolak === 'tandai' && y.PK.D.setelan.length === 1);
+    const g = boot({ peran: 'guru' }).ctx; g.pkSetSimpan({ tolak: 'tandai' });
+    T('selain admin tidak bisa mengubah pengaturan', g.PK.D.setelan.length === 0);
+    const sw = boot({ peran: 'siswa', cloud: true }); sw.ctx.PK.loaded = false; await sw.ctx.pkLoad();
+    T('siswa ikut membaca dokumen pengaturan (kueri jenis tempat dan setelan)', sw.log.list.some((l) => l[0] === 'pkl' && /tempat,setelan/.test(String(l[1]))), sw.log.list);
+    T('nilai bawaan: tolak, daftar sebelum ditempatkan, foto wajib masuk/pulang/jurnal', (() => { const s0 = boot({ peran: 'siswa' }).ctx.pkSet(); return s0.tolak === 'tolak' && s0.daftar === 'belum' && s0.foto.masuk && s0.foto.pulang && s0.foto.jurnal && !s0.foto.izin && !s0.foto.sakit; })());
+  }
+
+  console.log('Surat perjanjian (pindai ke PDF)');
+  {
+    const calls = [];
+    const ld = async (p) => { calls.push(p); if (p.action === 'upload') return { ok: true, fileId: 'PKSFILE12345' }; if (p.action === 'getpks') return { ok: true, data: 'data:application/pdf;base64,JVBERi0=' }; throw new Error('?'); };
+    let d = boot({ peran: 'guru', cloud: true, ctx: { ldCall: ld } }), y = d.ctx;
+    y.PK.fk = 'tempat'; y.PK.f = { nama: 'CV Bintang', negeri: 'dalam', lat: '-6.9', lng: '107.6', radius: '' };
+    T('formulir tempat memuat tombol pindai surat', /pkl-scan/.test(y.pkFormView()) && /Belum ada surat perjanjian/.test(y.pkFormView()));
+    y.PK.pksPdf = { data: 'data:application/pdf;base64,JVBERi0xLjQ=', hal: 3 };
+    T('formulir menampilkan PDF baru siap diunggah', /3 halaman/.test(y.pkFormView()) && /pkl-surat-buka/.test(y.pkFormView()));
+    y.pkSimpan(); for (let i = 0; i < 10; i++) await new Promise((r) => setImmediate(r));
+    const up = calls.find((c) => c.action === 'upload');
+    T('PDF diunggah dengan kind pks dan nama PKS_<tempat>_<tanggal>', up && up.kind === 'pks' && /^PKS_CV-Bintang_20261126$/.test(up.nama) && up.data.startsWith('data:application/pdf'), up);
+    const cr = d.log.create.find((c) => c.doc.jenis === 'tempat');
+    T('data tempat hanya menyimpan penanda drive dan jumlah halaman', cr && JSON.parse(cr.doc.payload).pksFile === 'drive:PKSFILE12345' && JSON.parse(cr.doc.payload).pksHal === 3 && cr.doc.payload.length < 800, cr && cr.doc.payload);
+    T('PDF tertunda dibersihkan setelah tersimpan', y.PK.pksPdf === null);
+    const t = y.PK.D.tempat[0]; let dibuka = null; y.pkBukaPdf = (u) => { dibuka = u; };
+    y.pkSuratBuka(t); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    T('surat dibuka lewat getpks dengan docId tempat dan fileId', calls.some((c) => c.action === 'getpks' && c.docId === t.id && c.fileId === 'PKSFILE12345') && /^data:application\/pdf/.test(dibuka || ''), calls);
+    y.PK.tab = 'tempat'; const vt = y.viewPkl();
+    T('daftar tempat guru: tombol Surat perjanjian (PDF)', /pkl-surat-lihat/.test(vt));
+    T('daftar tempat guru: tempat tanpa koordinat diberi peringatan', /Koordinat belum diisi/.test((() => { const g2 = boot({ peran: 'guru' }).ctx; g2.PK.D.tempat.push(tempat({ lat: '', lng: '' })); return g2.viewPkl(); })()));
+    // gagal unggah: data tidak disimpan, pesan jelas, PDF tetap tertunda untuk dicoba lagi
+    const gagal = boot({ peran: 'guru', cloud: true, ctx: { ldCall: async () => { throw new Error('Format foto tidak valid.'); } } }), z = gagal.ctx;
+    z.PK.fk = 'tempat'; z.PK.f = { nama: 'CV Baru', negeri: 'dalam', lat: '', lng: '', radius: '' }; z.PK.pksPdf = { data: 'data:application/pdf;base64,JVBERi0xLjQ=', hal: 2 };
+    z.pkSimpan(); for (let i = 0; i < 10; i++) await new Promise((r) => setImmediate(r));
+    T('unggah surat gagal: tempat tidak tersimpan, PDF tertunda tetap ada, pesan menyebut pembaruan fungsi', z.PK.D.tempat.length === 0 && z.PK.pksPdf && /foto-drive perlu diperbarui/.test(z.PK.msg), z.PK.msg);
+    // mode lokal
+    const lok = boot({ peran: 'guru' }).ctx; lok.PK.fk = 'tempat'; lok.PK.f = { nama: 'CV Lokal', negeri: 'dalam', lat: '', lng: '', radius: '' }; lok.PK.pksPdf = { data: 'data:application/pdf;base64,' + 'A'.repeat(1000), hal: 1 };
+    lok.pkSimpan(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    T('mode lokal: PDF kecil disimpan di perangkat', lok.PK.D.tempat.length === 1 && /^data:application\/pdf/.test(lok.PK.D.tempat[0].pksFile), lok.PK.D.tempat);
+    const besar = boot({ peran: 'guru' }).ctx; besar.PK.fk = 'tempat'; besar.PK.f = { nama: 'CV Besar', negeri: 'dalam', lat: '', lng: '', radius: '' }; besar.PK.pksPdf = { data: 'data:application/pdf;base64,' + 'A'.repeat(800000), hal: 8 };
+    besar.pkSimpan(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    T('mode lokal: PDF terlalu besar ditolak dengan pesan', besar.PK.D.tempat.length === 0 && /terlalu besar/.test(besar.PK.msg), besar.PK.msg);
+    y.PK.pksPdf = { data: 'x', hal: 1 }; y.PK.f = { pksFile: 'drive:Q', pksHal: 1 };
+    T('Lepas surat: fungsi tersedia', typeof y.pkSuratBuka === 'function' && typeof y.pkScan === 'function' && typeof y.pkScanDok === 'function');
+  }
+
   console.log(`\nUji PKL: ${pass} lulus, ${fail} gagal`); process.exit(fail ? 1 : 0);
 })();
