@@ -1,5 +1,5 @@
 /* Arsip absensi mingguan ke Drive (harian: koleksi observasi; pkl: koleksi pkl_catat). Hanya admin.
-   Berkas dibaca ulang dan dicocokkan. Penghapusan lewat aksi terpisah, hanya absensi harian. */
+   Berkas dibaca ulang dan dicocokkan. Penghapusan lewat aksi terpisah. */
 const SUMBER = {
   harian: { col: 'observasi', cocok: (d) => d.tipe === 'absen', q: [] },
   pkl: { col: 'pkl_catat', cocok: (d) => d.jenis === 'absen', q: [{ method: 'equal', attribute: 'jenis', values: ['absen'] }] }
@@ -63,8 +63,8 @@ export function gabung(lama, baru) {
   const rows = { ...a.rows, ...b.rows };
   return { ...baru, payload: JSON.stringify({ ...a, ...b, rows }), skor: Object.values(rows).filter((x) => x.s === 'H').length };
 }
-async function cariArsip(minggu, tok, parent, h) {
-  const q = encodeURIComponent("name='arsip-absen_harian_" + minggu + ".json' and '" + parent + "' in parents and trashed=false");
+async function cariArsip(minggu, tok, parent, h, jenis = 'harian') {
+  const q = encodeURIComponent("name='arsip-absen_" + jenis + "_" + minggu + ".json' and '" + parent + "' in parents and trashed=false");
   const c = await h.gfetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id)', {}, tok);
   if (!c.ok) throw new h.Fail('Gagal memeriksa arsip di Drive (' + c.status + ').', 502);
   const f = ((await c.json()).files || [])[0];
@@ -88,16 +88,17 @@ export async function bacaArsip(callerId, body, key, h) {
 /* hapus hanya dokumen yang sudah ada di arsip dan tidak berubah sejak diarsipkan; dibatasi per panggilan agar tidak melewati batas waktu */
 export async function hapusArsip(callerId, body, auth, key, h) {
   if (!(await peran(callerId, key, h)).includes('admin')) throw new h.Fail('Hanya admin yang boleh menghapus.', 403);
+  const jenis = body.jenis === 'pkl' ? 'pkl' : 'harian', s = SUMBER[jenis];
   if (!rentang(String(body.minggu || ''))) throw new h.Fail('Tanggal Senin tidak valid.', 400);
-  const tok = await h.accessToken(), L = await cariArsip(body.minggu, tok, await h.folderId(tok), h);
+  const tok = await h.accessToken(), L = await cariArsip(body.minggu, tok, await h.folderId(tok), h, jenis);
   if (!L) throw new h.Fail('Minggu ini belum diarsipkan.', 400);
   const mulai = Math.max(0, Number(body.mulai) || 0), ids = [];
   let berubah = 0;
   for (const d of L.slice(mulai, mulai + 20)) {
-    const path = '/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/observasi/documents/' + encodeURIComponent(d.$id);
+    const path = '/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/' + s.col + '/documents/' + encodeURIComponent(d.$id);
     let now;
     try { now = await h.aw(path, auth); } catch (e) { if (/\(404\)/.test(e.message)) { ids.push(d.$id); continue; } throw e; }
-    if (now.tipe !== 'absen' || now.$updatedAt !== d.$updatedAt) { berubah++; continue; }
+    if (!s.cocok(now) || now.$updatedAt !== d.$updatedAt) { berubah++; continue; }
     await h.hapusDok(path, auth);
     ids.push(d.$id);
   }
@@ -137,4 +138,45 @@ export async function absenSaya(callerId, body, key, h) {
   });
   sesi.sort((a, b) => a.tanggal.localeCompare(b.tanggal));
   return { ok: true, sesi };
+}
+
+async function akunSaya(callerId, key, h) {
+  const auth = { 'X-Appwrite-Key': key || '' };
+  const email = String((await h.aw('/users/' + encodeURIComponent(callerId), auth)).email || '').toLowerCase();
+  const p = new URLSearchParams();
+  [{ method: 'equal', attribute: 'email', values: [email] }, { method: 'limit', values: [1] }].forEach((q) => p.append('queries[]', JSON.stringify(q)));
+  const a = email && ((await h.aw('/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/akun/documents?' + p, auth)).documents || [])[0];
+  if (!a || a.aktif === false) throw new h.Fail('Akun tidak ditemukan.', 403);
+  return a.$id;
+}
+const uji = (d) => { try { return !!JSON.parse(d.payload || '{}').uji; } catch (e) { return false; } };
+/* semua arsip PKL, beberapa berkas per panggilan. Guru/admin menerima semua; selain itu hanya miliknya. Data uji tidak dikirim. */
+export async function bacaArsipPkl(callerId, body, key, h) {
+  const L = await peran(callerId, key, h), staf = L.includes('admin') || L.includes('guru');
+  const sid = staf ? null : await akunSaya(callerId, key, h);
+  const tok = await h.accessToken(), parent = await h.folderId(tok);
+  const q = encodeURIComponent("name contains 'arsip-absen_pkl_' and '" + parent + "' in parents and trashed=false");
+  const c = await h.gfetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name),nextPageToken&pageSize=100', {}, tok);
+  if (!c.ok) throw new h.Fail('Gagal memeriksa arsip di Drive (' + c.status + ').', 502);
+  const j = await c.json();
+  if (j.nextPageToken) throw new h.Fail('Berkas arsip PKL lebih dari 100; pembacaan perlu diperluas.', 500);
+  const F = (j.files || []).sort((a, b) => String(a.name).localeCompare(String(b.name))), mulai = Math.max(0, Number(body.mulai) || 0), dokumen = [];
+  for (const f of F.slice(mulai, mulai + 5)) {
+    const x = await h.gfetch('https://www.googleapis.com/drive/v3/files/' + f.id + '?alt=media', {}, tok);
+    if (!x.ok) throw new h.Fail('Arsip tidak bisa dibaca (' + x.status + ').', 502);
+    JSON.parse(await x.text()).dokumen.forEach((d) => { if (!uji(d) && (staf || d.sid === sid)) dokumen.push(d); });
+  }
+  return { ok: true, dokumen, lanjut: mulai + 5 < F.length ? mulai + 5 : null };
+}
+/* dokumen absen PKL yang sudah dihapus dari Appwrite, untuk membuka selfie. Hak: guru/admin atau pemilik. */
+export async function dokPklArsip(callerId, docId, tanggal, key, h) {
+  const t = Date.parse(tanggal + 'T00:00:00Z');
+  if (isNaN(t)) throw new h.Fail('Foto tidak ditemukan.', 404);
+  const senin = new Date(t - ((new Date(t).getUTCDay() + 6) % 7) * 86400000).toISOString().slice(0, 10);
+  const tok = await h.accessToken(), L = await cariArsip(senin, tok, await h.folderId(tok), h, 'pkl');
+  const d = (L || []).find((x) => x.$id === docId);
+  if (!d) throw new h.Fail('Foto tidak ditemukan atau Anda tidak berhak melihatnya.', 404);
+  const R = await peran(callerId, key, h);
+  if (!R.includes('admin') && !R.includes('guru') && !(d.$permissions || []).includes('read("user:' + callerId + '")')) throw new h.Fail('Tidak berhak melihat foto ini.', 403);
+  return d;
 }

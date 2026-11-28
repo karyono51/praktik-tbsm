@@ -59,16 +59,16 @@ async function pkUploadFoto(o){
 function pkFotoSrc(a){
  var f=a&&a.foto||'';if(f.indexOf('drive:')!==0)return f;
  var id=f.slice(6);if(PKD.cache[id])return PKD.cache[id];
- if(typeof ldCall==='function'&&!PKD.loading[id]&&!(PKD.failed[id]&&Date.now()-PKD.failed[id]<30000)){PKD.loading[id]=1;PKD.q.push([a.id,id]);pkPump()}
+ if(typeof ldCall==='function'&&!PKD.loading[id]&&!(PKD.failed[id]&&Date.now()-PKD.failed[id]<30000)){PKD.loading[id]=1;PKD.q.push([a.id,id,a.tanggal]);pkPump()}
  return '';
 }
 function pkPump(){
  while(PKD.run<3&&PKD.q.length){
   var j=PKD.q.shift();PKD.run++;
-  (function(docId,id){
-   ldCall({action:'getpkl',docId:docId,fileId:id}).then(function(r){PKD.cache[id]=r.data}).catch(function(){PKD.failed[id]=Date.now()})
+  (function(docId,id,tgl){
+   ldCall({action:'getpkl',docId:docId,fileId:id,tanggal:tgl}).then(function(r){PKD.cache[id]=r.data}).catch(function(){PKD.failed[id]=Date.now()})
     .then(function(){PKD.run--;delete PKD.loading[id];pkPump();if(!PKD.tm){PKD.tm=setTimeout(function(){PKD.tm=0;if(S.tab==='pkl'&&PK.mode!=='form')render()},200)}});
-  })(j[0],j[1]);
+  })(j[0],j[1],j[2]);
  }
 }
 async function pkRemote(k,o){

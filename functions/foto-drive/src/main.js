@@ -1,4 +1,4 @@
-import { arsipAbsen, bacaArsip, hapusArsip, absenSaya } from './arsip.js';
+import { arsipAbsen, bacaArsip, hapusArsip, absenSaya, bacaArsipPkl, dokPklArsip } from './arsip.js';
 /* Appwrite Function "foto-drive": menyimpan foto bukti praktik ke Google Drive dan menampilkannya kembali.
    Runtime Node.js 18+. Execute access: Users. Scopes: users.read, documents.read.
    Variabel lingkungan (Settings > Environment variables), JANGAN ditaruh di repo atau js/config.js:
@@ -172,14 +172,21 @@ async function get(callerId, body, auth, asUser) {
 
 /* Selfie absen PKL: dokumen pkl_catat dibaca atas nama pengguna (JWT) sehingga izin Appwrite (guru/admin atau pemilik) yang menentukan.
    Penanda foto di payload dokumen harus 'drive:<fileId>' agar fileId lain tidak bisa diminta. */
-async function getPkl(callerId, body, auth, asUser) {
+async function getPkl(callerId, body, auth, asUser, key) {
   const fileId = String(body.fileId || ''), docId = String(body.docId || '');
   if (!ID_RE.test(fileId) || !/^[A-Za-z0-9_-]{1,36}$/.test(docId)) throw new Fail('Permintaan tidak valid.', 400);
-  const doc = await aw('/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/pkl_catat/documents/' + encodeURIComponent(docId), auth);
+  let doc, arsip = false;
+  try {
+    doc = await aw('/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/pkl_catat/documents/' + encodeURIComponent(docId), auth);
+  } catch (e) {
+    if (!/\(404\)/.test(e.message)) throw e;
+    doc = await dokPklArsip(callerId, docId, String(body.tanggal || ''), key, { aw, accessToken, folderId, gfetch, Fail });
+    arsip = true; /* hak sudah diperiksa */
+  }
   let foto = '';
   try { foto = String(JSON.parse(doc.payload || '{}').foto || ''); } catch (e) { /* payload rusak */ }
   if (foto !== 'drive:' + fileId) throw new Fail('Foto tidak ditemukan atau Anda tidak berhak melihatnya.', 404);
-  if (!asUser) {
+  if (!asUser && !arsip) {
     const caller = await aw('/users/' + encodeURIComponent(callerId), auth);
     const staff = (caller.labels || []).some((l) => l === 'guru' || l === 'admin');
     const own = (doc.$permissions || []).includes('read("user:' + callerId + '")');
@@ -255,6 +262,7 @@ export default async ({ req, res, error }) => {
       return res.json(await arsipAbsen(callerId, body, auth, key, { aw, accessToken, folderId, gfetch, Fail }));
     }
     if (body.action === 'absen-saya') return res.json(await absenSaya(callerId, body, req.headers['x-appwrite-key'], { aw, accessToken, folderId, gfetch, Fail }));
+    if (body.action === 'baca-arsip-pkl') return res.json(await bacaArsipPkl(callerId, body, req.headers['x-appwrite-key'], { aw, accessToken, folderId, gfetch, Fail }));
     if (body.action === 'baca-arsip') return res.json(await bacaArsip(callerId, body, req.headers['x-appwrite-key'], { aw, accessToken, folderId, gfetch, Fail }));
     if (body.action === 'hapus-arsip') {
       const jwt = req.headers['x-appwrite-user-jwt'], key = req.headers['x-appwrite-key'];
@@ -269,7 +277,7 @@ export default async ({ req, res, error }) => {
     if (body.action === 'getpkl') {
       const jwt = req.headers['x-appwrite-user-jwt'];
       const auth = jwt ? { 'X-Appwrite-JWT': jwt } : { 'X-Appwrite-Key': req.headers['x-appwrite-key'] || '' };
-      return res.json(await getPkl(callerId, body, auth, !!jwt));
+      return res.json(await getPkl(callerId, body, auth, !!jwt, req.headers['x-appwrite-key']));
     }
     if (body.action === 'get') {
       // Utama: baca dokumen atas nama pengguna (JWT) sehingga izin dokumen Appwrite yang menentukan, tanpa scope tambahan.

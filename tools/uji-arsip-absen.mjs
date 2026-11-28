@@ -1,4 +1,4 @@
-import { arsipAbsen, bacaArsip, hapusArsip, gabung, absenSaya, rentang } from '../functions/foto-drive/src/arsip.js';
+import { arsipAbsen, bacaArsip, hapusArsip, gabung, absenSaya, bacaArsipPkl, dokPklArsip, rentang } from '../functions/foto-drive/src/arsip.js';
 let gagal = 0; const T = (n, c) => { if (!c) { gagal++; console.log('GAGAL', n); } };
 T('senin sah', rentang('2026-11-16')[1] === '2026-11-22'); T('bukan senin', !rentang('2026-11-17'));
 let file = null, rusak = false, hapus = 0; const res = (b) => ({ ok: true, json: async () => b, text: async () => b });
@@ -23,4 +23,10 @@ const sis = { ...h, aw: async (p) => p.startsWith('/users') ? { email: 'a@x.id' 
 const y = await absenSaya('auth1', { minggu: '2026-11-16', sid: 's2' }, 'k', sis);
 T('siswa: arsip + aktif, hanya miliknya', y.sesi.length === 2 && y.sesi.map((v) => v.status).sort().join('') === 'HI');
 T('siswa: tanpa catatan dan data lain', !/rahasia|s2/.test(JSON.stringify(y)));
+file = JSON.stringify({ dokumen: [{ $id: 'p1', sid: 's1', payload: '{}', $permissions: ['read("user:auth1")'] }, { $id: 'p2', sid: 's2', payload: '{}' }, { $id: 'p3', sid: 's1', payload: '{"uji":true}' }] });
+const drv = { ...sis, gfetch: async (u) => u.includes('alt=media') ? res(file) : res({ files: [{ id: 'x', name: 'arsip-absen_pkl_2026-11-16.json' }] }) };
+const pk = await bacaArsipPkl('auth1', {}, 'k', drv);
+T('PKL siswa: hanya miliknya, tanpa data uji', pk.dokumen.length === 1 && pk.dokumen[0].$id === 'p1');
+T('selfie arsip: pemilik boleh', (await dokPklArsip('auth1', 'p1', '2026-11-18', 'k', drv)).$id === 'p1');
+T('selfie arsip: siswa lain ditolak', await dokPklArsip('auth2', 'p1', '2026-11-18', 'k', drv).then(() => false, () => true));
 console.log(gagal ? gagal + ' gagal' : 'uji arsip: lolos'); process.exit(gagal ? 1 : 0);

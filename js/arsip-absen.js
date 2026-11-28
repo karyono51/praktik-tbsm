@@ -30,7 +30,7 @@ function arKartu(j){
   '<div class="note">'+m+' s.d. '+arAkhir(m)+' · '+L.length+' siswa tercatat'+(j==='pkl'&&arUji(m)?' (+'+arUji(m)+' data uji, ikut diarsipkan)':'')+(j==='pkl'?'. Alpa PKL tidak dihitung di sini.':'')+'</div>'+
   (j==='harian'&&AR.pesan?'<div class="note" role="status">'+AR.pesan+'</div>':'')+
   '<div class="row"><button type="button" class="btn small primary" data-arxls="'+j+'">Ekspor Excel minggu</button>'+
-  (S.role==='admin'&&Cloud.on?'<button type="button" class="btn small" data-arkirim="'+j+'">Arsipkan ke Drive</button>'+(j==='harian'?'<button type="button" class="btn small danger" data-arhapus="'+m+'">Hapus dari Appwrite</button>':''):'')+'</div></div>';
+  (S.role==='admin'&&Cloud.on?'<button type="button" class="btn small" data-arkirim="'+j+'">Arsipkan ke Drive</button>'+(j==='pkl'?'<button type="button" class="btn small danger" data-arpklhapus="'+m+'">Hapus dari Appwrite</button>':'')+(j==='harian'?'<button type="button" class="btn small danger" data-arhapus="'+m+'">Hapus dari Appwrite</button>':''):'')+'</div></div>';
 }
 if(typeof abViewRekap==='function'){var _arAb=abViewRekap;abViewRekap=function(){return arKartu('harian')+_arAb()}}
 if(typeof pkTabRekap==='function'){var _arPk=pkTabRekap;pkTabRekap=function(){return arKartu('pkl')+_arPk()}}
@@ -130,4 +130,59 @@ document.addEventListener('click',function(e){
  var m=ARS.m,u=ARS.u;ARS.d=null;ARS.pesan='Memuat…';render();
  ldCall({action:'absen-saya',minggu:m}).then(function(r){if(ARS.m===m&&ARS.u===u){ARS.d=r.sesi;ARS.pesan='';render()}})
   .catch(function(x){if(ARS.m===m&&ARS.u===u){ARS.pesan='Gagal memuat: '+x.message;render()}});
+});
+
+/* ---- arsip PKL: hanya di memori, digabung saat dibaca (tidak ikut sinkron) ---- */
+var ARP={u:'',st:0,L:[],pesan:''};
+function arpAkun(){var u=(S.user&&S.user.id)+'|'+actRole();if(ARP.u!==u)ARP={u:u,st:0,L:[],pesan:''}}
+if(typeof pkList==='function'){var _arPl=pkList;pkList=function(k){
+ var L=_arPl(k);if(k!=='absen'||!S.user)return L;arpAkun();
+ var ada={};PK.D.absen.forEach(function(x){ada[x.id]=1});
+ return L.concat(ARP.L.filter(function(x){return !ada[x.id]&&pkOk(x)&&(isStaff()||x.sid===S.user.id)}));
+}}
+if(typeof pkById==='function'){var _arPi=pkById;pkById=function(k,id){
+ return _arPi(k,id)||(k==='absen'?ARP.L.filter(function(x){return x.id===id})[0]||null:null);
+}}
+function arpMuat(){
+ arpAkun();if(!Cloud.on||!S.user||ARP.st)return;
+ var X=ARP,hasil=[];X.st=1;
+ (function ambil(mulai){return ldCall({action:'baca-arsip-pkl',mulai:mulai}).then(function(r){
+  r.dokumen.forEach(function(d){var o=pkParse(d);o.arsip=true;hasil.push(o)});
+  return r.lanjut!=null?ambil(r.lanjut):null;
+ })})(0).then(function(){if(ARP===X){X.L=hasil;X.st=2;X.pesan='';render()}})
+  .catch(function(e){if(ARP===X){X.st=3;X.pesan=e.message;render()}});
+}
+if(typeof viewPkl==='function'){var _arVp=viewPkl;viewPkl=function(){
+ var h=_arVp.apply(this,arguments);if(!Cloud.on)return h;
+ arpAkun();if(!ARP.st)setTimeout(arpMuat,0);
+ var n=ARP.st===3?'<div class="note" role="status">Arsip absen gagal dimuat, riwayat dan rekap bisa belum lengkap ('+esc(ARP.pesan)+') <button type="button" class="btn small" data-arpsegar="1">Coba lagi</button></div>':
+  ARP.st<2?'<div class="note" role="status">Memuat arsip absen dari Drive…</div>':'';
+ return n+h;
+}}
+/* ekspor dan cetak ditahan selama arsip belum lengkap */
+document.addEventListener('click',function(e){
+ if(S.tab!=='pkl'||!Cloud.on||ARP.st===2)return;
+ var b=e.target.closest&&e.target.closest('[data-act^="pkl-xls"],[data-act^="pkl-pdf"],[data-act^="pko"],[data-arxls="pkl"]');
+ if(b){e.preventDefault();e.stopImmediatePropagation();toast('Tunggu arsip absen selesai dimuat, atau ketuk Coba lagi.')}
+},true);
+function arpHapus(m,mulai,n,lewat){
+ return ldCall({action:'hapus-arsip',jenis:'pkl',minggu:m,mulai:mulai}).then(function(r){
+  var buang={};r.ids.forEach(function(i){buang[i]=1});
+  PK.D.absen=PK.D.absen.filter(function(x){return !(buang[x.id]&&!x.d)});pkSaveLocal();
+  n+=r.ids.length;lewat+=r.berubah;
+  return r.lanjut!=null?arpHapus(m,r.lanjut,n,lewat):{n:n,lewat:lewat};
+ });
+}
+document.addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-arpklhapus],[data-arpsegar]');if(!b)return;
+ if(b.dataset.arpsegar){ARP.st=0;render();return}
+ if(actRole()!=='admin')return;
+ var m=b.dataset.arpklhapus;
+ if(!uiOk('arpkl'+m,'Hapus absen PKL minggu '+m+' dari Appwrite?\nData tetap ada di arsip Drive. Penghapusan tidak bisa dibatalkan.',b,{ok:'Hapus',cancel:'Batal',danger:true}))return;
+ b.disabled=true;ARP.st=0;arpMuat();
+ var X=ARP;
+ new Promise(function(ok,no){var n=0;(function tunggu(){if(X.st===2)return ok();if(X.st===3||++n>120)return no(new Error('arsip belum terbaca, penghapusan dibatalkan.'));setTimeout(tunggu,500)})()})
+  .then(function(){return arpHapus(m,0,0,0)})
+  .then(function(r){toast(r.n+' catatan dihapus dari Appwrite'+(r.lewat?', '+r.lewat+' berubah (arsipkan ulang dulu).':'.'));render()})
+  .catch(function(x){toast('Hapus gagal: '+x.message)}).then(function(){b.disabled=false});
 });
