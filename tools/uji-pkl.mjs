@@ -33,7 +33,7 @@ function boot(opt = {}) {
     XLSX: null, ...(opt.ctx || {}),
   };
   vm.createContext(ctx);
-  vm.runInContext(baca('js/pkl.js') + '\n;this.PK=PK;', ctx);
+  vm.runInContext(baca('js/komponen.js') + '\n' + baca('js/pkl.js') + '\n;this.PK=PK;', ctx);
   const klik = (act, d = {}) => hs.click.forEach((f) => f({ target: { closest: () => ({ dataset: { act, ...d } }) } }));
   return { ctx, log, hs, store, dbDocs, klik };
 }
@@ -413,7 +413,8 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   console.log('Semua <select> PKL lewat pembangun yang sama');
   {
     const src = baca('js/pkl.js');
-    T('tidak ada lagi <select> yang dirakit manual di luar pkSelectHtml', (src.match(/'<select/g) || []).length === 1, (src.match(/'<select/g) || []).length);
+    T('pkl.js tidak merakit <select> manual: semua lewat bpSelect/bpField (js/komponen.js)', (src.match(/'<select/g) || []).length === 0, (src.match(/'<select/g) || []).length);
+    T('komponen.js punya tepat satu perakit <select>', (baca('js/komponen.js').match(/'<select/g) || []).length === 1);
     const x = boot().ctx;
     const r = x.pkSelectHtml(' data-pkl="a"', [['', 'Kosong'], ['1', 'Satu', 'ket satu', true], { g: 'Grup', o: [{ v: '2', l: 'Dua', ket: '', off: false }] }, { g: 'Grup kosong', o: [] }], '1', { judul: 'Judul <b>', cari: true });
     T('pembangun: judul di-escape, cari, ket, opsi nonaktif yang terpilih tetap bisa dipilih, kelompok kosong dibuang', /data-judul="Judul &lt;b&gt;"/.test(r.html) && /data-cari/.test(r.html) && /<option value="1" data-ket="ket satu" selected>/.test(r.html) && !/Grup kosong/.test(r.html) && r.ket === 'ket satu', r);

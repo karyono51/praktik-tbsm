@@ -1,3 +1,11 @@
+## Komponen bersama: pilihan, tombol, kartu, lipatan
+- Baru `js/komponen.js` (pembangun `bpSelect`, `bpField`, `bpO`, `bpG`, `uiBtn`, `uiBtns`, `uiCard`, `uiLip`) dan `css/komponen.css` (varian tombol `ghost`, `danger.solid`, `block`, `grow`, `btn-row`; kartu `card-h`, `card-f`, `flat`, `tint`, `warn`, `bad`, `ok`; lipatan `details.lip`). Dokumen: `docs-KOMPONEN.md`.
+- `js/pkl.js`: semua `<select>` PKL lewat satu pembangun bersama; dua pilihan di tab Pengaturan (zona absen, daftar tempat) yang tadinya manual kini memakai judul lembar dan keterangan pilihan.
+- `js/bank-pilihan.js`: judul lembar terbaca juga bila teks label tidak di simpul pertama.
+- Lipatan `<details>` polos (Akademik, LKPD, PKL) otomatis seragam; tinggi sentuh tombol 40 px (small 34 px) dan cincin fokus terlihat.
+- Temuan audit: 22 tombol `class="btn"` tanpa `type="button"` diperbaiki (di dalam formulir bisa mengirim formulir tanpa sengaja). Tombol Masuk/Daftar tetap `type="submit"`.
+- Uji: `tools/uji-komponen.mjs` (22 pemeriksaan); `uji-pkl`, `uji-pkl-xls`, `uji-pkl-io` memuat `komponen.js`.
+
 ## Optimalisasi pembacaan database Appwrite (tahap uji, sebelum akses guru dan siswa dibuka)
 - `js/core.js`: jeda pembacaan penuh login: siswa 3 jam menjadi **24 jam**, staf 8 jam menjadi **12 jam** (hasil, LKPD, modul LKPD, akun, observasi). Di antaranya hanya dokumen yang berubah yang dibaca.
 - `js/banksoal.js`: pembacaan penuh bank soal dan sesi: siswa 6 jam menjadi **24 jam**, staf tetap 6 jam.

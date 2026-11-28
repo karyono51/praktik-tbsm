@@ -12,7 +12,7 @@ viewLKPD=function(){
  if(LKR.m!=='ALL'){S.lkpd=(orig||[]).filter(function(x){return lkrMode(x)===LKR.m})}
  try{h=_lkrView()}finally{S.lkpd=orig}
  /* label mode di tiap kartu */
- h=h.replace(/<button class="btn small" data-act="lk-detail" data-v="([^"]+)">Detail<\/button>/g,function(m,id){
+ h=h.replace(/<button type="button" class="btn small" data-act="lk-detail" data-v="([^"]+)">Detail<\/button>/g,function(m,id){
   var r=all.find(function(x){return x.id===id});if(!r)return m;
   var lat=lkrMode(r)==='latihan';
   return '<div class="row" style="align-items:center"><span class="pill '+(lat?'ok':'warn')+'">'+(lat?'Latihan':'Ujian')+'</span>'+m+'</div>';

@@ -157,7 +157,7 @@ G(`STAFF=true;LK.preview=true`);
 const vs = G(`lk2View(LKPD_MODULES[0])`);
 ok(/data-act="lk-print">Cetak<\/button><button data-act="lk-print-kunci">Cetak kunci<\/button>/.test(vs), 'guru: tombol Cetak kunci tepat di samping Cetak');
 G(`STAFF=true;LK.preview=false`);
-ok(/data-act="lk-print"[^>]*>Cetak<\/button><button class="btn" data-act="lk-print-kunci">Cetak kunci/.test(G(`lk2View(LKPD_MODULES[0])`)), 'guru (bukan pratinjau): tombol Cetak kunci di baris aksi');
+ok(/data-act="lk-print"[^>]*>Cetak<\/button><button (?:type="button" )?class="btn" data-act="lk-print-kunci">Cetak kunci/.test(G(`lk2View(LKPD_MODULES[0])`)), 'guru (bukan pratinjau): tombol Cetak kunci di baris aksi');
 /* klik: siswa ditolak, guru mencetak dengan judul berkas "Kunci LKPD X-06 ..." dan pulih sesudah cetak */
 const log = { print: 0, toast: [] };
 run(`var _printed=0,_cls={},_elem=null;window.print=function(){_printed++};var _af=[];window.addEventListener=function(t,f){if(t==='afterprint')_af.push(f)};window.removeEventListener=function(){};

@@ -180,26 +180,16 @@ function pkNilaiAkhir(n){
 }
 function pkPredikat(v){return v==null?'':v>=90?'Sangat baik':v>=75?'Baik':v>=60?'Cukup':'Perlu bimbingan'}
 
-/* ---------- Pilihan (select) yang sistematis ----------
-   Semua <select> PKL (isian formulir dan saringan tab) dibuat dari SATU bentuk data lewat SATU pembangun, pkSelectHtml, supaya lembar pilihan
-   buatan aplikasi (js/bank-pilihan.js) terpakai penuh: judul lembar (data-judul), keterangan kecil tiap pilihan (data-ket), kelompok (optgroup),
-   pilihan kosong yang terpisah (value=""), pilihan nonaktif, dan kotak Cari (otomatis bila 8 pilihan atau lebih).
-   Bentuk data: opsi = {v:nilai, l:teks, ket:keterangan, off:true bila tidak boleh dipilih}; kelompok = {g:judul, o:[opsi]}; daftar = larik opsi/kelompok.
-   Daftar lama berbentuk [nilai,teks,ket] tetap diterima. Nilai yang sedang tersimpan tapi sudah tidak ada di daftar (akun nonaktif, tempat dihapus)
-   tetap ditampilkan agar ubah data tidak mengosongkannya diam-diam, dan opsi nonaktif yang sedang terpilih tidak ikut dinonaktifkan. */
-function pkO(v,l,ket,off){return {v:v,l:l,ket:ket||'',off:!!off}}
-function pkG(g,o){return {g:g,o:o}}
-function pkNorm(L){return (L||[]).map(function(x){return Array.isArray(x)?pkO(x[0],x[1],x[2],x[3]):x})}
-function pkFlat(L){var out=[];pkNorm(L).forEach(function(x){if(x.o)x.o.forEach(function(y){out.push(y)});else out.push(x)});return out}
-function pkSelectHtml(attr,L,cur,opt){
- opt=opt||{};cur=cur==null?'':String(cur);L=pkNorm(L);
- if(cur&&!pkFlat(L).some(function(o){return String(o.v)===cur}))L=L.concat([pkO(cur,opt.fb||'(data tidak ditemukan)','Pilih ulang')]);
- function one(o){return '<option value="'+esc(o.v)+'"'+(o.ket?' data-ket="'+esc(o.ket)+'"':'')+(String(o.v)===cur?' selected':(o.off?' disabled':''))+'>'+esc(o.l)+'</option>'}
- var h=L.map(function(x){return x.o?(x.o.length?'<optgroup label="'+esc(x.g)+'">'+x.o.map(one).join('')+'</optgroup>':''):one(x)}).join(''),
-  a=(opt.judul?' data-judul="'+esc(opt.judul)+'"':'')+(opt.cari?' data-cari':'')+(opt.tanpaCari?' data-tanpa-cari':''),
-  sel=pkFlat(L).filter(function(o){return String(o.v)===cur})[0];
- return {html:'<select'+attr+a+'>'+h+'</select>',ket:sel&&sel.ket||''};
-}
+/* ---------- Pilihan (select) ----------
+   Semua <select> PKL (isian formulir, saringan tab, dan pengaturan) dibuat lewat SATU pembangun bersama, bpSelect di js/komponen.js,
+   supaya lembar pilihan buatan aplikasi (js/bank-pilihan.js) terpakai penuh: judul lembar (data-judul), keterangan kecil tiap pilihan
+   (data-ket), kelompok (optgroup), pilihan kosong terpisah (value=""), pilihan nonaktif, dan kotak Cari (otomatis bila 8 pilihan atau lebih).
+   Di sini hanya nama pendek PKL yang meneruskan ke pembangun itu, jadi sisa kode PKL tidak berubah. Bentuk data dan opsi: lihat komponen.js. */
+function pkO(v,l,ket,off){return bpO(v,l,ket,off)}
+function pkG(g,o){return bpG(g,o)}
+function pkNorm(L){return bpNorm(L)}
+function pkFlat(L){return bpFlat(L)}
+function pkSelectHtml(attr,L,cur,opt){return bpSelect(attr,L,cur,opt)}
 function pkUrutNama(a,b){return String(a.nama).localeCompare(String(b.nama),'id')}
 function pkAktifTugas(sid,exc){return pkList('tugas').filter(function(t){return t.sid===sid&&t.status==='aktif'&&t.id!==exc})[0]||null}
 function pkTerisi(tid,exc){return pkList('tugas').filter(function(t){return t.tempatId===tid&&t.status==='aktif'&&t.id!==exc}).length}
@@ -379,13 +369,13 @@ function pkSetSimpan(p){
  render();
 }
 function pkTabSetelan(){
- var st=pkSet(),sel=function(a,b){return a===b?' selected':''},
+ var st=pkSet(),
   FT=[['masuk','Absen masuk (selfie)'],['pulang','Absen pulang (selfie)'],['izin','Izin (foto surat/bukti)'],['sakit','Sakit (foto surat/bukti)'],['jurnal','Jurnal kegiatan (foto kegiatan)']];
  return '<div class="card"><b>Pengaturan PKL</b><div class="note">Berlaku untuk semua siswa di sekolah ini. Perubahan langsung tersimpan.</div>'+
-  '<label class="f">Absen masuk/pulang di luar zona tempat PKL<select data-pkset="tolak"><option value="tolak"'+sel(st.tolak,'tolak')+'>Tolak (siswa tidak bisa mengirim)</option><option value="tandai"'+sel(st.tolak,'tandai')+'>Terima, tandai &quot;Di luar lokasi&quot;</option></select></label>'+
+  bpField('Absen masuk/pulang di luar zona tempat PKL',' data-pkset="tolak"',[bpO('tolak','Tolak (siswa tidak bisa mengirim)','Siswa tidak bisa mengirim absen'),bpO('tandai','Terima, tandai "Di luar lokasi"','Absen tetap masuk, diberi tanda')],st.tolak,{tanpaCari:true})+
   '<div class="note">Zona = radius dari titik koordinat tempat PKL (isi di Tempat PKL). Tempat tanpa koordinat tidak bisa dicek, absen tetap diterima. GPS belum terbaca atau akurasi lebih buruk dari 500 m ditolak. Izin dan sakit tidak dibatasi lokasi.</div>'+
   '<div class="f">Foto wajib per item'+FT.map(function(x){return '<label style="display:flex;gap:8px;align-items:center;padding:6px 0"><input type="checkbox" data-pksetf="'+x[0]+'"'+(st.foto[x[0]]?' checked':'')+'> <span>'+esc(x[1])+'</span></label>'}).join('')+'</div>'+
-  '<label class="f">Daftar tempat PKL di halaman siswa<select data-pkset="daftar"><option value="belum"'+sel(st.daftar,'belum')+'>Hanya sebelum siswa ditempatkan</option><option value="selalu"'+sel(st.daftar,'selalu')+'>Selalu tampil</option><option value="tidak"'+sel(st.daftar,'tidak')+'>Disembunyikan</option></select></label></div>';
+  bpField('Daftar tempat PKL di halaman siswa',' data-pkset="daftar"',[bpO('belum','Hanya sebelum siswa ditempatkan'),bpO('selalu','Selalu tampil'),bpO('tidak','Disembunyikan')],st.daftar,{tanpaCari:true})+'</div>';
 }
 
 /* ---------- Koordinat tempat PKL: lokasi saya, peta, atau tempel dari Google Maps ----------

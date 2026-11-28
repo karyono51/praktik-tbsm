@@ -48,7 +48,7 @@ function boot(opt = {}) {
   };
   ctx.XLSX = XLSX;
   vm.createContext(ctx);
-  vm.runInContext(baca('js/pkl.js') + '\n' + baca('js/pkl-xls.js') + '\n;this.PK=PK;this.PKX=PKX;', ctx);
+  vm.runInContext(baca('js/komponen.js') + '\n' + baca('js/pkl.js') + '\n' + baca('js/pkl-xls.js') + '\n;this.PK=PK;this.PKX=PKX;', ctx);
   const klik = (act, d = {}) => hs.click.forEach((f) => f({ target: { closest: () => ({ dataset: { act, ...d } }) } }));
   const ubah = (f) => hs.change.forEach((f2) => f2({ target: { dataset: { pkximp: '' }, files: [f], value: 'x' } }));
   return { ctx, log, hs, store, dbDocs, klik, ubah };

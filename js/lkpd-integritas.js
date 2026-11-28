@@ -101,7 +101,7 @@ viewLKPD=function(){
  if(LKI.f==='cek')S.lkpd=(orig||[]).filter(function(r){return all[r.id]});
  try{h=_lkiView()}finally{S.lkpd=orig}
  var rv=lkiRev();
- h=h.replace(/<button class="btn small" data-act="lk-detail" data-v="([^"]+)">Detail<\/button>/g,function(m,id){
+ h=h.replace(/<button type="button" class="btn small" data-act="lk-detail" data-v="([^"]+)">Detail<\/button>/g,function(m,id){
   var f=all[id];
   if(!f){var r=rv[id];return r?'<span class="pill ok" title="'+lkEsc('Ditinjau oleh '+r.oleh+'. '+lkiTitle(r.f))+'">Ditinjau</span> '+m:m}
   var bad=f.some(function(a){return a.lv==='bad'});

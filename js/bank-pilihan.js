@@ -7,6 +7,7 @@
    - select[data-judul="..."]  judul lembar (bila tidak ada: aria-label, teks label, teks tepat di atas, judul kartu, lalu "Pilih").
    - option[data-ket="..."]    keterangan kecil di bawah teks pilihan (mis. nama lengkap jurusan).
    - option[value=""]          dianggap pilihan kosong: tampil redup dan terpisah, memilihnya mengosongkan isian.
+   - Pembangun HTML bersama: bpSelect / bpField di js/komponen.js (menulis atribut di atas dengan benar).
    - kotak Cari muncul otomatis bila pilihan 8 atau lebih; select[data-cari] memaksa tampil, select[data-tanpa-cari] menyembunyikan. */
 (function(){
  function bolehGanti(t){return !!t&&t.tagName==='SELECT'&&!t.disabled&&!t.multiple&&!(t.size>1)&&!t.hasAttribute('data-native')&&!(t.closest&&t.closest('table,#bp-ov'))}
@@ -16,6 +17,8 @@
   var a=s.getAttribute('data-judul')||s.getAttribute('aria-label');if(a)return a;
   var l=s.closest&&s.closest('label'),n=l&&l.firstChild;
   if(n&&n.nodeType===3&&String(n.nodeValue).trim())return String(n.nodeValue).trim();
+  /* label yang teksnya tidak di simpul pertama (mis. didahului ikon): ambil semua teks langsung milik label */
+  if(l&&l.childNodes){var tx='';Array.prototype.forEach.call(l.childNodes,function(c){if(c.nodeType===3)tx+=c.nodeValue});tx=tx.replace(/\s+/g,' ').trim();if(tx&&tx.length<=60)return tx}
   var p=s.previousElementSibling,t=p&&String(p.textContent||'').trim();
   if(t&&t.length<=60&&!p.querySelector('select,input'))return t;
   var c=s.closest&&s.closest('.card'),b=c&&c.querySelector('b,h2,h3,.label');

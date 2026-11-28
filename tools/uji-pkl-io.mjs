@@ -51,7 +51,7 @@ function boot(opt = {}) {
       db: { createDocument: async (db, col, id, doc) => { log.create.push({ col, id, doc }); dbDocs.push({ $id: id, _col: col, ...doc }); }, updateDocument: async (db, col, id, doc) => { log.update.push({ col, id, doc }); } } },
   };
   vm.createContext(ctx);
-  vm.runInContext(['pkl', 'pkl-xls', 'pkl-io', 'pkl-pdf'].map((n) => baca('js/' + n + '.js')).join('\n') + '\n;this.PK=PK;this.PKO=PKO;this.PKX=PKX;', ctx);
+  vm.runInContext(['komponen', 'pkl', 'pkl-xls', 'pkl-io', 'pkl-pdf'].map((n) => baca('js/' + n + '.js')).join('\n') + '\n;this.PK=PK;this.PKO=PKO;this.PKX=PKX;', ctx);
   const klik = (act, d = {}) => hs.click.forEach((f) => f({ target: { closest: () => ({ dataset: { act, ...d } }) } }));
   const ubah = (tab, f) => hs.change.forEach((f2) => f2({ target: { dataset: { pkoimp: tab }, files: [f], value: 'x' } }));
   return { ctx, log, hs, store, dbDocs, pdf, klik, ubah };
