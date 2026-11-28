@@ -33,3 +33,7 @@ Sekarang pemindaian otomatis dibatasi maksimal sekali setiap 24 jam per browser 
 - Tidak ada migrasi data yang dijalankan.
 - Paket ini tidak dapat mengaktifkan kembali API Appwrite yang sedang ditangguhkan akibat kuota. Setelah kuota kembali tersedia atau paket/budget disesuaikan, pantau Database Reads pada siklus berikutnya.
 - Optimasi berikutnya yang disarankan adalah mengukur permintaan per koleksi dan mengubah tampilan staf menjadi pemuatan data bertahap. Perubahan itu memerlukan audit seluruh pemakai `S.users`, `S.results`, dan `S.lkpd` agar rekap dan ekspor tidak kehilangan data.
+
+
+## Administrasi Akademik: pembacaan bertahap
+`akLoad` (js/akademik.js) memakai pola yang sama dengan bank soal dan LKPD: pembacaan penuh pertama, lalu hanya dokumen dengan `$updatedAt` lebih baru dari cap server terakhir (mundur 2 detik). Status disimpan di `localStorage` kunci `tbsm.inc.ak.<koleksi>.<id akun>`. Pembacaan penuh diulang tiap 6 jam dan bila pembacaan bertahap gagal. Catatan: bila banyak dokumen ditulis dalam 2 detik yang sama (misalnya benih awal), dokumen itu ikut terbaca ulang sampai ada dokumen yang lebih baru. Penghapusan oleh pengguna lain baru terlihat pada pembacaan penuh berikutnya (maksimal 6 jam; Segarkan data tidak memaksa pembacaan penuh).

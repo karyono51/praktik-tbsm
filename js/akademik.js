@@ -25,7 +25,7 @@ function akSekLabel(v){return SCH_LIST[akSek(v)]?SCH_LIST[akSek(v)].pendek:'Semu
 function akLoadLocal(){try{var j=JSON.parse(localStorage.getItem(AKK)||'null');if(j)Object.keys(AKD.D).forEach(function(k){AKD.D[k]=j[k]||[]})}catch(e){}}
 function akSaveLocal(){try{localStorage.setItem(AKK,JSON.stringify(AKD.D))}catch(e){}}
 function akClear(){
- try{localStorage.removeItem(AKK);localStorage.removeItem(AKQ)}catch(e){}
+ try{localStorage.removeItem(AKK);localStorage.removeItem(AKQ);Object.keys(localStorage).filter(function(k){return k.indexOf('tbsm.inc.ak.')===0}).forEach(function(k){localStorage.removeItem(k)})}catch(e){}
  AKD.D={tahun:[],kelas:[],mapel:[],tugas:[],guru:[]};AKD.loaded=false;AKD.seeded=false;AKD.form=null;AKD.mem=null;AKD.memSel=null;AKD.tg=null;AKD.tgf={};AKD.rep=null;
  AKD.q='';AKD.fl='ALL';AKD.lf='ALL';AKD.lq='';AKD.tf='ALL';AKD.sk='';AKD.gopen={};AKD.err=[];
 }
@@ -73,6 +73,28 @@ async function akDel(k,id){
  var o=a[i];a.splice(i,1);akSaveLocal();
  if(Cloud.on&&o.r){var ok=await Cloud.remove(AKC[k],id);if(!ok){a.push(o);akSaveLocal()}}
 }
+/* Baca hemat: Appwrite menghitung tiap dokumen yang dibaca. Setelah pemuatan penuh, berikutnya hanya dokumen yang berubah sejak
+   pembacaan terakhir ($updatedAt server) yang diambil dan digabung ke salinan di perangkat. Pemuatan penuh diulang tiap 6 jam
+   (mendeteksi dokumen yang dihapus pengguna lain) dan bila ada galat. Penghapusan di perangkat ini langsung terlihat. */
+var AK_FULL_MS=6*3600*1000;
+/* mundur 2 detik dari $updatedAt terbaru (cap waktu server, bukan jam perangkat): menjaga dokumen yang tertulis hampir bersamaan; yang terbaca ulang hanya dokumen dalam 2 detik terakhir */
+function akIncIso(iso){var t=Date.parse(iso);return isNaN(t)?iso:new Date(t-2000).toISOString()}
+function akIncMax(docs,dasar){var m=dasar||'';(docs||[]).forEach(function(d){if(d.$updatedAt&&d.$updatedAt>m)m=d.$updatedAt});return m}
+async function akBacaInc(col,kinds){
+ var key='tbsm.inc.ak.'+col+'.'+S.user.id,st=null;
+ try{st=JSON.parse(localStorage.getItem(key)||'null')}catch(e){}
+ var punya=kinds.some(function(k){return (AKD.D[k]||[]).some(function(x){return x.r&&!x.d})});
+ if(st&&st.since&&punya&&Date.now()-st.full<AK_FULL_MS){
+  try{
+   var d=await Cloud.list(col,[Appwrite.Query.greaterThan('$updatedAt',akIncIso(st.since))]);
+   try{localStorage.setItem(key,JSON.stringify({since:akIncMax(d,st.since),full:st.full}))}catch(e){}
+   return {full:false,docs:d};
+  }catch(e){}
+ }
+ var all=await Cloud.list(col);
+ try{localStorage.setItem(key,JSON.stringify({since:akIncMax(all,''),full:Date.now()}))}catch(e){}
+ return {full:true,docs:all};
+}
 async function akLoad(){
  if(AKD.loading||!S.user||!isStaff())return;
  AKD.loading=true;AKD.err=[];
@@ -85,11 +107,16 @@ async function akLoad(){
    if(akEdit())cols.push(['akademik_sdm',['guru']]);else AKD.D.guru=[];
    await Promise.all(cols.map(async function(cc){
     try{
-     var rows=(await Cloud.list(cc[0])).map(function(d){return akParse(fromDoc(d))});
-     cc[1].forEach(function(k){
+     var inc=await akBacaInc(cc[0],cc[1]),rows=inc.docs.map(function(d){return akParse(fromDoc(d))});
+     if(inc.full)cc[1].forEach(function(k){
       var keep=AKD.D[k].filter(function(x){return !x.r||x.d});
       AKD.D[k]=rows.filter(function(x){return x.jenis===k});
       keep.forEach(function(x){var j=AKD.D[k].findIndex(function(y){return y.id===x.id});if(j<0)AKD.D[k].push(x);else AKD.D[k][j]=x});
+     });
+     else rows.forEach(function(o){
+      if(cc[1].indexOf(o.jenis)<0)return;
+      var a=AKD.D[o.jenis],j=a.findIndex(function(y){return y.id===o.id});
+      if(j<0)a.push(o);else if(a[j].r&&!a[j].d)a[j]=o;
      });
     }catch(e){okAll=false;AKD.err.push(cc[0]+': '+((e&&e.message)||e))}
    }));

@@ -1,3 +1,8 @@
+## Administrasi Akademik: pembacaan bertahap
+- `js/akademik.js`: `akLoad` tidak lagi membaca seluruh koleksi `akademik` (dan `akademik_sdm` untuk admin) tiap halaman dibuka atau dimuat ulang. Setelah pembacaan penuh, berikutnya hanya dokumen yang berubah sejak cap `$updatedAt` server terbaru (mundur 2 detik) yang diambil dan digabung ke salinan di perangkat. Pembacaan penuh diulang tiap 6 jam (mendeteksi dokumen yang dihapus pengguna lain) dan bila pembacaan bertahap gagal. Perubahan lokal yang belum terkirim tidak ditimpa. `akClear` (keluar) menghapus status bertahap.
+- Latar belakang: Cek sinkronisasi menunjukkan `akademik` 360 dokumen dalam 10 permintaan (sekitar 73% pembacaan perangkat admin hari itu), karena tiap pemuatan membaca semua 36 dokumen.
+- Uji: `tools/uji-akademik-bertahap.mjs` (14 pemeriksaan). Dokumen: `docs-OPTIMASI-APPWRITE.md`.
+
 ## Akses latihan dibuka guru dan pembacaan bank soal lebih hemat (CBT tetap mode aman)
 - `js/akses-latihan.js` (baru) dan `js/banksoal.js`: siswa hanya bisa memulai **Latihan** bila guru/admin membuka aksesnya (per tingkat X/XI/XII atau semua, jadwal buka/tutup opsional). Tanpa akses, kartu Latihan menampilkan "Latihan belum dibuka oleh guru" dan aksi Mulai latihan ditolak. Ujian tetap lewat sesi (aktif, jadwal, token).
 - Kartu **Akses latihan siswa** ada di CBT Online guru (tab Sesi): Buka akses latihan, Tutup/Buka, Hapus.
