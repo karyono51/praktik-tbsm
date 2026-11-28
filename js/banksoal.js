@@ -114,7 +114,8 @@ async function bsDel(k,id){
 /* Baca hemat: Appwrite menghitung tiap dokumen yang dibaca. Setelah pemuatan penuh, berikutnya hanya dokumen yang berubah
    sejak pembacaan terakhir ($updatedAt) yang diambil dan digabung ke salinan di perangkat. Pemuatan penuh diulang tiap 6 jam
    (mendeteksi dokumen yang dihapus) dan bila ada galat. */
-var BS_FULL_MS=6*3600*1000;
+var BS_FULL_MS_STAF=6*3600*1000,BS_FULL_MS_SISWA=24*3600*1000;
+function bsFullMs(){return (typeof isStaff==='function'&&isStaff())?BS_FULL_MS_STAF:BS_FULL_MS_SISWA}
 function bsIncSkew(){try{return window.Jam&&Jam.now?Jam.now():Date.now()}catch(e){return Date.now()}}
 function bsIncMax(docs,dasar){var m=dasar||'';(docs||[]).forEach(function(d){if(d.$updatedAt&&d.$updatedAt>m)m=d.$updatedAt});return m}
 function bsIncMundur(iso){var t=Date.parse(iso);return isNaN(t)?iso:new Date(t-10000).toISOString()}
@@ -122,7 +123,7 @@ async function bsBacaInc(k,extra){
  var col=BSC[k],key='tbsm.inc.'+k+'.'+S.user.id,st=null,Q=Appwrite.Query;
  try{st=JSON.parse(localStorage.getItem(key)||'null')}catch(e){}
  var punya=(BS.D[k]||[]).some(function(x){return x.r&&!x.d});
- if(st&&st.since&&punya&&Date.now()-st.full<BS_FULL_MS){
+ if(st&&st.since&&punya&&Date.now()-st.full<bsFullMs()){
   try{
    var d=await Cloud.list(col,[Q.greaterThan('$updatedAt',bsIncMundur(st.since))].concat(extra||[]));
    try{localStorage.setItem(key,JSON.stringify({since:bsIncMax(d,st.since),full:st.full}))}catch(e){}

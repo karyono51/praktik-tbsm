@@ -37,3 +37,13 @@ Sekarang pemindaian otomatis dibatasi maksimal sekali setiap 24 jam per browser 
 
 ## Administrasi Akademik: pembacaan bertahap
 `akLoad` (js/akademik.js) memakai pola yang sama dengan bank soal dan LKPD: pembacaan penuh pertama, lalu hanya dokumen dengan `$updatedAt` lebih baru dari cap server terakhir (mundur 2 detik). Status disimpan di `localStorage` kunci `tbsm.inc.ak.<koleksi>.<id akun>`. Pembacaan penuh diulang tiap 6 jam dan bila pembacaan bertahap gagal. Catatan: bila banyak dokumen ditulis dalam 2 detik yang sama (misalnya benih awal), dokumen itu ikut terbaca ulang sampai ada dokumen yang lebih baru. Penghapusan oleh pengguna lain baru terlihat pada pembacaan penuh berikutnya (maksimal 6 jam; Segarkan data tidak memaksa pembacaan penuh).
+
+## Putaran 28 Nov 2026 (persiapan pemakaian guru dan siswa)
+Jeda pembacaan penuh: siswa 24 jam (login dan bank soal), staf 12 jam (login) dan 6 jam (bank soal). PKL staf bertahap (penuh tiap 24 jam). Pembacaan penuh bisa dipaksa dengan keluar lalu masuk lagi (status bertahap dihapus saat keluar).
+
+Sumber baca yang masih ada (urut kira-kira dari terbesar):
+1. Perangkat baru atau peramban baru: pembacaan pertama selalu penuh (semua modul LKPD, sesi, hasil milik sendiri).
+2. Fungsi server `cbt` dan `akun-admin` (daftar peserta, pantau, tebak token): memakai cache memori 10 sampai 60 detik, tetapi tiap instans dingin membaca ulang dan Ruang ujian memuat ulang tiap 15 detik per layar yang terbuka.
+3. Cek sinkronisasi (admin): membaca seluruh dokumen tiap koleksi. Jalankan seperlunya, jangan berulang.
+4. Alumni dan Log audit: pembacaan penuh saat dibuka.
+Pantau angka sebenarnya di Console > Databases > Usage, dan kartu Penggunaan database perangkat ini di aplikasi.

@@ -102,9 +102,9 @@ server.hasil = server.hasil.filter((x) => x.$id !== 'h20');
 NOW += 60000;
 r = await masuk(staf, true, { mem: true });
 ok('belum hilang selama pembacaan bertahap (diketahui, menunggu pembacaan penuh)', r.results.some((x) => x.id === 'h20'));
-NOW += 9 * 3600000;
+NOW += 13 * 3600000;
 r = await masuk(staf, true, { mem: true });
-ok('setelah melewati batas pembacaan penuh (8 jam) dokumen terhapus hilang', !r.results.some((x) => x.id === 'h20') && baca >= 300, baca);
+ok('setelah melewati batas pembacaan penuh (staf 12 jam) dokumen terhapus hilang', !r.results.some((x) => x.id === 'h20') && baca >= 300, baca);
 server.hasil = server.hasil.filter((x) => x.$id !== 'h21');
 ctx.window.TBSM_PENUH = true;
 r = await masuk(staf, true, { mem: true, paksa: true });
@@ -152,9 +152,9 @@ server.hasil.push(doc('hS', NOW - 100, { sid: 'u5', score: 88 })); server.hasil.
 r = await masuk(siswa, false);
 ok('login berikutnya siswa membaca ' + baca + ' dokumen (bukan ' + (milikHasil + milikLk + 25) + ')', baca >= 1 && baca <= 1 + 3, baca + ' ' + log.join(' '));
 ok('nilai siswa lain tidak ikut terbaca', !r.results.some((x) => x.id === 'hLain') && r.results.some((x) => x.id === 'hS'));
-simpanSnap(); NOW += 4 * 3600000;
+simpanSnap(); NOW += 25 * 3600000;
 r = await masuk(siswa, false);
-ok('siswa: pembacaan penuh diulang tiap 3 jam', baca >= milikHasil + milikLk + 25, baca);
+ok('siswa: pembacaan penuh diulang tiap 24 jam', baca >= milikHasil + milikLk + 25, baca);
 
 console.log('\n' + lulus + ' lulus, ' + gagal + ' gagal');
 process.exit(gagal ? 1 : 0);

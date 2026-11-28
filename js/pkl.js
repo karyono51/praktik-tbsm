@@ -88,6 +88,9 @@ async function pkRemote(k,o){
 async function pkFlush(){
  for(var k in PK.D){for(var i=0;i<PK.D[k].length;i++){var o=PK.D[k][i];if(!o.r||o.d)await pkRemote(k,o)}}
 }
+var PK_PENUH=24*3600000,PK_INC='tbsm-pkl-inc';
+function pkIncBaca(){try{return JSON.parse(localStorage.getItem(PK_INC)||'null')}catch(e){return null}}
+function pkIncTulis(o){try{localStorage.setItem(PK_INC,JSON.stringify(o))}catch(e){}}
 async function pkLoad(){
  if(PK.loading||!S.user)return;
  PK.loading=true;PK.err=[];
@@ -95,20 +98,34 @@ async function pkLoad(){
   if(!PK.loaded)pkLoadLocal();
   if(Cloud.on&&Cloud.db&&navigator.onLine!==false){
    await pkFlush();
-   var Q=Appwrite.Query,me=S.user.id,jobs=[];
-   if(isStaff()){['pkl','pkl_catat','pkl_nilai'].forEach(function(c){jobs.push([c,[]])})}
+   var Q=Appwrite.Query,me=S.user.id,jobs=[],staf=isStaff();
+   /* staf: setelah pembacaan penuh, tiap muat hanya dokumen yang berubah ($updatedAt) yang dibaca; penuh lagi tiap PK_PENUH (dokumen yang dihapus di perangkat lain ikut hilang) */
+   var inc=staf?pkIncBaca():null,incOn=!!(inc&&inc.u===me&&inc.db===CFG.DB&&Date.now()-inc.full<PK_PENUH&&PK.D.tugas&&PK.D.tugas.length+PK.D.tempat.length>0);
+   if(staf){['pkl','pkl_catat','pkl_nilai'].forEach(function(c){jobs.push([c,incOn&&inc.s[c]?[Q.greaterThan('$updatedAt',new Date(Date.parse(inc.s[c])-15000).toISOString())]:[]])})}
    else{jobs.push(['pkl',[Q.equal('jenis',['tempat','setelan'])]],['pkl',[Q.equal('sid',[me])]],['pkl_catat',[Q.equal('sid',[me])]])}
-   var rows={},okCol={};
+   var rows={},okCol={},mx={};
    await Promise.all(jobs.map(async function(j){
-    try{(await Cloud.list(j[0],j[1])).forEach(function(d){var o=pkParse(d);if(PK.D[o.jenis])(rows[o.jenis]=rows[o.jenis]||[]).push(o)});okCol[j[0]]=(okCol[j[0]]===false)?false:true}
+    try{(await Cloud.list(j[0],j[1])).forEach(function(d){var o=pkParse(d);if(d.$updatedAt&&(!mx[j[0]]||d.$updatedAt>mx[j[0]]))mx[j[0]]=d.$updatedAt;if(PK.D[o.jenis])(rows[o.jenis]=rows[o.jenis]||[]).push(o)});okCol[j[0]]=(okCol[j[0]]===false)?false:true}
     catch(e){okCol[j[0]]=false;PK.err.push(j[0]+': '+((e&&e.message)||e))}
    }));
    Object.keys(PK.D).forEach(function(k){
     if(okCol[PKC[k]]!==true)return;
-    var keep=PK.D[k].filter(function(x){return !x.r||x.d}),neu=(rows[k]||[]).slice();
-    keep.forEach(function(x){var i=neu.findIndex(function(y){return y.id===x.id});if(i<0)neu.push(x);else neu[i]=x});
+    var neu;
+    if(incOn&&staf){
+     /* gabung ke salinan di perangkat; dokumen lokal yang belum terkirim tidak ditimpa */
+     neu=PK.D[k].slice();
+     (rows[k]||[]).forEach(function(o){var i=neu.findIndex(function(y){return y.id===o.id});if(i<0)neu.push(o);else if(neu[i].r&&!neu[i].d)neu[i]=o});
+    }else{
+     var keep=PK.D[k].filter(function(x){return !x.r||x.d});neu=(rows[k]||[]).slice();
+     keep.forEach(function(x){var i=neu.findIndex(function(y){return y.id===x.id});if(i<0)neu.push(x);else neu[i]=x});
+    }
     PK.D[k]=neu;
    });
+   if(staf&&okCol.pkl===true&&okCol.pkl_catat===true&&okCol.pkl_nilai===true){
+    var ns=incOn?Object.assign({},inc.s):{},nowIso=new Date().toISOString();
+    ['pkl','pkl_catat','pkl_nilai'].forEach(function(c){ns[c]=mx[c]&&(!ns[c]||mx[c]>ns[c])?mx[c]:(ns[c]||nowIso)});
+    pkIncTulis({u:me,db:CFG.DB,s:ns,full:incOn?inc.full:Date.now()});
+   }
    pkSaveLocal();
   }else if(Cloud.on)PK.err.push('Offline: memakai salinan terakhir di perangkat.');
  }finally{PK.loading=false;PK.loaded=true;if(S.tab==='pkl')render()}

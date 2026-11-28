@@ -1,3 +1,10 @@
+## Optimalisasi pembacaan database Appwrite (tahap uji, sebelum akses guru dan siswa dibuka)
+- `js/core.js`: jeda pembacaan penuh login: siswa 3 jam menjadi **24 jam**, staf 8 jam menjadi **12 jam** (hasil, LKPD, modul LKPD, akun, observasi). Di antaranya hanya dokumen yang berubah yang dibaca.
+- `js/banksoal.js`: pembacaan penuh bank soal dan sesi: siswa 6 jam menjadi **24 jam**, staf tetap 6 jam.
+- `js/pkl.js`: **PKL staf kini bertahap**. Sebelumnya tiap muat membaca seluruh `pkl`, `pkl_catat` (absen dan jurnal harian), dan `pkl_nilai`. Sekarang setelah pembacaan penuh, hanya dokumen berubah; penuh lagi tiap 24 jam. Dokumen lokal yang belum terkirim tidak ditimpa. Siswa tetap hanya membaca miliknya.
+- Akibat: dokumen yang dihapus di perangkat lain baru hilang di perangkat ini pada pembacaan penuh berikutnya (siswa 24 jam, staf 12 jam, PKL 24 jam). Akses latihan sudah memakai penanda hapus, jadi tidak terpengaruh.
+- Uji: `tools/uji-pkl-bertahap.mjs` (11 pemeriksaan); `tools/uji-baca-bertahap.mjs` dan `tools/uji-akses-latihan.mjs` disesuaikan. Dokumen: `docs-OPTIMASI-APPWRITE.md`.
+
 ## Gerbang latihan ditutup rapat dan sapaan dua kata
 - `js/ui.js`: sapaan header menampilkan dua kata pertama nama (mis. "Halo, Budi Santoso"); teks setelah koma tetap dibuang.
 - `js/banksoal.js`: layar **Atur latihan** sebelumnya bisa terbuka tanpa akses lewat tiga jalur (pintasan Latihan soal di Beranda, pemulihan draf formulir, sisa tampilan setelah akses ditutup). Semuanya kini memeriksa `bsLatBuka()`. `bsPool('latihan')` kosong untuk siswa tanpa akses, jadi salinan bank soal di perangkat tidak lagi dihitung atau ditampilkan.

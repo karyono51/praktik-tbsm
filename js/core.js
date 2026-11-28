@@ -54,7 +54,7 @@ async function loadLKPDModuleDocs(cloud){try{return (await cloud.list('lkpd_modu
    lalu menggabungkannya ke salinan di perangkat (snapshot tbsm-snap, atau data yang sedang dipakai saat Segarkan).
    Pembacaan penuh diulang bila: belum ada salinan, sudah melewati INC_PENUH (supaya dokumen yang dihapus di perangkat lain ikut hilang),
    dipaksa (window.TBSM_PENUH=true), atau pembacaan bertahap gagal. Dokumen lokal yang belum terkirim (r kosong atau d=1) tidak ditimpa. */
-var INC_V=1,INC_MUNDUR=15000,INC_PENUH={staf:8*3600000,siswa:3*3600000};
+var INC_V=1,INC_MUNDUR=15000,INC_PENUH={staf:12*3600000,siswa:24*3600000};
 function incIso(t){return new Date(t).toISOString()}
 function incMax(docs,prev){var m=prev?Date.parse(prev):0;docs.forEach(function(d){var t=Date.parse(d.$updatedAt);if(t>m)m=t});return m?incIso(m):null}
 function incGabung(arr,items){var idx={};arr.forEach(function(o,i){idx[o.id]=i});
