@@ -1,3 +1,8 @@
+## Koleksi akun tertutup untuk siswa (profil lewat fungsi)
+- `functions/akun-admin/src/main.js`: aksi **`profil`**; `js/core.js`: `Cloud.resolve` memakainya (cadangan ke cara lama bila fungsi belum diperbarui).
+- `appwrite.json` (`akun`): create hanya admin, read guru dan admin. **Pasang berurutan: fungsi, aplikasi, baru izin** (lihat `docs-AKUN-TERTUTUP.md`).
+- Uji: `tools/uji-profil-fungsi.mjs` (8); `tools/uji-hak-akses.mjs` dan baseline `tools/audit-izin.baseline.json` disesuaikan.
+
 ## Administrasi Akademik: pembacaan bertahap
 - `js/akademik.js`: `akLoad` tidak lagi membaca seluruh koleksi `akademik` (dan `akademik_sdm` untuk admin) tiap halaman dibuka atau dimuat ulang. Setelah pembacaan penuh, berikutnya hanya dokumen yang berubah sejak cap `$updatedAt` server terbaru (mundur 2 detik) yang diambil dan digabung ke salinan di perangkat. Pembacaan penuh diulang tiap 6 jam (mendeteksi dokumen yang dihapus pengguna lain) dan bila pembacaan bertahap gagal. Perubahan lokal yang belum terkirim tidak ditimpa. `akClear` (keluar) menghapus status bertahap.
 - Latar belakang: Cek sinkronisasi menunjukkan `akademik` 360 dokumen dalam 10 permintaan (sekitar 73% pembacaan perangkat admin hari itu), karena tiap pemuatan membaca semua 36 dokumen.

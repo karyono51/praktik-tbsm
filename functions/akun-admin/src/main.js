@@ -39,6 +39,26 @@ export default async ({ req, res, error }) => {
       return res.json({ ok: true, sid: akun.$id });
     }
 
+    /* Aksi "profil" (semua pengguna login): kembalikan dokumen akun milik pemanggil. Email diambil dari akun Auth di server.
+       Siswa tidak perlu lagi membaca atau membuat dokumen di koleksi akun (izin koleksi dibatasi staf dan admin).
+       Dokumen belum ada: hanya email admin pertama (variabel ADMIN_EMAIL, opsional) yang dibuatkan dokumen berperan admin.
+       Perlu scope databases.read dan databases.write. */
+    if (body.action === 'profil') {
+      const db = new Databases(client);
+      const DB = process.env.DB_ID || 'tbsm';
+      const mail = String(caller.email || '').trim().toLowerCase();
+      if (!mail) return res.json({ ok: false, error: 'Akun login tidak punya email.' }, 400);
+      const f = await db.listDocuments(DB, 'akun', [Query.equal('email', [mail]), Query.limit(1)]);
+      let doc = f.documents[0];
+      if (!doc) {
+        const adm = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+        if (!adm || mail !== adm) return res.json({ ok: false, error: 'Email belum terdaftar di daftar akun.' }, 404);
+        doc = await db.createDocument(DB, 'akun', ID.unique(), { nama: caller.name || mail, username: mail.split('@')[0], email: mail, peran: 'admin', kelas: 'X', aktif: true, sekolah: 'ALL' });
+      }
+      if (doc.aktif === false) return res.json({ ok: false, error: 'Akun nonaktif.' }, 403);
+      return res.json({ ok: true, doc });
+    }
+
     if (!(caller.labels || []).includes('admin')) return res.json({ ok: false, error: 'Hanya admin yang boleh mengatur sandi.' }, 403);
     /* Aksi "setlabel" (admin): samakan label Auth (admin, guru, proktor) dengan kolom peran di daftar akun.
        Kiriman: { email, peran } atau { items: [{ email, peran }, ...] } (maks 200). Label lain (bukan admin/guru/proktor) dibiarkan.

@@ -37,20 +37,21 @@ console.log('1. Izin koleksi (appwrite.json)');
 cek('tidak ada koleksi yang memakai peran any', Object.keys(koleksi).every((id) => !koleksi[id].izin.some((p) => /\(any\)/.test(p))));
 cek('siswa tidak boleh mengubah atau menghapus dokumen mana pun', Object.keys(koleksi).every((id) => !boleh(id, 'update', 'siswa') && !boleh(id, 'delete', 'siswa')),
   Object.keys(koleksi).filter((id) => boleh(id, 'update', 'siswa') || boleh(id, 'delete', 'siswa')).join(','));
-const SISWA_BUAT = ['akun', 'hasil', 'lkpd', 'lkpd_bukti', 'pkl_catat'].sort();
+const SISWA_BUAT = ['hasil', 'lkpd', 'lkpd_bukti', 'pkl_catat'].sort();
 const nyataBuat = Object.keys(koleksi).filter((id) => boleh(id, 'create', 'siswa')).sort();
 cek('siswa hanya boleh membuat di koleksi yang memang dipakai siswa', JSON.stringify(nyataBuat) === JSON.stringify(SISWA_BUAT), nyataBuat.join(','));
-const SISWA_BACA = ['akun', 'banksoal', 'pkl', 'soal_sesi'].sort();
+const SISWA_BACA = ['banksoal', 'pkl', 'soal_sesi'].sort();
 const nyataBaca = Object.keys(koleksi).filter((id) => boleh(id, 'read', 'siswa')).sort();
 cek('siswa hanya boleh membaca koleksi yang diterima (baseline)', JSON.stringify(nyataBaca) === JSON.stringify(SISWA_BACA), nyataBaca.join(','));
 cek('profil aman: siswa tidak membuat soal_run dan soal_hasil (hanya fungsi cbt)', !boleh('soal_run', 'create', 'siswa') && !boleh('soal_hasil', 'create', 'siswa'));
 cek('kunci jawaban (soal_kunci) tidak terbaca siswa', !boleh('soal_kunci', 'read', 'siswa'));
 cek('audit, akademik_sdm: hanya admin', ['audit', 'akademik_sdm'].every((id) => !boleh(id, 'read', 'guru') && boleh(id, 'read', 'admin')));
 cek('guru tidak menulis akademik, akademik_sdm, audit', ['akademik', 'akademik_sdm', 'audit'].every((id) => !boleh(id, 'create', 'guru') && !boleh(id, 'update', 'guru') && !boleh(id, 'delete', 'guru')));
-cek('guru tidak mengubah atau menghapus akun (membuat akun = temuan PERAN-PALSU yang diterima)', !boleh('akun', 'update', 'guru') && !boleh('akun', 'delete', 'guru'));
+cek('akun: hanya staf yang membaca, hanya admin yang membuat', !boleh('akun', 'read', 'siswa') && !boleh('akun', 'create', 'siswa') && !boleh('akun', 'create', 'guru') && boleh('akun', 'read', 'guru') && boleh('akun', 'create', 'admin'));
+cek('guru tidak mengubah atau menghapus akun (siswa tidak membuat atau membaca akun)', !boleh('akun', 'update', 'guru') && !boleh('akun', 'delete', 'guru'));
 cek('hapus data dan penghapusan akun hanya admin', boleh('akun', 'delete', 'admin') && !boleh('akun', 'delete', 'guru') && boleh('hasil', 'delete', 'admin') && !boleh('hasil', 'delete', 'guru') && boleh('lkpd', 'delete', 'admin') && !boleh('lkpd', 'delete', 'guru'));
-cek('koleksi yang dibuat siswa memakai izin per dokumen (kecuali akun)', Object.keys(koleksi).filter((id) => boleh(id, 'create', 'siswa') && id !== 'akun').every((id) => koleksi[id].ds),
-  Object.keys(koleksi).filter((id) => boleh(id, 'create', 'siswa') && id !== 'akun' && !koleksi[id].ds).join(','));
+cek('koleksi yang dibuat siswa memakai izin per dokumen', Object.keys(koleksi).filter((id) => boleh(id, 'create', 'siswa')).every((id) => koleksi[id].ds),
+  Object.keys(koleksi).filter((id) => boleh(id, 'create', 'siswa') && !koleksi[id].ds).join(','));
 cek('uid_map tidak bisa dibuat atau diubah lewat izin koleksi oleh siswa', !boleh('uid_map', 'create', 'siswa') && !boleh('uid_map', 'update', 'siswa'));
 cek('observasi: siswa tidak menulis, tidak membaca', !boleh('observasi', 'create', 'siswa') && !boleh('observasi', 'read', 'siswa'));
 cek('lkpd_modules hanya untuk label lkpdeditor', Object.keys(koleksi).every((id) => id !== 'lkpd_modules' || koleksi[id].izin.every((p) => /label:lkpdeditor/.test(p))));

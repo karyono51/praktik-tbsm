@@ -16,8 +16,9 @@
       "enabled": true,
       "documentSecurity": false,
       "$permissions": [
-        "create(\"users\")",
-        "read(\"users\")",
+        "create(\"label:admin\")",
+        "read(\"label:guru\")",
+        "read(\"label:admin\")",
         "update(\"label:admin\")",
         "delete(\"label:admin\")"
       ],

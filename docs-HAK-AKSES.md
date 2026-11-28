@@ -5,7 +5,7 @@ Huruf: **B** baca, **T** tambah, **U** ubah, **H** hapus. Siswa = pengguna login
 
 | Koleksi | Siswa | Guru | Admin | Dokumen per pemilik |
 |---|---|---|---|---|
-| `akun` | BT | BT | BTUH | tidak |
+| `akun` | - | B | BTUH | tidak |
 | `hasil` | T | BTU | BTUH | ya |
 | `lkpd` | T | BTU | BTUH | ya |
 | `lkpd_modules` | - | - | - | ya |
@@ -29,17 +29,16 @@ Catatan: `lkpd_modules` memakai label tersendiri `lkpdeditor`, yang diberikan ke
 
 ## Aturan yang dijaga `tools/uji-hak-akses.mjs`
 - Tidak ada koleksi berizin `any`.
-- Siswa tidak pernah mengubah atau menghapus dokumen. Siswa hanya menambah di `akun`, `hasil`, `lkpd`, `lkpd_bukti`, `pkl_catat`.
-- Siswa hanya membaca `akun`, `banksoal`, `pkl`, `soal_sesi`. Kunci jawaban (`soal_kunci`) tidak terbaca siswa.
+- Siswa tidak pernah mengubah atau menghapus dokumen. Siswa hanya menambah di `hasil`, `lkpd`, `lkpd_bukti`, `pkl_catat`.
+- Siswa hanya membaca `banksoal`, `pkl`, `soal_sesi`. Kunci jawaban (`soal_kunci`) tidak terbaca siswa.
 - `audit` dan `akademik_sdm` hanya Admin. Guru tidak menulis `akademik`.
 - Penghapusan akun dan nilai hanya Admin.
-- Koleksi yang diisi siswa memakai izin per dokumen (kecuali `akun`), supaya siswa hanya membaca miliknya.
+- Koleksi yang diisi siswa memakai izin per dokumen, supaya siswa hanya membaca miliknya.
 - Di klien, izin mengikuti **peran aktif** (peran ganda tidak menggabung izin), peran tidak dikenal dianggap siswa.
 - Batas atribut Appwrite (validasi server): semua integer punya min dan max, nilai 0 sampai 100, semua teks punya ukuran maksimum.
 
 ## Risiko yang sudah diterima (baseline `tools/audit-izin.baseline.json`)
-1. `akun` dan `pkl` terbaca semua pengguna login.
-2. Siswa bisa membuat dokumen `akun` dengan bidang peran (PERAN-PALSU). Wewenang data tetap ditentukan label Auth di server.
-3. Siswa bisa mengisi `score` di `hasil` dan `lkpd` lewat API (NILAI-PALSU). Dibatasi 0 sampai 100 oleh atribut, dan guru dapat mengoreksi. Nilai CBT tidak terkena karena ditulis fungsi server.
+1. `pkl` terbaca semua pengguna login. (`akun` sudah ditutup: hanya guru/admin yang membaca, hanya admin yang membuat; siswa mengambil profilnya lewat fungsi `akun-admin` aksi `profil`.)
+2. Siswa bisa mengisi `score` di `hasil` dan `lkpd` lewat API (NILAI-PALSU). Dibatasi 0 sampai 100 oleh atribut, dan guru dapat mengoreksi. Nilai CBT tidak terkena karena ditulis fungsi server.
 
-Menutup risiko 2 dan 3 butuh perubahan izin di server (create hanya label guru atau lewat fungsi). Itu tidak diubah di paket ini, karena perlu uji di Appwrite Anda lebih dulu.
+Menutup risiko 2 butuh perubahan izin di server (create hanya label guru atau lewat fungsi). Itu tidak diubah di paket ini, karena perlu uji di Appwrite Anda lebih dulu.

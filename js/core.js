@@ -93,10 +93,26 @@ var Cloud={on:CLOUD_ON,busy:false,
  google:function(){this.acc.createOAuth2Session('google',location.href,location.href)},
  logout:async function(){try{await this.acc.deleteSession('current')}catch(e){}},
  list:async function(col,extra){var out=[],cur=null,LIM=500;for(;;){var q=[Appwrite.Query.limit(LIM)].concat(extra||[]);if(cur)q.push(Appwrite.Query.cursorAfter(cur));var r=await this.db.listDocuments(CFG.DB,col,q);out=out.concat(r.documents);if(r.documents.length<LIM)return out;cur=r.documents[r.documents.length-1].$id}},
+ profilFn:async function(){try{
+   var cl=(this.acc&&this.acc.client)||new Appwrite.Client().setEndpoint(CFG.APPWRITE_ENDPOINT).setProject(CFG.APPWRITE_PROJECT);
+   var ex=await new Appwrite.Functions(cl).createExecution(CFG.FN_AKUN||'akun-admin',JSON.stringify({action:'profil'}),false,'/','POST',{'content-type':'application/json'});
+   var j={};try{j=JSON.parse(ex.responseBody||'{}')}catch(e){}
+   if(j.ok&&j.doc)return {doc:j.doc};
+   var st=ex.responseStatusCode||0;
+   if(st===404&&/belum terdaftar/i.test(j.error||''))return {belum:true};
+   if(st===403&&/nonaktif/i.test(j.error||''))return {nonaktif:true};
+   if(st>=500)throw new Error('Server sedang bermasalah. Coba lagi sebentar lagi.');
+   return null}catch(e){if(e&&e.code===404)return null;if(e&&/Server sedang/.test(e.message||''))throw e;return null}},
  resolve:async function(me){
-  var em=me.email.toLowerCase(),f=await this.list('akun',[Appwrite.Query.equal('email',[em])]);
+  var em=me.email.toLowerCase(),adm=em===String(CFG.ADMIN_EMAIL||'').toLowerCase();
+  /* Profil diambil lewat fungsi server akun-admin (aksi profil): izin baca/buat koleksi akun tidak lagi terbuka untuk siswa.
+     Fungsi versi lama (galat 403/400, atau fungsi tidak ada): pakai cara lama membaca koleksi langsung. */
+  var fn=await this.profilFn();
+  if(fn&&fn.doc)return fromDoc(fn.doc);
+  if(fn&&fn.belum&&!adm){await this.logout();throw new Error('Email ini belum terdaftar. Minta guru atau admin menambahkan akun Anda terlebih dahulu.')}
+  if(fn&&fn.nonaktif){await this.logout();throw new Error('Akun dinonaktifkan. Hubungi admin.')}
+  var f=await this.list('akun',[Appwrite.Query.equal('email',[em])]);
   if(f[0])return fromDoc(f[0]);
-  var adm=em===String(CFG.ADMIN_EMAIL||'').toLowerCase();
   if(!adm&&CFG.PENDAFTARAN_TERBUKA===false){await this.logout();throw new Error('Email ini belum terdaftar. Minta guru atau admin menambahkan akun Anda terlebih dahulu.')}
   var p={id:uid(),nama:me.name||em,username:em.split('@')[0],email:em,peran:adm?'admin':'siswa',kelas:'X',aktif:true,sekolah:adm?'ALL':(schKode()||'')};
   await this.db.createDocument(CFG.DB,'akun',p.id,pick(p,FA));p.r=1;return p},
