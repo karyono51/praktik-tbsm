@@ -4,6 +4,35 @@ const SUMBER = {
   harian: { col: 'observasi', cocok: (d) => d.tipe === 'absen', q: [] },
   pkl: { col: 'pkl_catat', cocok: (d) => d.jenis === 'absen', q: [{ method: 'equal', attribute: 'jenis', values: ['absen'] }] }
 };
+const SEKOLAH = ['DF', 'MEDINA'];
+const kodeSekolah = (v) => { const k = String(v || '').trim().toUpperCase(); return SEKOLAH.includes(k) ? k : ''; };
+/* pemilah per sekolah untuk arsip dan hapus. Sekolah ditentukan dari akun siswa; admin yang terikat satu sekolah tidak boleh memproses sekolah lain. */
+async function pemilahSekolah(callerId, body, jenis, key, h) {
+  const sk = kodeSekolah(body.sekolah);
+  if (!sk) throw new h.Fail('Sekolah belum dipilih. Perbarui aplikasi lalu pilih sekolah.', 400);
+  const auth = { 'X-Appwrite-Key': key || '' }, akun = [];
+  let after = null;
+  for (;;) {
+    const p = new URLSearchParams();
+    [{ method: 'limit', values: [100] }, ...(after ? [{ method: 'cursorAfter', values: [after] }] : [])].forEach((q) => p.append('queries[]', JSON.stringify(q)));
+    const L = (await h.aw('/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/akun/documents?' + p, auth)).documents || [];
+    akun.push(...L);
+    if (L.length < 100) break;
+    after = L[L.length - 1].$id;
+  }
+  const email = String((await h.aw('/users/' + encodeURIComponent(callerId), auth)).email || '').toLowerCase();
+  const saya = akun.find((a) => email && String(a.email || '').toLowerCase() === email);
+  const milik = kodeSekolah(saya && saya.sekolah);
+  if (milik && milik !== sk) throw new h.Fail('Akun Anda hanya boleh memproses sekolahnya sendiri.', 403);
+  const peta = new Map(akun.map((a) => [a.$id, kodeSekolah(a.sekolah)]));
+  return (d) => {
+    if (jenis === 'pkl') return (peta.get(d.sid) || kodeSekolah(d.sekolah)) === sk;
+    let ids = [];
+    try { ids = Object.keys(JSON.parse(d.payload || '{}').rows || {}); } catch (e) { return false; }
+    /* sesi campuran atau berisi siswa tanpa sekolah tidak diproses */
+    return ids.length > 0 && ids.every((i) => peta.get(i) === sk);
+  };
+}
 export function rentang(senin) {
   const t = Date.parse(senin + 'T00:00:00Z');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(senin) || isNaN(t) || new Date(t).getUTCDay() !== 1) return null;
@@ -16,6 +45,7 @@ export async function arsipAbsen(callerId, body, auth, key, h) {
   const u = await aw('/users/' + encodeURIComponent(callerId), { 'X-Appwrite-Key': key || '' });
   if (!(u.labels || []).includes('admin')) throw new Fail('Hanya admin yang boleh mengarsipkan.', 403);
   if (r[1] >= new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10)) throw new Fail('Minggu ini belum selesai.', 400);
+  const punya = await pemilahSekolah(callerId, body, body.jenis, key, h);
   const docs = [];
   let after = null;
   for (;;) {
@@ -23,7 +53,7 @@ export async function arsipAbsen(callerId, body, auth, key, h) {
     [...s.q, { method: 'limit', values: [100] }, ...(after ? [{ method: 'cursorAfter', values: [after] }] : [])]
       .forEach((q) => p.append('queries[]', JSON.stringify(q)));
     const L = (await aw('/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/' + s.col + '/documents?' + p, auth)).documents || [];
-    L.forEach((d) => { const t = String(d.tanggal || '').slice(0, 10); if (s.cocok(d) && t >= r[0] && t <= r[1]) docs.push(d); });
+    L.forEach((d) => { const t = String(d.tanggal || '').slice(0, 10); if (s.cocok(d) && t >= r[0] && t <= r[1] && punya(d)) docs.push(d); });
     if (L.length < 100) break;
     after = L[L.length - 1].$id;
   }
@@ -92,9 +122,10 @@ export async function hapusArsip(callerId, body, auth, key, h) {
   if (!rentang(String(body.minggu || ''))) throw new h.Fail('Tanggal Senin tidak valid.', 400);
   const tok = await h.accessToken(), L = await cariArsip(body.minggu, tok, await h.folderId(tok), h, jenis);
   if (!L) throw new h.Fail('Minggu ini belum diarsipkan.', 400);
+  const punya = await pemilahSekolah(callerId, body, jenis, key, h), milik = L.filter(punya);
   const mulai = Math.max(0, Number(body.mulai) || 0), ids = [];
   let berubah = 0;
-  for (const d of L.slice(mulai, mulai + 20)) {
+  for (const d of milik.slice(mulai, mulai + 20)) {
     const path = '/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/' + s.col + '/documents/' + encodeURIComponent(d.$id);
     let now;
     try { now = await h.aw(path, auth); } catch (e) { if (/\(404\)/.test(e.message)) { ids.push(d.$id); continue; } throw e; }
@@ -102,7 +133,7 @@ export async function hapusArsip(callerId, body, auth, key, h) {
     await h.hapusDok(path, auth);
     ids.push(d.$id);
   }
-  return { ok: true, ids, berubah, lanjut: mulai + 20 < L.length ? mulai + 20 : null };
+  return { ok: true, ids, berubah, lanjut: mulai + 20 < milik.length ? mulai + 20 : null };
 }
 
 /* Kehadiran milik pemanggil saja. Identitas dari sesi login (email -> dokumen akun); isian dari aplikasi tidak dipercaya. */

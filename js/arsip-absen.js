@@ -46,7 +46,7 @@ document.addEventListener('click',function(e){
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(A),'Mingguan');XLSX.writeFile(wb,'Absensi-'+j+'-'+m+'.xlsx');return;
  }
  b.disabled=true;
- ldCall({action:'arsip-absen',jenis:j,minggu:m}).then(function(r){toast(r.jumlah?'Terarsip dan terverifikasi: '+r.jumlah+' dokumen.':'Tidak ada data untuk diarsipkan.')})
+ ldCall({action:'arsip-absen',jenis:j,minggu:m,sekolah:schKode()}).then(function(r){toast(r.jumlah?'Terarsip dan terverifikasi: '+r.jumlah+' dokumen '+schNama()+'.':'Tidak ada data '+schNama()+' untuk diarsipkan.')})
   .catch(function(x){toast('Arsip gagal: '+x.message)}).then(function(){b.disabled=false});
 });
 
@@ -82,7 +82,7 @@ if(typeof abSet==='function'){var _arSet=abSet;abSet=function(rb,t,j){
  return _arSet.apply(this,arguments);
 }}
 function arHapus(m,mulai,n,lewat){
- return ldCall({action:'hapus-arsip',minggu:m,mulai:mulai}).then(function(r){
+ return ldCall({action:'hapus-arsip',minggu:m,mulai:mulai,sekolah:AR.sk}).then(function(r){
   var buang={};r.ids.forEach(function(i){buang[i]=1});
   S.observasi=(S.observasi||[]).filter(function(x){return !(x.tipe==='absen'&&buang[x.id]&&!x.d)});save();
   n+=r.ids.length;lewat+=r.berubah;
@@ -93,12 +93,14 @@ document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-arhapus],[data-arsegar]');if(!b)return;
  if(b.dataset.arsegar){AR.st={};AR.doc={};AR.pesan='';render();return}
  var m=b.dataset.arhapus;
- if(!uiOk('arhapus'+m,'Hapus absensi harian minggu '+m+' dari Appwrite?\nData tetap ada di arsip Drive. Penghapusan tidak bisa dibatalkan, dan sesi tidak bisa diubah lagi.',b,{ok:'Hapus',cancel:'Batal',danger:true}))return;
- b.disabled=true;delete AR.st[m];
+ var sk=schKode(),sn=schNama();
+ if(!sk)return toast('Pilih sekolah dulu.');
+ if(!uiOk('arhapus'+sk+m,'Hapus absensi harian '+sn+' minggu '+m+' dari Appwrite?\nData tetap ada di arsip Drive. Penghapusan tidak bisa dibatalkan, dan sesi tidak bisa diubah lagi.',b,{ok:'Hapus',cancel:'Batal',danger:true}))return;
+ b.disabled=true;AR.sk=sk;delete AR.st[m];
  arMuat([m]).then(function(){
   if(AR.st[m]!==2)throw new Error('arsip belum terbaca di aplikasi, penghapusan dibatalkan.');
   return arHapus(m,0,0,0);
- }).then(function(r){toast(r.n+' sesi dihapus dari Appwrite'+(r.lewat?', '+r.lewat+' berubah (arsipkan ulang dulu).':'.'));render()})
+ }).then(function(r){toast(r.n+' sesi '+sn+' dihapus dari Appwrite'+(r.lewat?', '+r.lewat+' berubah (arsipkan ulang dulu).':'.'));render()})
   .catch(function(x){toast('Hapus gagal: '+x.message)}).then(function(){b.disabled=false});
 });
 
@@ -166,7 +168,7 @@ document.addEventListener('click',function(e){
  if(b){e.preventDefault();e.stopImmediatePropagation();toast('Tunggu arsip absen selesai dimuat, atau ketuk Coba lagi.')}
 },true);
 function arpHapus(m,mulai,n,lewat){
- return ldCall({action:'hapus-arsip',jenis:'pkl',minggu:m,mulai:mulai}).then(function(r){
+ return ldCall({action:'hapus-arsip',jenis:'pkl',minggu:m,mulai:mulai,sekolah:ARP.sk}).then(function(r){
   var buang={};r.ids.forEach(function(i){buang[i]=1});
   PK.D.absen=PK.D.absen.filter(function(x){return !(buang[x.id]&&!x.d)});pkSaveLocal();
   n+=r.ids.length;lewat+=r.berubah;
@@ -178,11 +180,13 @@ document.addEventListener('click',function(e){
  if(b.dataset.arpsegar){ARP.st=0;render();return}
  if(actRole()!=='admin')return;
  var m=b.dataset.arpklhapus;
- if(!uiOk('arpkl'+m,'Hapus absen PKL minggu '+m+' dari Appwrite?\nData tetap ada di arsip Drive. Penghapusan tidak bisa dibatalkan.',b,{ok:'Hapus',cancel:'Batal',danger:true}))return;
+ var sk=schKode(),sn=schNama();
+ if(!sk)return toast('Pilih sekolah dulu.');
+ if(!uiOk('arpkl'+sk+m,'Hapus absen PKL '+sn+' minggu '+m+' dari Appwrite?\nData tetap ada di arsip Drive. Penghapusan tidak bisa dibatalkan.',b,{ok:'Hapus',cancel:'Batal',danger:true}))return;
  b.disabled=true;ARP.st=0;arpMuat();
- var X=ARP;
+ var X=ARP;X.sk=sk;
  new Promise(function(ok,no){var n=0;(function tunggu(){if(X.st===2)return ok();if(X.st===3||++n>120)return no(new Error('arsip belum terbaca, penghapusan dibatalkan.'));setTimeout(tunggu,500)})()})
   .then(function(){return arpHapus(m,0,0,0)})
-  .then(function(r){toast(r.n+' catatan dihapus dari Appwrite'+(r.lewat?', '+r.lewat+' berubah (arsipkan ulang dulu).':'.'));render()})
+  .then(function(r){toast(r.n+' catatan '+sn+' dihapus dari Appwrite'+(r.lewat?', '+r.lewat+' berubah (arsipkan ulang dulu).':'.'));render()})
   .catch(function(x){toast('Hapus gagal: '+x.message)}).then(function(){b.disabled=false});
 });
