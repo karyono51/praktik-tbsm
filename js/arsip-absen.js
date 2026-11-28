@@ -101,7 +101,7 @@ document.addEventListener('click',function(e){
   .catch(function(x){toast('Hapus gagal: '+x.message)}).then(function(){b.disabled=false});
 });
 
-/* ---- evaluasi kehadiran di beranda siswa (dimuat saat diketuk agar hemat) ---- */
+/* ---- evaluasi kehadiran di halaman Absensi siswa (dimuat saat diketuk agar hemat) ---- */
 var ARS={m:'',d:null,pesan:'',u:''};
 var AR_ST={H:'Hadir',S:'Sakit',I:'Izin',A:'Alpa'};
 function arSiswa(){
@@ -118,7 +118,11 @@ function arSiswa(){
  }
  return h+'</div>';
 }
-if(typeof viewBeranda==='function'){var _arBr=viewBeranda;viewBeranda=function(){return (S.user&&S.role==='siswa'&&Cloud.on?arSiswa():'')+_arBr()}}
+/* halaman Absensi siswa (pintasan Beranda): barcode dan kehadiran mingguan */
+if(typeof viewKatalog==='function'){var _arVk=viewKatalog;viewKatalog=function(){
+ if(S.tab==='absensi'&&S.user&&actRole()==='siswa')return '<div class="card"><div class="row sb"><div class="grow"><b>Barcode absensi saya</b><div class="note">Tunjukkan ke guru untuk absensi kehadiran dan praktik.</div></div><button type="button" class="btn small primary" data-act="abme">Tampilkan</button></div></div>'+(Cloud.on?arSiswa():'<div class="note">Kehadiran mingguan tersedia saat aplikasi tersambung ke server.</div>');
+ return _arVk.apply(this,arguments);
+}}
 document.addEventListener('change',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.ars&&t.value){ARS.m=arSenin(t.value);ARS.d=null;ARS.pesan='';render()}});
 document.addEventListener('click',function(e){
  if(!(e.target.closest&&e.target.closest('[data-arslihat]')))return;
