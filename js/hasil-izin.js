@@ -15,12 +15,15 @@
  async function claim(){
   if(claimed||!Cloud.on||!S.user||!Cloud.db)return;
   var id=myAuth();if(!id)return;
+  /* hemat baca: pemetaan cukup dicatat sekali per akun per perangkat, diulang tiap 7 hari */
+  var ck='tbsm-claim-'+id;
+  try{var ts=+localStorage.getItem(ck)||0;if(ts&&Date.now()-ts<7*86400000){claimed=true;return}}catch(e){}
   if(!tanpaFn){
    try{
     var cl=(Cloud.acc&&Cloud.acc.client)||new Appwrite.Client().setEndpoint(CFG.APPWRITE_ENDPOINT).setProject(CFG.APPWRITE_PROJECT);
     var ex=await new Appwrite.Functions(cl).createExecution(CFG.FN_AKUN||'akun-admin',JSON.stringify({action:'claim'}),false,'/','POST',{'content-type':'application/json'});
     var j={};try{j=JSON.parse(ex.responseBody||'{}')}catch(e){}
-    if(j.ok){claimed=true;return}
+    if(j.ok){claimed=true;try{localStorage.setItem(ck,String(Date.now()))}catch(e){}return}
     var st=ex.responseStatusCode||0;
     if(st===404&&/belum terdaftar/i.test(j.error||''))return;   /* akun memang belum ada: jangan dicadangkan */
     if(st>=500)return;                                          /* galat sementara: coba lagi nanti */
@@ -28,7 +31,8 @@
    }catch(e){if(e&&(e.code===404||/not found/i.test(e.message||'')))tanpaFn=true;else return}
   }
   try{await Cloud.db.createDocument(CFG.DB,'uid_map',id,{sid:S.user.id,email:emailOf(S.user)});claimed=true}
-  catch(e){if(e&&e.code===409)claimed=true}}
+  catch(e){if(e&&e.code===409)claimed=true}
+  if(claimed){try{localStorage.setItem(ck,String(Date.now()))}catch(e){}}}
 
  /* staf: pemetaan sid -> daftar ID login, hanya yang emailnya cocok dengan akun.
     Hemat kuota baca: daftar uid_map disimpan di perangkat (tbsm-izin) dan hanya dokumen yang berubah sejak pembacaan terakhir yang diambil. */

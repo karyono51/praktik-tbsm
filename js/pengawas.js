@@ -115,14 +115,14 @@ document.addEventListener('click',function(e){
   BS.tkR=BS.tkR||{};BS.tkR[sid]={rilis:j.rilis||0,berlaku:j.berlaku||0};toast(rilis?'Token dirilis':'Token ditutup');render();
  }).catch(function(er){toast('Gagal: '+((er&&er.message)||er))});
 },true);
-/* ketukan 1 detik: hitung mundur token, dan muat ulang tiap 15 detik */
+/* ketukan 1 detik: hitung mundur token, dan muat ulang tiap 45 detik */
 var tick=0;
 setInterval(function(){
  try{
   var el=document.getElementById('ru-tsisa');
   if(el){var s=Math.max(0,(+el.dataset.s)-Math.round((Date.now()-(+el.dataset.t))/1000));el.textContent=mmss(s)}
   if(!isPk()||S.tab!=='ruangujian'||document.hidden)return;
-  if(++tick>=15){tick=0;ruMuat()}
+  if(++tick>=45){tick=0;ruMuat()}
  }catch(e){}
 },1000);
 

@@ -47,3 +47,9 @@ Sumber baca yang masih ada (urut kira-kira dari terbesar):
 3. Cek sinkronisasi (admin): membaca seluruh dokumen tiap koleksi. Jalankan seperlunya, jangan berulang.
 4. Alumni dan Log audit: pembacaan penuh saat dibuka.
 Pantau angka sebenarnya di Console > Databases > Usage, dan kartu Penggunaan database perangkat ini di aplikasi.
+
+## Putaran 28 Nov 2026 (patch hemat baca login dan pantau)
+- Pencatatan `uid_map` (aksi `claim`) kini disimpan di localStorage `tbsm-claim-<id login>` dan hanya diulang tiap 7 hari. Sebelumnya tiap login memanggil fungsi yang membaca koleksi `akun`. Hemat 1 baca per login.
+- Ruang ujian (`js/pengawas.js`) memuat ulang tiap 45 detik (sebelumnya 15). Tombol muat ulang manual tetap ada.
+- Pantau CBT (`js/cbt-staf.js`) memuat ulang tiap 20 detik (sebelumnya 10).
+- Tidak ada perubahan fungsi Appwrite, jadi tidak perlu deploy ulang fungsi.

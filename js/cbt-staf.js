@@ -234,7 +234,7 @@
  function pnPaint(){var e=document.getElementById('pn-body');if(e)e.innerHTML=pnBody()}
  function inPantau(){return !!S.user&&bsOn()&&BS.tab==='pantau'&&isStaff()&&Cloud.on}
  function pnTimer(){
-  if(inPantau()&&!PN.timer){PN.timer=setInterval(function(){if(!inPantau()){pnStop();return}if(document.hidden)return;if(PN.runs.length>150&&Date.now()-PN.at<14000)return;pnLoad().then(pnPaint)},10000)}
+  if(inPantau()&&!PN.timer){PN.timer=setInterval(function(){if(!inPantau()){pnStop();return}if(document.hidden)return;if(PN.runs.length>150&&Date.now()-PN.at<28000)return;pnLoad().then(pnPaint)},20000)}
   else if(!inPantau())pnStop();
  }
  function pnStop(){if(PN.timer){clearInterval(PN.timer);PN.timer=0}}
