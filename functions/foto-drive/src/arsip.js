@@ -115,25 +115,33 @@ export async function bacaArsip(callerId, body, key, h) {
   for (const w of m) ((await cariArsip(w, tok, parent, h)) || []).forEach((d) => { if (adm || d.pengamatId === callerId) dokumen.push(d); });
   return { ok: true, dokumen };
 }
-/* hapus hanya dokumen yang sudah ada di arsip dan tidak berubah sejak diarsipkan; dibatasi per panggilan agar tidak melewati batas waktu */
+/* hapus hanya dokumen yang sudah ada di arsip dan tidak berubah sejak diarsipkan; dibatasi per panggilan agar tidak melewati batas waktu.
+   Keberadaan dokumen selalu diperiksa dengan kunci fungsi (bukan token admin): token yang tidak boleh membaca dokumen juga mendapat 404,
+   jadi 404 dari token tidak membuktikan dokumennya hilang. Setiap penghapusan dibuktikan dengan membaca ulang (harus 404).
+   Hasil: dihapus = terhapus pada panggilan ini; sudah = sudah tidak ada sebelumnya; gagal = masih ada setelah dihapus; berubah = dilewati. */
 export async function hapusArsip(callerId, body, auth, key, h) {
+  if (!key) throw new h.Fail('Izin fungsi belum lengkap (users.read dan documents.read).', 500);
   if (!(await peran(callerId, key, h)).includes('admin')) throw new h.Fail('Hanya admin yang boleh menghapus.', 403);
   const jenis = body.jenis === 'pkl' ? 'pkl' : 'harian', s = SUMBER[jenis];
   if (!rentang(String(body.minggu || ''))) throw new h.Fail('Tanggal Senin tidak valid.', 400);
   const tok = await h.accessToken(), L = await cariArsip(body.minggu, tok, await h.folderId(tok), h, jenis);
   if (!L) throw new h.Fail('Minggu ini belum diarsipkan.', 400);
   const punya = await pemilahSekolah(callerId, body, jenis, key, h), milik = L.filter(punya);
-  const mulai = Math.max(0, Number(body.mulai) || 0), ids = [];
-  let berubah = 0;
+  const kunci = { 'X-Appwrite-Key': key };
+  const mulai = Math.max(0, Number(body.mulai) || 0), dihapus = [], sudah = [];
+  let berubah = 0, gagal = 0;
   for (const d of milik.slice(mulai, mulai + 20)) {
     const path = '/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/' + s.col + '/documents/' + encodeURIComponent(d.$id);
     let now;
-    try { now = await h.aw(path, auth); } catch (e) { if (/\(404\)/.test(e.message)) { ids.push(d.$id); continue; } throw e; }
+    try { now = await h.aw(path, kunci); } catch (e) { if (/\(404\)/.test(e.message)) { sudah.push(d.$id); continue; } throw e; }
     if (!s.cocok(now) || now.$updatedAt !== d.$updatedAt) { berubah++; continue; }
     await h.hapusDok(path, auth);
-    ids.push(d.$id);
+    let masih = true;
+    try { await h.aw(path, kunci); } catch (e) { if (/\(404\)/.test(e.message)) masih = false; else throw e; }
+    if (masih) { gagal++; continue; }
+    dihapus.push(d.$id);
   }
-  return { ok: true, ids, berubah, lanjut: mulai + 20 < milik.length ? mulai + 20 : null };
+  return { ok: true, ids: [...dihapus, ...sudah], dihapus: dihapus.length, sudah: sudah.length, berubah, gagal, lanjut: mulai + 20 < milik.length ? mulai + 20 : null };
 }
 
 /* Kehadiran milik pemanggil saja. Identitas dari sesi login (email -> dokumen akun); isian dari aplikasi tidak dipercaya. */

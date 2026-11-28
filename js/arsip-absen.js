@@ -81,12 +81,21 @@ if(typeof abSet==='function'){var _arSet=abSet;abSet=function(rb,t,j){
  if(AR.doc[id]&&!abRec(rb,t,j)){toast('Sesi ini sudah diarsipkan dan tidak bisa diubah.');return false}
  return _arSet.apply(this,arguments);
 }}
-function arHapus(m,mulai,n,lewat){
+/* t = {d: dihapus sekarang, s: sudah terhapus sebelumnya, lewat: berubah, gagal: masih ada}. Server lama tidak mengirim dihapus/sudah: dianggap semua dihapus. */
+function arTambah(t,r){t.d+=r.dihapus!=null?r.dihapus:r.ids.length;t.s+=r.sudah||0;t.lewat+=r.berubah||0;t.gagal+=r.gagal||0;return t}
+function arPesan(sn,kata,t){
+ var p=[t.d+' '+kata+' '+sn+' dihapus sekarang'];
+ if(t.s)p.push(t.s+' sudah terhapus sebelumnya');
+ if(t.lewat)p.push(t.lewat+' berubah (arsipkan ulang dulu)');
+ if(t.gagal)p.push(t.gagal+' GAGAL dihapus, masih ada di Appwrite (cek izin hapus akun admin)');
+ return p.join(', ')+'.';
+}
+function arHapus(m,mulai,t){
  return ldCall({action:'hapus-arsip',minggu:m,mulai:mulai,sekolah:AR.sk}).then(function(r){
   var buang={};r.ids.forEach(function(i){buang[i]=1});
   S.observasi=(S.observasi||[]).filter(function(x){return !(x.tipe==='absen'&&buang[x.id]&&!x.d)});save();
-  n+=r.ids.length;lewat+=r.berubah;
-  return r.lanjut!=null?arHapus(m,r.lanjut,n,lewat):{n:n,lewat:lewat};
+  arTambah(t,r);
+  return r.lanjut!=null?arHapus(m,r.lanjut,t):t;
  });
 }
 document.addEventListener('click',function(e){
@@ -99,8 +108,8 @@ document.addEventListener('click',function(e){
  b.disabled=true;AR.sk=sk;delete AR.st[m];
  arMuat([m]).then(function(){
   if(AR.st[m]!==2)throw new Error('arsip belum terbaca di aplikasi, penghapusan dibatalkan.');
-  return arHapus(m,0,0,0);
- }).then(function(r){toast(r.n+' sesi '+sn+' dihapus dari Appwrite'+(r.lewat?', '+r.lewat+' berubah (arsipkan ulang dulu).':'.'));render()})
+  return arHapus(m,0,{d:0,s:0,lewat:0,gagal:0});
+ }).then(function(r){toast(arPesan(sn,'sesi',r));render()})
   .catch(function(x){toast('Hapus gagal: '+x.message)}).then(function(){b.disabled=false});
 });
 
@@ -167,12 +176,12 @@ document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-act^="pkl-xls"],[data-act^="pkl-pdf"],[data-act^="pko"],[data-arxls="pkl"]');
  if(b){e.preventDefault();e.stopImmediatePropagation();toast('Tunggu arsip absen selesai dimuat, atau ketuk Coba lagi.')}
 },true);
-function arpHapus(m,mulai,n,lewat){
+function arpHapus(m,mulai,t){
  return ldCall({action:'hapus-arsip',jenis:'pkl',minggu:m,mulai:mulai,sekolah:ARP.sk}).then(function(r){
   var buang={};r.ids.forEach(function(i){buang[i]=1});
   PK.D.absen=PK.D.absen.filter(function(x){return !(buang[x.id]&&!x.d)});pkSaveLocal();
-  n+=r.ids.length;lewat+=r.berubah;
-  return r.lanjut!=null?arpHapus(m,r.lanjut,n,lewat):{n:n,lewat:lewat};
+  arTambah(t,r);
+  return r.lanjut!=null?arpHapus(m,r.lanjut,t):t;
  });
 }
 document.addEventListener('click',function(e){
@@ -186,7 +195,7 @@ document.addEventListener('click',function(e){
  b.disabled=true;ARP.st=0;arpMuat();
  var X=ARP;X.sk=sk;
  new Promise(function(ok,no){var n=0;(function tunggu(){if(X.st===2)return ok();if(X.st===3||++n>120)return no(new Error('arsip belum terbaca, penghapusan dibatalkan.'));setTimeout(tunggu,500)})()})
-  .then(function(){return arpHapus(m,0,0,0)})
-  .then(function(r){toast(r.n+' catatan '+sn+' dihapus dari Appwrite'+(r.lewat?', '+r.lewat+' berubah (arsipkan ulang dulu).':'.'));render()})
+  .then(function(){return arpHapus(m,0,{d:0,s:0,lewat:0,gagal:0})})
+  .then(function(r){toast(arPesan(sn,'catatan',r));render()})
   .catch(function(x){toast('Hapus gagal: '+x.message)}).then(function(){b.disabled=false});
 });
