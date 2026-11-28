@@ -113,7 +113,7 @@ window.bsDraftRestore=function(){
  if(staf){
   if(d.form&&!BS.form&&!BS.sf&&S.tab!=='cbtonline'){BS.form=d.form;BS.tab='bank';n=true}
   if(d.sf&&!BS.form&&!BS.sf&&S.tab==='cbtonline'){BS.sf=d.sf;BS.tab=d.bt||'sesi';n=true}
- }else if(d.sub==='latsetup'&&BS.sub==='home'){
+ }else if(d.sub==='latsetup'&&BS.sub==='home'&&typeof bsLatBuka==='function'&&bsLatBuka()){
   BS.lat=Object.assign({mapel:'',tipe:'',n:10},d.lat||{});BS.sub='latsetup';n=true;
  }
  return n;

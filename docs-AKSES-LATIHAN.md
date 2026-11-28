@@ -29,3 +29,8 @@ Dokumen `soal_sesi` dengan `payload.jenis='latihan'` dan `kelas` (`ALL`, `X`, `X
 - Gerbang berlaku di aplikasi (klien). Fungsi server `cbt` belum memeriksa akses saat latihan dikirim, jadi ini pengendali alur, bukan pengaman terhadap pengguna yang memodifikasi klien.
 - Akses per rombel atau per siswa belum ada (hanya per tingkat kelas).
 - Uji: `node tools/uji-akses-latihan.mjs`.
+
+## Penutupan jalur (catatan)
+- Atur latihan hanya tampil bila `bsLatBuka()`; pintasan Beranda dan pemulihan draf ikut diperiksa.
+- Hapus akses = tandai `aktif:false` dan `hapus:true` (dokumen tetap di server agar perangkat siswa tahu lewat pembacaan bertahap).
+- Akses hanya berlaku bila tanggal/jam perangkat benar; sesi yang sudah lewat jadwal otomatis tertutup.

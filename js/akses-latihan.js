@@ -5,7 +5,7 @@
 (function(){
  if(typeof bsViewSesi!=='function')return;
  var KLS=[['ALL','Semua kelas'],['X','Kelas X'],['XI','Kelas XI'],['XII','Kelas XII']];
- function daftar(){return (BS.D.lat||[]).filter(schAkunOk).sort(function(a,b){return (b.ts||0)-(a.ts||0)})}
+ function daftar(){return (BS.D.lat||[]).filter(function(x){return !x.hapus&&schAkunOk(x)}).sort(function(a,b){return (b.ts||0)-(a.ts||0)})}
  function kartu(){
   var L=daftar(),h='<div class="card" id="al-kartu"><b>Akses latihan siswa</b><p class="note">Siswa hanya bisa memulai latihan bila ada akses yang dibuka untuk kelasnya. Tanpa akses, siswa juga tidak membaca bank soal dari server.</p>';
   if(!L.length)h+='<p class="muted">Belum ada akses latihan. Latihan tertutup untuk semua siswa.</p>';
@@ -37,7 +37,8 @@
   }else if(a==='hapus'){
    var s2=(BS.D.lat||[]).filter(function(x){return x.id===id})[0];if(!s2)return;
    if(typeof uiConfirm==='function'&&!(await uiConfirm('Hapus akses latihan ini? Siswa tidak bisa memulai latihan dari akses ini lagi.',{ok:'Hapus'})))return;
-   await bsDel('lat',id);render();
+   /* tidak dihapus dari server: siswa hanya mengetahui perubahan lewat pembacaan bertahap, jadi dokumen ditandai tutup + hapus */
+   s2.aktif=false;s2.hapus=true;bsPut('lat',s2);render();
   }
  });
 })();

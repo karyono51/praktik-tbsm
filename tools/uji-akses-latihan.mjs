@@ -109,6 +109,12 @@ ok('pembacaan bertahap: diperbarui tanpa menghapus yang lain', ctx.BS.D.lat.leng
 
 console.log('Kode: gerbang, penyimpanan, dan registrasi');
 ok('Mulai latihan dan Atur latihan dijaga', (src.match(/if\(!bsLatBuka\(\)\)\{toast\('Latihan belum dibuka oleh guru'\)/g) || []).length === 2);
+const fd = fs.readFileSync(path.join(root, 'js/form-draft.js'), 'utf8'), al = fs.readFileSync(path.join(root, 'js/akses-latihan.js'), 'utf8');
+ok('layar Atur latihan tidak tampil tanpa akses (pintasan, draf, sisa tampilan)', /if\(BS\.sub==='latsetup'\)\{if\(bsLatBuka\(\)\)return bsViewLatSetup\(\);BS\.sub='home'\}/.test(src) && /if\(bsLatBuka\(\)\)BS\.sub='latsetup'/.test(src) && /d\.sub==='latsetup'&&BS\.sub==='home'&&typeof bsLatBuka==='function'&&bsLatBuka\(\)/.test(fd));
+ok('bank soal latihan kosong untuk siswa tanpa akses (salinan di perangkat tidak dipakai)', /function bsPool\(mode,kelas\)\{[^]*?mode==='latihan'&&S\.user&&!isStaff\(\)&&!bsLatBuka\(\)\)return \[\]/.test(src));
+ok('Hapus akses latihan = ditandai tutup + hapus (bukan dihapus dari server), dan diabaikan gerbang', /s2\.aktif=false;s2\.hapus=true;bsPut\('lat',s2\)/.test(al) && !/bsDel\('lat'/.test(al) && /!s\.hapus&&schAkunOk\(s\)/.test(src));
+ctx.BS.D.lat = [{ id: 'T1', kelas: 'X', aktif: false, hapus: true, mulai: 0, selesai: 0, r: 1 }, { id: 'T2', kelas: 'X', aktif: true, hapus: true, mulai: 0, selesai: 0, r: 1 }];
+ok('akses bertanda hapus tidak membuka latihan walau aktif', ctx.bsLatBuka() === false);
 ok('latihan menyimpan jenis di payload dan memakai koleksi soal_sesi', /k==='lat'\)o\.payload=JSON\.stringify\(\{jenis:'latihan'/.test(src) && /lat:'soal_sesi'/.test(src));
 const idx = fs.readFileSync(path.join(root, 'index.html'), 'utf8'), sw = fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8');
 ok('akses-latihan.js dimuat setelah cbt-staf.js dan masuk cache', idx.indexOf('js/akses-latihan.js') > idx.indexOf('js/cbt-staf.js') && /akses-latihan\.js/.test(sw));

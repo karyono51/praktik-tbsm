@@ -52,7 +52,7 @@ function bsPack(k,o){
    o.payload=JSON.stringify({q:o.q,opts:o.opts,rows:o.rows?o.rows.map(function(r){return [r[0]]}):undefined,lab:o.lab,ks:1,qi:o.qi||undefined,oi:o.oi||undefined,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined,dari:o.dari||undefined});
   }else o.payload=JSON.stringify({q:o.q,opts:o.opts,kunci:o.kunci,rows:o.rows,lab:o.lab,bahas:o.bahas,qi:o.qi||undefined,oi:o.oi||undefined,rub:o.rub,kj:o.kj,maks:o.maks||undefined,bobot:o.bobot||undefined,pj:o.pj||undefined,dib:o.dib||undefined,dari:o.dari||undefined});
  }
- else if(k==='lat')o.payload=JSON.stringify({jenis:'latihan',sekolah:o.sekolah||''});
+ else if(k==='lat')o.payload=JSON.stringify({jenis:'latihan',sekolah:o.sekolah||'',hapus:o.hapus?1:undefined});
  else if(k==='sesi')o.payload=JSON.stringify({ids:o.ids||[],jns:(o.jns&&o.pilih!=='manual')?o.jns:undefined,jumlahUr:(typeof o.jumlahUr==='number'&&!o.jns&&o.pilih!=='manual')?o.jumlahUr:undefined,pilih:o.pilih||'otomatis',mapelF:o.mapelF||[],tampil:!!o.tampil,sekolah:o.sekolah||'',tok:o.tok?1:0,tokR:o.tokR?1:0,tokH:bsAman()?undefined:(o.tokH||undefined),tokS:bsAman()?undefined:(o.tokS||undefined),batas:o.batas||0,aksi:o.aksi||'peringatan',layar:!!o.layar,exambro:!!o.exambro,seb:!!o.seb,ruang:(o.ruang&&o.ruang.length)?o.ruang:undefined,pes:Array.isArray(o.pes)?o.pes:undefined,pesTs:Array.isArray(o.pes)?(o.pesTs||0):undefined,rmb:(Array.isArray(o.pes)&&o.rmb&&o.rmb.length)?o.rmb:undefined,nomor:(Array.isArray(o.pes)&&o.nomor)?o.nomor:undefined});
  else o.payload=JSON.stringify({ans:o.ans,order:o.order,oo:o.oo,pindah:o.pindah||0,pts:o.pts});
 }
@@ -142,7 +142,7 @@ function bsLatPisah(full){
  else{BS.D.lat=BS.D.lat||[];mv.forEach(function(o){var j=BS.D.lat.findIndex(function(y){return y.id===o.id});if(j<0)BS.D.lat.push(o);else if(BS.D.lat[j].r&&!BS.D.lat[j].d)BS.D.lat[j]=o})}
 }
 /* akses latihan yang sedang dibuka untuk kelas ini */
-function bsLatAkses(kelas){return (BS.D.lat||[]).filter(function(s){return schAkunOk(s)&&bsKlsCocok(s,kelas)&&bsSesiStatus(s).k==='on'})}
+function bsLatAkses(kelas){return (BS.D.lat||[]).filter(function(s){return !s.hapus&&schAkunOk(s)&&bsKlsCocok(s,kelas)&&bsSesiStatus(s).k==='on'})}
 function bsLatBuka(){return !!S.user&&bsLatAkses(S.user.kelas||'').length>0}
 /* perlu membaca bank soal? latihan dibuka, ujian terbuka atau terjadwal yang belum dikerjakan, atau pengerjaan yang belum selesai */
 function bsAdaAkses(){
@@ -262,6 +262,8 @@ function bsKlsLabel(s,kap){var l=bsKls(s);return !l.length?(kap?'Semua':'semua')
 function bsKlsNilai(l){l=(l||[]).filter(function(x){return BS_TINGKAT.indexOf(x)>-1});return !l.length||l.length===BS_TINGKAT.length?'ALL':BS_TINGKAT.filter(function(t){return l.indexOf(t)>-1}).join(',')}
 function bsSfKls(f){return bsKls(f)}
 function bsPool(mode,kelas){
+ /* siswa tanpa akses latihan: bank soal latihan (termasuk salinan di perangkat) tidak dipakai */
+ if(mode==='latihan'&&S.user&&!isStaff()&&!bsLatBuka())return [];
  var ks=Array.isArray(kelas)?kelas:(kelas?[kelas]:[]);
  return bsSoalAll().filter(function(q){return q.aktif&&(q.tujuan==='keduanya'||q.tujuan===mode)&&!(mode==='ujian'&&bsAturanSalah(q))&&(!q.kelas||!ks.length||ks.indexOf(q.kelas)>-1)});
 }
@@ -545,7 +547,7 @@ function bsViewSiswa(){
  var cbt=S.tab==='cbtonline';
  if(BS.sub==='run'&&BS.run)return bsViewRun();
  if(BS.sub==='result')return bsViewResult();
- if(BS.sub==='latsetup')return bsViewLatSetup();
+ if(BS.sub==='latsetup'){if(bsLatBuka())return bsViewLatSetup();BS.sub='home'}
  if(BS.sub==='riwayat')return bsViewRiwayat();
  var kelas=S.user.kelas||'',h='',run=BS.run;
  if(run)h+='<div class="card bs-resume"><b>'+(run.mode==='ujian'?'Ujian sedang berjalan':'Latihan belum selesai')+'</b><p class="note">'+esc(bsJudul(run))+' · '+Object.keys(run.ans).length+' dari '+run.ids.length+' soal terjawab</p><button type="button" class="btn primary" data-bs="lanjut">Lanjutkan</button></div>';
@@ -1132,7 +1134,7 @@ function viewBankSoal(){
  if(BS.sub==='detail'||BS.sub==='result')return h+bsViewResult();
  if(staff&&actRole()!=='siswa')return h+bsViewStaff();
  /* pintasan "Latihan soal" di Beranda: langsung ke Atur latihan (bila tidak ada latihan/ujian yang sedang berjalan) */
- if(BS.cepat){BS.cepat=0;if(!BS.run&&!cbt&&BS.sub==='home')BS.sub='latsetup'}
+ if(BS.cepat){BS.cepat=0;if(!BS.run&&!cbt&&BS.sub==='home'){if(bsLatBuka())BS.sub='latsetup';else setTimeout(function(){toast('Latihan belum dibuka oleh guru')},0)}}
  return h+bsViewSiswa();
 }
 document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('[data-cepat="latihan"]');if(t)BS.cepat=1},true);

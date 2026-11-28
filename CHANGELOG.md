@@ -1,3 +1,10 @@
+## Gerbang latihan ditutup rapat dan sapaan dua kata
+- `js/ui.js`: sapaan header menampilkan dua kata pertama nama (mis. "Halo, Budi Santoso"); teks setelah koma tetap dibuang.
+- `js/banksoal.js`: layar **Atur latihan** sebelumnya bisa terbuka tanpa akses lewat tiga jalur (pintasan Latihan soal di Beranda, pemulihan draf formulir, sisa tampilan setelah akses ditutup). Semuanya kini memeriksa `bsLatBuka()`. `bsPool('latihan')` kosong untuk siswa tanpa akses, jadi salinan bank soal di perangkat tidak lagi dihitung atau ditampilkan.
+- **Hapus akses latihan** tidak lagi menghapus dokumen di server: ditandai tutup + `hapus`. Sebelumnya siswa dengan salinan lama tetap melihat akses terbuka sampai pembacaan penuh (paling lama 6 jam), karena pembacaan bertahap tidak mengetahui dokumen yang terhapus.
+- Batas yang tetap ada: gerbang ini mengatur alur di aplikasi. Koleksi `banksoal` tetap terbaca semua pengguna login lewat API (kunci jawaban dipisah di `soal_kunci`).
+- Uji: `tools/uji-akses-latihan.mjs` (27).
+
 ## Koleksi akun tertutup untuk siswa (profil lewat fungsi)
 - `functions/akun-admin/src/main.js`: aksi **`profil`**; `js/core.js`: `Cloud.resolve` memakainya (cadangan ke cara lama bila fungsi belum diperbarui).
 - `appwrite.json` (`akun`): create hanya admin, read guru dan admin. **Pasang berurutan: fungsi, aplikasi, baru izin** (lihat `docs-AKUN-TERTUTUP.md`).
