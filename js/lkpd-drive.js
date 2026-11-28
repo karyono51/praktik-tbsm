@@ -173,6 +173,8 @@ var LD_BLANK='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAIC
 function ldImgHtml(x,zid,cls){
  var p=ldParse(x),d=String(x.data||''),fid='',src=d;
  if(d.indexOf('drive:')===0){fid=d.slice(6);src=LD.cache[fid]||'';if(!src)ldFetch(fid,zid)}
+ /* kolom data dapat ditulis siswa langsung ke database: hanya data URL gambar base64 yang dipakai sebagai src */
+ if(!/^data:image\/[a-z+.-]+;base64,[A-Za-z0-9+\/=]+$/.test(src))src='';
  var cap=(p.item>=0?'Item '+(p.item+1)+' · ':'')+lkEsc(p.name);
  return '<img '+(fid?'data-fid="'+lkEsc(fid)+'" ':'')+'class="ld-zoom '+cls+(fid&&!src?' ld-wait':'')+'" src="'+(src||LD_BLANK)+'" alt="'+cap+'" loading="lazy">';
 }

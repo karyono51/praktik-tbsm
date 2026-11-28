@@ -56,9 +56,11 @@ async function pkUploadFoto(o){
  }
 }
 /* Sumber gambar selfie: data URL langsung, atau dari Drive (diambil bertahap, maks 3 sekaligus) */
+/* Hanya data URL gambar base64 yang dipakai sebagai src. Kolom foto dapat ditulis siswa langsung ke database, jadi nilai lain (mis. berisi tanda kutip) dibuang agar tidak menyisipkan HTML ke tampilan guru. */
+function pkFotoOk(s){return typeof s==='string'&&/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(s)}
 function pkFotoSrc(a){
- var f=a&&a.foto||'';if(f.indexOf('drive:')!==0)return f;
- var id=f.slice(6);if(PKD.cache[id])return PKD.cache[id];
+ var f=a&&a.foto||'';if(typeof f!=='string')return '';if(f.indexOf('drive:')!==0)return pkFotoOk(f)?f:'';
+ var id=f.slice(6);if(PKD.cache[id])return pkFotoOk(PKD.cache[id])?PKD.cache[id]:'';
  if(typeof ldCall==='function'&&!PKD.loading[id]&&!(PKD.failed[id]&&Date.now()-PKD.failed[id]<30000)){PKD.loading[id]=1;PKD.q.push([a.id,id,a.tanggal]);pkPump()}
  return '';
 }

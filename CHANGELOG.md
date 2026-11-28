@@ -1,3 +1,7 @@
+## Perbaikan keamanan: sumber gambar foto dan paket fungsi akun-admin
+- `js/pkl.js` (`pkFotoSrc`), `js/lkpd-drive.js` (`ldImgHtml`), `js/soal-gambar.js` (`sgIsData`): nilai `foto`/`data` dari database dipakai sebagai `src` gambar tanpa disaring. Siswa boleh menulis dokumen `pkl_catat` dan `lkpd_bukti` sendiri, jadi isian berisi tanda kutip bisa menyisipkan HTML ke tampilan guru (XSS tersimpan). Kini hanya data URL gambar base64 yang diterima; selain itu dibuang.
+- `functions/akun-admin.tar.gz` dibangun ulang dari `functions/akun-admin/` (sebelumnya `src/main.js` di arsip belum memuat aksi `profil`).
+
 ## Komponen bersama: pilihan, tombol, kartu, lipatan
 - Baru `js/komponen.js` (pembangun `bpSelect`, `bpField`, `bpO`, `bpG`, `uiBtn`, `uiBtns`, `uiCard`, `uiLip`) dan `css/komponen.css` (varian tombol `ghost`, `danger.solid`, `block`, `grow`, `btn-row`; kartu `card-h`, `card-f`, `flat`, `tint`, `warn`, `bad`, `ok`; lipatan `details.lip`). Dokumen: `docs-KOMPONEN.md`.
 - `js/pkl.js`: semua `<select>` PKL lewat satu pembangun bersama; dua pilihan di tab Pengaturan (zona absen, daftar tempat) yang tadinya manual kini memakai judul lembar dan keterangan pilihan.

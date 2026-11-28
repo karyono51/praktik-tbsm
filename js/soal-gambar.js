@@ -35,7 +35,7 @@ function sgPut(k,v){
 }
 
 /* ---------- Penanda gambar ---------- */
-function sgIsData(r){return typeof r==='string'&&r.indexOf('data:image/')===0}
+function sgIsData(r){return typeof r==='string'&&/^data:image\/[a-z+.-]+;base64,[A-Za-z0-9+\/=]+$/.test(r)}
 function sgKey(r){return String(r||'').replace(/^drive:/,'')}
 function sgRefs(q){
  var a=[];if(!q)return a;
