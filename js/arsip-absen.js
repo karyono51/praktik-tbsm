@@ -46,7 +46,7 @@ document.addEventListener('click',function(e){
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(A),'Mingguan');XLSX.writeFile(wb,'Absensi-'+j+'-'+m+'.xlsx');return;
  }
  b.disabled=true;
- ldCall({action:'arsip-absen',jenis:j,minggu:m,sekolah:schKode()}).then(function(r){toast(r.jumlah?'Terarsip dan terverifikasi: '+r.jumlah+' dokumen '+schNama()+(r.berkas?' dalam '+r.berkas+' berkas rombel':'')+'.':'Tidak ada data '+schNama()+' untuk diarsipkan.')})
+ ldCall({action:'arsip-absen',jenis:j,minggu:m,sekolah:schKode()}).then(function(r){toast((r.jumlah?'Terarsip dan terverifikasi: '+r.jumlah+' dokumen '+schNama()+(r.berkas?' dalam '+r.berkas+' berkas rombel':'')+'.':'Tidak ada data '+schNama()+' untuk diarsipkan.')+(r.dibaca!=null?' Dibaca dari Appwrite: '+r.dibaca+' dokumen'+(r.penyaring==='penuh'?' (kueri ditolak, pembacaan penuh)':'')+'.':''))})
   .catch(function(x){toast('Arsip gagal: '+x.message)}).then(function(){b.disabled=false});
 });
 

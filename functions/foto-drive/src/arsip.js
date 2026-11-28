@@ -69,6 +69,34 @@ function labelRombel(jenis, d, peta) {
   if (jenis === 'pkl') return peta.get(d.sid) || '';
   try { const p = JSON.parse(d.payload || '{}'); return p.rn || (p.rb ? String(p.rb) : '') || (d.kelas ? 'kelas-' + d.kelas : ''); } catch (e) { return ''; }
 }
+/* Pembacaan sumber dibatasi waktu ubah di server ($updatedAt, bukan jam HP): dokumen sebuah minggu pasti diubah pada atau sesudah minggu itu,
+   kecuali sesi yang dibuat lebih dari 7 hari lebih awal dari tanggalnya. Tanpa batas atas, jadi koreksi yang dilakukan belakangan tetap terbaca.
+   Appwrite menghitung tiap dokumen yang dibaca, jadi ini mencegah pembacaan seluruh riwayat setiap kali arsip dijalankan.
+   Bila Appwrite menolak kueri (400), dipakai pembacaan penuh seperti sebelumnya; galat lain tidak ditelan. */
+const MARGIN_HARI = 7;
+async function bacaSumber(s, r, auth, h) {
+  const dasar = '/databases/' + DB() + '/collections/' + s.col + '/documents?';
+  const baca = async (tambahan) => {
+    const hasil = [];
+    let after = null;
+    for (;;) {
+      const p = new URLSearchParams();
+      [...s.q, ...tambahan, { method: 'limit', values: [100] }, ...(after ? [{ method: 'cursorAfter', values: [after] }] : [])]
+        .forEach((q) => p.append('queries[]', JSON.stringify(q)));
+      const L = (await h.aw(dasar + p, auth)).documents || [];
+      hasil.push(...L);
+      if (L.length < 100) return { hasil, dibaca: hasil.length };
+      after = L[L.length - 1].$id;
+    }
+  };
+  const sejak = new Date(Date.parse(r[0] + 'T00:00:00Z') - MARGIN_HARI * 86400000).toISOString();
+  try {
+    return { ...(await baca([{ method: 'greaterThanEqual', attribute: '$updatedAt', values: [sejak] }])), penyaring: 'tanggal' };
+  } catch (e) {
+    if (!/\(400\)/.test(String(e && e.message))) throw e;
+    return { ...(await baca([])), penyaring: 'penuh' };
+  }
+}
 export async function arsipAbsen(callerId, body, auth, key, h) {
   const { aw, accessToken, folderId, Fail } = h;
   const s = SUMBER[body.jenis], r = rentang(String(body.minggu || ''));
@@ -77,18 +105,9 @@ export async function arsipAbsen(callerId, body, auth, key, h) {
   if (!(u.labels || []).includes('admin')) throw new Fail('Hanya admin yang boleh mengarsipkan.', 403);
   if (r[1] >= new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10)) throw new Fail('Minggu ini belum selesai.', 400);
   const punya = await pemilahSekolah(callerId, body, body.jenis, key, h), sk = kodeSekolah(body.sekolah);
-  const docs = [];
-  let after = null;
-  for (;;) {
-    const p = new URLSearchParams();
-    [...s.q, { method: 'limit', values: [100] }, ...(after ? [{ method: 'cursorAfter', values: [after] }] : [])]
-      .forEach((q) => p.append('queries[]', JSON.stringify(q)));
-    const L = (await aw('/databases/' + DB() + '/collections/' + s.col + '/documents?' + p, auth)).documents || [];
-    L.forEach((d) => { const t = String(d.tanggal || '').slice(0, 10); if (s.cocok(d) && t >= r[0] && t <= r[1] && punya(d)) docs.push(d); });
-    if (L.length < 100) break;
-    after = L[L.length - 1].$id;
-  }
-  if (!docs.length) return { ok: true, jumlah: 0 };
+  const docs = [], { hasil, dibaca, penyaring } = await bacaSumber(s, r, auth, h);
+  hasil.forEach((d) => { const t = String(d.tanggal || '').slice(0, 10); if (s.cocok(d) && t >= r[0] && t <= r[1] && punya(d)) docs.push(d); });
+  if (!docs.length) return { ok: true, jumlah: 0, dibaca, penyaring };
   const rombel = body.jenis === 'pkl' ? await petaRombel(sk, key, h) : null;
   const grup = new Map();
   docs.forEach((d) => {
@@ -101,7 +120,7 @@ export async function arsipAbsen(callerId, body, auth, key, h) {
   const tulis = await paralel([...grup], ([nama, g]) => tulisArsip(nama, g.docs, { jenis: body.jenis, r, sk, label: g.label, tok, parent, h }), 4);
   const berkas = [...grup].map(([nama, g], i) => ({ nama, rombel: g.label, jumlah: g.docs.length, fileId: tulis[i].fileId }));
   const total = tulis.reduce((a, w) => a + w.total, 0);
-  return { ok: true, jumlah: docs.length, total, berkas: berkas.length, daftar: berkas };
+  return { ok: true, jumlah: docs.length, total, berkas: berkas.length, daftar: berkas, dibaca, penyaring };
 }
 /* satu berkas: arsip lama berkas yang sama digabung menurut ID (dokumen yang pernah diarsipkan tidak hilang), ditulis, lalu dibaca ulang dan dicocokkan */
 async function tulisArsip(nama, docs, c) {

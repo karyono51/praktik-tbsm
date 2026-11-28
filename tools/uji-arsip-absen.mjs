@@ -30,13 +30,30 @@ const gfetch = async (u, o = {}) => {
 /* ---- Appwrite tiruan berstatus ---- */
 const nf = () => new Error('Appwrite menolak permintaan (404): Document with the requested ID could not be found.');
 const idDok = (p) => decodeURIComponent(p.split('/').pop());
-const st = { labels: ['admin'], email: 'adm@x', akun: [], kelas: [], data: { observasi: [], pkl_catat: [] }, simpan: new Map(), buta: new Set(), panggilHapus: 0, gagalBaca: false, kelasGalat: false };
+const st = { labels: ['admin'], email: 'adm@x', akun: [], kelas: [], data: { observasi: [], pkl_catat: [] }, simpan: new Map(), buta: new Set(), panggilHapus: 0, gagalBaca: false, kelasGalat: false, kueri: [], dibaca: 0, tolak400: false, galat500: false };
+/* daftar dokumen seperti Appwrite: equal, greaterThanEqual, limit, cursorAfter; mencatat jumlah dokumen yang dibaca */
+const daftarDok = (col, params) => {
+  let L = st.data[col] || [], limit = 25, after = null;
+  const qs = params.getAll('queries[]').map((x) => JSON.parse(x));
+  st.kueri.push(qs);
+  qs.forEach((q) => {
+    if (q.method === 'greaterThanEqual' && st.tolak400) throw new Error('Appwrite menolak permintaan (400): Invalid query');
+    if (q.method === 'greaterThanEqual' && st.galat500) throw new Error('Appwrite menolak permintaan (500): galat');
+    if (q.method === 'equal') L = L.filter((d) => q.values.includes(d[q.attribute]));
+    else if (q.method === 'greaterThanEqual') L = L.filter((d) => String(d[q.attribute]) >= String(q.values[0]));
+    else if (q.method === 'limit') limit = q.values[0];
+    else if (q.method === 'cursorAfter') after = q.values[0];
+  });
+  const mulai = after ? L.findIndex((d) => d.$id === after) + 1 : 0, hasil = L.slice(mulai, mulai + limit);
+  st.dibaca += hasil.length;
+  return { documents: hasil };
+};
 const aw = async (p, hd = {}) => {
   if (p.startsWith('/users')) return { labels: st.labels, email: st.email };
   if (p.includes('/collections/akun/documents?')) return { documents: st.akun };
   if (p.includes('/collections/akademik/documents?')) { if (st.kelasGalat) throw new Error('Appwrite menolak permintaan (500): galat'); return { documents: st.kelas }; }
   const m = /\/collections\/(observasi|pkl_catat)\/documents\?/.exec(p);
-  if (m) return { documents: st.data[m[1]] };
+  if (m) return daftarDok(m[1], new URL('http://x' + p).searchParams);
   const id = idDok(p);
   if (st.gagalBaca && hd['X-Appwrite-Key'] && st.panggilHapus > 0) throw new Error('Appwrite menolak permintaan (502): galat');
   if (!st.simpan.has(id) || (hd['X-Appwrite-JWT'] && st.buta.has(id))) throw nf();
@@ -44,10 +61,10 @@ const aw = async (p, hd = {}) => {
 };
 const hapusDok = async (p, hd = {}) => { st.panggilHapus++; const id = idDok(p); if (hd['X-Appwrite-JWT'] && st.buta.has(id)) return; st.simpan.delete(id); };
 const h = { Fail: class extends Error {}, accessToken: async () => 't', folderId: async () => 'f', aw, gfetch, hapusDok };
-const ulang = () => { st.labels = ['admin']; st.email = 'adm@x'; st.akun = []; st.kelas = []; st.data = { observasi: [], pkl_catat: [] }; st.simpan = new Map(); st.buta = new Set(); st.panggilHapus = 0; st.gagalBaca = false; st.kelasGalat = false; kosong(); };
+const ulang = () => { st.labels = ['admin']; st.email = 'adm@x'; st.akun = []; st.kelas = []; st.data = { observasi: [], pkl_catat: [] }; st.simpan = new Map(); st.buta = new Set(); st.panggilHapus = 0; st.gagalBaca = false; st.kelasGalat = false; st.kueri = []; st.dibaca = 0; st.tolak400 = false; st.galat500 = false; kosong(); };
 
 /* ================= arsip harian: satu berkas per rombel ================= */
-const sesi = (id, tgl, rb, rn, rows, extra = {}) => ({ $id: id, tipe: 'absen', tanggal: tgl, $updatedAt: '1', $createdAt: '0', payload: JSON.stringify({ rb, rn, rows }), ...extra });
+const sesi = (id, tgl, rb, rn, rows, extra = {}) => ({ $id: id, tipe: 'absen', tanggal: tgl, $updatedAt: tgl + 'T05:00:00.000+00:00', $createdAt: '0', payload: JSON.stringify({ rb, rn, rows }), ...extra });
 const R = (...ids) => Object.fromEntries(ids.map((i) => [i, { s: 'H' }]));
 ulang();
 st.akun = [{ $id: 's1', sekolah: 'DF' }, { $id: 's3', sekolah: 'DF' }, { $id: 's9', sekolah: 'MEDINA' }];
@@ -198,7 +215,7 @@ st.kelas = [{ $id: 'k1', jenis: 'kelas', sekolah: 'DF', nama: 'XII TBSM 1', payl
   { $id: 'k3', jenis: 'kelas', sekolah: 'MEDINA', nama: 'XII TSM M', payload: JSON.stringify({ anggota: ['m1', 's3'] }) },
   { $id: 'k5', jenis: 'kelas', sekolah: 'DF', nama: 'XII TBSM 0 lama', payload: JSON.stringify({ anggota: ['s3'], aktif: false }) }];
 /* s3 hanya ada di rombel nonaktif DF dan di rombel sekolah lain: harus tetap "tanpa rombel" */
-const pd = (id, sid) => ({ $id: id, jenis: 'absen', sid, tanggal: '2026-11-17', $updatedAt: '1', $createdAt: '0', payload: '{}' });
+const pd = (id, sid) => ({ $id: id, jenis: 'absen', sid, tanggal: '2026-11-17', $updatedAt: '2026-11-17T05:00:00.000+00:00', $createdAt: '0', payload: '{}' });
 st.data.pkl_catat = [pd('a1', 's1'), pd('a2', 's2'), pd('a3', 's3'), pd('a4', 'm1')];
 const ap = await arsipAbsen('u', { jenis: 'pkl', minggu: '2026-11-16', sekolah: 'DF' }, {}, 'k', h);
 T('PKL: hanya DF diarsipkan', ap.jumlah === 3);
@@ -219,6 +236,44 @@ T('minggu berjalan tidak boleh diarsipkan', await nolak(arsipAbsen('u', { jenis:
 st.labels = ['guru'];
 T('guru tidak boleh mengarsipkan', await nolak(arsipAbsen('g', { jenis: 'harian', minggu: '2026-11-16', sekolah: 'DF' }, {}, 'k', h)));
 st.labels = ['admin'];
+
+/* ================= hemat baca: sumber dibatasi waktu ubah di server ================= */
+const JB = { jenis: 'harian', minggu: '2026-11-16', sekolah: 'DF' };
+const ses = (id, tgl, upd) => ({ ...sesi(id, tgl, 'k1', 'X TSM 1', R('s1')), $updatedAt: upd });
+ulang(); st.akun = [{ $id: 's1', sekolah: 'DF' }];
+st.data.observasi = [
+  ses('lama1', '2026-09-01', '2026-09-01T05:00:00.000+00:00'), ses('lama2', '2026-10-05', '2026-10-05T05:00:00.000+00:00'), ses('lama3', '2026-11-02', '2026-11-02T05:00:00.000+00:00'),
+  ses('minggu', '2026-11-17', '2026-11-17T05:00:00.000+00:00'),
+  ses('dikoreksi', '2026-11-18', '2026-12-05T05:00:00.000+00:00'),
+  ses('dibuatdini', '2026-11-18', '2026-11-10T05:00:00.000+00:00')];
+const hm = await arsipAbsen('u', JB, {}, 'k', h);
+T('hemat: hanya dokumen dengan waktu ubah sejak 7 hari sebelum Senin dibaca', hm.penyaring === 'tanggal' && hm.dibaca === 3 && st.dibaca === 3);
+T('hemat: sesi yang dikoreksi belakangan (waktu ubah sesudah minggunya) tetap terarsip', hm.jumlah === 3 && isiBerkas(nama()[0]).dokumen.some((d) => d.$id === 'dikoreksi'));
+T('hemat: sesi yang dibuat 6 hari lebih awal dari tanggalnya tetap terarsip', isiBerkas(nama()[0]).dokumen.some((d) => d.$id === 'dibuatdini'));
+T('hemat: riwayat lama tidak dibaca dan tidak masuk arsip', !isiBerkas(nama()[0]).dokumen.some((d) => /^lama/.test(d.$id)));
+const kq = st.kueri[0].find((q) => q.method === 'greaterThanEqual');
+T('hemat: kueri memakai $updatedAt (jam server) dan batas ISO', kq && kq.attribute === '$updatedAt' && kq.values[0] === '2026-11-09T00:00:00.000Z');
+T('hemat: kueri tanpa batas atas', !st.kueri[0].some((q) => q.method === 'lessThanEqual' || q.method === 'lessThan'));
+/* kueri ditolak (400): mundur ke pembacaan penuh, hasil tetap benar */
+ulang(); st.akun = [{ $id: 's1', sekolah: 'DF' }]; st.tolak400 = true;
+st.data.observasi = [ses('lama1', '2026-09-01', '2026-09-01T05:00:00.000+00:00'), ses('minggu', '2026-11-17', '2026-11-17T05:00:00.000+00:00')];
+const pn = await arsipAbsen('u', JB, {}, 'k', h);
+T('kueri ditolak: pembacaan penuh, sesi minggu itu tetap terarsip', pn.penyaring === 'penuh' && pn.dibaca === 2 && pn.jumlah === 1 && isiBerkas(nama()[0]).dokumen[0].$id === 'minggu');
+/* galat selain 400 tidak ditelan */
+ulang(); st.akun = [{ $id: 's1', sekolah: 'DF' }]; st.galat500 = true; st.data.observasi = [ses('minggu', '2026-11-17', '2026-11-17T05:00:00.000+00:00')];
+T('galat 500 saat membaca: arsip ditolak, tidak mundur diam-diam dan tidak menulis', await nolak(arsipAbsen('u', JB, {}, 'k', h)) && drive.files.size === 0 && st.kueri.length === 1);
+/* banyak dokumen: halaman 100 dengan cursor, hanya yang baru dibaca */
+ulang(); st.akun = [{ $id: 's1', sekolah: 'DF' }];
+st.data.observasi = [];
+for (let i = 0; i < 300; i++) st.data.observasi.push(ses('o' + i, '2026-08-03', '2026-08-03T05:00:00.000+00:00'));
+for (let i = 0; i < 230; i++) st.data.observasi.push({ ...ses('n' + i, '2026-11-17', '2026-11-17T05:00:00.000+00:00'), payload: JSON.stringify({ rb: 'k1', rn: 'X TSM 1', rows: R('s1') }) });
+const bn = await arsipAbsen('u', JB, {}, 'k', h);
+T('230 dokumen baru dibaca lewat 3 halaman, 300 dokumen lama tidak dibaca', bn.dibaca === 230 && st.dibaca === 230 && st.kueri.length === 3 && bn.jumlah === 230);
+/* PKL: absen minggu itu saja yang dibaca */
+ulang(); st.akun = [{ $id: 's1', sekolah: 'DF' }];
+st.data.pkl_catat = [{ ...pd('p-lama', 's1'), tanggal: '2026-08-03', $updatedAt: '2026-08-03T05:00:00.000+00:00' }, pd('p-baru', 's1'), { ...pd('p-jurnal', 's1'), jenis: 'jurnal' }];
+const hp = await arsipAbsen('u', { jenis: 'pkl', minggu: '2026-11-16', sekolah: 'DF' }, {}, 'k', h);
+T('PKL hemat: hanya absen minggu itu dibaca (jurnal dan riwayat lama tidak)', hp.dibaca === 1 && hp.jumlah === 1 && st.kueri[0].some((q) => q.method === 'equal' && q.attribute === 'jenis') && st.kueri[0].some((q) => q.attribute === '$updatedAt'));
 
 /* ================= pemisahan sekolah (arsip dan hapus) ================= */
 ulang();
