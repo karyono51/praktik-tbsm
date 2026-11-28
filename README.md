@@ -139,7 +139,7 @@ Dijalankan dari folder proyek dengan Node.js (tanpa pustaka tambahan).
 - `docs-TEST-EDITOR-LKPD.md`: Laporan verifikasi Editor LKPD Guru
 - `docs-REFRESH-DAN-LKPD-KELAS.md`: Refresh, rilis otomatis, LKPD per kelas, timer
 - `docs-OBSERVASI-GURU.md`: Observasi guru dan observasi LKPD praktik
-- `docs-OBSERVASI-UKK.md`: Observasi UKK
+- `docs-OBSERVASI-UKK.md`: Observasi UKK (termasuk editor lembar kelas X dan XI)
 - `docs-ABSENSI.md`: absensi kehadiran dan praktik lewat barcode
 - `docs-AKADEMIK.md`: Administrasi akademik
 

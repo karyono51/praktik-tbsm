@@ -49,11 +49,15 @@ OBU.lembar.push({k:'cvt11',tk:'XI',waktu:'30 Menit',nama:'Observasi XI-1 · Komp
   [20,'Menarik kesimpulan sesuai standar/spesifikasi','']]}
 ]});
 /* Registri lembar: tiap lembar punya judul tugas, grup butir, dan daftar datar sendiri. Lembar lama (tanpa payload.lembar) = 'vario'. */
-OBU.lembar.forEach(function(L){
+/* Aspek punya ID tetap (t[3], bila ada; bawaan = 'u'+nomor) supaya nilai observasi lama tidak bergeser saat urutan atau nomor aspek diubah di editor (js/observasi-editor.js). */
+function obuBangun(L){
  L.tk=L.tk||'XII';
- L.grup=L.g.map(function(g){return {g:g.g,items:g.t.map(function(t){return {id:'u'+t[0],no:t[0],t:t[1],d:t[2]}})}});
+ L.grup=L.g.map(function(g){return {g:g.g,items:g.t.map(function(t){return {id:t[3]||'u'+t[0],no:t[0],t:t[1],d:t[2]}})}});
  L.flat=[];L.grup.forEach(function(g){g.items.forEach(function(i){i.g=g.g;L.flat.push(i)})});
- OBU.lb[L.k]=L;
+ OBU.lb[L.k]=L;return L;
+}
+OBU.lembar.forEach(function(L){
+ obuBangun(L);
 });
 function obuLb(k){return OBU.lb[k]||OBU.lb.vario}
 function obuKey(r){var p=obsPay(r);return p.lembar&&OBU.lb[p.lembar]?p.lembar:'vario'}

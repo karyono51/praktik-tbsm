@@ -118,3 +118,24 @@ Layar hasil unit UKK kini menampilkan alasan tiap butir yang belum dapat nilai (
 
 ## Prasyarat praktik
 Unit UKK-X-1 dan UKK-XI-1 memiliki prasyarat praktik sebelum siswa memulai unit (bukan bagian nilai pasangan unit dan observasi). Lihat `docs-UKK-GERBANG.md`.
+
+## Editor lembar observasi (kelas X dan XI)
+`js/observasi-editor.js`. Admin dan Guru (izin `observasi`) dapat menyusun sendiri lembar observasi kelas X dan XI. Lembar kelas XII (Observasi 1-4) tetap bawaan dan tidak dapat diubah.
+
+**Membuka**
+- Daftar Observasi UKK, setelah rombel dipilih: tombol **Kelola lembar** (daftar lembar X dan XI, status Bawaan, Diubah, atau Buatan guru, unit yang memakai, jumlah observasi tersimpan).
+- Edit isi unit, tab **Observasi** (unit kelas X dan XI): **Edit lembar ini** dan **+ Buat lembar baru**. Lembar baru dari sini otomatis terpilih untuk unit itu (mode Tanpa observasi menjadi Berpasangan).
+
+**Yang dapat diubah**: nama lembar, judul tugas, alokasi waktu (menit), tipe kendaraan atau alat, judul dan urutan bagian, tambah atau hapus bagian, serta teks, petunjuk, urutan (antar bagian juga), tambah, dan hapus aspek. Nomor aspek selalu berurutan menurut posisi.
+
+**Batas**: 1-8 bagian, 3-60 aspek, nama dan judul bagian maks. 80 karakter, judul tugas maks. 180, teks aspek maks. 200, petunjuk maks. 300, waktu 1-600 menit, nama lembar tidak boleh sama dengan lembar lain.
+
+**Lembar baru**: susunan standar (A Persiapan 4 aspek, B Proses kerja 1 aspek kosong, C K3 dan lingkungan 3, D Hasil dan waktu 3) atau salinan lembar setingkat. Belum tersimpan sampai **Simpan lembar**. Satu lembar hanya boleh dipakai satu unit pada sekolah yang sama (aturan Observasi per unit tidak berubah). Lembar yang belum dihubungkan ke unit belum muncul di pilihan lembar pada daftar Observasi UKK.
+
+**Kembalikan bawaan** (khusus Observasi X-1 dan XI-1 yang pernah diubah): isi kembali ke aslinya. **Hapus lembar** (khusus lembar buatan): ditolak bila masih dipakai unit; bila lolos, lembar diarsipkan sehingga observasi lama tetap terbaca dan tercetak.
+
+**Nilai lama aman**: tiap aspek punya ID tetap. Mengubah teks, urutan, atau nomor tidak menggeser nilai observasi yang sudah diisi. Menambah atau menghapus aspek mengubah N (pembagi nilai akhir); observasi lama dihitung ulang saat dibuka (nilai tersimpan di daftar baru berubah setelah observasi itu disimpan ulang). Editor memberi peringatan dan meminta konfirmasi bila sudah ada observasi tersimpan.
+
+**Penyimpanan**: dokumen `jenis:'obsukk'` di koleksi `lkpd_modules` (id `OBSUKK-<kode lembar>`, status draft, sehingga siswa tidak membacanya), ikut sinkronisasi dan antrean offline, tanpa perubahan skema Appwrite. `reset:true` = kembali ke bawaan, `dihapus:true` = lembar buatan diarsipkan. Draf otomatis di perangkat: `tbsm-obs-editor-draft:<kode>`.
+
+**Catatan**: lembar dipakai bersama semua sekolah (judul, waktu, dan kendaraan di layar dan PDF tetap mengikuti unit yang terhubung). Excel rekap memuat satu kolom per lembar yang terdaftar, termasuk lembar buatan.
