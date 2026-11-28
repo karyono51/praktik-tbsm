@@ -27,8 +27,9 @@ function arKartu(j){
  var m=AR.m[j]||(AR.m[j]=arSenin()),L=arHitung(j,m);
  return '<div class="card"><b>Evaluasi mingguan '+(j==='pkl'?'PKL':'harian')+'</b><label class="f">Pilih tanggal dalam minggu<input type="date" data-ar="'+j+'" value="'+m+'"></label>'+
   '<div class="note">'+m+' s.d. '+arAkhir(m)+' · '+L.length+' siswa tercatat'+(j==='pkl'?'. Alpa PKL tidak dihitung di sini.':'')+'</div>'+
+  (j==='harian'&&AR.pesan?'<div class="note" role="status">'+AR.pesan+'</div>':'')+
   '<div class="row"><button type="button" class="btn small primary" data-arxls="'+j+'">Ekspor Excel minggu</button>'+
-  (S.role==='admin'&&Cloud.on?'<button type="button" class="btn small" data-arkirim="'+j+'">Arsipkan ke Drive</button>':'')+'</div></div>';
+  (S.role==='admin'&&Cloud.on?'<button type="button" class="btn small" data-arkirim="'+j+'">Arsipkan ke Drive</button>'+(j==='harian'?'<button type="button" class="btn small danger" data-arhapus="'+m+'">Hapus dari Appwrite</button>':''):'')+'</div></div>';
 }
 if(typeof abViewRekap==='function'){var _arAb=abViewRekap;abViewRekap=function(){return arKartu('harian')+_arAb()}}
 if(typeof pkTabRekap==='function'){var _arPk=pkTabRekap;pkTabRekap=function(){return arKartu('pkl')+_arPk()}}
@@ -46,4 +47,56 @@ document.addEventListener('click',function(e){
  b.disabled=true;
  ldCall({action:'arsip-absen',jenis:j,minggu:m}).then(function(r){toast(r.jumlah?'Terarsip dan terverifikasi: '+r.jumlah+' dokumen.':'Tidak ada data untuk diarsipkan.')})
   .catch(function(x){toast('Arsip gagal: '+x.message)}).then(function(){b.disabled=false});
+});
+
+/* ---- baca arsip harian: disimpan terpisah dari S.observasi agar tidak ikut sinkron ---- */
+AR.doc={};AR.st={};AR.pesan='';
+function arSeninBulan(b){var a=[],d=new Date(arSenin(b+'-01')+'T00:00:00'),y;for(;;){y=arYmd(d);if(y.slice(0,7)>b)break;a.push(y);d.setDate(d.getDate()+7)}return a}
+function arMuat(minggu){
+ if(!Cloud.on||!S.user)return Promise.resolve(false);
+ var u=S.user.id+'|'+S.role;if(AR.u!==u){AR.u=u;AR.doc={};AR.st={}}
+ var perlu=minggu.filter(function(w){return !AR.st[w]});if(!perlu.length)return Promise.resolve(false);
+ perlu.forEach(function(w){AR.st[w]=1});AR.pesan='Memuat arsip dari Drive…';
+ return ldCall({action:'baca-arsip',minggu:perlu}).then(function(r){
+  if(AR.u!==u)return;r.dokumen.forEach(function(d){AR.doc[d.$id]=fromDoc(d)});perlu.forEach(function(w){AR.st[w]=2});AR.pesan='';render();return true;
+ }).catch(function(x){perlu.forEach(function(w){AR.st[w]=3});AR.pesan='Arsip Drive gagal dimuat, rekap bisa belum lengkap. Ketuk tombol segarkan arsip. ('+esc(x.message)+')';render()});
+}
+/* dokumen yang masih ada di Appwrite diutamakan; arsip hanya mengisi yang sudah dihapus */
+function arDenganArsip(fn){
+ var asli=S.observasi||[],ada={};asli.forEach(function(r){ada[r.id]=1});
+ S.observasi=asli.concat(Object.keys(AR.doc).filter(function(id){return !ada[id]}).map(function(id){return AR.doc[id]}));
+ try{return fn()}finally{S.observasi=asli}
+}
+if(typeof abRekapData==='function'){var _arRd=abRekapData;abRekapData=function(){return arDenganArsip(_arRd)}}
+var _arHit=arHitung;arHitung=function(j,m){return j==='harian'?arDenganArsip(function(){return _arHit(j,m)}):_arHit(j,m)};
+if(typeof abViewRekap==='function'){var _arVr=abViewRekap;abViewRekap=function(){
+ var h=_arVr();
+ setTimeout(function(){arMuat(arSeninBulan(AB.rk.bulan)).then(function(){return arMuat([AR.m.harian])})},0);
+ return '<div class="row"><button type="button" class="btn small" data-arsegar="1">Segarkan arsip</button></div>'+h;
+}}
+/* sesi yang sudah dipindah ke arsip tidak boleh dibuat ulang sebagian */
+if(typeof abSet==='function'){var _arSet=abSet;abSet=function(rb,t,j){
+ var id=abDocId(rb,t,j);
+ if(AR.doc[id]&&!abRec(rb,t,j)){toast('Sesi ini sudah diarsipkan dan tidak bisa diubah.');return false}
+ return _arSet.apply(this,arguments);
+}}
+function arHapus(m,mulai,n,lewat){
+ return ldCall({action:'hapus-arsip',minggu:m,mulai:mulai}).then(function(r){
+  var buang={};r.ids.forEach(function(i){buang[i]=1});
+  S.observasi=(S.observasi||[]).filter(function(x){return !(x.tipe==='absen'&&buang[x.id]&&!x.d)});save();
+  n+=r.ids.length;lewat+=r.berubah;
+  return r.lanjut!=null?arHapus(m,r.lanjut,n,lewat):{n:n,lewat:lewat};
+ });
+}
+document.addEventListener('click',function(e){
+ var b=e.target.closest&&e.target.closest('[data-arhapus],[data-arsegar]');if(!b)return;
+ if(b.dataset.arsegar){AR.st={};AR.doc={};AR.pesan='';render();return}
+ var m=b.dataset.arhapus;
+ if(!uiOk('arhapus'+m,'Hapus absensi harian minggu '+m+' dari Appwrite?\nData tetap ada di arsip Drive. Penghapusan tidak bisa dibatalkan, dan sesi tidak bisa diubah lagi.',b,{ok:'Hapus',cancel:'Batal',danger:true}))return;
+ b.disabled=true;delete AR.st[m];
+ arMuat([m]).then(function(){
+  if(AR.st[m]!==2)throw new Error('arsip belum terbaca di aplikasi, penghapusan dibatalkan.');
+  return arHapus(m,0,0,0);
+ }).then(function(r){toast(r.n+' sesi dihapus dari Appwrite'+(r.lewat?', '+r.lewat+' berubah (arsipkan ulang dulu).':'.'));render()})
+  .catch(function(x){toast('Hapus gagal: '+x.message)}).then(function(){b.disabled=false});
 });

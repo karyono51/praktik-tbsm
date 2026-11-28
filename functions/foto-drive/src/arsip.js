@@ -1,5 +1,5 @@
 /* Arsip absensi mingguan ke Drive (harian: koleksi observasi; pkl: koleksi pkl_catat). Hanya admin.
-   Berkas dibaca ulang dan dicocokkan. Tahap ini TIDAK menghapus dokumen Appwrite. */
+   Berkas dibaca ulang dan dicocokkan. Penghapusan lewat aksi terpisah, hanya absensi harian. */
 const SUMBER = {
   harian: { col: 'observasi', cocok: (d) => d.tipe === 'absen', q: [] },
   pkl: { col: 'pkl_catat', cocok: (d) => d.jenis === 'absen', q: [{ method: 'equal', attribute: 'jenis', values: ['absen'] }] }
@@ -42,7 +42,7 @@ export async function arsipAbsen(callerId, body, auth, key, h) {
   /* arsip lama digabung menurut ID, jadi dokumen yang sudah pernah diarsipkan tidak hilang */
   const peta = new Map();
   if (id) JSON.parse(await unduh()).dokumen.forEach((d) => peta.set(d.$id, d));
-  docs.forEach((d) => peta.set(d.$id, d));
+  docs.forEach((d) => peta.set(d.$id, gabung(peta.get(d.$id), d)));
   const isi = JSON.stringify({ v: 1, jenis: body.jenis, dari: r[0], sampai: r[1], dibuat: new Date().toISOString(), dokumen: [...peta.values()] });
   if (!id) {
     const c = await gfetch('https://www.googleapis.com/drive/v3/files?fields=id', { method: 'POST', headers: { 'content-type': 'application/json' },
@@ -54,4 +54,52 @@ export async function arsipAbsen(callerId, body, auth, key, h) {
   if (!w.ok) throw new Fail('Gagal menulis arsip (' + w.status + ').', 502);
   if ((await unduh()) !== isi) throw new Fail('Verifikasi arsip gagal: isi di Drive tidak sama.', 502);
   return { ok: true, jumlah: docs.length, total: peta.size, fileId: id };
+}
+
+/* sesi yang dibuat ulang setelah dihapus (ID sama, waktu buat beda) digabung per siswa agar isi arsip lama tidak tertimpa */
+export function gabung(lama, baru) {
+  if (!lama || !lama.$createdAt || lama.$createdAt === baru.$createdAt) return baru;
+  const a = JSON.parse(lama.payload || '{}'), b = JSON.parse(baru.payload || '{}');
+  const rows = { ...a.rows, ...b.rows };
+  return { ...baru, payload: JSON.stringify({ ...a, ...b, rows }), skor: Object.values(rows).filter((x) => x.s === 'H').length };
+}
+async function cariArsip(minggu, tok, parent, h) {
+  const q = encodeURIComponent("name='arsip-absen_harian_" + minggu + ".json' and '" + parent + "' in parents and trashed=false");
+  const c = await h.gfetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id)', {}, tok);
+  if (!c.ok) throw new h.Fail('Gagal memeriksa arsip di Drive (' + c.status + ').', 502);
+  const f = ((await c.json()).files || [])[0];
+  if (!f) return null;
+  const x = await h.gfetch('https://www.googleapis.com/drive/v3/files/' + f.id + '?alt=media', {}, tok);
+  if (!x.ok) throw new h.Fail('Arsip tidak bisa dibaca (' + x.status + ').', 502);
+  return JSON.parse(await x.text()).dokumen;
+}
+async function peran(callerId, key, h) {
+  return (await h.aw('/users/' + encodeURIComponent(callerId), { 'X-Appwrite-Key': key || '' })).labels || [];
+}
+/* guru hanya menerima sesi miliknya; admin menerima semua */
+export async function bacaArsip(callerId, body, key, h) {
+  const L = await peran(callerId, key, h), adm = L.includes('admin');
+  if (!adm && !L.includes('guru')) throw new h.Fail('Hanya guru atau admin.', 403);
+  const m = (Array.isArray(body.minggu) ? body.minggu : []).slice(0, 6).filter((x) => rentang(String(x)));
+  const tok = await h.accessToken(), parent = await h.folderId(tok), dokumen = [];
+  for (const w of m) ((await cariArsip(w, tok, parent, h)) || []).forEach((d) => { if (adm || d.pengamatId === callerId) dokumen.push(d); });
+  return { ok: true, dokumen };
+}
+/* hapus hanya dokumen yang sudah ada di arsip dan tidak berubah sejak diarsipkan; dibatasi per panggilan agar tidak melewati batas waktu */
+export async function hapusArsip(callerId, body, auth, key, h) {
+  if (!(await peran(callerId, key, h)).includes('admin')) throw new h.Fail('Hanya admin yang boleh menghapus.', 403);
+  if (!rentang(String(body.minggu || ''))) throw new h.Fail('Tanggal Senin tidak valid.', 400);
+  const tok = await h.accessToken(), L = await cariArsip(body.minggu, tok, await h.folderId(tok), h);
+  if (!L) throw new h.Fail('Minggu ini belum diarsipkan.', 400);
+  const mulai = Math.max(0, Number(body.mulai) || 0), ids = [];
+  let berubah = 0;
+  for (const d of L.slice(mulai, mulai + 20)) {
+    const path = '/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/observasi/documents/' + encodeURIComponent(d.$id);
+    let now;
+    try { now = await h.aw(path, auth); } catch (e) { if (/\(404\)/.test(e.message)) { ids.push(d.$id); continue; } throw e; }
+    if (now.tipe !== 'absen' || now.$updatedAt !== d.$updatedAt) { berubah++; continue; }
+    await h.hapusDok(path, auth);
+    ids.push(d.$id);
+  }
+  return { ok: true, ids, berubah, lanjut: mulai + 20 < L.length ? mulai + 20 : null };
 }

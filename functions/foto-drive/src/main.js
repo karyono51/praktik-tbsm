@@ -1,4 +1,4 @@
-import { arsipAbsen } from './arsip.js';
+import { arsipAbsen, bacaArsip, hapusArsip } from './arsip.js';
 /* Appwrite Function "foto-drive": menyimpan foto bukti praktik ke Google Drive dan menampilkannya kembali.
    Runtime Node.js 18+. Execute access: Users. Scopes: users.read, documents.read.
    Variabel lingkungan (Settings > Environment variables), JANGAN ditaruh di repo atau js/config.js:
@@ -140,6 +140,12 @@ async function aw(path, headers) {
   return j;
 }
 
+async function hapusDok(path, headers) {
+  const base = String(process.env.APPWRITE_ENDPOINT || process.env.APPWRITE_FUNCTION_API_ENDPOINT || '').replace(/\/$/, '');
+  const r = await fetch(base + path, { method: 'DELETE', headers: { 'X-Appwrite-Project': process.env.APPWRITE_FUNCTION_PROJECT_ID || '', ...headers } });
+  if (!r.ok && r.status !== 404) throw new Fail('Appwrite menolak penghapusan (' + r.status + ').', 502);
+}
+
 async function get(callerId, body, auth, asUser) {
   const fileId = String(body.fileId || ''), lkpdId = String(body.lkpdId || '');
   if (!ID_RE.test(fileId) || !lkpdId || lkpdId.length > 64) throw new Fail('Permintaan tidak valid.', 400);
@@ -247,6 +253,12 @@ export default async ({ req, res, error }) => {
       const jwt = req.headers['x-appwrite-user-jwt'], key = req.headers['x-appwrite-key'];
       const auth = jwt ? { 'X-Appwrite-JWT': jwt } : { 'X-Appwrite-Key': key || '' };
       return res.json(await arsipAbsen(callerId, body, auth, key, { aw, accessToken, folderId, gfetch, Fail }));
+    }
+    if (body.action === 'baca-arsip') return res.json(await bacaArsip(callerId, body, req.headers['x-appwrite-key'], { aw, accessToken, folderId, gfetch, Fail }));
+    if (body.action === 'hapus-arsip') {
+      const jwt = req.headers['x-appwrite-user-jwt'], key = req.headers['x-appwrite-key'];
+      const auth = jwt ? { 'X-Appwrite-JWT': jwt } : { 'X-Appwrite-Key': key || '' };
+      return res.json(await hapusArsip(callerId, body, auth, key, { aw, hapusDok, accessToken, folderId, gfetch, Fail }));
     }
     if (body.action === 'getpks') {
       const jwt = req.headers['x-appwrite-user-jwt'];
