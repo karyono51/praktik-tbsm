@@ -83,7 +83,7 @@ async function ckPeriksa(){
   if(ckBsOn()){
    ckBsMuat();
    cols.push(['soal_hasil',(BS.D.hasil||[]).filter(function(x){return staff||x.sid===S.user.id}),staff?[]:[Qr.equal('sid',[S.user.id])]]);
-   if(staff){cols.push(['soal_sesi',BS.D.sesi||[],[]]);cols.push(['banksoal',BS.D.soal||[],[]])}
+   if(staff){cols.push(['soal_sesi',(BS.D.sesi||[]).concat(BS.D.lat||[]),[]]);cols.push(['banksoal',BS.D.soal||[],[]])}
   }
   for(var i=0;i<cols.length;i++){
    var col=cols[i][0],loc=cols[i][1],ex=cols[i][2],k={col:col,lokal:loc.length,server:0,tunggu:[],hilang:[],baru:0,izin:null,err:''};

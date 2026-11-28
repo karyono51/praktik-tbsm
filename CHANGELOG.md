@@ -1,3 +1,11 @@
+## Akses latihan dibuka guru dan pembacaan bank soal lebih hemat (CBT tetap mode aman)
+- `js/akses-latihan.js` (baru) dan `js/banksoal.js`: siswa hanya bisa memulai **Latihan** bila guru/admin membuka aksesnya (per tingkat X/XI/XII atau semua, jadwal buka/tutup opsional). Tanpa akses, kartu Latihan menampilkan "Latihan belum dibuka oleh guru" dan aksi Mulai latihan ditolak. Ujian tetap lewat sesi (aktif, jadwal, token).
+- Kartu **Akses latihan siswa** ada di CBT Online guru (tab Sesi): Buka akses latihan, Tutup/Buka, Hapus.
+- Penyimpanan: dokumen `soal_sesi` dengan `payload.jenis='latihan'` (disimpan di `BS.D.lat`, terpisah dari sesi ujian), tanpa perubahan skema Appwrite.
+- **Baca Appwrite lebih hemat**: saat Beranda dibuka, siswa hanya membaca `sesi` dan `hasil` miliknya. Koleksi `soal` (seluruh bank soal) baru dibaca bila ada akses: latihan dibuka, ujian terbuka atau terjadwal yang belum dikerjakan, atau pengerjaan yang belum selesai. Staf tetap membaca semuanya.
+- `js/cek-sinkron.js`: hitungan soal_sesi menyertakan akses latihan.
+- Batas: gerbang latihan berlaku di aplikasi (klien); fungsi server belum memeriksa akses saat latihan dikirim. Uji: `tools/uji-akses-latihan.mjs` (23). Dokumen: `docs-AKSES-LATIHAN.md`.
+
 ## Editor lembar Observasi UKK kelas X dan XI
 - `js/observasi-editor.js` (baru): guru dan admin mengubah **nama lembar, judul tugas, alokasi waktu, tipe kendaraan, bagian (judul dan urutan), dan aspek (teks, petunjuk, urutan, tambah, hapus)** untuk Observasi X-1 dan XI-1, membuat **lembar baru** (susunan standar 4 bagian A-D atau salinan lembar setingkat) untuk unit buatan sendiri, **mengembalikan lembar bawaan**, dan menghapus lembar buatan (diarsipkan, observasi lama tetap terbaca; ditolak bila masih dipakai unit). Lembar kelas XII (Observasi 1-4) tidak dapat diubah.
 - Batas: 1-8 bagian, 3-60 aspek, teks aspek maks. 200 dan petunjuk maks. 300 karakter; nama lembar unik. Draf otomatis di perangkat dan konfirmasi sebelum menutup.
