@@ -62,17 +62,17 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   console.log('Absen siswa (mode lokal)');
   let b = boot({ peran: 'siswa' }); x = b.ctx;
   x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas());
-  x.PK.f = { tipe: 'masuk', foto: '', cat: '' }; x.PK.mode = 'absen'; x.pkAbsenKirim();
+  x.PK.f = { fotoLangsung: true, fotoTgl: x.pkToday(), tipe: 'masuk', foto: '', cat: '' }; x.PK.mode = 'absen'; x.pkAbsenKirim();
   T('masuk tanpa selfie ditolak', /selfie/i.test(x.PK.msg) && x.PK.D.absen.length === 0, x.PK.msg);
-  x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,AAA', cat: '' }; x.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20 }; x.pkAbsenKirim();
+  x.PK.f = { fotoLangsung: true, fotoTgl: x.pkToday(), tipe: 'masuk', foto: 'data:image/jpeg;base64,AAA', cat: '' }; x.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20 }; x.pkAbsenKirim();
   await Promise.resolve(); await Promise.resolve();
   const a1 = x.PK.D.absen[0];
   T('absen masuk tersimpan dengan selfie, lokasi di tempat', a1 && a1.tipe === 'masuk' && a1.foto && a1.lokasi === 'ya' && a1.jarak === 0 && a1.sid === 's1' && a1.tempatId === 't1' && a1.r === 1, a1);
-  x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,AAA', cat: '' }; x.PK.mode = 'absen'; x.pkAbsenKirim();
+  x.PK.f = { fotoLangsung: true, fotoTgl: x.pkToday(), tipe: 'masuk', foto: 'data:image/jpeg;base64,AAA', cat: '' }; x.PK.mode = 'absen'; x.pkAbsenKirim();
   T('absen masuk ganda pada hari yang sama ditolak', /sudah tercatat/.test(x.PK.msg) && x.PK.D.absen.length === 1, x.PK.msg);
-  x.PK.f = { tipe: 'sakit', foto: '', cat: '' }; x.pkAbsenKirim();
+  x.PK.f = { fotoLangsung: true, fotoTgl: x.pkToday(), tipe: 'sakit', foto: '', cat: '' }; x.pkAbsenKirim();
   T('sakit tanpa keterangan ditolak', /keterangan/i.test(x.PK.msg));
-  x.PK.f = { tipe: 'pulang', foto: 'data:image/jpeg;base64,BBB', cat: '' }; x.PK.gps = { lat: -6.80, lng: 107.6191, acc: 10 }; x.pkAbsenKirim();
+  x.PK.f = { fotoLangsung: true, fotoTgl: x.pkToday(), tipe: 'pulang', foto: 'data:image/jpeg;base64,BBB', cat: '' }; x.PK.gps = { lat: -6.80, lng: 107.6191, acc: 10 }; x.pkAbsenKirim();
   await Promise.resolve(); await Promise.resolve();
   T('absen pulang di luar zona ditolak (bawaan: tolak)', x.PK.D.absen.length === 1 && /ditolak/.test(x.PK.msg) && /±\d+ m/.test(x.PK.msg), x.PK.msg);
   x.PK.D.setelan.push({ id: 'st1', jenis: 'setelan', tolak: 'tandai', daftar: 'belum', sekolah: 'MEDINA', r: 1, d: 0 });
@@ -81,10 +81,10 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   T('absen pulang jauh dari tempat ditandai di luar lokasi (pengaturan tandai)', x.PK.D.absen[1] && x.PK.D.absen[1].lokasi === 'tidak' && x.PK.D.absen[1].jarak > 10000, x.PK.D.absen[1]);
   T('rekap: 1 hari hadir, hari kerja dihitung dari mulai PKL', x.pkRekap('s1').hadir === 1 && x.pkRekap('s1').hk === 19 && x.pkRekap('s1').alpa === 18, x.pkRekap('s1'));
   let b2 = boot({ peran: 'siswa', me: USERS[2] }); b2.ctx.PK.D.tempat.push(tempat());
-  b2.ctx.PK.f = { tipe: 'masuk', foto: 'data:x', cat: '' }; b2.ctx.pkAbsenKirim();
+  b2.ctx.PK.f = { fotoLangsung: true, fotoTgl: b2.ctx.pkToday(), tipe: 'masuk', foto: 'data:x', cat: '' }; b2.ctx.pkAbsenKirim();
   T('siswa belum ditempatkan tidak bisa absen', /belum ditempatkan/.test(b2.ctx.PK.msg));
   T('siswa belum ditempatkan melihat daftar tempat PKL (bawaan)', /Daftar tempat PKL/.test(b2.ctx.viewPkl()));
-  b2.ctx.PK.f = { tipe: 'pulang', foto: 'x', cat: '' }; b2.ctx.PK.D.tugas.push(tugas({ id: 'g2x', sid: 's2', nama: 'Budi' })); b2.ctx.pkAbsenKirim();
+  b2.ctx.PK.f = { fotoLangsung: true, fotoTgl: b2.ctx.pkToday(), tipe: 'pulang', foto: 'x', cat: '' }; b2.ctx.PK.D.tugas.push(tugas({ id: 'g2x', sid: 's2', nama: 'Budi' })); b2.ctx.pkAbsenKirim();
   T('pulang tanpa masuk ditolak', /masuk hari ini belum/.test(b2.ctx.PK.msg), b2.ctx.PK.msg);
   const vs = x.viewPkl();
   T('tampilan siswa: tempat, tombol absen selfie, riwayat, jurnal', /PT Maju Motor/.test(vs) && /pkl-absen/.test(vs) && /Riwayat absen/.test(vs) && /Jurnal kegiatan/.test(vs) && /Di lokasi/.test(vs));
@@ -150,7 +150,7 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   T('siswa memuat tempat, penempatan sendiri, dan catatannya dengan kueri terarah', b.log.list.length === 3 && b.log.list.some((l) => l[0] === 'pkl' && String(l[1]).includes('equal:jenis:tempat')) && b.log.list.some((l) => l[0] === 'pkl' && String(l[1]).includes('equal:sid:s1')) && b.log.list.some((l) => l[0] === 'pkl_catat' && String(l[1]).includes('equal:sid:s1')), b.log.list);
   b.dbDocs.push({ $id: 'x10', _col: 'pkl', jenis: 'tugas', sekolah: 'MEDINA', nama: '', ts: 1, sid: 's9', tanggal: '', payload: JSON.stringify({ tempatId: 't1' }) });
   T('data Appwrite terbaca dengan payload di-parse', x.PK.D.tempat[0].nama === 'PT Maju' && x.PK.D.tugas[0].tempatId === 't1' && x.PK.D.tugas[0].r === 1);
-  x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: 'ok' }; x.PK.gps = null; x.pkAbsenKirim(); await new Promise((r) => setImmediate(r)); await new Promise((r) => setImmediate(r));
+  x.PK.f = { fotoLangsung: true, fotoTgl: x.pkToday(), tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: 'ok' }; x.PK.gps = null; x.pkAbsenKirim(); await new Promise((r) => setImmediate(r)); await new Promise((r) => setImmediate(r));
   const c = b.log.create[0];
   T('absen dikirim ke koleksi pkl_catat dengan kolom sid, tanggal, jenis dan selfie di payload', c && c.col === 'pkl_catat' && c.doc.jenis === 'absen' && c.doc.sid === 's1' && c.doc.tanggal === '2026-11-26' && JSON.parse(c.doc.payload).foto.startsWith('data:image') && c.doc.payload.length < 60000, c && Object.keys(c.doc));
   T('absen tanpa GPS pada tempat berkoordinat: lokasi tidak diketahui (tidak memblokir)', JSON.parse(c.doc.payload).lokasi === '?');
@@ -177,7 +177,7 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
     const ld = async (p) => { calls.push(p); if (p.action === 'upload') return { ok: true, fileId: 'FILEIDABC123' }; if (p.action === 'getpkl') return { ok: true, data: 'data:image/jpeg;base64,ZZZ' }; throw new Error('?'); };
     let d = boot({ peran: 'siswa', cloud: true, ctx: { ldCall: ld } }); let x = d.ctx;
     x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas());
-    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20 }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    x.PK.f = { fotoLangsung: true, fotoTgl: x.pkToday(), tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20 }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
     const up = calls.find((c) => c.action === 'upload'), cr = d.log.create[0];
     T('selfie diunggah ke Drive dengan nama PKL_Kelas_Nama_jenis_waktu', up && /^PKL_XII_Ani_masuk_20261126-\d{4}_[A-Za-z0-9]+$/.test(up.nama) && up.data.startsWith('data:image/jpeg'), up);
     T('payload absen hanya menyimpan penanda drive:<fileId> (database tidak terisi foto)', cr && JSON.parse(cr.doc.payload).foto === 'drive:FILEIDABC123' && cr.doc.payload.length < 800, cr && cr.doc.payload.slice(0, 200));
@@ -197,12 +197,12 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
     // fungsi belum dipasang: selfie tetap di payload
     d = boot({ peran: 'siswa', cloud: true, ctx: { ldCall: async () => { const e = new Error('Function with the requested ID could not be found'); e.code = 404; throw e; } } }); x = d.ctx;
     x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas());
-    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20 }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    x.PK.f = { fotoLangsung: true, fotoTgl: x.pkToday(), tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20 }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
     T('fungsi foto-drive belum dipasang: selfie tetap tersimpan di payload dan absen terkirim', d.log.create[0] && JSON.parse(d.log.create[0].doc.payload).foto.startsWith('data:image/jpeg') && x.PKD.off === true);
     // galat lain: absen diulang, selfie tidak hilang
     d = boot({ peran: 'siswa', cloud: true, ctx: { ldCall: async () => { const e = new Error('Google down'); e.status = 502; throw e; } } }); x = d.ctx;
     x.PK.D.tempat.push(tempat()); x.PK.D.tugas.push(tugas());
-    x.PK.f = { tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20 }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
+    x.PK.f = { fotoLangsung: true, fotoTgl: x.pkToday(), tipe: 'masuk', foto: 'data:image/jpeg;base64,QQ==', cat: '' }; x.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20 }; x.pkAbsenKirim(); for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r));
     T('unggah Drive gagal (galat server): absen belum terkirim, selfie tetap utuh di perangkat untuk dicoba lagi', d.log.create.length === 0 && x.PK.D.absen[0].r !== 1 && x.PK.D.absen[0].foto.startsWith('data:image/jpeg') && JSON.parse(d.store['tbsm-pkl']).absen[0].foto.startsWith('data:image/jpeg'));
   }
 
@@ -404,7 +404,7 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
     T('formulir: Simpan dan Batal di atas semua isian, pesan galat tepat di bawahnya, tidak ada tombol Simpan ganda di bawah', iS > -1 && iS < iF && iE > iS && iE < iF && f.split('data-act="pkl-save"').length === 2, [iS, iE, iF]);
     b.klik('pkl-cancel');
     const bs = boot({ peran: 'siswa', ctx: { schNama: () => 'SMKS Medina Bandung' } }), xs = bs.ctx;
-    xs.PK.D.tempat.push(tempat()); xs.PK.D.tugas.push(tugas()); xs.PK.msg = ''; xs.PK.mode = 'absen'; xs.PK.f = { tipe: 'masuk', foto: '', cat: '' };
+    xs.PK.D.tempat.push(tempat()); xs.PK.D.tugas.push(tugas()); xs.PK.msg = ''; xs.PK.mode = 'absen'; xs.PK.f = { fotoLangsung: true, fotoTgl: xs.pkToday(), tipe: 'masuk', foto: '', cat: '' };
     const a = xs.viewPkl();
     T('form absen: Kirim absen di atas, sebelum pilihan jenis dan selfie', a.indexOf('pkl-absen-kirim') > -1 && a.indexOf('pkl-absen-kirim') < a.indexOf('pkl-tipe') && a.split('pkl-absen-kirim').length === 2);
     const ui = baca('js/ui.js'), css = baca('css/app.css');
@@ -442,20 +442,20 @@ const tugas = (o = {}) => ({ id: 'g1x', sid: 's1', nama: 'Ani', kelas: 'XII', te
   {
     const mk = (o = {}) => { const b = boot({ peran: 'siswa' }); b.ctx.PK.D.tempat.push(tempat(o)); b.ctx.PK.D.tugas.push(tugas()); return b.ctx; };
     const FT = 'data:image/jpeg;base64,AAA';
-    let y = mk(); y.PK.f = { tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 800, t: Date.now() }; y.pkAbsenKirim();
+    let y = mk(); y.PK.f = { fotoLangsung: true, fotoTgl: y.pkToday(), tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 800, t: Date.now() }; y.pkAbsenKirim();
     T('akurasi GPS lebih buruk dari 500 m ditolak', /Akurasi/.test(y.PK.msg) && y.PK.D.absen.length === 0, y.PK.msg);
-    y = mk(); y.PK.f = { tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = null; y.pkAbsenKirim(); await Promise.resolve();
+    y = mk(); y.PK.f = { fotoLangsung: true, fotoTgl: y.pkToday(), tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = null; y.pkAbsenKirim(); await Promise.resolve();
     T('lokasi belum terbaca: absen masuk ditolak', /Lokasi belum terbaca/.test(y.PK.msg) && y.PK.D.absen.length === 0, y.PK.msg);
-    y = mk(); y.PK.f = { tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20, t: Date.now() - 200000 }; y.pkAbsenKirim(); await Promise.resolve();
+    y = mk(); y.PK.f = { fotoLangsung: true, fotoTgl: y.pkToday(), tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20, t: Date.now() - 200000 }; y.pkAbsenKirim(); await Promise.resolve();
     T('lokasi lebih dari 90 detik dibaca ulang sebelum diperiksa (tanpa GPS: ditolak)', y.PK.gps === null && y.PK.D.absen.length === 0, y.PK.msg);
-    y = mk({ lat: '', lng: '' }); y.PK.f = { tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = null; y.pkAbsenKirim(); await Promise.resolve(); await Promise.resolve();
+    y = mk({ lat: '', lng: '' }); y.PK.f = { fotoLangsung: true, fotoTgl: y.pkToday(), tipe: 'masuk', foto: FT, cat: '' }; y.PK.gps = null; y.pkAbsenKirim(); await Promise.resolve(); await Promise.resolve();
     T('tempat tanpa koordinat: absen diterima, lokasi tidak bisa dicek', y.PK.D.absen.length === 1 && y.PK.D.absen[0].lokasi === '?', y.PK.msg);
-    y = mk(); y.PK.f = { tipe: 'izin', foto: '', cat: 'Ke dokter' }; y.PK.gps = { lat: -6.80, lng: 107.6191, acc: 10, t: Date.now() }; y.pkAbsenKirim(); await Promise.resolve(); await Promise.resolve();
+    y = mk(); y.PK.f = { fotoLangsung: true, fotoTgl: y.pkToday(), tipe: 'izin', foto: '', cat: 'Ke dokter' }; y.PK.gps = { lat: -6.80, lng: 107.6191, acc: 10, t: Date.now() }; y.pkAbsenKirim(); await Promise.resolve(); await Promise.resolve();
     T('izin tidak dibatasi zona dan fotonya opsional (bawaan)', y.PK.D.absen.length === 1 && y.PK.D.absen[0].tipe === 'izin', y.PK.msg);
     y = mk(); y.PK.D.setelan.push({ id: 'st1', jenis: 'setelan', foto: { sakit: 1 }, sekolah: 'MEDINA', r: 1, d: 0 });
-    y.PK.f = { tipe: 'sakit', foto: '', cat: 'Demam' }; y.pkAbsenKirim();
+    y.PK.f = { fotoLangsung: true, fotoTgl: y.pkToday(), tipe: 'sakit', foto: '', cat: 'Demam' }; y.pkAbsenKirim();
     T('foto sakit diwajibkan lewat pengaturan', /foto/i.test(y.PK.msg) && y.PK.D.absen.length === 0, y.PK.msg);
-    y.PK.D.setelan[0].foto = { masuk: 0 }; y.PK.f = { tipe: 'masuk', foto: '', cat: '' }; y.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20, t: Date.now() }; y.pkAbsenKirim(); await Promise.resolve(); await Promise.resolve();
+    y.PK.D.setelan[0].foto = { masuk: 0 }; y.PK.f = { fotoLangsung: true, fotoTgl: y.pkToday(), tipe: 'masuk', foto: '', cat: '' }; y.PK.gps = { lat: -6.9175, lng: 107.6191, acc: 20, t: Date.now() }; y.pkAbsenKirim(); await Promise.resolve(); await Promise.resolve();
     T('selfie masuk bisa dijadikan tidak wajib lewat pengaturan', y.PK.D.absen.length === 1 && y.PK.D.absen[0].tipe === 'masuk', y.PK.msg);
   }
 
