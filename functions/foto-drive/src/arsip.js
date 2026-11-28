@@ -38,28 +38,74 @@ export function rentang(senin) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(senin) || isNaN(t) || new Date(t).getUTCDay() !== 1) return null;
   return [senin, new Date(t + 6 * 86400000).toISOString().slice(0, 10)];
 }
+const DB = () => encodeURIComponent(process.env.DB_ID || 'tbsm');
+const slug = (x) => String(x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+/* rombel aktif sebuah sekolah: ID siswa -> nama rombel (koleksi akademik, jenis kelas). Hanya untuk mengelompokkan berkas PKL, yang tidak menyimpan rombel. */
+async function petaRombel(sk, key, h) {
+  const auth = { 'X-Appwrite-Key': key || '' }, docs = [];
+  let after = null;
+  for (;;) {
+    const p = new URLSearchParams();
+    [{ method: 'equal', attribute: 'jenis', values: ['kelas'] }, { method: 'limit', values: [100] }, ...(after ? [{ method: 'cursorAfter', values: [after] }] : [])]
+      .forEach((q) => p.append('queries[]', JSON.stringify(q)));
+    const L = (await h.aw('/databases/' + DB() + '/collections/akademik/documents?' + p, auth)).documents || [];
+    docs.push(...L);
+    if (L.length < 100) break;
+    after = L[L.length - 1].$id;
+  }
+  const peta = new Map();
+  docs.filter((d) => kodeSekolah(d.sekolah) === sk).sort((a, b) => String(a.nama).localeCompare(String(b.nama), 'id', { numeric: true })).forEach((d) => {
+    let x; try { x = JSON.parse(d.payload || '{}'); } catch (e) { return; }
+    if (x.aktif === false) return;
+    (x.anggota || []).forEach((id) => { if (!peta.has(id)) peta.set(id, String(d.nama || x.nama || '')); });
+  });
+  return peta;
+}
+/* nama berkas per sekolah dan rombel. Pengelompokan hanya pengaturan letak: pembacaan selalu menggabungkan semua berkas minggu itu menurut ID dokumen. */
+export function namaBerkas(jenis, senin, sk, label) {
+  return 'arsip-absen_' + jenis + '_' + senin + '_' + sk + '_' + (slug(label) || 'tanpa-rombel') + '.json';
+}
+function labelRombel(jenis, d, peta) {
+  if (jenis === 'pkl') return peta.get(d.sid) || '';
+  try { const p = JSON.parse(d.payload || '{}'); return p.rn || (p.rb ? String(p.rb) : '') || (d.kelas ? 'kelas-' + d.kelas : ''); } catch (e) { return ''; }
+}
 export async function arsipAbsen(callerId, body, auth, key, h) {
-  const { aw, accessToken, folderId, gfetch, Fail } = h;
+  const { aw, accessToken, folderId, Fail } = h;
   const s = SUMBER[body.jenis], r = rentang(String(body.minggu || ''));
   if (!s || !r) throw new Fail('Permintaan tidak valid (jenis atau tanggal Senin).', 400);
   const u = await aw('/users/' + encodeURIComponent(callerId), { 'X-Appwrite-Key': key || '' });
   if (!(u.labels || []).includes('admin')) throw new Fail('Hanya admin yang boleh mengarsipkan.', 403);
   if (r[1] >= new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10)) throw new Fail('Minggu ini belum selesai.', 400);
-  const punya = await pemilahSekolah(callerId, body, body.jenis, key, h);
+  const punya = await pemilahSekolah(callerId, body, body.jenis, key, h), sk = kodeSekolah(body.sekolah);
   const docs = [];
   let after = null;
   for (;;) {
     const p = new URLSearchParams();
     [...s.q, { method: 'limit', values: [100] }, ...(after ? [{ method: 'cursorAfter', values: [after] }] : [])]
       .forEach((q) => p.append('queries[]', JSON.stringify(q)));
-    const L = (await aw('/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/' + s.col + '/documents?' + p, auth)).documents || [];
+    const L = (await aw('/databases/' + DB() + '/collections/' + s.col + '/documents?' + p, auth)).documents || [];
     L.forEach((d) => { const t = String(d.tanggal || '').slice(0, 10); if (s.cocok(d) && t >= r[0] && t <= r[1] && punya(d)) docs.push(d); });
     if (L.length < 100) break;
     after = L[L.length - 1].$id;
   }
   if (!docs.length) return { ok: true, jumlah: 0 };
+  const rombel = body.jenis === 'pkl' ? await petaRombel(sk, key, h) : null;
+  const grup = new Map();
+  docs.forEach((d) => {
+    const label = labelRombel(body.jenis, d, rombel), nama = namaBerkas(body.jenis, r[0], sk, label);
+    if (!grup.has(nama)) grup.set(nama, { label: label || 'tanpa rombel', docs: [] });
+    grup.get(nama).docs.push(d);
+  });
   const tok = await accessToken(), parent = await folderId(tok);
-  const nama = 'arsip-absen_' + body.jenis + '_' + r[0] + '.json';
+  /* berkas rombel ditulis bersamaan (maks. 4) agar tidak melewati batas waktu fungsi; tiap berkas bebas dan idempoten, jadi galat sebagian aman diulang */
+  const tulis = await paralel([...grup], ([nama, g]) => tulisArsip(nama, g.docs, { jenis: body.jenis, r, sk, label: g.label, tok, parent, h }), 4);
+  const berkas = [...grup].map(([nama, g], i) => ({ nama, rombel: g.label, jumlah: g.docs.length, fileId: tulis[i].fileId }));
+  const total = tulis.reduce((a, w) => a + w.total, 0);
+  return { ok: true, jumlah: docs.length, total, berkas: berkas.length, daftar: berkas };
+}
+/* satu berkas: arsip lama berkas yang sama digabung menurut ID (dokumen yang pernah diarsipkan tidak hilang), ditulis, lalu dibaca ulang dan dicocokkan */
+async function tulisArsip(nama, docs, c) {
+  const { gfetch, Fail } = c.h, { tok, parent } = c;
   const q = encodeURIComponent("name='" + nama + "' and '" + parent + "' in parents and trashed=false");
   const cari = await gfetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id)', {}, tok);
   if (!cari.ok) throw new Fail('Gagal memeriksa arsip di Drive (' + cari.status + ').', 502);
@@ -69,21 +115,20 @@ export async function arsipAbsen(callerId, body, auth, key, h) {
     if (!x.ok) throw new Fail('Arsip tidak bisa dibaca (' + x.status + ').', 502);
     return x.text();
   };
-  /* arsip lama digabung menurut ID, jadi dokumen yang sudah pernah diarsipkan tidak hilang */
   const peta = new Map();
   if (id) JSON.parse(await unduh()).dokumen.forEach((d) => peta.set(d.$id, d));
   docs.forEach((d) => peta.set(d.$id, gabung(peta.get(d.$id), d)));
-  const isi = JSON.stringify({ v: 1, jenis: body.jenis, dari: r[0], sampai: r[1], dibuat: new Date().toISOString(), dokumen: [...peta.values()] });
+  const isi = JSON.stringify({ v: 1, jenis: c.jenis, dari: c.r[0], sampai: c.r[1], sekolah: c.sk, rombel: c.label, dibuat: new Date().toISOString(), dokumen: [...peta.values()] });
   if (!id) {
-    const c = await gfetch('https://www.googleapis.com/drive/v3/files?fields=id', { method: 'POST', headers: { 'content-type': 'application/json' },
+    const m = await gfetch('https://www.googleapis.com/drive/v3/files?fields=id', { method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ name: nama, parents: [parent], mimeType: 'application/json', appProperties: { kind: 'arsip-absen' } }) }, tok);
-    id = (await c.json().catch(() => ({}))).id;
-    if (!c.ok || !id) throw new Fail('Gagal membuat berkas arsip (' + c.status + ').', 502);
+    id = (await m.json().catch(() => ({}))).id;
+    if (!m.ok || !id) throw new Fail('Gagal membuat berkas arsip (' + m.status + ').', 502);
   }
   const w = await gfetch('https://www.googleapis.com/upload/drive/v3/files/' + id + '?uploadType=media', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: isi }, tok);
   if (!w.ok) throw new Fail('Gagal menulis arsip (' + w.status + ').', 502);
   if ((await unduh()) !== isi) throw new Fail('Verifikasi arsip gagal: isi di Drive tidak sama.', 502);
-  return { ok: true, jumlah: docs.length, total: peta.size, fileId: id };
+  return { fileId: id, total: peta.size };
 }
 
 /* sesi yang dibuat ulang setelah dihapus (ID sama, waktu buat beda) digabung per siswa agar isi arsip lama tidak tertimpa */
@@ -93,15 +138,65 @@ export function gabung(lama, baru) {
   const rows = { ...a.rows, ...b.rows };
   return { ...baru, payload: JSON.stringify({ ...a, ...b, rows }), skor: Object.values(rows).filter((x) => x.s === 'H').length };
 }
-async function cariArsip(minggu, tok, parent, h, jenis = 'harian') {
-  const q = encodeURIComponent("name='arsip-absen_" + jenis + "_" + minggu + ".json' and '" + parent + "' in parents and trashed=false");
-  const c = await h.gfetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id)', {}, tok);
-  if (!c.ok) throw new h.Fail('Gagal memeriksa arsip di Drive (' + c.status + ').', 502);
-  const f = ((await c.json()).files || [])[0];
-  if (!f) return null;
+/* Semua berkas arsip sebuah jenis: berkas lama (arsip-absen_<jenis>_<Senin>.json) dan berkas per rombel (..._<Senin>_<sekolah>_<rombel>.json).
+   Daftar diambil lewat penanda appProperties atau awalan nama, lalu disaring ketat menurut nama di sini. */
+const NAMA_RE = /^arsip-absen_(harian|pkl)_(\d{4}-\d{2}-\d{2})(?:_(.+))?\.json$/;
+async function daftarBerkas(jenis, tok, parent, h) {
+  const dasar = "'" + parent + "' in parents and trashed=false and ";
+  /* kueri utama (penanda appProperties) wajib berhasil; kueri awalan nama hanya tambahan untuk berkas yang dibuat tanpa penanda */
+  const [utama, nama] = await Promise.all([
+    halamanBerkas(dasar + "appProperties has { key='kind' and value='arsip-absen' }", tok, h, true),
+    halamanBerkas(dasar + "name contains 'arsip-absen_'", tok, h, false),
+  ]);
+  const unik = new Map();
+  [...utama, ...nama].forEach((f) => { const m = NAMA_RE.exec(String(f.name)); if (m && m[1] === jenis) unik.set(f.id, { id: f.id, name: f.name, minggu: m[2] }); });
+  return [...unik.values()];
+}
+async function halamanBerkas(kueri, tok, h, wajib) {
+  const out = [], q = encodeURIComponent(kueri);
+  let pt = '';
+  try {
+    for (let i = 0; i < 20; i++) {
+      const c = await h.gfetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name),nextPageToken&pageSize=1000' + (pt ? '&pageToken=' + encodeURIComponent(pt) : ''), {}, tok);
+      if (!c.ok) throw new h.Fail('Gagal memeriksa arsip di Drive (' + c.status + ').', 502);
+      const j = await c.json();
+      out.push(...(j.files || []));
+      pt = j.nextPageToken || '';
+      if (!pt) return out;
+    }
+    throw new h.Fail('Daftar berkas arsip terlalu banyak; pembacaan perlu diperluas.', 500);
+  } catch (e) { if (wajib) throw e; return []; }
+}
+/* gabungan beberapa berkas: satu dokumen per ID. Sesi dibuat ulang (waktu buat beda) digabung per siswa; selain itu yang $updatedAt-nya lebih baru menang. */
+export function pilih(a, b) {
+  if (!a) return b;
+  if (a.$createdAt && b.$createdAt && a.$createdAt !== b.$createdAt) {
+    const [lama, baru] = a.$createdAt < b.$createdAt ? [a, b] : [b, a];
+    return a.tipe === 'absen' && b.tipe === 'absen' ? gabung(lama, baru) : baru;
+  }
+  return String(b.$updatedAt || '') >= String(a.$updatedAt || '') ? b : a;
+}
+export function satukan(daftar) {
+  const peta = new Map();
+  daftar.forEach((L) => (L || []).forEach((d) => peta.set(d.$id, pilih(peta.get(d.$id), d))));
+  return [...peta.values()];
+}
+async function paralel(item, fn, n) {
+  const out = new Array(item.length);
+  let i = 0;
+  await Promise.all(Array.from({ length: Math.min(n, item.length) }, async () => { while (i < item.length) { const k = i++; out[k] = await fn(item[k]); } }));
+  return out;
+}
+async function unduhBerkas(f, tok, h) {
   const x = await h.gfetch('https://www.googleapis.com/drive/v3/files/' + f.id + '?alt=media', {}, tok);
   if (!x.ok) throw new h.Fail('Arsip tidak bisa dibaca (' + x.status + ').', 502);
   return JSON.parse(await x.text()).dokumen;
+}
+/* null bila minggu itu belum punya berkas arsip sama sekali */
+async function cariArsip(minggu, tok, parent, h, jenis = 'harian', daftar) {
+  const F = (daftar || await daftarBerkas(jenis, tok, parent, h)).filter((f) => f.minggu === minggu);
+  if (!F.length) return null;
+  return satukan(await paralel(F, (f) => unduhBerkas(f, tok, h), 6));
 }
 async function peran(callerId, key, h) {
   return (await h.aw('/users/' + encodeURIComponent(callerId), { 'X-Appwrite-Key': key || '' })).labels || [];
@@ -111,8 +206,8 @@ export async function bacaArsip(callerId, body, key, h) {
   const L = await peran(callerId, key, h), adm = L.includes('admin');
   if (!adm && !L.includes('guru')) throw new h.Fail('Hanya guru atau admin.', 403);
   const m = (Array.isArray(body.minggu) ? body.minggu : []).slice(0, 6).filter((x) => rentang(String(x)));
-  const tok = await h.accessToken(), parent = await h.folderId(tok), dokumen = [];
-  for (const w of m) ((await cariArsip(w, tok, parent, h)) || []).forEach((d) => { if (adm || d.pengamatId === callerId) dokumen.push(d); });
+  const tok = await h.accessToken(), parent = await h.folderId(tok), dokumen = [], daftar = await daftarBerkas('harian', tok, parent, h);
+  for (const w of m) ((await cariArsip(w, tok, parent, h, 'harian', daftar)) || []).forEach((d) => { if (adm || d.pengamatId === callerId) dokumen.push(d); });
   return { ok: true, dokumen };
 }
 /* hapus hanya dokumen yang sudah ada di arsip dan tidak berubah sejak diarsipkan; dibatasi per panggilan agar tidak melewati batas waktu.
@@ -189,23 +284,15 @@ async function akunSaya(callerId, key, h) {
   return a.$id;
 }
 const uji = (d) => { try { return !!JSON.parse(d.payload || '{}').uji; } catch (e) { return false; } };
-/* semua arsip PKL, beberapa berkas per panggilan. Guru/admin menerima semua; selain itu hanya miliknya. Data uji tidak dikirim. */
+/* semua arsip PKL, lima minggu per panggilan (semua berkas rombel satu minggu dalam satu panggilan, jadi dokumen ganda antarberkas tersaring di sini).
+   Guru/admin menerima semua; selain itu hanya miliknya. Data uji tidak dikirim. */
 export async function bacaArsipPkl(callerId, body, key, h) {
   const L = await peran(callerId, key, h), staf = L.includes('admin') || L.includes('guru');
   const sid = staf ? null : await akunSaya(callerId, key, h);
-  const tok = await h.accessToken(), parent = await h.folderId(tok);
-  const q = encodeURIComponent("name contains 'arsip-absen_pkl_' and '" + parent + "' in parents and trashed=false");
-  const c = await h.gfetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name),nextPageToken&pageSize=100', {}, tok);
-  if (!c.ok) throw new h.Fail('Gagal memeriksa arsip di Drive (' + c.status + ').', 502);
-  const j = await c.json();
-  if (j.nextPageToken) throw new h.Fail('Berkas arsip PKL lebih dari 100; pembacaan perlu diperluas.', 500);
-  const F = (j.files || []).sort((a, b) => String(a.name).localeCompare(String(b.name))), mulai = Math.max(0, Number(body.mulai) || 0), dokumen = [];
-  for (const f of F.slice(mulai, mulai + 5)) {
-    const x = await h.gfetch('https://www.googleapis.com/drive/v3/files/' + f.id + '?alt=media', {}, tok);
-    if (!x.ok) throw new h.Fail('Arsip tidak bisa dibaca (' + x.status + ').', 502);
-    JSON.parse(await x.text()).dokumen.forEach((d) => { if (!uji(d) && (staf || d.sid === sid)) dokumen.push(d); });
-  }
-  return { ok: true, dokumen, lanjut: mulai + 5 < F.length ? mulai + 5 : null };
+  const tok = await h.accessToken(), parent = await h.folderId(tok), daftar = await daftarBerkas('pkl', tok, parent, h);
+  const minggu = [...new Set(daftar.map((f) => f.minggu))].sort(), mulai = Math.max(0, Number(body.mulai) || 0), dokumen = [];
+  for (const w of minggu.slice(mulai, mulai + 5)) ((await cariArsip(w, tok, parent, h, 'pkl', daftar)) || []).forEach((d) => { if (!uji(d) && (staf || d.sid === sid)) dokumen.push(d); });
+  return { ok: true, dokumen, lanjut: mulai + 5 < minggu.length ? mulai + 5 : null };
 }
 /* dokumen absen PKL yang sudah dihapus dari Appwrite, untuk membuka selfie. Hak: guru/admin atau pemilik. */
 export async function dokPklArsip(callerId, docId, tanggal, key, h) {
