@@ -1,15 +1,15 @@
-/* ukk-gerbang-editor.js: editor soal Gerbang praktik UKK untuk guru dan admin (unit kelas X dan XI). Dimuat setelah ukk-gerbang.js.
+/* ukk-gerbang-editor.js: editor soal Prasyarat praktik UKK untuk guru dan admin (unit kelas X dan XI). Dimuat setelah ukk-gerbang.js. Menu Kelola prasyarat memuat: saklar aktif, pratinjau siswa, cetak PDF soal dan kunci (js/ukk-prasyarat-pdf.js), daftar soal, dan simpan.
    FUNGSI
-     - Guru menyusun sendiri soal gerbang tiap unit: PG (2-5 pilihan, satu kunci), PG kompleks (3-5 pilihan, satu atau lebih kunci),
-       PG kategori (2-8 pernyataan Benar/Salah). MAKSIMAL 20 SOAL per unit (UKG.MAX di ukk-gerbang.js), minimal 1 bila gerbang aktif.
+     - Guru menyusun sendiri soal prasyarat tiap unit: PG (2-5 pilihan, satu kunci), PG kompleks (3-5 pilihan, satu atau lebih kunci),
+       PG kategori (2-8 pernyataan Benar/Salah). MAKSIMAL 20 SOAL per unit (UKG.MAX di ukk-gerbang.js), minimal 1 bila prasyarat aktif.
      - Berlaku untuk unit UKK kelas X dan XI: bawaan (UKK-X-1, UKK-XI-1), unit buatan sendiri, dan hasil Duplikat.
-     - Gerbang bisa dimatikan per unit (on:false): siswa langsung masuk unit.
+     - Prasyarat bisa dimatikan per unit (on:false): siswa langsung masuk unit.
    PENYIMPANAN
      - Soal disimpan DI DALAM dokumen unit (doc.gerbang = {on, soal, v}), sehingga ikut sinkronisasi lkpd_modules, antrean offline,
        dan penyimpanan lokal yang sama dengan unit (tanpa perubahan skema Appwrite). Penyimpanan lewat satu pintu ukkStore (validasi di bawah).
-     - Tanpa doc.gerbang, unit memakai soal bawaan UKK_GERBANG (bila ada). doc.gerbang=null berarti "kembalikan ke bawaan / hapus gerbang buatan".
+     - Tanpa doc.gerbang, unit memakai soal bawaan UKK_GERBANG (bila ada). doc.gerbang=null berarti "kembalikan ke bawaan / hapus prasyarat buatan".
      - Draf otomatis di perangkat (localStorage tbsm-ukk-gerbang-draft), dapat dipulihkan saat editor dibuka lagi.
-     - Jawaban siswa yang tersimpan memakai tanda tangan soal (ukgSig): bila soal, pilihan, atau kunci diubah, siswa mengerjakan gerbang lagi.
+     - Jawaban siswa yang tersimpan memakai tanda tangan soal (ukgSig): bila soal, pilihan, atau kunci diubah, siswa mengerjakan prasyarat lagi.
    Pratinjau memakai draf yang sedang diedit (belum perlu disimpan) dan memuat kunci serta pembahasan. */
 var UGE={DKEY:'tbsm-ukk-gerbang-draft',LVL:['Pemahaman','Aplikasi','Penalaran'],MAXO:5,MAXR:8,MAXQ:1000,MAXOPT:300,MAXE:1500,st:null,timer:null};
 (function(){var st=document.createElement('style');st.textContent=
@@ -75,7 +75,7 @@ function ugeCekSemua(on,soal){
  var i,e;
  if(!Array.isArray(soal))return {err:'Daftar soal tidak sah.',i:-1};
  if(soal.length>UKG.MAX)return {err:'Maksimal '+UKG.MAX+' soal per unit.',i:-1};
- if(on&&!soal.length)return {err:'Tambahkan minimal satu soal, atau matikan gerbang.',i:-1};
+ if(on&&!soal.length)return {err:'Tambahkan minimal satu soal, atau matikan prasyarat.',i:-1};
  for(i=0;i<soal.length;i++){e=ugeCek(soal[i]);if(e)return {err:'Soal '+(i+1)+': '+e,i:i}}
  return {err:'',i:-1};
 }
@@ -90,9 +90,9 @@ function ugeBersih(q){
 function ugeCekDoc(d){
  var g=d&&d.gerbang;
  if(g===undefined||g===null)return '';
- if(typeof g!=='object'||Array.isArray(g))return 'Gerbang praktik tidak sah.';
+ if(typeof g!=='object'||Array.isArray(g))return 'Prasyarat praktik tidak sah.';
  var c=ugeCekSemua(g.on!==false,g.soal);
- return c.err?'Gerbang praktik: '+c.err:'';
+ return c.err?'Prasyarat praktik: '+c.err:'';
 }
 
 /* ---------- Draf di perangkat ---------- */
@@ -129,7 +129,7 @@ function ugeGambar(keep){
  var st=UGE.st;if(!st)return;
  var j=ugeJob(st.id);if(!j){ugeTutup();return}
  var ov=ugeEl(),y=ov?ov.scrollTop:0;
- if(!ov){ov=document.createElement('div');ov.id='uge-ov';ov.className='ukg-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Editor gerbang praktik');document.body.appendChild(ov);document.body.style.overflow='hidden'}
+ if(!ov){ov=document.createElement('div');ov.id='uge-ov';ov.className='ukg-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Kelola prasyarat praktik');document.body.appendChild(ov);document.body.style.overflow='hidden'}
  ov.innerHTML=st.layar==='soal'&&st.soal[st.i]?ugeSoalHtml(j,st):ugeDaftarHtml(j,st);
  ov.scrollTop=keep?y:0;
 }
@@ -140,10 +140,14 @@ function ugeStatusSimpan(j){
 }
 function ugeDaftarHtml(j,st){
  var n=st.soal.length,penuh=n>=UKG.MAX,sudah=!!(j.gerbang&&typeof j.gerbang==='object'),bawaan=typeof UKK_GERBANG!=='undefined'&&!!UKK_GERBANG[j.id];
- var h='<div class="ukg-box"><div class="row sb"><div><span class="label">Editor gerbang praktik</span><h2>'+esc(j.judul)+'</h2></div><button type="button" class="btn small" data-uge="tutup">Tutup</button></div>';
+ var h='<div class="ukg-box"><div class="row sb"><div><span class="label">Kelola prasyarat praktik</span><h2>'+esc(j.judul)+'</h2></div><button type="button" class="btn small" data-uge="tutup">Tutup</button></div>';
  if(st.rec)h+='<div class="card"><b>Ada draf yang belum disimpan</b><p class="note">Tersimpan di perangkat ini pada '+esc(new Date(st.rec.ts).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))+' ('+st.rec.soal.length+' soal).</p><div class="row"><button type="button" class="btn small" data-uge="buang-draf">Buang draf</button><button type="button" class="btn primary small grow" data-uge="pulih">Pulihkan draf</button></div></div>';
- h+='<section class="card" style="display:grid;gap:8px"><label class="lk-check"><input type="checkbox" data-ugef="on"'+(st.on?' checked':'')+'><span><b>Gerbang aktif</b><small>Siswa wajib lulus gerbang sebelum memulai unit. Matikan agar siswa langsung masuk unit.</small></span></label>'+
-  '<p class="note"><b>'+n+' dari '+UKG.MAX+' soal</b> · KKM gerbang '+ukgKkm()+' · semua soal wajib dijawab · tanpa batas percobaan · tidak masuk nilai UKK. Status tersimpan: '+esc(ugeStatusSimpan(j))+'.</p></section>';
+ h+='<section class="card" style="display:grid;gap:8px"><label class="lk-check"><input type="checkbox" data-ugef="on"'+(st.on?' checked':'')+'><span><b>Prasyarat aktif</b><small>Siswa wajib lulus prasyarat sebelum memulai unit. Matikan agar siswa langsung masuk unit.</small></span></label>'+
+  '<p class="note"><b>'+n+' dari '+UKG.MAX+' soal</b> · KKM prasyarat '+ukgKkm()+' · semua soal wajib dijawab · tanpa batas percobaan · tidak masuk nilai UKK. Status tersimpan: '+esc(ugeStatusSimpan(j))+'.</p></section>';
+ h+='<section class="card" style="display:grid;gap:8px"><b>Menu prasyarat</b><p class="note">Pratinjau dan cetak PDF memakai soal yang sedang diedit di layar ini, termasuk yang belum disimpan.</p>'+
+  '<div class="lks-acts"><button type="button" class="btn small" data-uge="pratinjau"'+(n?'':' disabled')+'>Pratinjau siswa</button>'+
+  '<button type="button" class="btn small" data-uge="pdf-soal"'+(n?'':' disabled')+'>Cetak soal (PDF)</button>'+
+  '<button type="button" class="btn small" data-uge="pdf-kunci"'+(n?'':' disabled')+'>Cetak kunci jawaban (PDF)</button></div></section>';
  if(!n)h+='<div class="card muted">Belum ada soal. Tambahkan soal di bawah'+(bawaan?' atau muat soal bawaan':'')+'.</div>';
  st.soal.forEach(function(q,i){
   var e=ugeCek(q),pv=ugeT(q.q);
@@ -158,8 +162,8 @@ function ugeDaftarHtml(j,st){
  h+='<section class="card" style="display:grid;gap:8px"><b>Tambah soal</b>'+(penuh?'<p class="note">Sudah '+UKG.MAX+' soal (batas maksimal). Hapus satu soal untuk menambah.</p>':'')+
   '<div class="lks-acts"><button type="button" class="btn small" data-uge="tambah" data-t="pg"'+(penuh?' disabled':'')+'>+ Pilihan ganda</button><button type="button" class="btn small" data-uge="tambah" data-t="kompleks"'+(penuh?' disabled':'')+'>+ PG kompleks</button><button type="button" class="btn small" data-uge="tambah" data-t="kategori"'+(penuh?' disabled':'')+'>+ PG kategori</button></div>'+
   '<div class="lks-acts">'+(bawaan?'<button type="button" class="btn small" data-uge="bawaan">Muat soal bawaan</button>':'')+(n?'<button type="button" class="btn small danger" data-uge="kosong">Kosongkan semua soal</button>':'')+
-  (sudah?'<button type="button" class="btn small danger" data-uge="reset">'+(bawaan?'Kembalikan ke soal bawaan':'Hapus gerbang buatan')+'</button>':'')+'</div></section>'+
-  '<div class="ukg-bar"><button type="button" class="btn" data-uge="pratinjau"'+(n?'':' disabled')+'>Pratinjau</button><button type="button" class="btn primary grow" data-uge="simpan">Simpan gerbang</button></div></div>';
+  (sudah?'<button type="button" class="btn small danger" data-uge="reset">'+(bawaan?'Kembalikan ke soal bawaan':'Hapus prasyarat buatan')+'</button>':'')+'</div></section>'+
+  '<div class="ukg-bar"><button type="button" class="btn primary grow" data-uge="simpan">Simpan prasyarat</button></div></div>';
  return h;
 }
 function ugeOpsiHtml(q,t){
@@ -198,7 +202,7 @@ function ugeSoalHtml(j,st){
 /* ---------- Simpan ---------- */
 function ugeSimpan(){
  var st=UGE.st;if(!st)return;
- var j=ugeJob(st.id);if(!j||!ugkBisaSafe(j)){toast('Tidak dapat menyimpan gerbang unit ini');return}
+ var j=ugeJob(st.id);if(!j||!ugkBisaSafe(j)){toast('Tidak dapat menyimpan prasyarat unit ini');return}
  var c=ugeCekSemua(st.on,st.soal);
  if(c.err){toast(c.err);if(c.i>=0){st.i=c.i;st.layar='soal';ugeGambar(false)}return}
  var doc=ugeCp(ukkDocOf(j.id)||ukkDocFromJob(j));
@@ -206,7 +210,7 @@ function ugeSimpan(){
  var e=ukkStore(doc);if(e){toast(e);return}
  ukkFlush();ugeDraftBuang();
  st.soal=doc.gerbang.soal.map(ugeCp);st.snap=ugeIsi(st);st.rec=null;st.layar='daftar';
- toast('Gerbang praktik tersimpan ('+st.soal.length+' soal'+(st.on?'':', dimatikan')+')');
+ toast('Prasyarat praktik tersimpan ('+st.soal.length+' soal'+(st.on?'':', dimatikan')+')');
  try{if(typeof render==='function')render()}catch(x){}
  ugeGambar(false);
 }
@@ -217,7 +221,7 @@ function ugeReset(){
  var e=ukkStore(doc);if(e){toast(e);return}
  ukkFlush();ugeDraftBuang();
  var a=ugeAwal(ugeJob(st.id)||j);st.on=a.on;st.soal=a.soal;st.snap=ugeIsi(st);st.rec=null;st.layar='daftar';
- toast('Gerbang dikembalikan');
+ toast('Prasyarat dikembalikan');
  try{if(typeof render==='function')render()}catch(x){}
  ugeGambar(false);
 }
@@ -252,7 +256,7 @@ document.addEventListener('click',function(e){
  }
  if(a==='hapus'){
   if(!st.soal[i])return;
-  ugeTanya('Hapus soal '+(i+1)+'?\nSoal ini hilang dari daftar. Perubahan baru berlaku setelah Simpan gerbang.',function(){
+  ugeTanya('Hapus soal '+(i+1)+'?\nSoal ini hilang dari daftar. Perubahan baru berlaku setelah Simpan prasyarat.',function(){
    var s2=UGE.st;if(!s2||!s2.soal[i])return;
    s2.soal.splice(i,1);if(s2.i>=s2.soal.length)s2.i=Math.max(0,s2.soal.length-1);s2.layar='daftar';ugeDraftTunda();ugeGambar(false);
   },true);return;
@@ -264,12 +268,12 @@ document.addEventListener('click',function(e){
   },true);return;
  }
  if(a==='kosong'){
-  ugeTanya('Kosongkan semua soal?\nSemua soal di editor dihapus. Perubahan baru berlaku setelah Simpan gerbang.',function(){
+  ugeTanya('Kosongkan semua soal?\nSemua soal di editor dihapus. Perubahan baru berlaku setelah Simpan prasyarat.',function(){
    var s2=UGE.st;if(!s2)return;s2.soal=[];s2.layar='daftar';ugeDraftTunda();ugeGambar(false);
   },true);return;
  }
  if(a==='reset'){
-  ugeTanya('Kembalikan gerbang unit ini?\nSoal buatan guru dihapus dan unit memakai soal bawaan (bila ada). Jawaban siswa yang tersimpan tetap, tetapi hanya berlaku bila soalnya sama.',ugeReset,true);return;
+  ugeTanya('Kembalikan prasyarat unit ini?\nSoal buatan guru dihapus dan unit memakai soal bawaan (bila ada). Jawaban siswa yang tersimpan tetap, tetapi hanya berlaku bila soalnya sama.',ugeReset,true);return;
  }
  if(a==='pulih'){
   if(st.rec){st.on=!!st.rec.on;st.soal=ugeCp(st.rec.soal);st.rec=null;st.i=0;ugeGambar(false)}return;
@@ -279,6 +283,12 @@ document.addEventListener('click',function(e){
   j=ugeJob(st.id);var c=ugeCekSemua(true,st.soal);
   if(c.err){toast(c.err);if(c.i>=0){st.i=c.i;st.layar='soal';ugeGambar(false)}return}
   UKG.ovr={id:st.id,soal:st.soal.map(ugeBersih)};ukgBuka(j,true);return;
+ }
+ if(a==='pdf-soal'||a==='pdf-kunci'){
+  j=ugeJob(st.id);var c2=ugeCekSemua(true,st.soal);
+  if(c2.err){toast(c2.err);if(c2.i>=0){st.i=c2.i;st.layar='soal';ugeGambar(false)}return}
+  if(typeof ukpCetak==='function')ukpCetak(j,st.soal.map(ugeBersih),a==='pdf-kunci'?'kunci':'soal');
+  else toast('Fitur cetak PDF belum dimuat');return;
  }
  if(a==='simpan'){ugeSimpan();return}
  /* penyuntingan pilihan dan pernyataan pada layar soal */
@@ -326,14 +336,14 @@ document.addEventListener('change',function(e){
 
 /* ---------- Pengait ke unit UKK ---------- */
 (function(){
- /* Unit membawa gerbang buatan guru ke objek job (dibaca ukgSoal) */
+ /* Unit membawa prasyarat buatan guru ke objek job (dibaca ukgSoal) */
  var m0=window.ukkMakeJob;
  if(typeof m0==='function')window.ukkMakeJob=function(d){
   var j=m0.apply(this,arguments);
   if(j&&d&&d.gerbang&&typeof d.gerbang==='object')j.gerbang=d.gerbang;
   return j;
  };
- /* Menyimpan unit dari editor unit tidak boleh menghapus gerbang: dokumen tanpa kolom gerbang mewarisinya. gerbang:null = hapus. */
+ /* Menyimpan unit dari editor unit tidak boleh menghapus gerbang: dokumen tanpa kolom prasyarat mewarisinya. gerbang:null = hapus. */
  var s0=window.ukkSimpanDoc;
  if(typeof s0==='function')window.ukkSimpanDoc=function(d){
   if(d&&d.gerbang===undefined&&typeof ukkDocOf==='function'){var o=ukkDocOf(d.id);if(o&&o.gerbang)d.gerbang=o.gerbang}
@@ -341,7 +351,7 @@ document.addEventListener('change',function(e){
  };
  var v0=window.ukkValidateDoc;
  if(typeof v0==='function')window.ukkValidateDoc=function(d){return v0.apply(this,arguments)||ugeCekDoc(d)};
- /* Kartu Gerbang praktik di halaman Kelola unit, sebelum tab Hasil/Pengaturan */
+ /* Kartu Prasyarat praktik di halaman Kelola unit, sebelum tab Hasil/Pengaturan */
  var h0=window.ukkHub;
  if(typeof h0==='function')window.ukkHub=function(){
   var h=h0.apply(this,arguments);if(!h)return h;
@@ -350,14 +360,14 @@ document.addEventListener('change',function(e){
   var p=h.indexOf('<div class="lks-tabs">');
   return p<0?h+c:h.slice(0,p)+c+h.slice(p);
  };
- /* Menutup pratinjau gerbang tidak boleh membuka kunci gulir halaman di belakang editor */
+ /* Menutup pratinjau prasyarat tidak boleh membuka kunci gulir halaman di belakang editor */
  var t0=window.ukgTutup;
  if(typeof t0==='function')window.ukgTutup=function(){var r=t0.apply(this,arguments);if(ugeEl())document.body.style.overflow='hidden';return r};
  try{if(typeof ukkRebuild==='function')ukkRebuild()}catch(e){}
 })();
 function ugeHubCard(j){
  var n=ukgSoal(j).length,g=j.gerbang,aktif=!!(g&&typeof g==='object'&&g.on===false);
- return '<section class="card" style="display:grid;gap:8px"><div class="row sb"><h3>Gerbang praktik</h3><span class="pill '+(aktif?'warn':n?'ok':'plain')+'">'+esc(aktif?'Dimatikan':n?ugeStatusSimpan(j)+' · '+n+' soal':'Belum ada')+'</span></div>'+
-  '<p class="note">Siswa harus lulus gerbang (nilai minimal KKM gerbang, tanpa batas percobaan) sebelum memulai unit. Maksimal '+UKG.MAX+' soal. Gerbang tidak masuk nilai UKK.</p>'+
-  '<div class="lks-acts"><button type="button" class="btn primary small" data-uge="buka" data-v="'+esc(j.id)+'">Editor gerbang</button>'+(n?'<button type="button" class="btn small" data-ukg="pratinjau" data-v="'+esc(j.id)+'">Pratinjau gerbang</button>':'')+'</div></section>';
+ return '<section class="card" style="display:grid;gap:8px"><div class="row sb"><h3>Prasyarat praktik</h3><span class="pill '+(aktif?'warn':n?'ok':'plain')+'">'+esc(aktif?'Dimatikan':n?ugeStatusSimpan(j)+' · '+n+' soal':'Belum ada')+'</span></div>'+
+  '<p class="note">Siswa harus lulus prasyarat (nilai minimal KKM prasyarat, tanpa batas percobaan) sebelum memulai unit. Maksimal '+UKG.MAX+' soal. Prasyarat tidak masuk nilai UKK.</p>'+
+  '<div class="lks-acts"><button type="button" class="btn primary small" data-uge="buka" data-v="'+esc(j.id)+'">Kelola prasyarat</button></div></section>';
 }

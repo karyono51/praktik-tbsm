@@ -123,7 +123,7 @@ IDS.forEach((id) => {
 
 /* ===== 3. Penghadang saat mulai unit ===== */
 reset(); ctx.window.startExam('UKK-X-1');
-T('siswa belum lulus: unit tidak dimulai, gerbang tampil', mulai.length === 0 && !!ov() && ov().innerHTML.indexOf('Gerbang praktik') > -1);
+T('siswa belum lulus: unit tidak dimulai, gerbang tampil', mulai.length === 0 && !!ov() && ov().innerHTML.indexOf('Prasyarat praktik') > -1);
 T('gerbang memuat 5 soal dan tombol Kirim', (ov().innerHTML.match(/class="card ukg-q"/g) || []).length === 5 && ov().innerHTML.indexOf('data-ukg="kirim"') > -1);
 T('teks kelas X: membuka latihan, kelas XI: membuka ujian', ov().innerHTML.indexOf('membuka latihan') > -1);
 reset(); ctx.window.startExam('UKK-XI-1'); T('unit mode ujian: membuka ujian', ov() && ov().innerHTML.indexOf('membuka ujian') > -1);
@@ -137,9 +137,9 @@ reset(); KUNCI = 'Belum dibuka.'; ctx.window.startExam('UKK-X-1'); T('pesan kunc
 reset(); ctx.window.startExam('UKK-X-1');
 for (let i = 0; i < 4; i++) benar('UKK-X-1', i);
 T('penghitung terjawab diperbarui', prog.textContent === 'Terjawab 4 dari 5', prog.textContent);
-klik('kirim'); T('kirim belum lengkap ditolak', toasts.some((m) => m.indexOf('Jawab semua soal dulu (4 dari 5)') > -1) && ov().innerHTML.indexOf('Hasil gerbang praktik') < 0);
+klik('kirim'); T('kirim belum lengkap ditolak', toasts.some((m) => m.indexOf('Jawab semua soal dulu (4 dari 5)') > -1) && ov().innerHTML.indexOf('Hasil prasyarat praktik') < 0);
 benar('UKK-X-1', 4); klik('kirim');
-T('kirim lengkap: hasil Lulus nilai 100', ov().innerHTML.indexOf('Lulus') > -1 && ov().innerHTML.indexOf('Nilai gerbang 100') > -1 && ov().innerHTML.indexOf('data-ukg="mulai"') > -1);
+T('kirim lengkap: hasil Lulus nilai 100', ov().innerHTML.indexOf('Lulus') > -1 && ov().innerHTML.indexOf('Nilai prasyarat 100') > -1 && ov().innerHTML.indexOf('data-ukg="mulai"') > -1);
 const db = JSON.parse(store['tbsm-ukk-gerbang-v1']);
 T('jawaban tersimpan per akun dan unit', !!db.s1 && !!db.s1['UKK-X-1'] && Object.keys(db.s1['UKK-X-1'].jwb).length === 5);
 klik('mulai'); T('Mulai menutup gerbang dan menjalankan unit', !ov() && mulai.length === 1 && mulai[0][0] === 'UKK-X-1');
@@ -167,11 +167,11 @@ reset(); STAFF = false; klik('pratinjau', 'UKK-X-1'); T('siswa tidak dapat membu
 
 /* ===== 6. Kartu unit ===== */
 reset(); let h = ctx.ukkCardAction(JOBS['UKK-X-1']);
-T('kartu siswa belum lulus: ada penanda dan tombol asli', h.indexOf('Gerbang praktik belum lulus') > -1 && h.indexOf('<button>Mulai</button>') > -1);
+T('kartu siswa belum lulus: ada penanda dan tombol asli', h.indexOf('Prasyarat praktik belum lulus') > -1 && h.indexOf('<button>Mulai</button>') > -1);
 ctx.window.startExam('UKK-X-1'); for (let i = 0; i < 5; i++) benar('UKK-X-1', i); klik('tutup');
-h = ctx.ukkCardAction(JOBS['UKK-X-1']); T('kartu siswa lulus: Gerbang lulus 100', h.indexOf('Gerbang lulus · 100') > -1);
+h = ctx.ukkCardAction(JOBS['UKK-X-1']); T('kartu siswa lulus: Gerbang lulus 100', h.indexOf('Prasyarat lulus · 100') > -1);
 T('kartu unit tanpa gerbang tidak berubah', ctx.ukkCardAction(JOBS['UKK-1']) === '<button>Mulai</button>');
-STAFF = true; h = ctx.ukkCardAction(JOBS['UKK-XI-1']); T('kartu guru: tombol Pratinjau gerbang', h.indexOf('data-ukg="pratinjau"') > -1 && h.indexOf('data-v="UKK-XI-1"') > -1);
+STAFF = true; h = ctx.ukkCardAction(JOBS['UKK-XI-1']); T('kartu guru: tombol Pratinjau prasyarat', h.indexOf('data-ukg="pratinjau"') > -1 && h.indexOf('data-v="UKK-XI-1"') > -1);
 
 /* ===== 7. Nilai gerbang di rincian hasil ===== */
 reset(); ctx.window.startExam('UKK-XI-1'); for (let i = 0; i < 5; i++) benar('UKK-XI-1', i); klik('tutup');
@@ -179,7 +179,7 @@ ctx.V.job = JOBS['UKK-XI-1']; ctx.S.results = [{ id: 'r0', jobId: 'UKK-1', siswa
 ctx.window.ukkSimpanRincian(1);
 { const p = JSON.parse(ctx.S.results[1].payload); T('payload hasil memuat gb {nilai, kkm, lulus}', p.gb && p.gb.nilai === 100 && p.gb.kkm === 75 && p.gb.lulus === true && p.nama === 'Budi', JSON.stringify(p)); }
 T('hasil unit lain tidak disentuh', ctx.S.results[0].payload === undefined);
-T('Hasil penilaian guru menampilkan nilai gerbang', ctx.jenisTampil(ctx.S.results[1]) === 'Penilaian · Gerbang 100');
+T('Hasil penilaian guru menampilkan nilai prasyarat', ctx.jenisTampil(ctx.S.results[1]) === 'Penilaian · Prasyarat 100');
 T('hasil tanpa gerbang tampil seperti semula', ctx.jenisTampil({ tipe: 'Latihan' }) === 'Latihan');
 reset(); STAFF = true; ctx.V.job = JOBS['UKK-XI-1']; ctx.S.results = [{ id: 'r1', jobId: 'UKK-XI-1', siswa: 'Budi' }]; ctx.window.ukkSimpanRincian(0);
 T('hasil yang disimpan guru tidak diberi gb', JSON.parse(ctx.S.results[0].payload).gb === undefined);

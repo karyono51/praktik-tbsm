@@ -1,14 +1,14 @@
-/* ukk-gerbang.js: Gerbang praktik UKK untuk kelas X (UKK-X-1) dan kelas XI (UKK-XI-1). Dimuat setelah ukk-kelola.js, uji-waktu.js, ukk-foto.js, ukk-pdf.js.
-   ATURAN (disamakan dengan gerbang masuk LKPD v2, lihat docs-LKPD-V2.md bagian 4A):
-     - Gerbang = syarat kelayakan masuk praktik, BUKAN komponen nilai UKK. Berlaku untuk siswa (guru dan admin tidak terkunci).
+/* ukk-gerbang.js: Prasyarat praktik UKK untuk kelas X (UKK-X-1) dan kelas XI (UKK-XI-1). Dimuat setelah ukk-kelola.js, uji-waktu.js, ukk-foto.js, ukk-pdf.js.
+   ATURAN (disamakan dengan prasyarat masuk LKPD v2, lihat docs-LKPD-V2.md bagian 4A):
+     - Prasyarat = syarat kelayakan masuk praktik, BUKAN komponen nilai UKK. Berlaku untuk siswa (guru dan admin tidak terkunci).
      - 5 soal bentuk TKA: 3 PG, 1 PG kompleks, 1 PG kategori. Penilai soal sama dengan LKPD (lkqPoint): PG 1/0; kompleks dan kategori bernilai sebagian.
-     - Nilai gerbang = jumlah poin / jumlah soal x 100 (bulat). Lulus bila nilai >= KKM gerbang = max(75, S.kkm). Soal belum dijawab bernilai 0.
+     - Nilai prasyarat = jumlah poin / jumlah soal x 100 (bulat). Lulus bila nilai >= KKM prasyarat = max(75, S.kkm). Soal belum dijawab bernilai 0.
      - Tanpa batas percobaan: siswa boleh mengubah jawaban sampai lulus. Kunci dan pembahasan tidak ditampilkan ke siswa (hanya ke guru di pratinjau).
-     - Berlaku di mode Latihan dan Ujian. Gerbang dikerjakan SEBELUM unit dimulai, jadi tidak memakai waktu dan kesempatan ujian.
+     - Berlaku di mode Latihan dan Ujian. Prasyarat dikerjakan SEBELUM unit dimulai, jadi tidak memakai waktu dan kesempatan ujian.
      - Siswa yang sudah punya pekerjaan berjalan (draf) tidak dihadang ulang.
-   PENYIMPANAN: jawaban gerbang di perangkat (localStorage, per akun dan per unit), seperti penghitung kesempatan ujian: penegak di sisi aplikasi, bukan server.
-   Nilai gerbang ikut ke rincian hasil unit (payload.gb) saat siswa menyimpan hasil, sehingga guru melihatnya di Hasil penilaian. Tidak ada perubahan skema Appwrite.
-   Soal bawaan terikat ID unit; unit hasil Duplikat (ID baru) tidak membawa gerbang, tetapi guru dapat membuatnya di editor (js/ukk-gerbang-editor.js, maks. 20 soal). */
+   PENYIMPANAN: jawaban prasyarat di perangkat (localStorage, per akun dan per unit), seperti penghitung kesempatan ujian: penegak di sisi aplikasi, bukan server.
+   Nilai prasyarat ikut ke rincian hasil unit (payload.gb) saat siswa menyimpan hasil, sehingga guru melihatnya di Hasil penilaian. Tidak ada perubahan skema Appwrite.
+   Soal bawaan terikat ID unit; unit hasil Duplikat (ID baru) tidak membawa prasyarat, tetapi guru dapat membuatnya di editor (js/ukk-gerbang-editor.js, maks. 20 soal). */
 var UKG={KEY:'tbsm-ukk-gerbang-v1',KKM_MIN:75,MAX:20,job:null,jwb:{},fase:'soal',pv:false,ovr:null};
 var UKK_GERBANG={
  'UKK-X-1':[
@@ -46,8 +46,8 @@ var UKK_GERBANG={
    e:'Benar: 17,2 < 17,5 mm; 112,1 mm di bawah 112,5 mm; keputusan memakai batas servis. Salah: kanvas masih di atas 2,0 mm sehingga layak; per CVT 124,5 mm sudah di bawah batas servis 124,7 mm sehingga diganti, bukan dinilai dari selisih terhadap standar.'}
  ]
 };
-/* Sumber soal, berurutan: (1) pratinjau draf editor, (2) gerbang buatan guru di unit (j.gerbang: {on,soal}), (3) soal bawaan UKK_GERBANG.
-   Gerbang buatan guru yang dimatikan (on:false) berarti unit tidak bergerbang. Maksimal UKG.MAX soal; soal tidak sah dilewati. */
+/* Sumber soal, berurutan: (1) pratinjau draf editor, (2) prasyarat buatan guru di unit (j.gerbang: {on,soal}), (3) soal bawaan UKK_GERBANG.
+   Prasyarat buatan guru yang dimatikan (on:false) berarti unit tidak bergerbang. Maksimal UKG.MAX soal; soal tidak sah dilewati. */
 function ukgBersih(l){return (Array.isArray(l)?l:[]).filter(function(q){return typeof lkqValid==='function'?lkqValid(q):!!q}).slice(0,UKG.MAX)}
 function ukgSoal(j){
  if(!j)return [];
@@ -56,7 +56,7 @@ function ukgSoal(j){
  if(g&&typeof g==='object')return g.on===false?[]:ukgBersih(g.soal);
  return UKK_GERBANG[j.id]||[];
 }
-/* Guru dan admin dapat mengatur gerbang unit kelas X dan XI (bawaan, buatan sendiri, dan hasil duplikat). */
+/* Guru dan admin dapat mengatur prasyarat unit kelas X dan XI (bawaan, buatan sendiri, dan hasil duplikat). */
 function ukgBisa(j){return !!(j&&j.ukk&&isStaff()&&(j.kelas==='X'||j.kelas==='XI'))}
 /* Tanda tangan isi soal (jenis, teks, pilihan, kunci; tanpa pembahasan): jawaban untuk soal lama tidak dibaca sebagai jawaban soal baru. */
 function ukgSig(soal){
@@ -108,7 +108,7 @@ function ukgEl(){return document.getElementById('ukg-ov')}
 function ukgGambar(){
  var j=jobById(UKG.job);if(!j)return;
  var ov=ukgEl();
- if(!ov){ov=document.createElement('div');ov.id='ukg-ov';ov.className='ukg-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Gerbang praktik');document.body.appendChild(ov);document.body.style.overflow='hidden'}
+ if(!ov){ov=document.createElement('div');ov.id='ukg-ov';ov.className='ukg-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Prasyarat praktik');document.body.appendChild(ov);document.body.style.overflow='hidden'}
  ov.innerHTML=UKG.fase==='hasil'?ukgHasilHtml(j):ukgSoalHtml(j);
  ov.scrollTop=0;
 }
@@ -137,8 +137,8 @@ function ukgKartu(q,i){
 }
 function ukgSoalHtml(j){
  var soal=ukgSoal(j),nl=ukgNilai(soal,UKG.jwb);
- return '<div class="ukg-box"><div class="row sb"><div><span class="label">Gerbang praktik'+(UKG.pv?' · pratinjau guru (tidak disimpan)':'')+'</span><h2>'+esc(j.judul)+'</h2></div><button type="button" class="btn small" data-ukg="tutup">Tutup</button></div>'+
-  '<p class="note">'+esc(j.unit)+'. Jawab semua soal. Nilai gerbang minimal '+nl.kkm+' untuk membuka '+ukgModeTeks(j)+'. Boleh diulang sampai lulus. Gerbang adalah syarat kelayakan masuk praktik dan tidak masuk nilai UKK.</p>'+
+ return '<div class="ukg-box"><div class="row sb"><div><span class="label">Prasyarat praktik'+(UKG.pv?' · pratinjau guru (tidak disimpan)':'')+'</span><h2>'+esc(j.judul)+'</h2></div><button type="button" class="btn small" data-ukg="tutup">Tutup</button></div>'+
+  '<p class="note">'+esc(j.unit)+'. Jawab semua soal. Nilai prasyarat minimal '+nl.kkm+' untuk membuka '+ukgModeTeks(j)+'. Boleh diulang sampai lulus. Prasyarat adalah syarat kelayakan masuk praktik dan tidak masuk nilai UKK.</p>'+
   '<p class="note" id="ukg-prog">Terjawab '+nl.n+' dari '+nl.total+'</p>'+
   soal.map(ukgKartu).join('')+
   '<div class="ukg-bar"><button type="button" class="btn primary grow" data-ukg="kirim">Kirim jawaban</button></div></div>';
@@ -150,10 +150,10 @@ function ukgKunciTeks(q){
  return L.charAt(q.a);
 }
 function ukgHasilHtml(j){
- var soal=ukgSoal(j),nl=ukgNilai(soal,UKG.jwb),h='<div class="ukg-box"><div class="row sb"><div><span class="label">Hasil gerbang praktik'+(UKG.pv?' · pratinjau guru':'')+'</span><h2>'+esc(j.judul)+'</h2></div><button type="button" class="btn small" data-ukg="tutup">Tutup</button></div>'+
-  '<div class="card"><div class="row sb"><span class="pill '+(nl.lulus?'ok':'bad')+'">'+(nl.lulus?'Lulus':'Belum lulus')+'</span><b class="mono">Nilai gerbang '+nl.nilai+'</b></div>'+
-  '<p class="note">KKM gerbang '+nl.kkm+' · poin '+lkqFmt(nl.poin)+' dari '+nl.total+'</p>'+
-  (nl.lulus?'<p>'+(UKG.pv?'Siswa yang lulus langsung dapat memulai '+ukgModeTeks(j)+'.':'Praktik terbuka. Ketuk tombol di bawah untuk memulai '+ukgModeTeks(j)+'.')+'</p>':'<p>Nilai gerbang belum mencapai KKM. Periksa kembali jawabanmu, boleh diubah dan dikirim ulang sampai lulus.</p>')+'</div>';
+ var soal=ukgSoal(j),nl=ukgNilai(soal,UKG.jwb),h='<div class="ukg-box"><div class="row sb"><div><span class="label">Hasil prasyarat praktik'+(UKG.pv?' · pratinjau guru':'')+'</span><h2>'+esc(j.judul)+'</h2></div><button type="button" class="btn small" data-ukg="tutup">Tutup</button></div>'+
+  '<div class="card"><div class="row sb"><span class="pill '+(nl.lulus?'ok':'bad')+'">'+(nl.lulus?'Lulus':'Belum lulus')+'</span><b class="mono">Nilai prasyarat '+nl.nilai+'</b></div>'+
+  '<p class="note">KKM prasyarat '+nl.kkm+' · poin '+lkqFmt(nl.poin)+' dari '+nl.total+'</p>'+
+  (nl.lulus?'<p>'+(UKG.pv?'Siswa yang lulus langsung dapat memulai '+ukgModeTeks(j)+'.':'Praktik terbuka. Ketuk tombol di bawah untuk memulai '+ukgModeTeks(j)+'.')+'</p>':'<p>Nilai prasyarat belum mencapai KKM. Periksa kembali jawabanmu, boleh diubah dan dikirim ulang sampai lulus.</p>')+'</div>';
  if(UKG.pv)h+=soal.map(function(q,i){return '<div class="card ukg-kunci"><b>Soal '+(i+1)+' · kunci: '+esc(ukgKunciTeks(q))+'</b><p class="note">'+esc(q.e||'')+'</p></div>'}).join('');
  h+='<div class="ukg-bar">'+(nl.lulus&&!UKG.pv?'<button type="button" class="btn primary grow" data-ukg="mulai">Mulai '+ukgModeTeks(j)+'</button>':'<button type="button" class="btn primary grow" data-ukg="ulang">'+(UKG.pv?'Ulangi pratinjau':'Perbaiki jawaban')+'</button>')+'</div></div>';
  return h;
@@ -196,7 +196,7 @@ document.addEventListener('click',function(e){
 });
 
 /* ---------- Pengait ke alur UKK ---------- */
-/* Siswa tanpa pekerjaan berjalan dan belum lulus gerbang: tampilkan gerbang, bukan unit. Pesan kunci unit (jadwal, kesempatan) tetap lebih dulu. */
+/* Siswa tanpa pekerjaan berjalan dan belum lulus gerbang: tampilkan prasyarat, bukan unit. Pesan kunci unit (jadwal, kesempatan) tetap lebih dulu. */
 (function(){
  var s0=window.startExam;
  window.startExam=function(id,keep){
@@ -211,20 +211,21 @@ document.addEventListener('click',function(e){
   }
   return s0.apply(this,arguments);
  };
- /* Kartu unit: siswa melihat status gerbang; guru mendapat tombol Pratinjau gerbang */
+ /* Kartu unit: siswa melihat status prasyarat; guru mendapat tombol Kelola prasyarat */
  var c0=window.ukkCardAction;
  window.ukkCardAction=function(j){
   var h=c0.apply(this,arguments);
   if(isStaff()){
-   var bt=(ukgSoal(j).length?'<button type="button" class="btn small" data-ukg="pratinjau" data-v="'+esc(j.id)+'">Pratinjau gerbang</button>':'')+
-    (ukgBisa(j)?'<button type="button" class="btn small" data-uge="buka" data-v="'+esc(j.id)+'">Editor gerbang</button>':'');
+   /* Satu pintu: semua pengaturan (editor, pratinjau, cetak PDF soal dan kunci) ada di Kelola prasyarat. Unit di luar X dan XI hanya dapat pratinjau. */
+   var bt=ukgBisa(j)?'<button type="button" class="btn small" data-uge="buka" data-v="'+esc(j.id)+'">Kelola prasyarat</button>':
+    (ukgSoal(j).length?'<button type="button" class="btn small" data-ukg="pratinjau" data-v="'+esc(j.id)+'">Pratinjau prasyarat</button>':'');
    return bt?h+'<div class="lks-acts">'+bt+'</div>':h;
   }
   if(!ukgSoal(j).length)return h;
   var g=ukgInfo(j);
-  return (g&&g.lulus?'<span class="pill ok">Gerbang lulus · '+g.nilai+'</span> ':'<span class="pill warn">Gerbang praktik belum lulus</span> ')+h;
+  return (g&&g.lulus?'<span class="pill ok">Prasyarat lulus · '+g.nilai+'</span> ':'<span class="pill warn">Prasyarat praktik belum lulus</span> ')+h;
  };
- /* Nilai gerbang ikut ke rincian hasil unit (payload.gb) */
+ /* Nilai prasyarat ikut ke rincian hasil unit (payload.gb) */
  var r0=window.ukkSimpanRincian;
  window.ukkSimpanRincian=function(n0){
   r0.apply(this,arguments);
@@ -237,11 +238,11 @@ document.addEventListener('click',function(e){
    });
   }catch(e){}
  };
- /* Hasil penilaian (guru): jenis hasil diberi keterangan nilai gerbang */
+ /* Hasil penilaian (guru): jenis hasil diberi keterangan nilai prasyarat */
  var t0=window.jenisTampil;
  window.jenisTampil=function(r){
   var s=t0.apply(this,arguments);
-  try{if(r&&r.payload&&String(r.payload).indexOf('"gb"')>-1){var d=JSON.parse(r.payload);if(d.gb)s+=' · Gerbang '+d.gb.nilai}}catch(e){}
+  try{if(r&&r.payload&&String(r.payload).indexOf('"gb"')>-1){var d=JSON.parse(r.payload);if(d.gb)s+=' · Prasyarat '+d.gb.nilai}}catch(e){}
   return s;
  };
 })();

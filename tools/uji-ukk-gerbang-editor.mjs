@@ -108,8 +108,20 @@ T('soal tidak sah dilewati, dibatasi 20', sg({ on: true, soal: [{ q: '' }].conca
 
 /* ===== 3. Membuka editor ===== */
 reset(); buka('UKK-XI-1');
-T('staf membuka editor: soal bawaan dimuat (5 soal)', !!ov() && ov().innerHTML.indexOf('Editor gerbang praktik') > -1 && (ov().innerHTML.match(/class="card uge-it"/g) || []).length === 5 && ov().innerHTML.indexOf('5 dari 20 soal') > -1);
+T('staf membuka editor: soal bawaan dimuat (5 soal)', !!ov() && ov().innerHTML.indexOf('Kelola prasyarat praktik') > -1 && (ov().innerHTML.match(/class="card uge-it"/g) || []).length === 5 && ov().innerHTML.indexOf('5 dari 20 soal') > -1);
 T('kunci gulir halaman dikunci', body.style.overflow === 'hidden');
+/* Menu Kelola prasyarat: pratinjau siswa, cetak soal PDF, cetak kunci PDF dalam satu layar */
+{ const h = ov().innerHTML;
+  T('Kelola prasyarat: menu memuat Pratinjau siswa, Cetak soal (PDF), Cetak kunci jawaban (PDF)', h.indexOf('data-uge="pratinjau"') > -1 && h.indexOf('data-uge="pdf-soal"') > -1 && h.indexOf('data-uge="pdf-kunci"') > -1);
+  T('Kelola prasyarat: tidak ada kata gerbang di layar', !/gerbang/i.test(h.replace(/data-[a-z]+="[^"]*"/g, '')));
+  const cetak = []; ctx.ukpCetak = (j, soal, mode) => cetak.push([j.id, soal.length, mode]);
+  ge('pdf-soal'); ge('pdf-kunci');
+  T('klik cetak: soal dan kunci memakai soal editor', cetak.length === 2 && cetak[0][0] === 'UKK-XI-1' && cetak[0][1] === 5 && cetak[0][2] === 'soal' && cetak[1][2] === 'kunci', JSON.stringify(cetak));
+  ctx.ukpCetak = undefined; toasts.length = 0; ge('pdf-soal');
+  T('cetak tanpa modul PDF: pesan, tanpa galat', toasts.some((m) => /belum dimuat/.test(m)));
+  run('UGE.st.soal[0].q=""'); ctx.ukpCetak = (j, soal, mode) => cetak.push([j.id, soal.length, mode]); cetak.length = 0; toasts.length = 0; ge('pdf-kunci');
+  T('soal belum lengkap: cetak ditolak dan editor menunjuk soal', cetak.length === 0 && toasts.some((m) => /^Soal 1:/.test(m)), toasts.join('|'));
+  ge('daftar'); reset(); buka('UKK-XI-1'); }
 T('tombol tambah tersedia di bawah 20', ov().innerHTML.indexOf('data-t="pg"') > -1 && ov().innerHTML.indexOf('data-t="pg" disabled') < 0);
 ge('tutup'); T('tutup menghapus editor dan memulihkan gulir', !ov() && body.style.overflow === '');
 reset(false); buka('UKK-XI-1'); T('siswa tidak dapat membuka editor', !ov());
@@ -168,7 +180,7 @@ ge('bawaan'); await tick(); T('Muat soal bawaan: 5 soal dan gerbang aktif', run(
 /* ===== 6. Menyimpan dan dipakai gerbang siswa ===== */
 reset(); buka('UKK-XI-1');
 run('UGE.st.soal=' + JSON.stringify(daftar(12))); ge('daftar'); ge('simpan');
-T('simpan sukses: toast, render ulang, kembali ke daftar', toasts.some((m) => /tersimpan \(12 soal\)/.test(m)) && renders > 0 && ov().innerHTML.indexOf('Editor gerbang praktik') > -1);
+T('simpan sukses: toast, render ulang, kembali ke daftar', toasts.some((m) => /tersimpan \(12 soal\)/.test(m)) && renders > 0 && ov().innerHTML.indexOf('Kelola prasyarat praktik') > -1);
 { const d = run("ukkDocOf('UKK-XI-1')");
   T('tersimpan di dokumen unit (ikut sinkronisasi lkpd_modules)', d && d.gerbang && d.gerbang.on === true && d.gerbang.soal.length === 12 && d.jenis === 'ukk'); }
 T('job unit membawa gerbang dan ukgSoal memakainya', job('UKK-XI-1').gerbang && run("ukgSoal(jobById('UKK-XI-1'))").length === 12);
@@ -186,10 +198,10 @@ const jawabSemua = (benarSemua) => { const L = run("ukgSoal(jobById('UKK-XI-1'))
   else if (t === 'kategori') q.rows.forEach((r, k) => LIS.filter((l) => l.t === 'change').forEach((l) => l.f({ target: { dataset: { ukgIn: String(i), k: String(k) }, value: (r[1] === benarSemua) ? '1' : '0', checked: true } })));
   else LIS.filter((l) => l.t === 'change').forEach((l) => l.f({ target: { dataset: { ukgIn: String(i) }, value: String(benarSemua ? q.a : (q.a + 1) % q.o.length), checked: true } })); }); };
 jawabSemua(true); gk('kirim');
-T('12 soal benar semua: nilai 100, lulus', gov().innerHTML.indexOf('Nilai gerbang 100') > -1 && gov().innerHTML.indexOf('Lulus') > -1);
+T('12 soal benar semua: nilai 100, lulus', gov().innerHTML.indexOf('Nilai prasyarat 100') > -1 && gov().innerHTML.indexOf('Lulus') > -1);
 { const r = JSON.parse(store['tbsm-ukk-gerbang-v1']).s1['UKK-XI-1']; T('rekaman jawaban membawa tanda tangan soal', /^g12-/.test(r.sig)); }
 gk('mulai'); T('lulus: unit dimulai', mulai.length === 1);
-T('kartu siswa: Gerbang lulus 100', ctx.ukkCardAction(job('UKK-XI-1')).indexOf('Gerbang lulus · 100') > -1);
+T('kartu siswa: Gerbang lulus 100', ctx.ukkCardAction(job('UKK-XI-1')).indexOf('Prasyarat lulus · 100') > -1);
 /* guru mengubah KUNCI -> jawaban siswa tidak berlaku lagi */
 STAFF = true; ctx.S.user = { id: 'g1', username: 'guru1' };
 { const sj = JSON.parse(JSON.stringify(run("ukgSoal(jobById('UKK-XI-1'))"))); sj[0].a = (sj[0].a + 1) % sj[0].o.length; unitSimpan('UKK-XI-1', sj, true); }
@@ -234,7 +246,7 @@ reset(); STAFF = true;
   STAFF = false; ctx.S.user = { id: 's1', username: 'siswa1' }; ctx.window.startExam('UKK-BARU1');
   T('siswa dihadang gerbang unit buatan (1 soal)', !!gov() && (gov().innerHTML.match(/class="card ukg-q"/g) || []).length === 1); }
 reset(); T('kartu staf kelas XII: tanpa tombol Editor gerbang', ctx.ukkCardAction(job('UKK-1')).indexOf('data-uge') < 0);
-T('kartu staf unit bawaan X: ada Pratinjau dan Editor', ctx.ukkCardAction(job('UKK-X-1')).indexOf('data-ukg="pratinjau"') > -1 && ctx.ukkCardAction(job('UKK-X-1')).indexOf('data-uge="buka"') > -1);
+T('kartu staf unit bawaan X: satu tombol Kelola prasyarat, tanpa tombol terpisah', ctx.ukkCardAction(job('UKK-X-1')).indexOf('data-ukg="pratinjau"') < 0 && ctx.ukkCardAction(job('UKK-X-1')).indexOf('Kelola prasyarat') > -1 && ctx.ukkCardAction(job('UKK-X-1')).indexOf('data-uge="buka"') > -1);
 reset(false); T('kartu siswa: tanpa tombol editor', ctx.ukkCardAction(job('UKK-X-1')).indexOf('data-uge') < 0);
 
 /* ===== 9. Kembalikan bawaan ===== */
@@ -265,11 +277,11 @@ ge('tutup');
 
 /* ===== 12. Halaman Kelola unit ===== */
 reset(); run('UKS.id="UKK-XI-1"');
-{ const h = ctx.ukkHub(); T('Kelola unit: kartu Gerbang praktik disisipkan sebelum tab', h.indexOf('Gerbang praktik') > -1 && h.indexOf('Gerbang praktik') < h.indexOf('lks-tabs') && h.indexOf('data-uge="buka"') > -1 && h.indexOf('Soal bawaan · 5 soal') > -1);
+{ const h = ctx.ukkHub(); T('Kelola unit: kartu Gerbang praktik disisipkan sebelum tab', h.indexOf('Prasyarat praktik') > -1 && h.indexOf('Prasyarat praktik') < h.indexOf('lks-tabs') && h.indexOf('data-uge="buka"') > -1 && h.indexOf('Soal bawaan · 5 soal') > -1);
   unitSimpan('UKK-XI-1', daftar(7), true); T('status berubah: Buatan guru · 7 soal', ctx.ukkHub().indexOf('Buatan guru · 7 soal') > -1);
   unitSimpan('UKK-XI-1', [], false); T('status: Dimatikan, tanpa tombol Pratinjau', ctx.ukkHub().indexOf('Dimatikan') > -1 && ctx.ukkHub().indexOf('data-ukg="pratinjau"') < 0);
-  run('UKS.id="UKK-1"'); T('unit kelas XII: halaman Kelola tidak berubah', ctx.ukkHub().indexOf('Gerbang praktik') < 0);
-  reset(false); run('UKS.id="UKK-XI-1"'); T('siswa: kartu tidak disisipkan', ctx.ukkHub().indexOf('Gerbang praktik') < 0); }
+  run('UKS.id="UKK-1"'); T('unit kelas XII: halaman Kelola tidak berubah', ctx.ukkHub().indexOf('Prasyarat praktik') < 0);
+  reset(false); run('UKS.id="UKK-XI-1"'); T('siswa: kartu tidak disisipkan', ctx.ukkHub().indexOf('Prasyarat praktik') < 0); }
 
 /* ===== 13. Berkas rilis ===== */
 T('index.html memuat editor setelah ukk-gerbang.js', /ukk-gerbang\.js[^\n]*\n<script src="js\/ukk-gerbang-editor\.js/.test(baca('index.html')));
