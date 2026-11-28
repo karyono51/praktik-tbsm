@@ -1,3 +1,4 @@
+import { arsipAbsen } from './arsip.js';
 /* Appwrite Function "foto-drive": menyimpan foto bukti praktik ke Google Drive dan menampilkannya kembali.
    Runtime Node.js 18+. Execute access: Users. Scopes: users.read, documents.read.
    Variabel lingkungan (Settings > Environment variables), JANGAN ditaruh di repo atau js/config.js:
@@ -242,6 +243,11 @@ export default async ({ req, res, error }) => {
     if (body.action === 'upload') return res.json(await upload(callerId, body, req.headers['x-appwrite-key']));
     if (body.action === 'getsoal') return res.json(await getSoal(body));
     if (body.action === 'ping') return res.json(await ping());
+    if (body.action === 'arsip-absen') {
+      const jwt = req.headers['x-appwrite-user-jwt'], key = req.headers['x-appwrite-key'];
+      const auth = jwt ? { 'X-Appwrite-JWT': jwt } : { 'X-Appwrite-Key': key || '' };
+      return res.json(await arsipAbsen(callerId, body, auth, key, { aw, accessToken, folderId, gfetch, Fail }));
+    }
     if (body.action === 'getpks') {
       const jwt = req.headers['x-appwrite-user-jwt'];
       const auth = jwt ? { 'X-Appwrite-JWT': jwt } : { 'X-Appwrite-Key': req.headers['x-appwrite-key'] || '' };
