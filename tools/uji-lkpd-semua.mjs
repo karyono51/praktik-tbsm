@@ -65,7 +65,7 @@ ALL.forEach((m0) => {
     const bahas = (q.e || q.bahas || '').slice(0, 30).replace(/&/g, '&amp;');
     ok(!bahas || KT.indexOf(String(q.e || q.bahas).slice(0, 30)) > -1, id + ' soal ' + (i + 1) + ': pembahasan tercetak');
   });
-  ok(/@bottom-left\{content:"Kunci (gerbang masuk|evaluasi) · LKPD [^"]+ · SMKS Medina Bandung \(khusus guru\)"/.test(kh), id + ': footer kunci khusus guru');
+  ok(/@bottom-left\{content:"Kunci (prasyarat masuk|evaluasi) · LKPD [^"]+ · SMKS Medina Bandung \(khusus guru\)"/.test(kh), id + ': footer kunci khusus guru');
   /* ----- tombol di samping Cetak ----- */
   ctx.__id = id; G('LK.module=__id;STAFF=true');
   const v = G('viewLKPD()');

@@ -1,5 +1,5 @@
 /* lkpd-master.js: LKPD-DDO-ALT-02 (Penggunaan dan Perawatan Alat Ukur) menjadi MASTER LKPD V2.
-   Master = acuan struktur dan format untuk semua LKPD v2: pertemuan, gerbang masuk TKA, K3 dan APD, langkah bersaksi guru, tabel data,
+   Master = acuan struktur dan format untuk semua LKPD v2: pertemuan, prasyarat masuk TKA, K3 dan APD, langkah bersaksi guru, tabel data,
    pemeriksaan dan bukti foto, latihan membaca skala, analisis, refleksi, tindak lanjut, penilaian kinerja, dan format cetak PDF.
    Berdiri sendiri: membungkus lksHub (lkpd-staff.js) tanpa mengubah berkasnya; dimuat setelah lkpd-v2-editor.js. Tanpa koleksi atau atribut baru.
    1. Kelola LKPD (Guru/Admin), halaman sebuah LKPD v2: kartu "Master LKPD V2" (pada master) atau "Kelengkapan sesuai master V2" (pada
@@ -29,7 +29,7 @@ function lkmsCek(m){
   else ok=ok&&(q.o||[]).length>=4&&q.a>=0&&q.a<(q.o||[]).length;
   if(!ok)gBad.push(i+1);
  });
- add('Gerbang masuk: minimal 3 soal TKA berlevel, berkunci, dan berpembahasan',G.length>=3&&!gBad.length,G.length<3?'Soal gerbang kurang dari 3':'Soal perlu dilengkapi: nomor '+gBad.join(', '));
+ add('Prasyarat masuk: minimal 3 soal TKA berlevel, berkunci, dan berpembahasan',G.length>=3&&!gBad.length,G.length<3?'Soal prasyarat kurang dari 3':'Soal perlu dilengkapi: nomor '+gBad.join(', '));
  var cover={};(V.k3grup||[]).forEach(function(g){(g.i||[]).forEach(function(i){cover[i]=(cover[i]||0)+1})});
  add('K3 dan APD: minimal 5 butir, semua terkelompok, ada butir APD',SF.length>=5&&SF.every(function(x,i){return cover[i]===1})&&(V.apd||[]).length>=1&&(V.apd||[]).every(function(i){return i>=0&&i<SF.length}),'Butir K3 harus minimal 5, masing-masing masuk satu kelompok, dan ada butir APD');
  add('Setiap kegiatan punya langkah, dan ada langkah bersaksi guru',KG.length>=1&&KG.every(function(x,i){return LG.some(function(l){return l.k===i+1})})&&LG.some(function(l){return l.saksi})&&LG.every(function(l){return ST[l.i]}),'Kegiatan tanpa langkah, atau tidak ada langkah bersaksi guru');

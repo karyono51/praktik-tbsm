@@ -1,3 +1,8 @@
+## LKPD v2: istilah gerbang masuk diganti prasyarat masuk, maksimal 20 soal
+- Semua teks di layar, pesan, cetak, kunci guru, dan dokumen LKPD: "Gerbang masuk" menjadi **Prasyarat masuk** (nama tab, banner, kartu Lembar Kerja terkunci, detail guru, kunci dan pembahasan, pesan galat, panduan Latihan dan Ujian, master LKPD). Pengenal di kode dan data (`m.v2.gate`, tab `gerbang`, `payload.v2.gerbang`, `lk2KkmGerbang`) tidak diganti agar LKPD, hasil siswa, dan sinkronisasi tetap terbaca.
+- `js/lkpd-v2-editor.js`: batas soal prasyarat masuk per LKPD dari 10 menjadi **20** (`LKV.MAXG`); minimal tetap 3. Tombol tambah dan duplikat menolak di soal ke-21 dengan pesan "Maksimal 20 soal prasyarat".
+- Uji: `tools/uji-lkpd-gerbang.mjs` (49) kini memeriksa penambahan sampai 20 soal dan penolakan soal ke-21; teks uji lain disesuaikan.
+
 ## Kelola prasyarat: cetak PDF soal dan kunci, menu disatukan, istilah gerbang diganti prasyarat
 - `js/ukk-prasyarat-pdf.js` (baru): **Cetak soal (PDF)** dan **Cetak kunci jawaban (PDF)** untuk prasyarat praktik UKK kelas X dan XI. PDF soal berisi kop sekolah, identitas isi tangan, petunjuk dan KKM, soal bernomor (PG berhuruf, PG kompleks berkotak, PG kategori berkotak Benar/Salah) tanpa kunci. PDF kunci berisi tabel kunci, pembahasan, aturan penilaian, dan KKM, khusus guru. Memakai soal yang sedang diedit (maks. 20 soal, harus lengkap seperti saat Simpan). Dibuka di tab baru; bila pop-up diblokir, diunduh.
 - Menu disatukan: tombol **Kelola prasyarat** di kartu unit dan di halaman Kelola unit menggantikan Pratinjau dan Editor yang terpisah. Di dalamnya: saklar aktif, Pratinjau siswa, Cetak soal (PDF), Cetak kunci jawaban (PDF), daftar soal, dan Simpan prasyarat.

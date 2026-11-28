@@ -5,7 +5,7 @@
    di Pengaturan LKPD: aktif atau tidak, pertemuan yang dibuka, dan membuka kembali kunci per siswa.
    Isian lama yang belum terkunci tetap bebas diedit. Kunci ini penegak di sisi aplikasi, bukan di server.
    Aturan: siswa boleh mengunci kegiatan mana saja (urutan bebas); satu tombol untuk tiap kegiatan yang kartunya tampil. Kunci Pertemuan N hanya mengunci isian yang
-   termasuk pertemuan N (langkah, tabel, pemeriksaan, soal latihan, dan analisis dipetakan lewat data pertemuan); isian lain (gerbang, K3, refleksi) tetap bebas.
+   termasuk pertemuan N (langkah, tabel, pemeriksaan, soal latihan, dan analisis dipetakan lewat data pertemuan); isian lain (prasyarat, K3, refleksi) tetap bebas.
    Tiap catatan hanya memuat isian barunya, jadi guru dapat membuka kunci pertemuan mana pun tanpa memengaruhi pertemuan lain. */
 var LKK={loaded:{},all:{},busy:false,msg:''};
 var LKK_PFX='kunci|';

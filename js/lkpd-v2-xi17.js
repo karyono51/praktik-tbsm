@@ -3,7 +3,7 @@
    Dimuat setelah lkpd-v2-x06.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-DDO-ALT-02). Status awal Draft.
    Angka spesifikasi komponen (standar, batas pakai, jenis dan jumlah oli) sengaja KOSONG: guru mengisinya dari manual servis. Angka pada soal hanya contoh hitung.
    Rujukan SKKNI 147/2019 hanya usulan pemetaan dan perlu diverifikasi sebelum dipakai untuk asesmen.
-   3 pertemuan x 6 JP (270 menit, 45 menit per JP) = 18 JP, sesuai 6 JP per pertemuan Kelas XI. Pertemuan 1 = materi, gerbang, APD + Kegiatan 1; Pertemuan 2 = Kegiatan 2 dan 3 (dua kartu); Pertemuan 3 = Kegiatan 4, analisis, penilaian kinerja, refleksi. */
+   3 pertemuan x 6 JP (270 menit, 45 menit per JP) = 18 JP, sesuai 6 JP per pertemuan Kelas XI. Pertemuan 1 = materi, prasyarat, APD + Kegiatan 1; Pertemuan 2 = Kegiatan 2 dan 3 (dua kartu); Pertemuan 3 = Kegiatan 4, analisis, penilaian kinerja, refleksi. */
 (function(){
  var langkah=[
   {k:1,m:10,t:'Cek kondisi engine/trainer dan alat; kuras oli transmisi ke wadah, catat warna, kekentalan, dan ada tidaknya serbuk logam',p:'Engine dingin; oli bekas ke wadah limbah'},
@@ -64,7 +64,7 @@
   v2:{
    ver:2,jenis:'jobsheet',jp:18,tp:'XI.3.2',cp:'Perawatan dan perbaikan sistem pemindah tenaga',
    pertemuan:[
-    {n:1,jp:6,menit:270,judul:'Pemantik, materi transmisi manual, gerbang masuk, APD, cek alat; Kegiatan 1 pembongkaran dan pemeriksaan gigi, latihan soal 1–2',kegiatan:[1],latihan:['M1','M2'],praktik:jumMenit([1]),kartu:{judul:'Kegiatan 1 pembongkaran dan pemeriksaan gigi'}},
+    {n:1,jp:6,menit:270,judul:'Pemantik, materi transmisi manual, prasyarat masuk, APD, cek alat; Kegiatan 1 pembongkaran dan pemeriksaan gigi, latihan soal 1–2',kegiatan:[1],latihan:['M1','M2'],praktik:jumMenit([1]),kartu:{judul:'Kegiatan 1 pembongkaran dan pemeriksaan gigi'}},
     {n:2,jp:6,menit:270,judul:'Kegiatan 2 garpu pemilih, shift drum, dan bearing; Kegiatan 3 keolengan poros dengan dial gauge, latihan soal 3–5',kegiatan:[2,3],latihan:['M3','M4','M5'],praktik:jumMenit([2,3]),kartu:{judul:'Kegiatan 2 garpu pemilih dan 3 keolengan poros',per:{2:'Kegiatan 2 garpu pemilih, shift drum, dan bearing',3:'Kegiatan 3 keolengan poros dengan dial gauge'}}},
     {n:3,jp:6,menit:270,judul:'Kegiatan 4 perakitan, oli, dan uji fungsi, latihan soal 6, analisis; penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[4],latihan:['M6'],praktik:jumMenit([4]),kartu:{judul:'Kegiatan 4 perakitan, oli, dan uji fungsi'}}
    ],
@@ -118,7 +118,7 @@
      {id:'sikap',ket:'Yang dinilai: jujur mencatat hasil sendiri (tidak menyalin data teman), aktif, membantu teman, mengikuti arahan guru.',n:'Sikap dan kerja sama',b:10,d:{4:'Aktif, jujur, membantu teman',3:'Aktif, sesekali diingatkan',2:'Pasif',1:'Mengganggu kegiatan'}}
     ],
     indikator:[
-     {t:'Menjelaskan fungsi, rasio, dan cara kerja transmisi manual',bukti:'Gerbang masuk, latihan soal 1–2'},
+     {t:'Menjelaskan fungsi, rasio, dan cara kerja transmisi manual',bukti:'Prasyarat masuk, latihan soal 1–2'},
      {t:'Membongkar transmisi dan memeriksa gigi sesuai manual servis',bukti:'Kondisi dicatat, foto, kegiatan 1 disaksikan'},
      {t:'Mengukur garpu pemilih dan alur gigi geser dengan benar',bukti:'Pemeriksaan dan bukti, latihan soal 3–4, disaksikan'},
      {t:'Memeriksa shift drum dan bearing',bukti:'Kondisi dicatat, foto'},

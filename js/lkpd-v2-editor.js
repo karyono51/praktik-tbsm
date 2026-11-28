@@ -10,12 +10,12 @@
    2. Soal evaluasi: tombol foto soal sudah ada pada PG, PG kompleks, dan PG kategori. Soal isian angka (t:'isian') kini punya
       editor sendiri (pertanyaan, foto, kunci, toleransi, satuan, pembahasan) dan fotonya tampil di soal siswa. Sebelumnya soal isian
       tampil berlabel "undefined" dan dipaksa menjadi PG, sehingga kunci dan gambar skala hilang bila disimpan.
-   3. Editor aman untuk LKPD v2: objek m.v2 (rencana pertemuan, gerbang, tabel, observasi) dan kolom lain dipertahankan saat menyimpan;
+   3. Editor aman untuk LKPD v2: objek m.v2 (rencana pertemuan, prasyarat, tabel, observasi) dan kolom lain dipertahankan saat menyimpan;
       pemeriksaan alokasi 1–600 menit dan menit per langkah tidak berlaku (waktu v2 diatur per pertemuan); jumlah/urutan langkah, butir K3,
       dan komponen pemeriksaan dikunci karena terhubung ke indeks v2 (teksnya tetap bisa diubah).
-   4. Soal gerbang masuk v2 dapat diedit penuh di tab Soal (teks, pilihan, kunci, level Aplikasi/Penalaran, pembahasan, urutan, tambah/hapus).
+   4. Soal prasyarat masuk v2 dapat diedit penuh di tab Soal (teks, pilihan, kunci, level Aplikasi/Penalaran, pembahasan, urutan, tambah/hapus).
    Bergantung pada: lkpd-editor.js (lke*), lkpd-gambar.js (lkg*), soal-gambar.js (sg*), lkpd-soal.js (lkq*), lkpd.js. */
-var LKV={SKIP:{r:1,d:1,payload:1,updatedAt:1,updatedBy:1},MAXG:10};
+var LKV={SKIP:{r:1,d:1,payload:1,updatedAt:1,updatedBy:1},MAXG:20};
 
 function lkvIs(d){return !!(d&&d.src&&d.src.v2&&d.src.v2.ver===2)}
 function lkvRefOk(r){return typeof r==='string'&&/^(drive:|tmp:|data:image\/)/.test(r)}
@@ -209,9 +209,9 @@ document.addEventListener('click',function(e){
  };
 })();
 
-/* ---------- LKPD v2: foto pada soal gerbang masuk (Materi) ---------- */
-/* Soal gerbang ada di m.v2.gate.qs. Editor mengelola teks, pilihan, kunci, level, pembahasan, urutan, tambah/hapus (minimal 3, maksimal 10), dan foto (qi untuk soal, oi untuk pilihan).
-   Salinan kerja ada di d.S.gate dan ditulis kembali ke m.v2.gate.qs saat menyimpan. Tampil di tab Soal, bagian "Soal gerbang masuk". */
+/* ---------- LKPD v2: foto pada soal prasyarat masuk (Materi) ---------- */
+/* Soal prasyarat ada di m.v2.gate.qs. Editor mengelola teks, pilihan, kunci, level, pembahasan, urutan, tambah/hapus (minimal 3, maksimal 20), dan foto (qi untuk soal, oi untuk pilihan).
+   Salinan kerja ada di d.S.gate dan ditulis kembali ke m.v2.gate.qs saat menyimpan. Tampil di tab Soal, bagian "Soal prasyarat masuk". */
 (function(){
  var i0=lkeInit;
  lkeInit=function(d){
@@ -330,7 +330,7 @@ function lkvGItem(d,q,i){
 }
 function lkvGateHtml(d){
  var g=d.S.gate;
- return '<section class="card"><div><h3>Soal gerbang masuk (tab Materi siswa)</h3><p class="note">Soal TKA sebagai syarat masuk praktik: minimal 3 soal, lima pilihan, level Aplikasi atau Penalaran, dan pembahasan wajib. Foto soal dan pilihan bisa ditambahkan. Jawaban siswa yang sudah tersimpan mengikuti nomor soal, jadi ubah soal gerbang sebelum LKPD dipakai siswa.</p></div>'+
+ return '<section class="card"><div><h3>Soal prasyarat masuk (tab Materi siswa)</h3><p class="note">Soal TKA sebagai syarat masuk praktik: minimal 3 soal, lima pilihan, level Aplikasi atau Penalaran, dan pembahasan wajib. Foto soal dan pilihan bisa ditambahkan. Jawaban siswa yang sudah tersimpan mengikuti nomor soal, jadi ubah soal prasyarat sebelum LKPD dipakai siswa.</p></div>'+
   '<div class="lke-list">'+g.map(function(q,i){return lkvGItem(d,q,i)}).join('')+'</div>'+
   '<div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn small primary" data-lkv-a="gq-add" data-v="pg">+ PG</button><button type="button" class="btn small primary" data-lkv-a="gq-add" data-v="kompleks">+ PG kompleks</button><button type="button" class="btn small primary" data-lkv-a="gq-add" data-v="kategori">+ PG kategori</button></div></section>';
 }
@@ -349,14 +349,14 @@ document.addEventListener('click',function(e){
  }else{set('');lkeRe()}
 },true);
 
-/* Aksi editor soal gerbang masuk (data-lkv-a="gq-..."). Teks bertaut ke d.S.gate lewat data-lke="gate.i...." (penangan input editor). */
+/* Aksi editor soal prasyarat masuk (data-lkv-a="gq-..."). Teks bertaut ke d.S.gate lewat data-lke="gate.i...." (penangan input editor). */
 document.addEventListener('click',function(e){
  var b=e.target.closest&&e.target.closest('[data-lkv-a^="gq-"]');if(!b||b.disabled)return;
  var d=LK.editor;if(!d||!d.S||!Array.isArray(d.S.gate)||!isStaff())return;
  e.stopPropagation();
  var a=b.dataset.lkvA,i=+b.dataset.i,j=+b.dataset.j,v=b.dataset.v,g=d.S.gate,q=g[i];
  if(a==='gq-add'){
-  if(g.length>=LKV.MAXG){toast('Maksimal '+LKV.MAXG+' soal gerbang');return}
+  if(g.length>=LKV.MAXG){toast('Maksimal '+LKV.MAXG+' soal prasyarat');return}
   g.push(lkvGNew(v));d.gi=g.length-1;lkeRe();return;
  }
  if(!q)return;
@@ -382,12 +382,12 @@ document.addEventListener('click',function(e){
  else if(a==='gq-up'){lkeMove(g,i,i-1);d.gi=i-1;lkeRe()}
  else if(a==='gq-down'){lkeMove(g,i,i+1);d.gi=i+1;lkeRe()}
  else if(a==='gq-dup'){
-  if(g.length>=LKV.MAXG){toast('Maksimal '+LKV.MAXG+' soal gerbang');return}
+  if(g.length>=LKV.MAXG){toast('Maksimal '+LKV.MAXG+' soal prasyarat');return}
   g.splice(i+1,0,lkeCp(q));d.gi=i+1;lkeRe();
  }
  else if(a==='gq-del'){
-  if(g.length<=3){toast('Gerbang masuk minimal 3 soal');return}
-  uiConfirm('Hapus soal gerbang no. '+(i+1)+'? Nomor soal berikutnya bergeser.',{ok:'Hapus',danger:true}).then(function(ok){if(!ok||LK.editor!==d)return;g.splice(i,1);d.gi=-1;lkeRe()});
+  if(g.length<=3){toast('Prasyarat masuk minimal 3 soal');return}
+  uiConfirm('Hapus soal prasyarat no. '+(i+1)+'? Nomor soal berikutnya bergeser.',{ok:'Hapus',danger:true}).then(function(ok){if(!ok||LK.editor!==d)return;g.splice(i,1);d.gi=-1;lkeRe()});
  }
 },true);
 (function(){
@@ -395,8 +395,8 @@ document.addEventListener('click',function(e){
  lkeIssues=function(d){
   var I=i0.apply(this,arguments);
   if(lkvIs(d)&&d.S&&Array.isArray(d.S.gate)&&(d.S.gate.length||(d.src&&d.src.v2&&d.src.v2.gate))){
-   if(d.S.gate.length<3)I.push({tab:'soal',msg:'Gerbang masuk minimal 3 soal'});
-   d.S.gate.forEach(function(q,k){var m=lkvGIssue(q);if(m)I.push({tab:'soal',msg:'Gerbang masuk no. '+(k+1)+': '+m})});
+   if(d.S.gate.length<3)I.push({tab:'soal',msg:'Prasyarat masuk minimal 3 soal'});
+   d.S.gate.forEach(function(q,k){var m=lkvGIssue(q);if(m)I.push({tab:'soal',msg:'Prasyarat masuk no. '+(k+1)+': '+m})});
   }
   return I;
  };

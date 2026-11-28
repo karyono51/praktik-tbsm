@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Uji LKPD v2 dan Observasi LKPD Praktik v2 tanpa peramban: memuat berkas asli aplikasi dalam sandbox vm dengan stub DOM minimal.
    node tools/uji-lkpd-v2.mjs
-   Yang diuji: hitungan rata-rata/selisih, kelengkapan tabel, gerbang masuk, soal isian angka (koma, toleransi), nilai otomatis,
+   Yang diuji: hitungan rata-rata/selisih, kelengkapan tabel, prasyarat masuk, soal isian angka (koma, toleransi), nilai otomatis,
    render tiap tab dan Detail, verifikasi guru, perilaku LKPD lama tidak berubah, serta hitungan dan simpan Observasi v2. */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -104,7 +104,7 @@ sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q103: { 0: true, 1
 sama(G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, q103: { 0: true, 1: false } })})`).n, 4, 'gerbang: kategori belum lengkap = belum terjawab');
 sama(G(`lk2Gate(LKPD_MODULES[0],{q100:1,q101:3})`).ok, false, 'gerbang: 2 dari 5 terjawab = belum semua terjawab');
 sama(G(`lk2Gate(LKPD_MODULES[0],{q100:1,q101:3})`).lulus, false, 'gerbang: 2 dari 5 terjawab (nilai 40) = terkunci');
-/* skenario nilai gerbang dengan acuan TKA dan KKM 75 */
+/* skenario nilai prasyarat dengan acuan TKA dan KKM 75 */
 const gN = (o) => G(`lk2Gate(LKPD_MODULES[0],${JSON.stringify({ ...gKunci, ...o })})`);
 const kat4 = { 0: true, 1: false, 2: true, 3: true, 4: true }, kat3 = { 0: true, 1: false, 2: true, 3: true, 4: false };
 sama([gN({ q102: [1], q103: kat4 }).nilai, gN({ q102: [1], q103: kat4 }).lulus], [76, true], 'skenario: PG benar semua, kompleks 0, kategori 4/5 = 76 lulus (aturan lama 4 dari 5 menggagalkan)');
@@ -207,14 +207,14 @@ G(`LK.detail=null`);
 G(`SUBMITTED=0;DRAFT={};LK.tab='kerja'`);
 G('lkSubmit()');
 sama(G('SUBMITTED'), 0, 'kirim ditolak bila gerbang belum selesai');
-ok(G('toasts').some((t) => /gerbang/i.test(t)), 'pesan gerbang ditampilkan');
+ok(G('toasts').some((t) => /prasyarat/i.test(t)), 'pesan gerbang ditampilkan');
 G(`DRAFT=${JSON.stringify(penuh)}`);
 G('lkSubmit()');
 sama(G('SUBMITTED'), 1, 'kirim lanjut bila gerbang lulus');
 /* gerbang terjawab semua tetapi nilai di bawah KKM = kirim ditolak */
 G(`SUBMITTED=0;toasts.length=0;DRAFT=${JSON.stringify({ ...penuh, q100: 0, q101: 0 })}`);
 G('lkSubmit()');
-sama(G('SUBMITTED'), 0, 'kirim ditolak bila nilai gerbang 60 (< KKM 75) walau semua soal terjawab');
+sama(G('SUBMITTED'), 0, 'kirim ditolak bila nilai prasyarat 60 (< KKM 75) walau semua soal terjawab');
 ok(G('toasts').some((t) => /KKM 75/.test(t)), 'pesan menyebut KKM 75');
 G(`SUBMITTED=0;DRAFT=${JSON.stringify(penuh)}`);
 G('lkSubmit()');
@@ -225,18 +225,18 @@ ok(rd.v2 && rd.v2.ver === 2 && rd.v2.gate === 5 && rd.v2.gerbang && rd.v2.gerban
 const payload = Object.assign({}, penuh, rd, { student: 'Budi', school: 'SMKS Medina' });
 G(`STAFF=true`);
 const det = G(`lkDetailBody({id:'z',moduleId:'LKPD-DDO-ALT-02',payload:''},${JSON.stringify(payload)})`);
-ok(/Gerbang masuk/.test(det) && !/data-lk2v="g0"/.test(det) && /data-lk2v="s2"/.test(det) && /data-lk2v="a0"/.test(det) && /lk2-verif/.test(det), 'Detail guru memuat verifikasi saksi dan APD (gerbang dinilai otomatis, tanpa kotak Jawaban benar)');
+ok(/Prasyarat masuk/.test(det) && !/data-lk2v="g0"/.test(det) && /data-lk2v="s2"/.test(det) && /data-lk2v="a0"/.test(det) && /lk2-verif/.test(det), 'Detail guru memuat verifikasi saksi dan APD (gerbang dinilai otomatis, tanpa kotak Jawaban benar)');
 ok(/Waktu per kartu kegiatan/.test(det) && /K3: [^<]* \/ 20 menit/.test(det) && /K4: [^<]* \/ 15 menit/.test(det) && !/K3\+4/.test(det), 'Detail guru: waktu aktual dicatat terpisah untuk Kegiatan 3 dan Kegiatan 4');
 ok(/Kunci: B\. rahang bawah, rahang atas, batang kedalaman/.test(det) && /Kunci: C\. dan |Kunci: A\./.test(det), 'kunci gerbang PG tampil untuk guru');
 ok(/Penalaran/.test(det) && /Aplikasi/.test(det), 'Detail guru menampilkan level soal gerbang');
 const detAuto = G(`lkDetailBody({id:'z',moduleId:'LKPD-DDO-ALT-02',payload:''},${JSON.stringify(Object.assign({}, payload, { v2: { ver: 2 } }))})`);
-ok(/Nilai gerbang \(acuan TKA\): <b>100<\/b> dari 100 · poin 5 dari 5 · KKM 75: <b>lulus/.test(detAuto) && /Poin: 1 dari 1/.test(detAuto), 'Detail menampilkan nilai gerbang otomatis 100 dan poin tiap soal');
+ok(/Nilai prasyarat \(acuan TKA\): <b>100<\/b> dari 100 · poin 5 dari 5 · KKM 75: <b>lulus/.test(detAuto) && /Poin: 1 dari 1/.test(detAuto), 'Detail menampilkan nilai prasyarat otomatis 100 dan poin tiap soal');
 const detSalah = G(`lkDetailBody({id:'z',moduleId:'LKPD-DDO-ALT-02',payload:''},${JSON.stringify(Object.assign({}, payload, { q100: 0, q104: 0, v2: { ver: 2 } }))})`);
-ok(/Nilai gerbang \(acuan TKA\): <b>60<\/b>[^<]*KKM 75: <b>belum lulus/.test(detSalah), '3 dari 5 benar = nilai 60 belum lulus');
+ok(/Nilai prasyarat \(acuan TKA\): <b>60<\/b>[^<]*KKM 75: <b>belum lulus/.test(detSalah), '3 dari 5 benar = nilai 60 belum lulus');
 G(`STAFF=false`);
 const detS = G(`lkDetailBody({id:'z',moduleId:'LKPD-DDO-ALT-02',payload:''},${JSON.stringify(Object.assign({}, payload, { v2: Object.assign({}, rd.v2, { verif: { g: { 0: 1, 1: 1, 2: 1, 3: 1 }, s: { 2: 1 }, a: {}, ts: 1, by: 'Guru' } }) }))})`);
 ok(!/data-lk2v/.test(detS) && !/Kunci: B\./.test(detS), 'siswa tidak melihat kunci dan kotak verifikasi');
-ok(/Nilai gerbang \(acuan TKA\): <b>100<\/b>[^<]*KKM 75: <b>lulus/.test(detS), 'siswa melihat nilai gerbang otomatis (lulus)');
+ok(/Nilai prasyarat \(acuan TKA\): <b>100<\/b>[^<]*KKM 75: <b>lulus/.test(detS), 'siswa melihat nilai prasyarat otomatis (lulus)');
 
 /* ---------- Praktik terverifikasi guru dan pembukaan Evaluasi ---------- */
 run(`function uiOk(){return true}`, 'stub-uiok-evaluasi');
@@ -312,7 +312,7 @@ G('STAFF=false');
 dp = detP({ ts: 1, by: 'Guru', s: sA, a: aA, n: 60, praktik: 90, lulus: true });
 ok(!/id="lk2-ana-n"/.test(dp) && !/data-act="lk2-verif"/.test(dp) && /Nilai analisis: <b>60<\/b>/.test(dp), 'Detail siswa: nilai analisis hanya terbaca, tanpa kolom isian dan tombol simpan');
 const evRec = { student: 'Budi', 'class': 'X', date: '2026-11-22', v2: { ver: 2, evaluasi: 1, praktik: 80 }, q0: '24,35' };
-ok(/Evaluasi \(latihan membaca skala\)/.test(G(`lkDetailBody({id:'z',moduleId:'LKPD-DDO-ALT-02',payload:''},${JSON.stringify(evRec)})`)) && !/Gerbang masuk/.test(G(`lkDetailBody({id:'z',moduleId:'LKPD-DDO-ALT-02',payload:''},${JSON.stringify(evRec)})`)), 'Detail kiriman Evaluasi menampilkan jawaban latihan (bukan lembar kerja)');
+ok(/Evaluasi \(latihan membaca skala\)/.test(G(`lkDetailBody({id:'z',moduleId:'LKPD-DDO-ALT-02',payload:''},${JSON.stringify(evRec)})`)) && !/Prasyarat masuk/.test(G(`lkDetailBody({id:'z',moduleId:'LKPD-DDO-ALT-02',payload:''},${JSON.stringify(evRec)})`)), 'Detail kiriman Evaluasi menampilkan jawaban latihan (bukan lembar kerja)');
 G(`S.lkpd=${JSON.stringify(lkpdAsli)};S.results=[];STAFF=false;LK.tab='materi'`);
 
 /* ---------- Observasi v2 (memakai observasi.js asli) ---------- */
@@ -474,9 +474,9 @@ const cU = (o) => JSON.stringify(Object.assign({ mode: 'ujian', hideTeori: false
 G(`LK.tab='materi'`); const mat = G('viewLKPD()');
 ok(/<h2>Teori singkat<\/h2>/.test(mat) && /Rencana pertemuan/.test(mat), 'v2 materi: teori dan rencana ada sebelum disaring');
 const fMat = G(`lk2ModeFilter(viewLKPD(),${cU({ hideTeori: true, hideLangkah: true })})`);
-ok(/Teori singkat tidak ditampilkan/.test(fMat) && !new RegExp(M.theory[0][0]).test(fMat.slice(fMat.indexOf('<h2>Teori singkat'), fMat.indexOf('Gerbang masuk praktik'))), 'ujian: teori v2 disembunyikan');
+ok(/Teori singkat tidak ditampilkan/.test(fMat) && !new RegExp(M.theory[0][0]).test(fMat.slice(fMat.indexOf('<h2>Teori singkat'), fMat.indexOf('Prasyarat masuk praktik'))), 'ujian: teori v2 disembunyikan');
 ok(/Rincian langkah tidak ditampilkan/.test(fMat) && /Pertemuan 1/.test(fMat), 'ujian: isi pertemuan disembunyikan, judul pertemuan tetap');
-ok(/Gerbang masuk praktik/.test(fMat), 'ujian: gerbang masuk tetap tampil');
+ok(/Prasyarat masuk praktik/.test(fMat), 'ujian: prasyarat masuk tetap tampil');
 G(`LK.tab='kerja'`); const ker = G('viewLKPD()');
 const fKer = G(`lk2ModeFilter(viewLKPD(),${cU({ hideLangkah: true, hidePetunjuk: true })})`);
 ok(/Poin kritis/.test(ker) && !/Poin kritis/.test(fKer), 'ujian: poin kritis langkah disembunyikan');

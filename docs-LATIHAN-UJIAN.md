@@ -14,7 +14,7 @@ Kontrol khusus Ujian tidak tampil saat Latihan, dan sebaliknya. Mencentang "Lati
 - Berlaku untuk LKPD v2 pada tampilan siswa dan Pratinjau guru. Kartu hanya muncul saat Lembar Kerja terbuka (tidak di layar "Lembar Kerja terkunci").
 
 ## 2. Latihan lalu Ujian di satu LKPD (tanpa salinan)
-- Cukup **satu LKPD**. Di Pengaturan LKPD berstatus **Ujian** ada bagian "Latihan sebelum Ujian" (tidak sama dengan "Gerbang masuk" soal TKA di dalam LKPD v2). Centang **Latihan dulu, baru Ujian**, lalu pilih syarat **KKM 1 kali** atau **2 kali berturut-turut**. Siswa tidak melihat dua LKPD berjudul sama.
+- Cukup **satu LKPD**. Di Pengaturan LKPD berstatus **Ujian** ada bagian "Latihan sebelum Ujian" (tidak sama dengan "Prasyarat masuk" soal TKA di dalam LKPD v2). Centang **Latihan dulu, baru Ujian**, lalu pilih syarat **KKM 1 kali** atau **2 kali berturut-turut**. Siswa tidak melihat dua LKPD berjudul sama.
 - **Tahap 1, Latihan:** siswa baru memulai dari Latihan. LKPD tampil dengan mode Latihan (kartu berpemandu, Bantuan angka acuan, kunci dan pembahasan, tanpa batas kesempatan). Kartu daftar menampilkan "Tahap 1: Latihan n/N". Pengumpulan otomatis bertanda Latihan dan **tidak masuk Rekap nilai**.
 - **Tahap 2, Ujian:** setelah nilai latihan mencapai KKM sesuai syarat, LKPD yang sama otomatis menjadi Ujian (Ujian mandiri, angka acuan disembunyikan, aturan kesempatan dan foto berlaku). Kartu menampilkan "Tahap 2: Ujian". Pengumpulan bertanda Ujian dan masuk Rekap nilai. Isian draf dikosongkan setiap kali LKPD dikirim, jadi Ujian dimulai dari lembar bersih.
 - **Remedial:** bila Ujian terakhir siswa belum kompeten (di bawah KKM) dan masih ada jatah, LKPD kembali ke Tahap 1 dengan penanda "Remedial". Hanya nilai Latihan **sesudah** Ujian itu yang dihitung. Bila jatah Ujian sudah habis, LKPD tetap Ujian (latihan tambahan tidak membuka percobaan baru).
@@ -22,13 +22,13 @@ Kontrol khusus Ujian tidak tampil saat Latihan, dan sebaliknya. Mencentang "Lati
 - Tahap tidak ikut saat "Terapkan ke semua LKPD" (khusus per LKPD). Menyimpan sebagai mode Latihan membuang pengaturan tahap.
 - **Perubahan dari versi sebelumnya:** tombol "Buat salinan Latihan" dan pilihan LKPD Latihan prasyarat dihapus. Bila ada salinan `-L` yang sudah dibuat, sembunyikan atau hapus lewat daftar LKPD. Bidang `gerbang` lama pada LKPD diabaikan dan dibuang saat pengaturan disimpan.
 
-## 2b. Gerbang masuk hanya di Latihan, Evaluasi hanya di Ujian (LKPD v2)
+## 2b. Prasyarat masuk hanya di Latihan, Evaluasi hanya di Ujian (LKPD v2)
 Soal yang sama di dua tahap hanya menguji hafalan, jadi dipisah menurut mode yang sedang berlaku bagi siswa:
-- **Latihan:** soal **Gerbang masuk** (TKA) tampil di tab Materi dan tetap mengunci Lembar Kerja sampai lulus. Tab **Evaluasi tidak ada** (isinya hanya catatan bahwa Evaluasi dikerjakan di Ujian), dan blok "Pembahasan latihan" tidak muncul. Nilai Latihan dihitung dari **praktik saja**, supaya bobot teori yang tidak dikerjakan tidak menurunkan nilai dan syarat KKM tahap Latihan adil.
-- **Ujian:** soal Gerbang masuk **tidak tampil** dan tidak mengunci Lembar Kerja. Tab **Evaluasi ada**; aturan v2 yang lama tetap berlaku (terbuka setelah guru memverifikasi praktik dengan nilai minimal KKM). Nilai Ujian memakai rumus asli (praktik x bobot + teori x bobot).
-- Pratinjau guru menampilkan versi Ujian. Detail kiriman Ujian di sisi guru tidak lagi memuat bagian Gerbang masuk. Detail kiriman Latihan tidak berubah.
+- **Latihan:** soal **Prasyarat masuk** (TKA) tampil di tab Materi dan tetap mengunci Lembar Kerja sampai lulus. Tab **Evaluasi tidak ada** (isinya hanya catatan bahwa Evaluasi dikerjakan di Ujian), dan blok "Pembahasan latihan" tidak muncul. Nilai Latihan dihitung dari **praktik saja**, supaya bobot teori yang tidak dikerjakan tidak menurunkan nilai dan syarat KKM tahap Latihan adil.
+- **Ujian:** soal Prasyarat masuk **tidak tampil** dan tidak mengunci Lembar Kerja. Tab **Evaluasi ada**; aturan v2 yang lama tetap berlaku (terbuka setelah guru memverifikasi praktik dengan nilai minimal KKM). Nilai Ujian memakai rumus asli (praktik x bobot + teori x bobot).
+- Pratinjau guru menampilkan versi Ujian. Detail kiriman Ujian di sisi guru tidak lagi memuat bagian Prasyarat masuk. Detail kiriman Latihan tidak berubah.
 - Berlaku juga untuk LKPD tanpa tahap: LKPD bermode Latihan murni memakai aturan Latihan, LKPD bermode Ujian memakai aturan Ujian.
-- Gerbang masuk tidak menampilkan kunci atau pembahasan kepada siswa. Pembahasan hanya ada di blok "Pembahasan latihan" milik soal Evaluasi, yang kini tidak tampil di Latihan.
+- Prasyarat masuk tidak menampilkan kunci atau pembahasan kepada siswa. Pembahasan hanya ada di blok "Pembahasan latihan" milik soal Evaluasi, yang kini tidak tampil di Latihan.
 
 ## 2c. Waktu: alokasi total berbeda dari waktu satu sesi
 - `duration` LKPD v2 adalah **alokasi pembelajaran total** (LKPD-X-06: 20 JP x 45 menit = 900 menit, 5 pertemuan x 180 menit), bukan waktu sekali mengerjakan.

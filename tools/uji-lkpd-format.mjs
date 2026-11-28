@@ -3,7 +3,7 @@
    node tools/uji-lkpd-format.mjs   (LKPD_HTML=/tmp/lkpd.html menulis HTML cetak untuk diperiksa di peramban atau wkhtmltopdf)
    Harness asal: memuat berkas asli aplikasi dalam sandbox vm dengan stub DOM minimal.
    node tools/uji-lkpd-v2.mjs
-   Yang diuji: hitungan rata-rata/selisih, kelengkapan tabel, gerbang masuk, soal isian angka (koma, toleransi), nilai otomatis,
+   Yang diuji: hitungan rata-rata/selisih, kelengkapan tabel, prasyarat masuk, soal isian angka (koma, toleransi), nilai otomatis,
    render tiap tab dan Detail, verifikasi guru, perilaku LKPD lama tidak berubah, serta hitungan dan simpan Observasi v2. */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -79,19 +79,19 @@ ok(/Tujuan pembelajaran Setelah menyelesaikan LKPD ini, kamu mampu:/.test(T), 't
 ok(/Rencana pertemuan Pertemuan JP Menit Kegiatan 1 4 180/.test(T), 'tabel rencana pertemuan');
 const ban = kosong.match(/class="lkf-ban"/g) || [];
 sama(ban.length, 5, 'lima banner pertemuan');
-ok(/Pertemuan 1 · Pemantik, materi, gerbang masuk, APD, cek alat/.test(T) && /4 JP · target 180 menit/.test(T), 'banner pertemuan 1');
+ok(/Pertemuan 1 · Pemantik, materi, prasyarat masuk, APD, cek alat/.test(T) && /4 JP · target 180 menit/.test(T), 'banner pertemuan 1');
 ok(/Pertemuan 2 · Kegiatan 1: Jangka sorong/.test(T) && /Pertemuan 4 · Kegiatan 3: Dial gauge; 4: Perawatan dan penyimpanan/.test(T), 'banner pertemuan berkegiatan (Pertemuan 4 memuat Kegiatan 3 dan 4)');
 ok(/Pertemuan 5 · /.test(T), 'banner pertemuan 5');
 /* urutan bagian seperti PDF acuan */
-const urut = ['Pertanyaan pemantik', 'Materi', 'Gerbang masuk praktik', 'Alat dan bahan', 'Keselamatan dan kesehatan kerja (K3) dan APD', 'Cek kondisi alat sebelum dipakai', 'Pertemuan 2 ·', 'Tabel F1', 'Latihan membaca skala jangka sorong', 'Pertemuan 3 ·', 'Tabel F2', 'Pertemuan 4 ·', 'Tabel F3', 'Latihan membaca skala dial gauge', 'Analisis dan keputusan teknis', 'Pertemuan 5 ·', 'Refleksi', 'Tindak lanjut', 'Penilaian kinerja oleh guru', 'TTD'];
+const urut = ['Pertanyaan pemantik', 'Materi', 'Prasyarat masuk praktik', 'Alat dan bahan', 'Keselamatan dan kesehatan kerja (K3) dan APD', 'Cek kondisi alat sebelum dipakai', 'Pertemuan 2 ·', 'Tabel F1', 'Latihan membaca skala jangka sorong', 'Pertemuan 3 ·', 'Tabel F2', 'Pertemuan 4 ·', 'Tabel F3', 'Latihan membaca skala dial gauge', 'Analisis dan keputusan teknis', 'Pertemuan 5 ·', 'Refleksi', 'Tindak lanjut', 'Penilaian kinerja oleh guru', 'TTD'];
 let pos = -1, urutOk = true; urut.forEach((u) => { const i = T.indexOf(u, pos + 1); if (i < 0) { urutOk = false; console.log('  tidak ditemukan/berurutan: ' + u); } else pos = i; });
 ok(urutOk, 'urutan bagian sama dengan PDF acuan');
-/* gerbang masuk */
-ok(/Lembar Kerja dibuka bila nilai gerbang minimal 75/.test(T) && !/4 dari 5/.test(T), 'syarat lulus gerbang: nilai minimal 75 (acuan TKA), bukan 4 dari 5');
+/* prasyarat masuk */
+ok(/Lembar Kerja dibuka bila nilai prasyarat minimal 75/.test(T) && !/4 dari 5/.test(T), 'syarat lulus gerbang: nilai minimal 75 (acuan TKA), bukan 4 dari 5');
 ok(/1\. \(Pilihan ganda\)/.test(T) && /3\. \(Pilihan ganda kompleks: jawaban benar lebih dari satu\)/.test(T) && /4\. \(Pilihan ganda kategori: Benar\/Salah\)/.test(T), 'label bentuk soal');
 ok(/☐ A\. Penyimpangan nol/.test(T), 'PG kompleks memakai kotak centang');
 ok(/Pernyataan Benar Salah/.test(T) && /class="k">☐<\/td><td class="k">☐/.test(kosong), 'PG kategori berupa tabel Benar/Salah');
-ok(/Nilai gerbang:\s*(.*)\(dari 100; KKM 75\) ☐ Lulus ☐ Belum lulus \(ulangi setelah belajar lagi\) Paraf guru/.test(T), 'baris nilai gerbang');
+ok(/Nilai prasyarat:\s*(.*)\(dari 100; KKM 75\) ☐ Lulus ☐ Belum lulus \(ulangi setelah belajar lagi\) Paraf guru/.test(T), 'baris nilai prasyarat');
 /* K3 */
 ok(/Alat pelindung diri/.test(T) && (T.match(/Paraf: /g) || []).length === M.v2.apd.length, 'paraf hanya pada butir APD (' + M.v2.apd.length + ')');
 ok(/Cek kondisi alat sebelum dipakai ☐ Jangka sorong: permukaan ukur bersih/.test(T), 'cek kondisi alat memakai kotak centang');
@@ -134,11 +134,11 @@ ok(/Evaluasi pengetahuan 1\. Soal\?/.test(t1) && /✔ B\./.test(t1) && /Bobot pe
 ok(/@bottom-right\{content:"Halaman " counter\(page\) " dari " counter\(pages\)/.test(kosong) && /@bottom-left\{content:"LKPD DDPK Kelas X · Alat Ukur · SMKS Medina Bandung"/.test(kosong), 'footer: identitas lembar dan nomor halaman');
 const css = STYLES.filter((e) => e.tag === 'style').map((e) => e.textContent || '').join('');
 ok(/#lk-print table\.lkf-ban td\{background:#1b5e20!important/.test(css) && /print-color-adjust:exact/.test(css), 'banner hijau dicetak berwarna');
-/* ---------- Kunci dan pembahasan gerbang masuk ---------- */
+/* ---------- Kunci dan pembahasan prasyarat masuk ---------- */
 const KH = ctx.lkfKunci(M), KT = teks(KH);
 ok(/KUNCI DAN PEMBAHASAN GERBANG MASUK \(UNTUK GURU\)/.test(KT), 'kunci: judul');
-ok(/LKPD Penggunaan dan Perawatan Alat Ukur · DDPK Kelas X · Syarat lulus: nilai gerbang minimal 75 \(acuan TKA\)\. Dokumen ini tidak dibagikan kepada siswa\./.test(KT), 'kunci: keterangan dan larangan dibagikan');
-ok(/Ketentuan soal/.test(KT) && /Sebaran soal gerbang: 3 Aplikasi, 2 Penalaran/.test(KT) && /Penskoran gerbang/.test(KT) && /Pengecoh dibuat/.test(KT), 'kunci: ketentuan soal dan sebaran level dihitung dari data');
+ok(/LKPD Penggunaan dan Perawatan Alat Ukur · DDPK Kelas X · Syarat lulus: nilai prasyarat minimal 75 \(acuan TKA\)\. Dokumen ini tidak dibagikan kepada siswa\./.test(KT), 'kunci: keterangan dan larangan dibagikan');
+ok(/Ketentuan soal/.test(KT) && /Sebaran soal prasyarat: 3 Aplikasi, 2 Penalaran/.test(KT) && /Penskoran prasyarat/.test(KT) && /Pengecoh dibuat/.test(KT), 'kunci: ketentuan soal dan sebaran level dihitung dari data');
 ok(/No Bentuk Level Kunci Pembahasan/.test(KT), 'kunci: kepala tabel');
 ok(/1 PG Aplikasi B /.test(KT) && /2 PG Aplikasi D /.test(KT) && /3 PG kompleks Penalaran A dan C /.test(KT) && /5 PG Aplikasi C /.test(KT), 'kunci: kunci PG dan PG kompleks sesuai data');
 ok(/4 PG kategori Penalaran 1 Benar 2 Salah 3 Benar 4 Salah 5 Benar/.test(KT), 'kunci: PG kategori per pernyataan');
@@ -146,7 +146,7 @@ ok(/C memakai ketelitian 0,1 mm/.test(KT) && /Rata-rata tidak menghilangkan/.tes
 ok(!/Peta ke soal lama/.test(KT) && !/Soal lama \(isian\)/.test(KT), 'kunci: tanpa peta ke soal lama (artefak migrasi tidak dicetak)');
 ok(/Kunci jawaban latihan \(untuk guru\) 1 2 3 4 5 6 7 8 9 10 24,35 31,28 12,45 45,55 7,78 12,35 5,63 9,41 2,45 0,22/.test(KT), 'kunci: jawaban latihan 10 soal sama dengan versi guru');
 ok(/Satuan: mm\./.test(KT) && /10 = 0,32 − 0,10/.test(KT) && /5 = 7 \+ 0,5 \+ 28 × 0,01/.test(KT), 'kunci: rumus latihan dari data');
-ok(/@bottom-left\{content:"Kunci gerbang masuk · LKPD Alat Ukur · SMKS Medina Bandung \(khusus guru\)"/.test(KH) && /Halaman " counter\(page\) " dari " counter\(pages\)/.test(KH), 'kunci: footer khusus guru dan nomor halaman');
+ok(/@bottom-left\{content:"Kunci prasyarat masuk · LKPD Alat Ukur · SMKS Medina Bandung \(khusus guru\)"/.test(KH) && /Halaman " counter\(page\) " dari " counter\(pages\)/.test(KH), 'kunci: footer khusus guru dan nomor halaman');
 ok(!/☐|☑|✔/.test(KT), 'kunci: tidak ada kotak isian siswa');
 /* tombol dan cetak: hanya staf, di samping Cetak */
 const v2js = src('lkpd-v2.js');

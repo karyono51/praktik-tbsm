@@ -64,7 +64,7 @@
   v2:{
    ver:2,jenis:'jobsheet',jp:20,tp:'X.4.2',cp:'Peralatan dan Perlengkapan Tempat Kerja',
    pertemuan:[
-    {n:1,jp:4,menit:180,judul:'Pemantik, materi, gerbang masuk, APD, cek alat',kegiatan:[],sembunyi:true},
+    {n:1,jp:4,menit:180,judul:'Pemantik, materi, prasyarat masuk, APD, cek alat',kegiatan:[],sembunyi:true},
     {n:2,jp:4,menit:180,judul:'Kegiatan 1 jangka sorong, latihan soal 1–4',kegiatan:[1],latihan:['J1','J2','J3','J4'],praktik:25,kartu:{judul:'Kegiatan 1 jangka Sorong'}},
     {n:3,jp:4,menit:180,judul:'Kegiatan 2 mikrometer, latihan soal 5–8',kegiatan:[2],latihan:['M1','M2','M3','M4'],praktik:20,kartu:{judul:'Kegiatan 2 mikrometer'}},
     {n:4,jp:4,menit:180,judul:'Kegiatan 3 dial gauge dan Kegiatan 4 perawatan, latihan soal 9–10, analisis',kegiatan:[3,4],latihan:['D1','D2'],praktik:35,kartu:{judul:'Kegiatan 3 dial gauge dan 4 perawatan',per:{3:'Kegiatan 3 dial gauge',4:'Kegiatan 4 perawatan'}}},
@@ -121,7 +121,7 @@
      {id:'sikap',ket:'Yang dinilai: jujur mencatat hasil sendiri (tidak menyalin data teman), aktif, membantu teman, mengikuti arahan guru.',n:'Sikap dan kerja sama',b:10,d:{4:'Aktif, jujur, membantu teman',3:'Aktif, sesekali diingatkan',2:'Pasif',1:'Mengganggu kegiatan'}}
     ],
     indikator:[
-     {t:'Menyebut bagian, fungsi, ketelitian',bukti:'Gerbang masuk'},
+     {t:'Menyebut bagian, fungsi, ketelitian',bukti:'Prasyarat masuk'},
      {t:'Memeriksa kondisi dan nol alat',bukti:'Foto nol, penyimpangan tercatat'},
      {t:'Jangka sorong benar',bukti:'Pemeriksaan dan bukti, latihan soal 1–4, disaksikan'},
      {t:'Mikrometer benar',bukti:'Pemeriksaan dan bukti, latihan soal 5–8, disaksikan'},

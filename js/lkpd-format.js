@@ -1,6 +1,6 @@
 /* lkpd-format.js: format cetak PDF LKPD (kop, judul hijau, identitas dua kolom, banner pertemuan, tabel isian, tanda tangan,
    nomor halaman). Disusun dari DATA modul, bukan dari tampilan layar, sehingga hasilnya sama di semua perangkat.
-   - Modul v2 (m.v2): Tujuan, Rencana pertemuan, lalu satu banner per pertemuan berisi pemantik, materi, gerbang masuk, alat dan bahan,
+   - Modul v2 (m.v2): Tujuan, Rencana pertemuan, lalu satu banner per pertemuan berisi pemantik, materi, prasyarat masuk, alat dan bahan,
      K3 dan APD, langkah, tabel F1..Fn, pemeriksaan dan bukti, latihan membaca skala, analisis, refleksi, tindak lanjut, penilaian kinerja.
    - Modul v1 dan LKPD buatan guru (tanpa m.v2): Tujuan, Materi, Alat dan bahan, Checklist K3, Prosedur praktik, Hasil pemeriksaan,
      Diagnosis dan analisis, Evaluasi pengetahuan, Bobot penilaian.
@@ -8,7 +8,7 @@
    Dipanggil oleh lkpd-cetak.js (window.lkfBangun). Bila gagal, lkpd-cetak.js memakai format lama. Nomor halaman memakai @page margin box
    (Chrome 131+, Edge, Android Chrome terbaru); peramban lama mencetak tanpa nomor halaman. */
 (function(){
-/* KKM gerbang masuk (minimal 75); memakai lk2KkmGerbang dari lkpd-v2.js bila sudah dimuat. */
+/* KKM prasyarat masuk (minimal 75); memakai lk2KkmGerbang dari lkpd-v2.js bila sudah dimuat. */
 function kkG(){return typeof lk2KkmGerbang==='function'?lk2KkmGerbang():75}
 var HIJAU='#1b5e20';
 var CSS='@media print{'+
@@ -114,12 +114,12 @@ function waktuK(d,k){return '<p class="lkf-wkt">Waktu aktual Kegiatan '+k+': '+f
 /* ---------- v2 ---------- */
 function gerbang(m,d){
  var V=m.v2,qs=V.gate.qs,off=typeof LK2_GOFF!=='undefined'?LK2_GOFF:100;
- var h='<h2 class="lkf-h">Gerbang masuk praktik</h2><p>Kerjakan semua soal secara mandiri sebelum praktik. Soal dinilai seperti soal TKA: pilihan ganda benar bernilai 1; pilihan ganda kompleks dan benar/salah bernilai sebagian sesuai pilihan yang tepat. Lembar Kerja dibuka bila nilai gerbang minimal '+kkG()+'.</p>';
+ var h='<h2 class="lkf-h">Prasyarat masuk praktik</h2><p>Kerjakan semua soal secara mandiri sebelum praktik. Soal dinilai seperti soal TKA: pilihan ganda benar bernilai 1; pilihan ganda kompleks dan benar/salah bernilai sebagian sesuai pilihan yang tepat. Lembar Kerja dibuka bila nilai prasyarat minimal '+kkG()+'.</p>';
  qs.forEach(function(q,i){
   if(q.o||q.rows)h+=soal(q,i+1,d['q'+(off+i)],{tipe:1});
   else h+='<div class="lkf-q"><p><b>'+(i+1)+'. '+E(q.q)+'</b></p>'+garis(d['gate'+i])+'</div>';
  });
- return h+'<p>Nilai gerbang: '+fill('',12)+' (dari 100; KKM '+kkG()+') &nbsp; '+box(false)+' Lulus &nbsp; '+box(false)+' Belum lulus (ulangi setelah belajar lagi) &nbsp; Paraf guru: '+fill('',18)+'</p>';
+ return h+'<p>Nilai prasyarat: '+fill('',12)+' (dari 100; KKM '+kkG()+') &nbsp; '+box(false)+' Lulus &nbsp; '+box(false)+' Belum lulus (ulangi setelah belajar lagi) &nbsp; Paraf guru: '+fill('',18)+'</p>';
 }
 function k3v2(m,d){
  var V=m.v2,g=V.k3grup||[{judul:'',i:m.safety.map(function(x,i){return i})}],apd=V.apd||[];
@@ -246,7 +246,7 @@ function footStyle(m,H,kiriTetap){
  return '<style>@media print{@page{size:A4;margin:10mm 12mm 16mm;@bottom-left{content:"'+kiri+'";font:8pt Arial,sans-serif;color:#555}@bottom-right{content:"Halaman " counter(page) " dari " counter(pages);font:8pt Arial,sans-serif;color:#555}}}</style>';
 }
 /* H: {d, pihak, semester, mapel, akhir}. d kosong untuk cetakan guru/pratinjau. */
-/* ---------- Kunci dan pembahasan gerbang masuk (khusus guru) ---------- */
+/* ---------- Kunci dan pembahasan prasyarat masuk (khusus guru) ---------- */
 function kunciSoal(q){
  var t=tipeSoal(q);
  if(t==='kategori'){var lab=q.lab||['Benar','Salah'];return q.rows.map(function(r,k){return (k+1)+' '+E(r[1]?lab[0]:lab[1])}).join('<br>')}
@@ -261,20 +261,20 @@ function sumberKunci(m){
  return {gate:false,qs:(m&&m.quiz)||[]};
 }
 function adaKunci(m){return sumberKunci(m).qs.length>0}
-/* Kunci untuk semua LKPD: v2 memakai Gerbang masuk; LKPD lain (v1 dan buatan guru) memakai Soal evaluasi pengetahuan. */
+/* Kunci untuk semua LKPD: v2 memakai Prasyarat masuk; LKPD lain (v1 dan buatan guru) memakai Soal evaluasi pengetahuan. */
 function kunciBangun(m){
  var V=m.v2||{},sm=sumberKunci(m),gate=sm.gate,qs=sm.qs,BENTUK={pg:'PG',kompleks:'PG kompleks',kategori:'PG kategori'},lv={},ur=[];
  qs.forEach(function(q){if(q.lvl){if(!lv[q.lvl]){lv[q.lvl]=0;ur.push(q.lvl)}lv[q.lvl]++}});
  var adaLvl=ur.length>0,S0=typeof SEK!=='undefined'?SEK:{nama:''},ju=String(m.title||'').replace(/\s*\([^)]*\)\s*$/,'');
- var kiri=gate?'Kunci gerbang masuk · LKPD '+(V.judulPendek||m.id)+' · '+S0.nama+' (khusus guru)':'Kunci evaluasi · LKPD '+m.id+' · '+S0.nama+' (khusus guru)';
+ var kiri=gate?'Kunci prasyarat masuk · LKPD '+(V.judulPendek||m.id)+' · '+S0.nama+' (khusus guru)':'Kunci evaluasi · LKPD '+m.id+' · '+S0.nama+' (khusus guru)';
  var skor='PG benar = 1, salah = 0; PG kompleks = (pilihan benar terpilih − pilihan salah terpilih) ÷ jumlah kunci, minimal 0; PG kategori = pernyataan tepat ÷ jumlah pernyataan.';
  var h='<div class="lkf">'+footStyle(m,{},kiri)+kop()+
   '<p class="lkf-jdl">'+(gate?'KUNCI DAN PEMBAHASAN GERBANG MASUK (UNTUK GURU)':'KUNCI DAN PEMBAHASAN SOAL EVALUASI (UNTUK GURU)')+'</p>'+
-  '<p>LKPD '+E(ju)+' · '+(m.kelas==='X'?'DDPK ':'')+'Kelas '+E(m.kelas)+' · '+(gate?'Syarat lulus: nilai gerbang minimal '+kkG()+' (acuan TKA).':qs.length+' soal evaluasi pengetahuan.')+' <b>Dokumen ini tidak dibagikan kepada siswa.</b></p>'+
+  '<p>LKPD '+E(ju)+' · '+(m.kelas==='X'?'DDPK ':'')+'Kelas '+E(m.kelas)+' · '+(gate?'Syarat lulus: nilai prasyarat minimal '+kkG()+' (acuan TKA).':qs.length+' soal evaluasi pengetahuan.')+' <b>Dokumen ini tidak dibagikan kepada siswa.</b></p>'+
   '<h2 class="lkf-h">Ketentuan soal</h2><ul class="lkf-ul">'+
   '<li><b>Bentuk soal</b> mengikuti tiga bentuk TKA SMK: pilihan ganda (5 pilihan, 1 kunci), pilihan ganda kompleks (5 pilihan, kunci lebih dari 1), dan pilihan ganda kategori (pernyataan Benar/Salah).'+(gate?' Semuanya soal tunggal; stimulus (kasus, data ukur) ada di dalam soal.':'')+'</li>'+
-  (adaLvl?'<li><b>Level kognitif:</b> soal HOTS berada pada level Aplikasi dan Penalaran. Sebaran soal'+(gate?' gerbang':'')+': '+ur.map(function(x){return lv[x]+' '+E(x)}).join(', ')+'.</li>':'')+
-  (gate?'<li><b>Pengecoh</b> dibuat dari kesalahan umum siswa, bukan jawaban yang jelas keliru.</li><li><b>Penskoran gerbang (acuan TKA):</b> '+skor+' Nilai gerbang = jumlah poin ÷ jumlah soal × 100; lulus bila minimal '+kkG()+' (KKM). Gerbang adalah syarat kelayakan masuk praktik, bukan komponen nilai akhir.</li>'
+  (adaLvl?'<li><b>Level kognitif:</b> soal HOTS berada pada level Aplikasi dan Penalaran. Sebaran soal'+(gate?' prasyarat':'')+': '+ur.map(function(x){return lv[x]+' '+E(x)}).join(', ')+'.</li>':'')+
+  (gate?'<li><b>Pengecoh</b> dibuat dari kesalahan umum siswa, bukan jawaban yang jelas keliru.</li><li><b>Penskoran prasyarat (acuan TKA):</b> '+skor+' Nilai prasyarat = jumlah poin ÷ jumlah soal × 100; lulus bila minimal '+kkG()+' (KKM). Prasyarat adalah syarat kelayakan masuk praktik, bukan komponen nilai akhir.</li>'
        :'<li><b>Penskoran (acuan TKA):</b> '+skor+' Nilai teori = rata-rata skor soal × 100.</li>')+
   '</ul><h2 class="lkf-h">Kunci</h2><table class="lkf-t"><thead><tr><th style="width:9mm">No</th><th style="width:22mm">Bentuk</th>'+(adaLvl?'<th style="width:20mm">Level</th>':'')+'<th style="width:26mm">Kunci</th><th>Pembahasan</th></tr></thead><tbody>'+
   qs.map(function(q,i){var t=tipeSoal(q),bahas=q.e!==undefined&&q.e!==''?q.e:(q.bahas||'');return '<tr><td class="k">'+(i+1)+'</td><td>'+E(BENTUK[t]||t)+'</td>'+(adaLvl?'<td>'+E(q.lvl||'')+'</td>':'')+'<td><b>'+kunciSoal(q)+'</b></td><td>'+E(bahas)+'</td></tr>'}).join('')+'</tbody></table>';

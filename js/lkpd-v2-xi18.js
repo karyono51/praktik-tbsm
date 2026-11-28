@@ -3,7 +3,7 @@
    Dimuat setelah lkpd-v2-xi17.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-DDO-ALT-02). Status awal Draft.
    Angka spesifikasi komponen (standar, batas pakai, torsi, jenis dan jumlah oli) sengaja KOSONG: guru mengisinya dari manual servis. Angka pada soal hanya contoh hitung.
    Rujukan SKKNI 147/2019 hanya usulan pemetaan dan perlu diverifikasi sebelum dipakai untuk asesmen.
-   3 pertemuan x 6 JP (270 menit, 45 menit per JP) = 18 JP, sesuai 6 JP per pertemuan Kelas XI. Pertemuan 1 = materi, gerbang, APD + Kegiatan 1; Pertemuan 2 = Kegiatan 2 dan 3 (dua kartu); Pertemuan 3 = Kegiatan 4, analisis, penilaian kinerja, refleksi. */
+   3 pertemuan x 6 JP (270 menit, 45 menit per JP) = 18 JP, sesuai 6 JP per pertemuan Kelas XI. Pertemuan 1 = materi, prasyarat, APD + Kegiatan 1; Pertemuan 2 = Kegiatan 2 dan 3 (dua kartu); Pertemuan 3 = Kegiatan 4, analisis, penilaian kinerja, refleksi. */
 (function(){
  var langkah=[
   {k:1,m:10,t:'Lepas cover CVT dan penutupnya sesuai manual servis; wadahi baut menurut letaknya',p:'Engine mati dan dingin'},
@@ -68,7 +68,7 @@
   v2:{
    ver:2,jenis:'jobsheet',jp:18,tp:'XI.3.2',cp:'Perawatan dan perbaikan sistem pemindah tenaga',
    pertemuan:[
-    {n:1,jp:6,menit:270,judul:'Pemantik, materi CVT, gerbang masuk, APD, cek alat; Kegiatan 1 pemeriksaan V-belt, latihan soal 1–2',kegiatan:[1],latihan:['C1','C2'],praktik:jumMenit([1]),kartu:{judul:'Kegiatan 1 pemeriksaan V-belt'}},
+    {n:1,jp:6,menit:270,judul:'Pemantik, materi CVT, prasyarat masuk, APD, cek alat; Kegiatan 1 pemeriksaan V-belt, latihan soal 1–2',kegiatan:[1],latihan:['C1','C2'],praktik:jumMenit([1]),kartu:{judul:'Kegiatan 1 pemeriksaan V-belt'}},
     {n:2,jp:6,menit:270,judul:'Kegiatan 2 puli primer dan roller; Kegiatan 3 puli sekunder dan kopling sentrifugal, latihan soal 3–6',kegiatan:[2,3],latihan:['C3','C4','C5','C6'],praktik:jumMenit([2,3]),kartu:{judul:'Kegiatan 2 puli primer dan 3 puli sekunder',per:{2:'Kegiatan 2 puli primer dan roller',3:'Kegiatan 3 puli sekunder dan kopling'}}},
     {n:3,jp:6,menit:270,judul:'Kegiatan 4 perakitan, oli, dan uji fungsi, analisis; penilaian kinerja, refleksi, remedial atau pengayaan',kegiatan:[4],praktik:jumMenit([4]),kartu:{judul:'Kegiatan 4 perakitan, oli, dan uji fungsi'}}
    ],
@@ -122,7 +122,7 @@
      {id:'sikap',ket:'Yang dinilai: jujur mencatat hasil sendiri (tidak menyalin data teman), aktif, membantu teman, mengikuti arahan guru.',n:'Sikap dan kerja sama',b:10,d:{4:'Aktif, jujur, membantu teman',3:'Aktif, sesekali diingatkan',2:'Pasif',1:'Mengganggu kegiatan'}}
     ],
     indikator:[
-     {t:'Menjelaskan fungsi, komponen, dan cara kerja CVT',bukti:'Gerbang masuk, latihan soal 1–2'},
+     {t:'Menjelaskan fungsi, komponen, dan cara kerja CVT',bukti:'Prasyarat masuk, latihan soal 1–2'},
      {t:'Memeriksa V-belt dan mengukur lebarnya dengan benar',bukti:'Pemeriksaan dan bukti, kegiatan 1 disaksikan'},
      {t:'Memeriksa dan mengukur roller CVT',bukti:'Pemeriksaan dan bukti, latihan soal 3–4, disaksikan'},
      {t:'Melepas puli sekunder dan kopling sentrifugal dengan SST',bukti:'Kegiatan 3 disaksikan, APD kacamata'},

@@ -2,7 +2,7 @@
    Dimuat tepat setelah lkpd.js, sebelum lkpd-kelas.js dan pembungkus lain, sehingga banner mode, timer, dan daftar kelas tetap bekerja.
    Tambahan v2:
    - Pertemuan: rencana per pertemuan (JP/menit) dan waktu aktual per pertemuan (isian menit).
-   - Gerbang masuk: dinilai otomatis dengan acuan TKA (PG 1/0; kompleks dan kategori nilai sebagian); Lembar Kerja terbuka bila nilai gerbang >= KKM (minimal 75). Gerbang adalah syarat kelayakan masuk praktik, bukan komponen nilai akhir.
+   - Prasyarat masuk: dinilai otomatis dengan acuan TKA (PG 1/0; kompleks dan kategori nilai sebagian); Lembar Kerja terbuka bila nilai prasyarat >= KKM (minimal 75). Prasyarat adalah syarat kelayakan masuk praktik, bukan komponen nilai akhir.
    - Tabel data terstruktur dengan rata-rata dan selisih otomatis (kolom rata/selisih tidak diisi siswa).
    - Soal isian angka (t:'isian', kunci, tol) dinilai otomatis, sebagai tipe soal baru pada m.quiz.
    - Langkah bertanda saksi dan paraf APD, diverifikasi guru di Detail (disimpan di payload.v2.verif).
@@ -82,7 +82,7 @@ function lk2TabelPct(m,d){
  m.v2.tabel.forEach(function(t){t.baris.forEach(function(lb,r){t.kol.forEach(function(c){if(c.t==='rata'||c.t==='selisih')return;if(t.nolSekali&&c.k==='nol'&&r>0)return;tot++;if(lk2Txt(d[lk2K(t.id,r,c.k)])!=='')ok++})})});
  return tot?ok/tot:0;
 }
-/* Gerbang masuk: soal PG (t:'pg'|'kompleks'|'kategori', format sama dengan m.quiz) atau soal isian lama (q + kunci teks).
+/* Prasyarat masuk: soal PG (t:'pg'|'kompleks'|'kategori', format sama dengan m.quiz) atau soal isian lama (q + kunci teks).
    Jawaban soal PG disimpan di d['q'+(100+i)] (indeks 100 ke atas dipakai agar tidak bertabrakan dengan m.quiz yang berindeks 0..n), dibaca
    oleh pembaca jawaban lkpd-soal.js dan dinilai oleh fungsi soal yang sama. Soal isian lama tetap memakai d['gate'+i]. */
 var LK2_GOFF=100;
@@ -90,9 +90,9 @@ function lk2GPG(q){return !!(q&&(q.o||q.rows))}
 function lk2GKey(i){return 'q'+(LK2_GOFF+i)}
 function lk2GOk(q,i,d){return lk2GPG(q)?lkqAnswered(q,d[lk2GKey(i)]):lk2Txt(d['gate'+i]).length>=3}
 function lk2GBenar(q,i,d){return lk2GPG(q)&&lkqAnswered(q,d[lk2GKey(i)])&&lkqPoint(q,d[lk2GKey(i)])>=1}
-/* Nilai gerbang memakai penilai soal TKA (lkqPoint): PG 1/0; kompleks (benar terpilih - salah terpilih) / jumlah kunci, minimal 0; kategori pernyataan tepat / jumlah pernyataan.
-   Nilai gerbang = jumlah poin / jumlah soal x 100. Soal belum dijawab bernilai 0. Lembar Kerja terbuka bila nilai >= KKM gerbang (tidak pernah di bawah 75).
-   Gerbang lama (soal isian teks, tanpa penilai otomatis): lulus bila semua soal terjawab. */
+/* Nilai prasyarat memakai penilai soal TKA (lkqPoint): PG 1/0; kompleks (benar terpilih - salah terpilih) / jumlah kunci, minimal 0; kategori pernyataan tepat / jumlah pernyataan.
+   Nilai prasyarat = jumlah poin / jumlah soal x 100. Soal belum dijawab bernilai 0. Lembar Kerja terbuka bila nilai >= KKM prasyarat (tidak pernah di bawah 75).
+   Prasyarat lama (soal isian teks, tanpa penilai otomatis): lulus bila semua soal terjawab. */
 var LK2_KKM_MIN=75;
 function lk2KkmGerbang(){return Math.max(LK2_KKM_MIN,+(typeof S!=='undefined'&&S.kkm)||0)}
 function lk2GPoin(q,i,d){return lk2GPG(q)&&lkqAnswered(q,d[lk2GKey(i)])?lkqPoint(q,d[lk2GKey(i)]):0}
@@ -184,7 +184,7 @@ var _lkProgress2=lkProgress;
 lkProgress=function(m,d){
  var h=_lkProgress2(m,d);if(!lk2Is(m))return h;
  var g=lk2Gate(m,d),tp=lk2TabelPct(m,d),t=tp===null?null:Math.round(tp*100);
- return '<span class="lk-prog'+(g.lulus?' done':'')+'">Gerbang '+(g.auto?g.nilai+'/100':g.n+'/'+g.total)+'</span>'+(t===null?'':'<span class="lk-prog'+(t===100?' done':'')+'">Tabel '+t+'%</span>')+h;
+ return '<span class="lk-prog'+(g.lulus?' done':'')+'">Prasyarat '+(g.auto?g.nilai+'/100':g.n+'/'+g.total)+'</span>'+(t===null?'':'<span class="lk-prog'+(t===100?' done':'')+'">Tabel '+t+'%</span>')+h;
 };
 /* Syarat kirim yang belum terpenuhi, dengan nama kolomnya: K3 harus dicentang semua; Pemeriksaan dan bukti minimal satu komponen berisi hasil aktual dan status. */
 function lk2Kurang(m,d){
@@ -204,7 +204,7 @@ lkSubmit=function(){
  var m=lk2Cur();
  if(lk2Is(m)&&!LK.preview){
   var d0=lkRead(),g=lk2Gate(m,d0);
-  if(!g.lulus){toast(g.auto?'Nilai gerbang masuk '+g.nilai+' belum mencapai KKM '+g.kkm+'. Perbaiki gerbang masuk dulu.':'Jawab semua pertanyaan gerbang masuk dulu ('+g.n+' dari '+g.total+')');LK.tab='materi';render();return}
+  if(!g.lulus){toast(g.auto?'Nilai prasyarat masuk '+g.nilai+' belum mencapai KKM '+g.kkm+'. Perbaiki prasyarat masuk dulu.':'Jawab semua pertanyaan prasyarat masuk dulu ('+g.n+' dari '+g.total+')');LK.tab='materi';render();return}
   if(!isStaff()){var kr=lk2Kurang(m,d0);if(kr.length){LK2.tandai=true;toast(kr[0].t+(kr.length>1?' (masih '+(kr.length-1)+' syarat lain)':''));LK.tab=kr[0].tab;render();if(typeof lk2BukaYangKurang==='function')lk2BukaYangKurang();return}}
   LK2.tandai=false;
  }
@@ -233,7 +233,7 @@ function lk2Rencana(m){
  return lk2Bn('rencana','Rencana pertemuan','<p class="note">'+V.pertemuan.length+' pertemuan · '+jp+' JP · '+tot+' menit.'+lk2PraktikRingkas(V)+' Ketuk satu pertemuan untuk melihat kegiatannya.</p>'+V.pertemuan.map(function(p){
   var ls=[];p.kegiatan.forEach(function(k){V.langkah.forEach(function(l){if(l.k===k)ls.push('<li>'+lkEsc(String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,''))+(l.saksi?' <span class="lk2-saksi">saksi guru</span>':'')+'</li>')})});
   var pisah=lk2Pisah(p);
-  var isi=pisah?p.kegiatan.map(function(k){var li=[];V.langkah.forEach(function(l){if(l.k===k)li.push('<li>'+lkEsc(String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,''))+(l.saksi?' <span class="lk2-saksi">saksi guru</span>':'')+'</li>')});return '<p class="note"><b>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+'</b> · target '+(lk2KegMenit(V,k)||0)+' menit</p><ul class="plain">'+li.join('')+'</ul>'}).join(''):p.kegiatan.length?'<p class="note">'+p.kegiatan.map(function(k){return 'Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])}).join('; ')+'</p><ul class="plain">'+ls.join('')+'</ul>':'<p class="note">'+(p.n===1?'Jawab gerbang masuk dan centang butir K3 di tab ini, lalu periksa alat.':'Penilaian kinerja oleh guru, refleksi, remedial atau pengayaan.')+'</p>';
+  var isi=pisah?p.kegiatan.map(function(k){var li=[];V.langkah.forEach(function(l){if(l.k===k)li.push('<li>'+lkEsc(String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,''))+(l.saksi?' <span class="lk2-saksi">saksi guru</span>':'')+'</li>')});return '<p class="note"><b>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+'</b> · target '+(lk2KegMenit(V,k)||0)+' menit</p><ul class="plain">'+li.join('')+'</ul>'}).join(''):p.kegiatan.length?'<p class="note">'+p.kegiatan.map(function(k){return 'Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])}).join('; ')+'</p><ul class="plain">'+ls.join('')+'</ul>':'<p class="note">'+(p.n===1?'Jawab prasyarat masuk dan centang butir K3 di tab ini, lalu periksa alat.':'Penilaian kinerja oleh guru, refleksi, remedial atau pengayaan.')+'</p>';
   return lk2Det('p'+p.n,'Pertemuan '+p.n,p.jp+' JP · '+p.menit+' menit'+(p.praktik?' · target praktik '+(pisah?lk2PraktikTeks(V,p):p.praktik)+' menit':'')+' · '+lkEsc(p.judul),isi);
  }).join(''));
 }
@@ -248,9 +248,9 @@ function lk2Materi(m,d){
  return lk2Bn('tujuan','Tujuan pembelajaran','<ul class="plain">'+m.objectives.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul>')+
   lk2Rencana(m)+
   lk2Bn('teori','Teori singkat',m.theory.map(function(x){return '<p><b>'+lkEsc(x[0])+'</b><br>'+lkEsc(x[1])+'</p>'+(typeof lkvMateriImg==='function'?lkvMateriImg(x):'')}).join(''))+
-  lk2Bn('gate','Gerbang masuk praktik','<p class="note">'+(g.auto?'Jawab semua soal. Penilaian mengikuti soal TKA: pilihan ganda benar bernilai 1; PG kompleks dan PG kategori bernilai sebagian sesuai pilihan yang tepat. Lembar Kerja terbuka bila nilai gerbang minimal '+g.kkm+'.':'Jawab semua soal agar Lembar Kerja terbuka.')+'</p>'+
+  lk2Bn('gate','Prasyarat masuk praktik','<p class="note">'+(g.auto?'Jawab semua soal. Penilaian mengikuti soal TKA: pilihan ganda benar bernilai 1; PG kompleks dan PG kategori bernilai sebagian sesuai pilihan yang tepat. Lembar Kerja terbuka bila nilai prasyarat minimal '+g.kkm+'.':'Jawab semua soal agar Lembar Kerja terbuka.')+'</p>'+
   V.gate.qs.map(function(x,i){if(lk2GPG(x))return lkqRender(x,LK2_GOFF+i,d).replace('<b>'+(LK2_GOFF+i+1)+'. ','<b>'+(i+1)+'. ');return '<label class="f">'+(i+1)+'. '+lkEsc(x.q)+'<textarea data-lk-field="gate'+i+'" rows="2">'+lkEsc(d['gate'+i]||'')+'</textarea></label>'}).join('')+
-  '<p class="note">Terjawab '+g.n+' dari '+g.total+(g.auto?' · Nilai gerbang <b class="mono">'+g.nilai+'</b> (KKM '+g.kkm+'): '+(g.lulus?'lulus, Lembar Kerja terbuka.':'belum lulus, Lembar Kerja masih terkunci.'):(g.ok?'. Lembar Kerja terbuka.':'.'))+'</p>',' id="lk2-gate"','Terjawab '+g.n+' dari '+g.total+(g.auto?' · nilai '+g.nilai+' (KKM '+g.kkm+')':''))+
+  '<p class="note">Terjawab '+g.n+' dari '+g.total+(g.auto?' · Nilai prasyarat <b class="mono">'+g.nilai+'</b> (KKM '+g.kkm+'): '+(g.lulus?'lulus, Lembar Kerja terbuka.':'belum lulus, Lembar Kerja masih terkunci.'):(g.ok?'. Lembar Kerja terbuka.':'.'))+'</p>',' id="lk2-gate"','Terjawab '+g.n+' dari '+g.total+(g.auto?' · nilai '+g.nilai+' (KKM '+g.kkm+')':''))+
   lk2Bn('alat','Alat dan bahan','<ul class="plain">'+m.tools.map(function(x){return '<li>'+lkEsc(x)+'</li>'}).join('')+'</ul>')+
   lk2K3(m,d);
 }
@@ -290,13 +290,13 @@ function lk2Latihan(m,p,d){
 }
 function lk2Kerja(m,d){
  var V=m.v2,g=lk2Gate(m,d),c0=lk2Calc(m,d);
- if(!g.lulus&&!isStaff()&&!LK2.cetak){LK2.open=LK2.open||{};LK2.open['bn-gate']=true;return '<section class="card"><h2>Lembar Kerja terkunci</h2><p>'+(g.auto?'Lembar Kerja terbuka bila nilai gerbang masuk minimal '+g.kkm+'. Nilai gerbangmu sekarang '+g.nilai+' ('+g.n+' dari '+g.total+' soal terjawab). Pelajari Materi, lalu perbaiki jawaban di gerbang masuk.':'Jawab semua pertanyaan gerbang masuk di tab Materi dulu ('+g.n+' dari '+g.total+' terjawab).')+'</p><button type="button" class="btn primary" data-act="lk-tab" data-v="materi">Ke gerbang masuk</button></section>'}
+ if(!g.lulus&&!isStaff()&&!LK2.cetak){LK2.open=LK2.open||{};LK2.open['bn-gate']=true;return '<section class="card"><h2>Lembar Kerja terkunci</h2><p>'+(g.auto?'Lembar Kerja terbuka bila nilai prasyarat masuk minimal '+g.kkm+'. Nilai prasyaratmu sekarang '+g.nilai+' ('+g.n+' dari '+g.total+' soal terjawab). Pelajari Materi, lalu perbaiki jawaban di prasyarat masuk.':'Jawab semua pertanyaan prasyarat masuk di tab Materi dulu ('+g.n+' dari '+g.total+' terjawab).')+'</p><button type="button" class="btn primary" data-act="lk-tab" data-v="materi">Ke prasyarat masuk</button></section>'}
 var h=lk2Bn('identitas','Identitas praktik','<div class="formgrid">'+[['school','Sekolah',typeof schNama==='function'?schNama():''],['student','Nama siswa',S.user.nama],['class','Kelas',S.user.kelas||'X'],['group','Kelompok',''],['date','Tanggal',ymd(Date.now())],['teacher','Guru/instruktur',''],['meter','Alat ukur yang dipakai (ketelitian)','']].map(function(x){return '<label class="f">'+x[1]+'<input data-lk-field="'+x[0]+'" value="'+lkEsc(d[x[0]]||x[2])+'" '+(['student','class'].indexOf(x[0])>-1?'readonly':'')+'></label>'}).join('')+'</div>');
  V.pertemuan.forEach(function(p){
   if(p.sembunyi)return;
   lk2Kartu(V,p).forEach(function(c){
    h+='<section class="card lk2-p'+(LK2.cetak||LK2.kartu===c.key?' is-open':'')+'" data-lk2k="'+c.key+'"><div class="lk2-ph" role="button" tabindex="0" aria-expanded="'+(LK2.cetak||LK2.kartu===c.key?'true':'false')+'" data-act="lk2-kartu" data-key="'+c.key+'"><h2>'+(c.judul?lkEsc(c.judul):'Pertemuan '+p.n)+'</h2><div class="lk2-pm"><span class="pill">Target '+c.menit+' menit</span>'+(typeof lkcRow==='function'&&!LK2.cetak?lkcRow(m,c,true):'')+lk2KunciIkon(m,c.key)+'</div></div><div class="lk2-pb">'+(c.judul?'<p class="note">Alokasi praktik '+c.menit+' dari total '+lk2PraktikTotal(V)+' menit.</p>':'<p class="note">'+lkEsc(p.judul)+'</p>');
-   if(!c.ks.length)h+='<p class="note">'+(p.n===1?'Isi gerbang masuk dan daftar APD di tab Materi.':'Penilaian kinerja oleh guru. Lengkapi analisis dan refleksi di bawah.')+'</p>';
+   if(!c.ks.length)h+='<p class="note">'+(p.n===1?'Isi prasyarat masuk dan daftar APD di tab Materi.':'Penilaian kinerja oleh guru. Lengkapi analisis dan refleksi di bawah.')+'</p>';
    c.ks.forEach(function(k){
     h+=(c.judul&&c.ks.length<2?'<h4>Langkah kerja</h4>':'<h3>Kegiatan '+k+' · '+lkEsc(V.kegiatan[k-1])+(lk2KegMenit(V,k)?' · target '+lk2KegMenit(V,k)+' menit':'')+'</h3>')+
      V.langkah.filter(function(l){return l.k===k}).map(function(l){return lk2StepHtml(m,l.i,d)}).join('')+
@@ -387,7 +387,7 @@ function lk2KeyBlock(m,d,on){
  return h+'<p><b>Benar '+ok+' dari '+m.quiz.length+'</b></p>'+rows+'<button type="button" class="btn small" data-act="lkm-reveal">Sembunyikan pembahasan</button></section>';
 }
 
-/* ---------- Detail guru: verifikasi gerbang, saksi langkah, paraf APD ---------- */
+/* ---------- Detail guru: verifikasi prasyarat, saksi langkah, paraf APD ---------- */
 /* Detail kiriman Evaluasi (jawaban latihan; nilai = praktik terverifikasi x bobot + teori x bobot). */
 function lk2DetailEval(p,m){
  var staff=isStaff(),h='<h3>Evaluasi (latihan membaca skala)</h3><div class="lk-kv">'+[['Nama siswa',p.student],['Kelas',p['class']],['Tanggal',p.date],['Nilai praktik terverifikasi',p.v2&&p.v2.praktik]].map(function(x){return '<div><span>'+x[0]+'</span><b>'+lkEsc(x[1]==null?'-':x[1])+'</b></div>'}).join('')+'</div>';
@@ -409,13 +409,13 @@ function lk2Detail(z,p,m){
   vs=vf.s||{},va=vf.a||{},
   mark=function(ok){return ok?'<span class="lk2-ok">✓</span>':'<span class="note">belum</span>'};
  h+='<h3>Identitas</h3><div class="lk-kv">'+[['Sekolah',p.school],['Nama siswa',p.student],['Kelas',p.class],['Kelompok',p.group],['Tanggal',p.date],['Guru/instruktur',p.teacher],['Alat ukur',p.meter]].map(function(x){return '<div><span>'+x[0]+'</span><b>'+lkEsc(x[1]||'-')+'</b></div>'}).join('')+'</div>';
- var G=lk2Gate(m,p); /* gerbang dinilai otomatis (acuan TKA); guru melihat poin tiap soal, bukan lagi kotak Jawaban benar */
- h+='<div id="lk2-verif">'+lk2DetB('dg','Gerbang masuk',''+V.gate.qs.map(function(x,i){
+ var G=lk2Gate(m,p); /* prasyarat dinilai otomatis (acuan TKA); guru melihat poin tiap soal, bukan lagi kotak Jawaban benar */
+ h+='<div id="lk2-verif">'+lk2DetB('dg','Prasyarat masuk',''+V.gate.qs.map(function(x,i){
   var pg=lk2GPG(x),a=p[lk2GKey(i)],v=pg?lkqVerdict(x,a):null,txt=pg?lkqAnsText(x,a):(p['gate'+i]||'-');
   return '<p><b>'+(i+1)+'. '+lkEsc(x.q)+'</b>'+(x.lvl?' <span class="pill plain">'+lkEsc(x.lvl)+'</span>':'')+'<br><span class="lk-text">'+lkEsc(txt||'-')+'</span>'+(pg&&v[1]!=='Belum dijawab'?' · <b>'+lkEsc(v[1].toLowerCase())+'</b>':'')+
    (pg?'<br><small class="note">Poin: '+lkqFmt(lk2GPoin(x,i,p))+' dari 1</small>':'')+
    (staff?'<br><small class="lk2-key">Kunci: '+lkEsc(pg?lkqKeyText(x):x.kunci)+'</small>'+(pg&&x.e?'<br><small class="lk2-key">'+lkEsc(x.e)+'</small>':''):'')+'</p>';
- }).join('')+(G.auto?'<p class="note">Nilai gerbang (acuan TKA): <b>'+G.nilai+'</b> dari 100 · poin '+lkqFmt(G.poin)+' dari '+G.total+' · KKM '+G.kkm+': <b>'+(G.lulus?'lulus':'belum lulus')+'</b></p>':'<p class="note">Soal gerbang isian: '+G.n+' dari '+G.total+' terjawab. Penilaian otomatis tidak tersedia untuk bentuk soal ini.</p>'));
+ }).join('')+(G.auto?'<p class="note">Nilai prasyarat (acuan TKA): <b>'+G.nilai+'</b> dari 100 · poin '+lkqFmt(G.poin)+' dari '+G.total+' · KKM '+G.kkm+': <b>'+(G.lulus?'lulus':'belum lulus')+'</b></p>':'<p class="note">Soal prasyarat isian: '+G.n+' dari '+G.total+' terjawab. Penilaian otomatis tidak tersedia untuk bentuk soal ini.</p>'));
  h+='<h3>Daftar APD</h3>'+V.apd.map(function(i){return '<div class="lk-check"><span>'+lkEsc(m.safety[i])+' · siswa: '+(p['safe'+i]?'ada':'belum')+'</span>'+(staff?'<label class="lk-check"><input type="checkbox" data-lk2v="a'+i+'" '+(va[i]?'checked':'')+'><span>Paraf guru</span></label>':' '+mark(va[i]))+'</div>'}).join('');
  h+='<h3>Langkah kerja</h3>'+V.langkah.map(function(l){
   var t=String(m.steps[l.i][0]).replace(/^Kegiatan \d+ · /,'');
@@ -450,7 +450,7 @@ document.addEventListener('input',function(e){
  document.querySelectorAll('[data-lk2-calc]').forEach(function(el){var a=el.dataset.lk2Calc.split('|'),o=c[a[0]]&&c[a[0]][+a[1]];el.textContent=o?lk2Fmt(o[a[2]],lk2Dec(a[0])):''});
  var d0=lkRead();document.querySelectorAll('[data-lk2-auto]').forEach(function(el){var v=lk2Auto(m,+el.dataset.lk2Auto,d0,c);if(v!==null)el.value=v});
 });
-/* Simpan verifikasi guru (gerbang, saksi, paraf APD) ke payload pengumpulan. */
+/* Simpan verifikasi guru (prasyarat, saksi, paraf APD) ke payload pengumpulan. */
 document.addEventListener('click',function(e){
  var b=e.target.closest('[data-act="lk2-verif"]');if(!b||!isStaff()||!LK.detail)return;
  var z=(S.lkpd||[]).find(function(x){return x.id===LK.detail.id})||LK.detail,p;
@@ -473,7 +473,7 @@ document.addEventListener('click',function(e){
  if(lk2Is(m)){e.stopImmediatePropagation();e.preventDefault();toast('LKPD v2 belum bisa diedit lewat Editor lama. Editor v2 menyusul.')}
 },true);
 
-/* ---------- Cetak: Lembar Kerja tetap tercetak walau gerbang belum selesai ---------- */
+/* ---------- Cetak: Lembar Kerja tetap tercetak walau prasyarat belum selesai ---------- */
 document.addEventListener('click',function(e){
  if(!e.target.closest||!e.target.closest('[data-act="lk-print"]'))return;
  LK2.cetak=true;setTimeout(function(){LK2.cetak=false},0);

@@ -1,12 +1,12 @@
 /* lkpd-v2-struktur.js: Edit LKPD v2 mengikuti form siswa. Berdiri sendiri: membungkus lkpd-editor.js dan lkpd-v2-editor.js tanpa mengubah berkasnya.
    Dimuat tepat setelah lkpd-v2-editor.js. Hanya berlaku untuk LKPD v2 (modul yang punya objek v2); LKPD lama tidak berubah.
 
-   Urutan tab editor mengikuti form siswa: Info, lalu Materi (Tujuan & teori, Rencana pertemuan, Gerbang masuk, Alat & K3),
+   Urutan tab editor mengikuti form siswa: Info, lalu Materi (Tujuan & teori, Rencana pertemuan, Prasyarat masuk, Alat & K3),
    Lembar Kerja (Langkah, Tabel data, Pemeriksaan, Syarat kirim), Evaluasi (Soal), dan Penilaian.
 
    1. Rencana pertemuan: judul, JP, menit, target praktik, kegiatan tiap pertemuan, kartu Lembar Kerja (judul, dipisah per kegiatan),
       latihan soal, nama kegiatan, serta kegiatan, menit, dan saksi guru tiap langkah. Total JP dan menit modul mengikuti pertemuan.
-   2. Gerbang masuk: soal gerbang dipindah dari tab Soal ke tab sendiri (editornya tetap yang di lkpd-v2-editor.js).
+   2. Prasyarat masuk: soal prasyarat dipindah dari tab Soal ke tab sendiri (editornya tetap yang di lkpd-v2-editor.js).
    3. Tabel data: judul, kegiatan, label baris, baris, desimal, catatan, nama kolom; tambah tabel dari contoh dan hapus tabel.
       Kolom rumus (rata-rata, selisih) tetap karena dihitung otomatis.
    4. Pemeriksaan: kegiatan tiap komponen dan sumber hasil aktual otomatis dari tabel.
@@ -17,7 +17,7 @@
    Bergantung pada: lkpd-editor.js (lke*), lkpd-v2-editor.js (lkv*). */
 var LKS={
  BASE:LKE.TABS.slice(),
- TABS:[['info','Info'],['tujuan','Tujuan & teori'],['rencana','Rencana pertemuan'],['gerbang','Gerbang masuk'],['bahan','Alat & K3'],['langkah','Langkah'],['tabel','Tabel data'],['cek','Pemeriksaan'],['kirim','Syarat kirim'],['soal','Soal evaluasi'],['nilai','Penilaian']],
+ TABS:[['info','Info'],['tujuan','Tujuan & teori'],['rencana','Rencana pertemuan'],['gerbang','Prasyarat masuk'],['bahan','Alat & K3'],['langkah','Langkah'],['tabel','Tabel data'],['cek','Pemeriksaan'],['kirim','Syarat kirim'],['soal','Soal evaluasi'],['nilai','Penilaian']],
  GRP:{tujuan:'Materi',langkah:'Lembar Kerja',soal:'Evaluasi'},
  NEW:{rencana:1,gerbang:1,tabel:1,kirim:1}
 };
@@ -197,7 +197,7 @@ function lksAutoOk(v,A){
  lkeIssues=function(d){
   var I=i0.apply(this,arguments);
   if(!lkvIs(d)||!d.S)return I;
-  I.forEach(function(x){if(x.tab==='soal'&&/^Gerbang masuk/.test(x.msg))x.tab='gerbang'});
+  I.forEach(function(x){if(x.tab==='soal'&&/^Prasyarat masuk/.test(x.msg))x.tab='gerbang'});
   return I.concat(lksIssues(d));
  };
 })();
@@ -225,7 +225,7 @@ function lksAutoOk(v,A){
   if(lkvIs(d)&&LKS.NEW[d.tab])return lksTab(d);
   return n0.apply(this,arguments);
  };
- /* tab Evaluasi: soal gerbang pindah ke tab Gerbang masuk */
+ /* tab Evaluasi: soal prasyarat pindah ke tab Prasyarat masuk */
  var s0=lkeTabSoal;
  lkeTabSoal=function(d){
   if(!lkvIs(d)||!d.S||!d.S.gate)return s0.apply(this,arguments);
@@ -249,7 +249,7 @@ function lksAutoOk(v,A){
 function lksTab(d){
  lksV(d);
  if(d.tab==='rencana')return lksTabRencana(d);
- if(d.tab==='gerbang')return d.S.gate?lkvGateHtml(d):'<section class="card"><p class="note">LKPD ini tidak punya soal gerbang masuk.</p></section>';
+ if(d.tab==='gerbang')return d.S.gate?lkvGateHtml(d):'<section class="card"><p class="note">LKPD ini tidak punya soal prasyarat masuk.</p></section>';
  if(d.tab==='tabel')return lksTabTabel(d);
  return lksTabKirim(d);
 }
@@ -298,7 +298,7 @@ function lksPItem(d,v,p,i){
   '<div class="lke-f"><span class="label">Jumlah menit langkah</span><div class="row" style="gap:6px;align-items:center"><b>'+sm+'</b>'+(bad?'<button type="button" class="btn small" data-lks-a="p-samakan" data-i="'+i+'">Samakan</button>':'')+'</div></div></div>'+
   '<div><span class="label">Kegiatan di pertemuan ini</span></div>'+
   v.kegiatan.map(function(n,k0){return lksChk('data-lks-c="p-keg" data-i="'+i+'" data-k="'+(k0+1)+'"',lksAda(ks,k0+1),'Kegiatan '+(k0+1)+(lkeT(n)?' · '+esc(lkeT(n)):''))}).join('')+
-  lksChk('data-lks-c="p-sembunyi" data-i="'+i+'"',!!p.sembunyi,'Tanpa kartu di Lembar Kerja','Untuk pertemuan teori, gerbang masuk, atau penilaian. Tidak boleh memuat kegiatan.');
+  lksChk('data-lks-c="p-sembunyi" data-i="'+i+'"',!!p.sembunyi,'Tanpa kartu di Lembar Kerja','Untuk pertemuan teori, prasyarat masuk, atau penilaian. Tidak boleh memuat kegiatan.');
  if(ks.length){
   b+=lksIn(q+'.kartu.judul',p.kartu&&p.kartu.judul,'Judul kartu di Lembar Kerja',false,'Judul kartu Lembar Kerja');
   if(ks.length>1){
@@ -396,7 +396,7 @@ function lksTItem(d,v,t,i){
 function lksTabKirim(d){
  var v=lksV(d),s=d.S,kkm=typeof lk2KkmGerbang==='function'?lk2KkmGerbang():75,gate=(s.gate||[]).length;
  var h='<section class="card"><div><h3>Syarat kirim</h3><p class="note">Siswa baru bisa menekan Kirim LKPD bila semua syarat ini terpenuhi.</p></div><ul class="plain">'+
-  '<li><b>Gerbang masuk lulus</b>: nilai gerbang minimal '+kkm+' dari 100'+(gate?' ('+gate+' soal)':'')+'. Diatur di tab Gerbang masuk.</li>'+
+  '<li><b>Prasyarat masuk lulus</b>: nilai prasyarat minimal '+kkm+' dari 100'+(gate?' ('+gate+' soal)':'')+'. Diatur di tab Prasyarat masuk.</li>'+
   '<li><b>Semua butir K3 dicentang</b>: '+s.safety.length+' butir dalam '+v.k3grup.length+' kelompok. Diatur di tab Alat &amp; K3.</li>'+
   '<li><b>Pemeriksaan dan bukti</b>: minimal satu komponen berisi hasil aktual dan status.</li></ul>'+
   '<p class="lks-hint">Tiga syarat di atas berlaku untuk semua LKPD v2 dan tidak bisa dimatikan. Syarat tambahan ada di bawah.</p></section>';

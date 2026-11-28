@@ -134,7 +134,7 @@ Dijalankan dari folder proyek dengan Node.js (tanpa pustaka tambahan).
 ### Pembelajaran praktik: LKPD, observasi, akademik
 - `docs-LKPD-MODULAR.md`: Arsitektur LKPD modular dan Editor Guru
 - `docs-LKPD-V2.md`: LKPD v2 dan Observasi LKPD Praktik v2 (pilot LKPD-X-06)
-- `docs-UKK-GERBANG.md`: Gerbang praktik UKK kelas X dan XI (syarat kelayakan masuk praktik)
+- `docs-UKK-GERBANG.md`: Prasyarat praktik UKK kelas X dan XI (syarat kelayakan masuk praktik)
 - `docs-LKPD-SAMAKAN.md`: Edit LKPD disamakan dengan Edit UKK
 - `docs-TEST-EDITOR-LKPD.md`: Laporan verifikasi Editor LKPD Guru
 - `docs-REFRESH-DAN-LKPD-KELAS.md`: Refresh, rilis otomatis, LKPD per kelas, timer

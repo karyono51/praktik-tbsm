@@ -91,7 +91,7 @@ h = kerja('ujian', { hidePetunjuk: false });
 ok(!/lk-acuan/.test(h), 'Ujian: acuan hilang walau petunjuk komponen tidak disembunyikan');
 
 G(`STAFF=false;LK.preview=false;LKPD_MODULES[0].mode='latihan'`);
-ok(!/lkp-pandu/.test(G(`viewLKPD()`)) && /terkunci/.test(G(`viewLKPD()`)), 'siswa yang belum lulus gerbang masuk: Lembar Kerja terkunci tanpa kartu panduan');
+ok(!/lkp-pandu/.test(G(`viewLKPD()`)) && /terkunci/.test(G(`viewLKPD()`)), 'siswa yang belum lulus prasyarat masuk: Lembar Kerja terkunci tanpa kartu panduan');
 G(`LKPD_MODULES[0].mode='ujian';STAFF=true;LK.preview=true`);
 /* Foto wajib: komponen apa pun kini punya penanda wajib di tampilan siswa? (ldRowCam memakai ldReq) */
 G(`LKPD_MODULES[0].fotoWajib=[0];LKPD_MODULES[0].fotoUjian=true`);
@@ -102,7 +102,7 @@ ok(G(`lkpFotoWajib(LKPD_MODULES[0])`).length === 1, 'tanpa fotoUjian hanya dafta
 /* Tahap Latihan lalu Ujian di LKPD-DDO-ALT-02 asli: satu LKPD, tanpa salinan */
 G(`LKPD_MODULES[0].mode='ujian';LKPD_MODULES[0].tahap=true;LKPD_MODULES[0].gKali=2;LKPD_MODULES[0].maxTry=1;LKPD_MODULES[0].fotoUjian=true;S.lkpd=[];S.kelas='X';STAFF=false;LK.preview=false;LK.tab='kerja'`);
 ok(G(`LKPD_MODULES.length`) === 1, 'hanya satu LKPD, tidak ada salinan');
-/* Gerbang masuk soal TKA (v2) dianggap sudah lulus supaya Lembar Kerja terbuka bagi siswa uji */
+/* Prasyarat masuk soal TKA (v2) dianggap sudah lulus supaya Lembar Kerja terbuka bagi siswa uji */
 G(`var _g0=lk2Gate,FORCE=true;lk2Gate=function(m,d){var g=_g0(m,d);if(FORCE)g.lulus=true;return g}`);
 ok(G(`lkmLock(LKPD_MODULES[0])`) === '', 'siswa baru tidak terkunci: langsung bisa berlatih');
 let dh = G(`lkListView()`);
@@ -130,13 +130,13 @@ dh = G(`lkListView()`);
 ok(/Bertahap: Latihan/.test(dh) && !/Tahap 1: Latihan/.test(dh), 'kartu guru: tag Bertahap, tanpa status tahap siswa');
 G(`STAFF=false`);
 
-/* Gerbang masuk hanya di Latihan, Evaluasi hanya di Ujian (LKPD-DDO-ALT-02 asli) */
+/* Prasyarat masuk hanya di Latihan, Evaluasi hanya di Ujian (LKPD-DDO-ALT-02 asli) */
 G(`FORCE=false;STAFF=false;LK.preview=false;S.lkpd=[];LKPD_MODULES[0].mode='ujian';LKPD_MODULES[0].tahap=true;LKPD_MODULES[0].gKali=1;LKPD_MODULES[0].maxTry=0`);
 G(`LK.tab='materi'`); h = G(`viewLKPD()`);
-ok(/id="lk2-gate"/.test(h) && /Gerbang masuk praktik/.test(h), 'Latihan: soal gerbang masuk tampil di tab Materi');
+ok(/id="lk2-gate"/.test(h) && /Prasyarat masuk praktik/.test(h), 'Latihan: soal prasyarat masuk tampil di tab Materi');
 ok(!/data-v="evaluasi"/.test(h), 'Latihan: tab Evaluasi tidak ada');
 G(`LK.tab='kerja'`); h = G(`viewLKPD()`);
-ok(/Lembar Kerja terkunci/.test(h), 'Latihan: gerbang masuk tetap mengunci Lembar Kerja sampai lulus');
+ok(/Lembar Kerja terkunci/.test(h), 'Latihan: prasyarat masuk tetap mengunci Lembar Kerja sampai lulus');
 G(`LK.tab='evaluasi'`); h = G(`viewLKPD()`);
 ok(/Evaluasi hanya dikerjakan pada tahap Ujian/.test(h) && !/Pembahasan latihan|Periksa jawaban/.test(h), 'Latihan: isi Evaluasi dan pembahasan tidak tampil');
 /* Mode Latihan v2: pembahasan ada di bagian bawah Lembar Kerja (tab Evaluasi tidak ada di Latihan) */
@@ -150,17 +150,17 @@ G(`(function(){var m=LKPD_MODULES[0];m.tahap=true;m.mode='ujian';DRAFT={}})()`);
 /* Naik ke Ujian */
 G(`S.lkpd.push({moduleId:'LKPD-DDO-ALT-02',sid:'u1',ts:10,score:80,payload:JSON.stringify({mode:'latihan'})})`);
 G(`LK.tab='materi'`); h = G(`viewLKPD()`);
-ok(!/id="lk2-gate"/.test(h) && !/Gerbang masuk praktik/.test(h), 'Ujian: soal gerbang masuk tidak tampil');
+ok(!/id="lk2-gate"/.test(h) && !/Prasyarat masuk praktik/.test(h), 'Ujian: soal prasyarat masuk tidak tampil');
 ok(/Tujuan pembelajaran/.test(h) && /Alat dan bahan/.test(h) && /Checklist|APD|K3/.test(h), 'Ujian: bagian lain Materi (tujuan, alat bahan, K3) tetap tampil');
 ok(/data-v="evaluasi"/.test(h), 'Ujian: tab Evaluasi ada');
 G(`LK.tab='kerja'`); h = G(`viewLKPD()`);
-ok(!/Lembar Kerja terkunci/.test(h) && /Identitas praktik/.test(h), 'Ujian: Lembar Kerja terbuka tanpa gerbang masuk');
+ok(!/Lembar Kerja terkunci/.test(h) && /Identitas praktik/.test(h), 'Ujian: Lembar Kerja terbuka tanpa prasyarat masuk');
 ok(G(`lk2Gate(LKPD_MODULES[0],{}).lulus`) === true, 'Ujian: lk2Gate lulus (kirim tidak dihambat gerbang)');
 G(`LK.tab='evaluasi'`); h = G(`viewLKPD()`);
 ok(!/Evaluasi hanya dikerjakan pada tahap Ujian/.test(h), 'Ujian: Evaluasi tampil (terkunci sampai praktik diverifikasi)');
 /* Pratinjau guru = versi Ujian */
 G(`STAFF=true;LK.preview=true;S.lkpd=[];LK.tab='materi'`); h = G(`viewLKPD()`);
-ok(!/id="lk2-gate"/.test(h) && /data-v="evaluasi"/.test(h), 'Pratinjau guru: versi Ujian (tanpa gerbang masuk, ada Evaluasi)');
+ok(!/id="lk2-gate"/.test(h) && /data-v="evaluasi"/.test(h), 'Pratinjau guru: versi Ujian (tanpa prasyarat masuk, ada Evaluasi)');
 G(`STAFF=false;LK.preview=false;S.lkpd=[]`);
 /* Skor Latihan hanya dari praktik */
 G(`LKPD_MODULES[0].tahap=true;LKPD_MODULES[0].mode='ujian'`);

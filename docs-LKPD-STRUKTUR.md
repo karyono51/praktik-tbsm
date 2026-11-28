@@ -8,12 +8,12 @@ Mengikuti form siswa. Bilah tab memberi penanda kelompok.
 | Kelompok | Tab |
 |---|---|
 | (awal) | Info |
-| Materi | Tujuan & teori, Rencana pertemuan, Gerbang masuk, Alat & K3 |
+| Materi | Tujuan & teori, Rencana pertemuan, Prasyarat masuk, Alat & K3 |
 | Lembar Kerja | Langkah, Tabel data, Pemeriksaan, Syarat kirim |
 | Evaluasi | Evaluasi (soal latihan membaca skala dan soal lain) |
 | (akhir) | Penilaian |
 
-Soal gerbang masuk dipindah dari tab Soal ke tab **Gerbang masuk**; editornya tetap yang di `lkpd-v2-editor.js`. Masalah gerbang tercatat di tab Gerbang masuk.
+Soal prasyarat masuk dipindah dari tab Soal ke tab **Prasyarat masuk**; editornya tetap yang di `lkpd-v2-editor.js`. Masalah prasyarat tercatat di tab Prasyarat masuk.
 
 ## 2. Rencana pertemuan
 - **Pertemuan** (daftar ringkas, ketuk untuk membuka): judul, JP, menit, target praktik, kegiatan yang dimuat, opsi *Tanpa kartu di Lembar Kerja*, judul kartu Lembar Kerja, opsi *Pisahkan kartu per kegiatan* (dengan judul tiap kartu), dan latihan soal yang dikerjakan di pertemuan itu.
@@ -38,7 +38,7 @@ Di tab Pemeriksaan, bagian *Penempatan komponen di Lembar Kerja*: tiap komponen 
 Di tab Alat & K3: nama kelompok, urutan kelompok (Naik, Turun), tambah dan hapus kelompok (hanya yang kosong), pilihan kelompok untuk tiap butir, dan **Paraf guru (APD)** per butir. Tiap butir harus masuk tepat satu kelompok; bila tidak, butir itu tidak tampil di Materi siswa dan editor menolak simpan. Dengan lebih dari satu kelompok, tiap kelompok perlu nama.
 
 ## 6. Syarat kirim
-Tab Syarat kirim merangkum tiga syarat tetap (gerbang lulus sesuai KKM, semua butir K3 dicentang, minimal satu komponen berisi hasil aktual dan status) dan memuat dua pengaturan yang bisa diubah:
+Tab Syarat kirim merangkum tiga syarat tetap (prasyarat lulus sesuai KKM, semua butir K3 dicentang, minimal satu komponen berisi hasil aktual dan status) dan memuat dua pengaturan yang bisa diubah:
 - **Isian wajib siswa** (pengaturan yang sama dengan tab Penilaian).
 - **Foto bukti wajib** per komponen pemeriksaan (`fotoWajib`).
 

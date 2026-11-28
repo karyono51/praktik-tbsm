@@ -83,7 +83,7 @@ buka('LKPD-DDO-ALT-02');
 const f0 = form('info');
 ok('tab v2: info, tujuan, rencana, gerbang, bahan, langkah, tabel, cek, kirim, soal, nilai', G("LKE.TABS.map(function(t){return t[0]}).join()") === 'info,tujuan,rencana,gerbang,bahan,langkah,tabel,cek,kirim,soal,nilai');
 ok('bilah editor berkelompok: Info, Materi, Lembar Kerja, Evaluasi, dengan sub-tab bagian aktif', ['Info', 'Materi', 'Lembar Kerja', 'Evaluasi'].every((n) => f0.includes('<span class="lke-gt">' + n + '</span>')));
-ok('sub-tab Materi: tujuan, rencana, gerbang, bahan', (() => { const m = form('tujuan'); return m.includes('aria-label="Bagian Materi"') && ['Tujuan & teori', 'Rencana pertemuan', 'Gerbang masuk', 'Alat & K3'].every((n) => m.includes(n)); })());
+ok('sub-tab Materi: tujuan, rencana, gerbang, bahan', (() => { const m = form('tujuan'); return m.includes('aria-label="Bagian Materi"') && ['Tujuan & teori', 'Rencana pertemuan', 'Prasyarat masuk', 'Alat & K3'].every((n) => m.includes(n)); })());
 ok('Materi sebelum Lembar Kerja sebelum Evaluasi', f0.indexOf('>Materi<') < f0.indexOf('>Lembar Kerja<') && f0.indexOf('>Lembar Kerja<') < f0.indexOf('>Evaluasi<'));
 G("var nv=lkeCp(__m0);delete nv.v2;var dn=lkEditorDefaults(nv);dn.src=nv;lkeInit(dn);LK.editor=dn;lkEditorForm(dn);");
 ok('LKPD biasa tetap memakai tab lama (7 tab)', G("LKE.TABS.map(function(t){return t[0]}).join()") === 'info,tujuan,bahan,langkah,cek,soal,nilai');
@@ -183,14 +183,14 @@ await pilih('p-sembunyi', { i: 0 }, true);
 { const A = JSON.parse(G("JSON.stringify(lkeBuild(dg).v2)")), B = mods[0].v2; const beda = Object.keys(B).filter((k) => JSON.stringify(A[k]) !== JSON.stringify(B[k]));
   ok('setelah dikembalikan, simpan identik lagi', beda.length === 0, beda.map((k) => k + ': ' + JSON.stringify(A[k]).slice(0, 300) + ' <> ' + JSON.stringify(B[k]).slice(0, 300)).join(' | ')); }
 
-console.log('Gerbang masuk pindah tab');
+console.log('Prasyarat masuk pindah tab');
 h = form('gerbang');
-ok('tab Gerbang masuk memuat 5 soal gerbang', hit(/data-lkv-a="gq-open"/g, h) === 5 && h.indexOf('Soal gerbang masuk') > -1);
+ok('tab Prasyarat masuk memuat 5 soal gerbang', hit(/data-lkv-a="gq-open"/g, h) === 5 && h.indexOf('Soal prasyarat masuk') > -1);
 h = form('soal');
-ok('tab Evaluasi tidak lagi memuat soal gerbang', h.indexOf('Soal gerbang masuk') < 0 && h.indexOf('Soal evaluasi') > -1);
+ok('tab Evaluasi tidak lagi memuat soal gerbang', h.indexOf('Soal prasyarat masuk') < 0 && h.indexOf('Soal evaluasi') > -1);
 ok('tab Evaluasi tetap punya tombol soal isian angka', h.indexOf('data-v="isian"') > -1);
 G("dg.S.gate.length=2");
-ok('masalah gerbang tercatat di tab Gerbang masuk', G("lkeIssues(dg).some(function(x){return x.tab==='gerbang'&&/minimal 3 soal/.test(x.msg)})"));
+ok('masalah gerbang tercatat di tab Prasyarat masuk', G("lkeIssues(dg).some(function(x){return x.tab==='gerbang'&&/minimal 3 soal/.test(x.msg)})"));
 buka('LKPD-DDO-ALT-02');
 
 console.log('Alat & K3: kelompok dan paraf guru');
@@ -293,7 +293,7 @@ buka('LKPD-FIX-TABEL');
 console.log('Syarat kirim');
 buka('LKPD-DDO-ALT-02');
 h = form('kirim');
-ok('ringkasan tiga syarat tetap: gerbang KKM 75, K3 10 butir 4 kelompok, pemeriksaan', /Gerbang masuk lulus.*minimal 75/.test(h) && /10 butir dalam 4 kelompok/.test(h) && /minimal satu komponen berisi hasil aktual dan status/.test(h));
+ok('ringkasan tiga syarat tetap: gerbang KKM 75, K3 10 butir 4 kelompok, pemeriksaan', /Prasyarat masuk lulus.*minimal 75/.test(h) && /10 butir dalam 4 kelompok/.test(h) && /minimal satu komponen berisi hasil aktual dan status/.test(h));
 ok('isian wajib siswa: 5 pengaturan dari LKE.VAL', hit(/data-lke="val\./g, h) === 5);
 ok('foto wajib: 7 komponen, 5 tercentang (1, 3, 4, 5, 7)', hit(/data-lks-c="foto"/g, h) === 7 && hit(/data-lks-c="foto" data-i="\d" checked/g, h) === 5 && /5 dari 7 komponen wajib foto/.test(h));
 await pilih('foto', { i: 1 }, true);

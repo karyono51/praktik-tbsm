@@ -70,12 +70,12 @@ function lkpRingkas(m,d){
   li.push('Boleh diulang tanpa batas; nilai <b>tidak masuk</b> Rekap nilai');
   li.push('Kunci dan pembahasan: <b>'+(d.showKey?'tampil':'tidak tampil')+'</b>');
   li.push('Panduan bertahap dan Bantuan angka acuan: <b>'+(d.pandu!==false?'aktif':'mati')+'</b>');
-  li.push('Gerbang masuk soal: <b>tampil</b>; Evaluasi: <b>tidak tampil</b> (hanya di Ujian)');
+  li.push('Prasyarat masuk soal: <b>tampil</b>; Evaluasi: <b>tidak tampil</b> (hanya di Ujian)');
  }else{
   li.push('Kesempatan mengirim: <b>'+(mx?mx+' kali':'tidak terbatas')+'</b>; nilai <b>masuk</b> Rekap nilai dan dikoreksi guru');
   var h=[d.hideTeori&&'teori',d.hideLangkah&&'penjelasan langkah',d.hidePetunjuk&&'petunjuk komponen','angka acuan'].filter(Boolean);
   li.push('Disembunyikan: <b>'+h.join(', ')+'</b>');
-  li.push('Gerbang masuk soal: <b>tidak tampil</b> (hanya di Latihan); Evaluasi: <b>tampil</b> setelah praktik diverifikasi guru');
+  li.push('Prasyarat masuk soal: <b>tidak tampil</b> (hanya di Latihan); Evaluasi: <b>tampil</b> setelah praktik diverifikasi guru');
   li.push('Foto bukti: <b>'+(d.fotoUjian?'wajib pada semua '+m.checks.length+' komponen':fw?'wajib pada '+fw+' komponen':'opsional')+'</b>');
   li.push('Alur: <b>'+(d.tahap?'Latihan dulu (KKM '+(+d.gKali===2?'2 kali berturut-turut':'1 kali')+'), lalu otomatis Ujian di LKPD ini':'langsung Ujian')+'</b>');
  }
@@ -93,7 +93,7 @@ function lkpPaket(d){
 }
 function lkpAturanLatihan(d){
  return lkpCek('showKey','Tampilkan kunci dan pembahasan','Siswa bisa memeriksa jawaban soal di tab Evaluasi.',d.showKey)+
-  lkpCek('pandu','Latihan berpemandu','Kartu panduan tampil, dan angka acuan di Lembar Kerja dibuka siswa lewat tombol Bantuan.',d.pandu!==false)+'<p class="note">Latihan memuat gerbang masuk soal. Evaluasi tidak tampil di Latihan (hanya di Ujian), dan nilai Latihan dihitung dari praktik saja.</p>';
+  lkpCek('pandu','Latihan berpemandu','Kartu panduan tampil, dan angka acuan di Lembar Kerja dibuka siswa lewat tombol Bantuan.',d.pandu!==false)+'<p class="note">Latihan memuat prasyarat masuk soal. Evaluasi tidak tampil di Latihan (hanya di Ujian), dan nilai Latihan dihitung dari praktik saja.</p>';
 }
 function lkpAturanUjian(d){
  var tries=[[0,'Tidak terbatas'],[1,'1 kali'],[2,'2 kali'],[3,'3 kali']].map(function(o){return '<option value="'+o[0]+'"'+(+d.maxTry===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('');
@@ -102,7 +102,7 @@ function lkpAturanUjian(d){
   lkpCek('hideTeori','Teori ringkas','Siswa tidak melihat materi teori di tab Materi.',d.hideTeori)+
   lkpCek('hideLangkah','Penjelasan langkah prosedur','Hanya judul dan durasi langkah yang tampil.',d.hideLangkah)+
   lkpCek('hidePetunjuk','Petunjuk komponen di Lembar Kerja','Keterangan di bawah nama komponen disembunyikan.',d.hidePetunjuk)+
-  '<p class="note">Angka acuan standar selalu disembunyikan saat Ujian. Gerbang masuk soal tidak tampil (hanya di Latihan); Evaluasi tampil di Ujian. K3, alat dan bahan tetap tampil. Pratinjau menampilkan versi Ujian.</p>'+
+  '<p class="note">Angka acuan standar selalu disembunyikan saat Ujian. Prasyarat masuk soal tidak tampil (hanya di Latihan); Evaluasi tampil di Ujian. K3, alat dan bahan tetap tampil. Pratinjau menampilkan versi Ujian.</p>'+
   lkpCek('fotoUjian','Foto bukti wajib pada semua komponen','Siswa tidak bisa mengirim sebelum semua komponen pemeriksaan punya foto.',d.fotoUjian);
 }
 function lkpTahap(m,d){
@@ -118,7 +118,7 @@ function lkpLayout(m,d){
   h='<section class="card" id="lkm-panel"><div class="row sb"><h3 class="grow">Pengaturan: '+lkEsc(m.title)+'</h3><button type="button" class="btn small" data-act="lkm-cancel">Batal</button></div>'+
   '<div class="lkp-ring"><b>Ringkasan untuk siswa</b><div id="lkp-ring">'+lkpRingkas(m,d)+'</div></div>';
  h+=lkpSec(no(),'Paket dan mode','',lkpPaket(d)+lkpCek('tampil','Tampilkan ke siswa','Matikan untuk menyembunyikan LKPD (jadi draft).',d.tampil)+mode);
- h+=uj?lkpSec(no(),'Aturan Ujian','',lkpAturanUjian(d))+lkpSec(no(),'Latihan sebelum Ujian','Berbeda dengan Gerbang masuk soal di dalam LKPD.',lkpTahap(m,d))
+ h+=uj?lkpSec(no(),'Aturan Ujian','',lkpAturanUjian(d))+lkpSec(no(),'Latihan sebelum Ujian','Berbeda dengan Prasyarat masuk soal di dalam LKPD.',lkpTahap(m,d))
   :lkpSec(no(),'Aturan Latihan','',lkpAturanLatihan(d));
  var jadwal='<div class="two"><label class="f">Dibuka (opsional)<input type="datetime-local" data-lkm="buka" value="'+lkEsc(d.buka)+'"></label><label class="f">Ditutup (opsional)<input type="datetime-local" data-lkm="tutup" value="'+lkEsc(d.tutup)+'"></label></div>'+
   '<div><button type="button" class="btn small" data-act="lkm-clear">Kosongkan jadwal</button></div>'+(typeof lkkPanel==='function'?lkpTanpaLabel(lkkPanel(m,d)):'');
@@ -152,7 +152,7 @@ document.addEventListener('change',function(e){
 
 /* ---- Tampilan siswa: Latihan berpemandu ---- */
 function lkpPanduKartu(){
- return '<section class="card lkp-pandu"><b>Latihan berpemandu</b><ul><li>Coba isi sendiri dulu, lalu buka <b>Bantuan</b> bila buntu atau ingin mencocokkan angka.</li><li>Poin kritis tiap langkah dan petunjuk komponen tampil penuh. Gunakan sebagai pegangan.</li><li>Hasil latihan boleh diulang dan tidak masuk rekap nilai. Ujian nanti tanpa gerbang masuk, petunjuk, dan angka acuan; Evaluasi dikerjakan di Ujian.</li></ul></section>';
+ return '<section class="card lkp-pandu"><b>Latihan berpemandu</b><ul><li>Coba isi sendiri dulu, lalu buka <b>Bantuan</b> bila buntu atau ingin mencocokkan angka.</li><li>Poin kritis tiap langkah dan petunjuk komponen tampil penuh. Gunakan sebagai pegangan.</li><li>Hasil latihan boleh diulang dan tidak masuk rekap nilai. Ujian nanti tanpa prasyarat masuk, petunjuk, dan angka acuan; Evaluasi dikerjakan di Ujian.</li></ul></section>';
 }
 function lkpPandu(h,c){
  try{
@@ -172,7 +172,7 @@ function lkpMandiri(h,c){
   var m=lkmCur();if(!m)return h;
   if(LK.tab==='kerja'&&h.indexOf('lk2-cek')>-1){
    h=h.replace(/<small class="lk-acuan">[\s\S]*?<\/small>/g,'');
-   var li=['Tanpa gerbang masuk soal. Evaluasi dikerjakan setelah guru memverifikasi praktikmu.','Tanpa petunjuk dan angka acuan: cari angka standar di manual servis kendaraan, lalu isi kolom Standar manual.','Langkah bertanda <b>saksi guru</b> harus disaksikan guru. Panggil guru sebelum mengerjakannya.'];
+   var li=['Tanpa prasyarat masuk soal. Evaluasi dikerjakan setelah guru memverifikasi praktikmu.','Tanpa petunjuk dan angka acuan: cari angka standar di manual servis kendaraan, lalu isi kolom Standar manual.','Langkah bertanda <b>saksi guru</b> harus disaksikan guru. Panggil guru sebelum mengerjakannya.'];
    if(c.fotoUjian)li.push('Foto bukti wajib pada <b>semua</b> komponen pemeriksaan sebelum LKPD dikirim.');
    if(c.maxTry)li.push('Kesempatan mengirim '+c.maxTry+' kali.');
    var k='<section class="card lkp-mandiri"><b>Ujian mandiri</b><ul>'+li.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul></section>',i=h.indexOf('<section class="card">');
@@ -182,9 +182,9 @@ function lkpMandiri(h,c){
  return h;
 }
 
-/* ---- LKPD v2: Gerbang masuk (soal TKA) hanya di Latihan, Evaluasi hanya di Ujian ----
-   Alasannya: soal yang sama di dua tahap hanya menguji hafalan. Latihan = gerbang masuk + Lembar Kerja; nilai Latihan hanya dari praktik.
-   Ujian = Lembar Kerja tanpa gerbang masuk, lalu Evaluasi (terbuka setelah guru memverifikasi praktik).
+/* ---- LKPD v2: Prasyarat masuk (soal TKA) hanya di Latihan, Evaluasi hanya di Ujian ----
+   Alasannya: soal yang sama di dua tahap hanya menguji hafalan. Latihan = prasyarat masuk + Lembar Kerja; nilai Latihan hanya dari praktik.
+   Ujian = Lembar Kerja tanpa prasyarat masuk, lalu Evaluasi (terbuka setelah guru memverifikasi praktik).
    Berlaku untuk tampilan siswa dan Pratinjau guru (versi Ujian). Detail kiriman dan rekap guru tidak diubah. */
 function lkpFaseView(m){
  if(!m||typeof lk2Is!=='function'||!lk2Is(m)||LK.detail)return '';
@@ -201,7 +201,7 @@ if(_lkpMateri2)lk2Materi=function(m,d){
 };
 var _lkpEval2=typeof lk2Eval==='function'?lk2Eval:null;
 if(_lkpEval2)lk2Eval=function(m,d){
- if(lkpFaseView(m)==='latihan')return '<section class="card"><h2>Evaluasi</h2><p class="note">Evaluasi hanya dikerjakan pada tahap Ujian. Di Latihan, kerjakan gerbang masuk di tab Materi dan isi Lembar Kerja.</p></section>';
+ if(lkpFaseView(m)==='latihan')return '<section class="card"><h2>Evaluasi</h2><p class="note">Evaluasi hanya dikerjakan pada tahap Ujian. Di Latihan, kerjakan prasyarat masuk di tab Materi dan isi Lembar Kerja.</p></section>';
  return _lkpEval2(m,d);
 };
 var _lkpView2=typeof lk2View==='function'?lk2View:null;
@@ -217,10 +217,10 @@ if(_lkpScore3)lkScore=function(d){
  if(m&&lkpFaseView(m)==='latihan'&&typeof lk2Is==='function'&&lk2Is(m)){r.final=r.practice;r.theory=0}
  return r;
 };
-/* Detail guru untuk kiriman Ujian: tidak ada gerbang masuk yang perlu diperiksa. */
+/* Detail guru untuk kiriman Ujian: tidak ada prasyarat masuk yang perlu diperiksa. */
 var _lkpDetail2=typeof lk2Detail==='function'?lk2Detail:null;
 if(_lkpDetail2)lk2Detail=function(z,p,m){
  var h=_lkpDetail2(z,p,m);
- if(p&&p.mode==='ujian'&&!(p.v2&&p.v2.evaluasi))h=String(h).replace(/<h3>Gerbang masuk<\/h3>[\s\S]*?(?=<h3>Daftar APD<\/h3>)/,'');
+ if(p&&p.mode==='ujian'&&!(p.v2&&p.v2.evaluasi))h=String(h).replace(/<h3>Prasyarat masuk<\/h3>[\s\S]*?(?=<h3>Daftar APD<\/h3>)/,'');
  return h;
 };

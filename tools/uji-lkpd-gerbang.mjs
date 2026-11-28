@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Uji editor soal gerbang masuk LKPD v2 (js/lkpd-v2-editor.js: teks, pilihan, kunci, level, pembahasan, urutan, tambah/hapus).
+/* Uji editor soal prasyarat masuk LKPD v2 (js/lkpd-v2-editor.js: teks, pilihan, kunci, level, pembahasan, urutan, tambah/hapus).
    Harness sama dengan uji-lkpd-foto.mjs. node tools/uji-lkpd-gerbang.mjs */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -56,7 +56,7 @@ const G = (c) => run(c);
 const orig = JSON.stringify(x07.v2.gate.qs);
 G("var dg=lkEditorDefaults(__x07);dg.src=__x07;var S0=lkeInit(dg);LK.editor=dg;dg.tab='soal';var d0=lkEditorForm(dg);");
 console.log('Tampilan editor gerbang');
-ok('bagian gerbang tampil dengan 5 soal ringkas', G("d0.indexOf('Soal gerbang masuk')>-1&&(d0.match(/data-lkv-a=\"gq-open\"/g)||[]).length===5"));
+ok('bagian gerbang tampil dengan 5 soal ringkas', G("d0.indexOf('Soal prasyarat masuk')>-1&&(d0.match(/data-lkv-a=\"gq-open\"/g)||[]).length===5"));
 ok('catatan: minimal 3 soal, 5 pilihan, level, pembahasan wajib', G("/minimal 3 soal/.test(d0)&&/pembahasan wajib/.test(d0)&&/Aplikasi atau Penalaran/.test(d0)"));
 ok('soal tertutup tidak memuat kolom isian', G("d0.indexOf('data-lke=\"gate.0.q\"')<0"));
 ok('tombol tambah PG, PG kompleks, PG kategori', G("/gq-add\" data-v=\"pg\">\\+ PG</.test(d0)&&/gq-add\" data-v=\"kompleks\"/.test(d0)&&/gq-add\" data-v=\"kategori\"/.test(d0)"));
@@ -79,7 +79,7 @@ await klik('gq-key', { i: 0, j: 3 });
 ok('PG: ketuk huruf D memindahkan kunci ke D', G("dg.S.gate[0].a")===3);
 await klik('gq-key', { i: 0, j: 3 });
 ok('PG: ketuk lagi mengosongkan kunci', G("dg.S.gate[0].a")===-1);
-ok('kunci kosong dilaporkan', G("lkeIssues(dg).some(function(x){return /Gerbang masuk no\\. 1: .*jawaban benar/.test(x.msg)})"));
+ok('kunci kosong dilaporkan', G("lkeIssues(dg).some(function(x){return /Prasyarat masuk no\\. 1: .*jawaban benar/.test(x.msg)})"));
 await klik('gq-key', { i: 0, j: 1 });
 await klik('gq-type', { i: 0, v: 'kompleks' });
 ok('PG ke PG kompleks: kunci jadi daftar, pilihan, level, pembahasan, teks terbawa', G("var g0=dg.S.gate[0];g0.t==='kompleks'&&JSON.stringify(g0.a)==='[1]'&&g0.o.length===5&&g0.lvl==='Aplikasi'&&g0.e==='Pembahasan baru'&&g0.q==='Pertanyaan baru gerbang'"));
@@ -134,10 +134,14 @@ await klik('gq-add', { v: 'kategori' });
 ok('tambah PG kategori: 3 pernyataan', G("dg.S.gate[6].t==='kategori'&&dg.S.gate[6].rows.length===3"));
 await klik('gq-add', { v: 'kompleks' });
 ok('tambah PG kompleks: kunci kosong', G("dg.S.gate[7].t==='kompleks'&&Array.isArray(dg.S.gate[7].a)&&dg.S.gate[7].a.length===0"));
-await klik('gq-add', { v: 'pg' }); await klik('gq-add', { v: 'pg' });
+for (let i = 0; i < 12; i++) await klik('gq-add', { v: 'pg' });
+ok('soal ke-11 sampai ke-20 dapat ditambahkan (batas lama 10 dilepas)', G("dg.S.gate.length")===20);
 ctx.__toasts.length = 0;
 await klik('gq-add', { v: 'pg' });
-ok('maksimal 10 soal', G("dg.S.gate.length")===10 && ctx.__toasts.some((t) => /Maksimal 10/.test(t)));
+ok('maksimal 20 soal prasyarat', G("dg.S.gate.length")===20 && ctx.__toasts.some((t) => /Maksimal 20 soal prasyarat/.test(t)));
+ctx.__toasts.length = 0;
+await klik('gq-dup', { i: 0 });
+ok('duplikat pada 20 soal ditolak', G("dg.S.gate.length")===20 && ctx.__toasts.some((t) => /Maksimal 20/.test(t)));
 G("dg.S.gate=lkeCp(__x07.v2.gate.qs)");
 await klik('gq-down', { i: 0 });
 ok('turun: soal 1 pindah ke posisi 2', G("dg.S.gate[1].q")===x07.v2.gate.qs[0].q && G("dg.S.gate[0].q")===x07.v2.gate.qs[1].q);
@@ -152,9 +156,9 @@ ctx.__toasts.length = 0;
 await klik('gq-del', { i: 0 });
 ok('minimal 3 soal: hapus ditolak', G("dg.S.gate.length")===3 && ctx.__toasts.some((t) => /minimal 3 soal/.test(t)));
 G("dg.S.gate=lkeCp(__x07.v2.gate.qs).slice(0,2)");
-ok('kurang dari 3 soal dilaporkan', G("lkeIssues(dg).some(function(x){return /Gerbang masuk minimal 3 soal/.test(x.msg)})"));
+ok('kurang dari 3 soal dilaporkan', G("lkeIssues(dg).some(function(x){return /Prasyarat masuk minimal 3 soal/.test(x.msg)})"));
 G("dg.S.gate=lkeCp(__x07.v2.gate.qs)");
-ok('data asli X-06 tidak punya masalah gerbang', G("lkeIssues(dg).filter(function(x){return /^Gerbang masuk/.test(x.msg)}).length")===0);
+ok('data asli X-06 tidak punya masalah gerbang', G("lkeIssues(dg).filter(function(x){return /^Prasyarat masuk/.test(x.msg)}).length")===0);
 
 console.log('Hak akses dan LKPD biasa');
 STAFF = false; G("dg.S.gate=lkeCp(__x07.v2.gate.qs)");

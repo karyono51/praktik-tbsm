@@ -116,5 +116,5 @@ Layar hasil unit UKK kini menampilkan alasan tiap butir yang belum dapat nilai (
 - Aturan angka (`js/ukk-aturan.js`): butir 2, 3, 4, 7, 8 berangka (`UKK-XI-1-1`, `-2`, `-3`, `-6`, `-7`); butir 3 dan 8 campuran (angka dan kondisi pegas). Keputusan memakai batas servis, bukan rentang standar. Butir 1, 5, 6, 9, 10 tanpa angka (Hasil aktual, Status, dan Catatan terisi).
 - Kode SKKNI unit 027 ditandai usulan (perlu verifikasi), seperti UKK-X-1.
 
-## Gerbang praktik
-Unit UKK-X-1 dan UKK-XI-1 memiliki gerbang praktik sebelum siswa memulai unit (bukan bagian nilai pasangan unit dan observasi). Lihat `docs-UKK-GERBANG.md`.
+## Prasyarat praktik
+Unit UKK-X-1 dan UKK-XI-1 memiliki prasyarat praktik sebelum siswa memulai unit (bukan bagian nilai pasangan unit dan observasi). Lihat `docs-UKK-GERBANG.md`.

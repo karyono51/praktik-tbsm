@@ -6,7 +6,7 @@
    sepeda motor yang dipakai di bengkel. Angka pada soal hanya contoh hitung, bukan standar.
    Rujukan SKKNI 147/2019 hanya usulan pemetaan dan perlu diverifikasi sebelum dipakai untuk asesmen. Unit level 3 (049, 051, 052) dipakai pada tingkat pengenalan dan
    pemeriksaan (Kelas X); bak transmisi tidak dibuka (pembongkaran poros dan gigi dikerjakan pada LKPD-TSM-PMT-02).
-   9 pertemuan x 4 JP (180 menit, 45 menit per JP) = 36 JP. Pertemuan 1 = pemantik, materi, gerbang, APD, cek alat (tanpa kegiatan); Pertemuan 2 sampai 8 = Kegiatan 1 sampai 7,
+   9 pertemuan x 4 JP (180 menit, 45 menit per JP) = 36 JP. Pertemuan 1 = pemantik, materi, prasyarat, APD, cek alat (tanpa kegiatan); Pertemuan 2 sampai 8 = Kegiatan 1 sampai 7,
    satu kegiatan per pertemuan; Pertemuan 9 = penilaian kinerja, refleksi, remedial atau pengayaan (tanpa kegiatan). Tiap kegiatan menyelesaikan satu siklus bongkar, periksa, pasang,
    sehingga engine atau trainer kembali utuh pada akhir pertemuan dan dapat dipakai rombel berikutnya. Praktik memakai engine atau trainer sepeda motor dingin, mesin hanya
    dihidupkan pada Kegiatan 7 atas izin guru. */
@@ -113,7 +113,7 @@
   v2:{
    ver:2,jenis:'jobsheet',jp:36,tp:'X.6.4',cp:'Komponen Otomotif',
    pertemuan:[
-    {n:1,jp:4,menit:180,judul:'Pemantik, materi, gerbang masuk, APD, cek alat',kegiatan:[],sembunyi:true},
+    {n:1,jp:4,menit:180,judul:'Pemantik, materi, prasyarat masuk, APD, cek alat',kegiatan:[],sembunyi:true},
     {n:2,jp:4,menit:180,judul:'Kegiatan 1 manual servis dan cover body',kegiatan:[1],latihan:[],praktik:jumMenit([1]),kartu:{judul:'Kegiatan 1 manual servis dan cover body'}},
     {n:3,jp:4,menit:180,judul:'Kegiatan 2 pengencangan sesuai torsi dan urutan, latihan soal 1–2',kegiatan:[2],latihan:['T1','T2'],praktik:jumMenit([2]),kartu:{judul:'Kegiatan 2 pengencangan sesuai torsi dan urutan'}},
     {n:4,jp:4,menit:180,judul:'Kegiatan 3 kepala silinder, latihan soal 3–4',kegiatan:[3],latihan:['H1','H2'],praktik:jumMenit([3]),kartu:{judul:'Kegiatan 3 kepala silinder'}},
@@ -173,7 +173,7 @@
      {id:'sikap',ket:'Yang dinilai: jujur mencatat hasil sendiri (tidak menyalin data teman), aktif, membantu teman, mengikuti arahan guru.',n:'Sikap dan kerja sama',b:10,d:{4:'Aktif, jujur, membantu teman',3:'Aktif, sesekali diingatkan',2:'Pasif',1:'Mengganggu kegiatan'}}
     ],
     indikator:[
-     {t:'Membaca manual servis: urutan, torsi, standar, batas pakai, alat khusus',bukti:'Gerbang masuk, kegiatan 1 dan 2, analisis 1'},
+     {t:'Membaca manual servis: urutan, torsi, standar, batas pakai, alat khusus',bukti:'Prasyarat masuk, kegiatan 1 dan 2, analisis 1'},
      {t:'Membongkar, memeriksa, dan memasang cover body sesuai manual servis',bukti:'Kegiatan 1 disaksikan, foto'},
      {t:'Mengencangkan baut dengan kunci torsi sesuai nilai dan urutan',bukti:'Kegiatan 2 disaksikan, latihan soal 1–2, foto'},
      {t:'Membongkar, memeriksa (kerataan), dan memasang kepala silinder',bukti:'Kegiatan 3 disaksikan, latihan soal 3–4'},

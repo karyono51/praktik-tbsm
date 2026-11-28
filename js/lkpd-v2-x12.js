@@ -3,7 +3,7 @@
    Dimuat setelah lkpd-v2-xi18.js dan sebelum lkpd.js. Struktur mengikuti master LKPD V2 (LKPD-DDO-ALT-02). Status awal Draft.
    Angka spesifikasi (tegangan baterai standar, batas hambatan, arus beban) sengaja KOSONG: guru mengisinya dari manual servis lewat kolom Standar. Angka pada soal hanya contoh hitung.
    Rujukan SKKNI 147/2019 hanya usulan pemetaan dan perlu diverifikasi sebelum dipakai untuk asesmen.
-   3 pertemuan x 4 JP (180 menit, 45 menit per JP) = 12 JP. Pertemuan 1 = pemantik, materi, gerbang, APD, cek alat + Kegiatan 1 tegangan; Pertemuan 2 = Kegiatan 2 hambatan dan 3 arus (dua kartu); Pertemuan 3 = Kegiatan 4 verifikasi hukum Ohm, analisis, penilaian kinerja, refleksi.
+   3 pertemuan x 4 JP (180 menit, 45 menit per JP) = 12 JP. Pertemuan 1 = pemantik, materi, prasyarat, APD, cek alat + Kegiatan 1 tegangan; Pertemuan 2 = Kegiatan 2 hambatan dan 3 arus (dua kartu); Pertemuan 3 = Kegiatan 4 verifikasi hukum Ohm, analisis, penilaian kinerja, refleksi.
    Praktik memakai rangkaian lampu 12 V dengan baterai kendaraan (mesin tidak dihidupkan), multimeter digital, dan kabel penghubung berfuse. */
 (function(){
  var langkah=[
@@ -69,7 +69,7 @@
   v2:{
    ver:2,jenis:'jobsheet',jp:12,tp:'X.5.1',cp:'Dasar Kelistrikan dan Elektronika Otomotif',
    pertemuan:[
-    {n:1,jp:4,menit:180,judul:'Pemantik, materi arus, tegangan, hambatan, gerbang masuk, APD, cek alat; Kegiatan 1 pengukuran tegangan, latihan soal 1–2',kegiatan:[1],latihan:['C1','C2'],praktik:jumMenit([1]),kartu:{judul:'Kegiatan 1 pengukuran tegangan'}},
+    {n:1,jp:4,menit:180,judul:'Pemantik, materi arus, tegangan, hambatan, prasyarat masuk, APD, cek alat; Kegiatan 1 pengukuran tegangan, latihan soal 1–2',kegiatan:[1],latihan:['C1','C2'],praktik:jumMenit([1]),kartu:{judul:'Kegiatan 1 pengukuran tegangan'}},
     {n:2,jp:4,menit:180,judul:'Kegiatan 2 pengukuran hambatan dan Kegiatan 3 pengukuran arus, latihan soal 3–5',kegiatan:[2,3],latihan:['C3','C4','C5'],praktik:jumMenit([2,3]),kartu:{judul:'Kegiatan 2 hambatan dan 3 arus',per:{2:'Kegiatan 2 pengukuran hambatan',3:'Kegiatan 3 pengukuran arus'}}},
     {n:3,jp:4,menit:180,judul:'Kegiatan 4 verifikasi hukum Ohm dan penyimpanan, analisis; penilaian kinerja, refleksi, remedial atau pengayaan, latihan soal 6',kegiatan:[4],latihan:['C6'],praktik:jumMenit([4]),kartu:{judul:'Kegiatan 4 verifikasi hukum Ohm dan penyimpanan'}}
    ],
@@ -130,7 +130,7 @@
      {id:'sikap',ket:'Yang dinilai: jujur mencatat hasil sendiri (tidak menyalin data teman), aktif, membantu teman, mengikuti arahan guru.',n:'Sikap dan kerja sama',b:10,d:{4:'Aktif, jujur, membantu teman',3:'Aktif, sesekali diingatkan',2:'Pasif',1:'Mengganggu kegiatan'}}
     ],
     indikator:[
-     {t:'Menjelaskan arus, tegangan, hambatan, dan satuannya',bukti:'Gerbang masuk, latihan soal 1–2'},
+     {t:'Menjelaskan arus, tegangan, hambatan, dan satuannya',bukti:'Prasyarat masuk, latihan soal 1–2'},
      {t:'Mengukur tegangan baterai dan lampu dengan benar (paralel)',bukti:'Tabel F1, kegiatan 1 disaksikan'},
      {t:'Mengukur hambatan pada rangkaian tanpa sumber dan mencatat nol alat',bukti:'Tabel F2, kegiatan 2 disaksikan'},
      {t:'Mengukur arus dengan multimeter dipasang seri',bukti:'Tabel F3, kegiatan 3 disaksikan, foto rangkaian'},
