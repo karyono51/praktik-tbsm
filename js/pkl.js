@@ -34,13 +34,13 @@ function pkLoadLocal(){
  try{var j=JSON.parse(localStorage.getItem(PKKEY)||'null');if(j)Object.keys(PK.D).forEach(function(k){if(Array.isArray(j[k]))PK.D[k]=j[k]})}catch(e){}
 }
 function pkPack(k,o){
- var rest={};Object.keys(o).forEach(function(x){if(['r','d','err','fotoAda'].indexOf(x)<0)rest[x]=o[x]});
+ var rest={};Object.keys(o).forEach(function(x){if(['r','d','err','fotoAda','dibuat'].indexOf(x)<0)rest[x]=o[x]});
  return {jenis:k,sekolah:String(o.sekolah||'').slice(0,8),nama:k==='tugas'?'':String(o.nama||o.judul||'').slice(0,200),ts:o.ts||Date.now(),oleh:String((S.user&&S.user.id)||'').slice(0,64),
   sid:String(o.sid||'').slice(0,64),tanggal:String(o.tanggal||'').slice(0,10),payload:JSON.stringify(rest)};
 }
 function pkParse(d){
  var o={};try{o=JSON.parse(d.payload||'{}')}catch(e){}
- o.id=d.$id;o.jenis=d.jenis;o.ts=d.ts;o.sid=d.sid||o.sid||'';o.tanggal=d.tanggal||o.tanggal||'';o.sekolah=d.sekolah||o.sekolah||'';o.r=1;o.d=0;return o;
+ o.id=d.$id;o.jenis=d.jenis;o.ts=d.ts;o.sid=d.sid||o.sid||'';o.tanggal=d.tanggal||o.tanggal||'';o.sekolah=d.sekolah||o.sekolah||'';if(d.$createdAt)o.dibuat=d.$createdAt;o.r=1;o.d=0;return o;
 }
 function pkSlug(x,n){return String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,n)}
 /* Unggah selfie ke Drive lewat fungsi foto-drive (ldCall di lkpd-drive.js). Fungsi belum dipasang: selfie tetap di payload. Galat lain: dilempar, absen diulang nanti. */
@@ -167,7 +167,7 @@ function pkHariKerja(a,b){
  for(;d<=e;d.setDate(d.getDate()+1)){var w=d.getDay();if(w>0&&w<6)n++}return n;
 }
 function pkRekap(sid){
- var t=pkTugasSiswa(sid),A=pkList('absen').filter(function(x){return x.sid===sid}),from=t&&t.mulai||'',to=t&&t.selesai&&t.selesai<pkToday()?t.selesai:pkToday();
+ var t=pkTugasSiswa(sid),A=pkList('absen').filter(function(x){return x.sid===sid&&!x.uji}),from=t&&t.mulai||'',to=t&&t.selesai&&t.selesai<pkToday()?t.selesai:pkToday();
  if(from)A=A.filter(function(x){return x.tanggal>=from&&x.tanggal<=to});
  function hari(tp){var s={};A.filter(function(x){return x.tipe===tp}).forEach(function(x){s[x.tanggal]=1});return Object.keys(s)}
  var h=hari('masuk'),iz=hari('izin'),sk=hari('sakit'),ada={};h.concat(iz,sk).forEach(function(x){ada[x]=1});
@@ -684,6 +684,9 @@ function pkGpsSegar(cb){
 }
 function pkAbsenKirim(){
  var f=PK.f||{},me=S.user,tg=pkTugasSiswa(me.id),t=pkToday(),tipe=f.tipe,hadir=tipe==='masuk'||tipe==='pulang',needFoto=pkFotoWajib(tipe);
+ if(hadir&&f.foto&&!f.fotoLangsung){f.foto='';PK.msg='Ambil selfie langsung dari kamera.';return render()}
+ if(actRole()!=='siswa'){PK.msg='Absen PKL hanya bisa diisi oleh siswa.';return render()}
+ if(f.foto&&f.fotoTgl!==t){f.foto='';PK.msg='Foto bukan diambil hari ini. Ambil ulang.';return render()}
  if(!tg){PK.msg='Anda belum ditempatkan di tempat PKL. Hubungi guru pembimbing.';return render()}
  if(needFoto&&!f.foto){PK.msg=hadir?'Ambil selfie terlebih dahulu.':'Lampirkan foto terlebih dahulu.';return render()}
  if(!hadir&&!String(f.cat||'').trim()){PK.msg='Isi keterangan '+PK_TIPE[tipe].toLowerCase()+'.';return render()}
@@ -775,7 +778,7 @@ function pkTabTampak(){
 function pkTambah(k,label){return '<div class="row"><button type="button" class="btn small primary" data-act="pkl-new" data-k="'+k+'">+ '+esc(label)+'</button></div>'}
 function pkAksi(k,id){return '<div class="row" style="gap:6px"><button type="button" class="btn small" data-act="pkl-edit" data-k="'+k+'" data-v="'+esc(id)+'">Ubah</button><button type="button" class="btn small danger" data-act="pkl-del" data-k="'+k+'" data-v="'+esc(id)+'">Hapus</button></div>'}
 function pkRingkas(){
- var t=pkToday(),T=pkList('tempat'),G=pkList('tugas').filter(function(x){return x.status==='aktif'}),A=pkList('absen').filter(function(x){return x.tanggal===t&&x.tipe==='masuk'}),
+ var t=pkToday(),T=pkList('tempat'),G=pkList('tugas').filter(function(x){return x.status==='aktif'}),A=pkList('absen').filter(function(x){return x.tanggal===t&&x.tipe==='masuk'&&!x.uji}),
   J=pkList('jurnal').filter(function(x){return !x.verif}),tel=T.filter(function(x){var k=pkKunjunganAkhir(x.id),n=G.filter(function(g){return g.tempatId===x.id}).length;if(!n)return false;var h=k?pkHariSejak(k.tanggal):999;return h>30}).length,
   bel=pkSiswaAll().filter(pkPeserta).filter(function(u){return !pkTugasSiswa(u.id)}).length;
  function st(l,v,c){return '<div class="card"><span class="label">'+l+'</span><b class="mono">'+v+'</b>'+(c?'<span class="note">'+c+'</span>':'')+'</div>'}
@@ -804,10 +807,33 @@ function pkTabTugas(){
 }
 function pkTabAbsen(){
  var d=PK.ft||pkToday(),A0=pkList('absen').filter(function(x){return x.tanggal===d}).sort(function(a,b){return String(a.jam).localeCompare(String(b.jam))}),Z=pkSaring('absen',A0),A=Z.list,G=pkList('tugas').filter(function(x){return x.status==='aktif'}),
-  sdh={};A.forEach(function(x){if(x.tipe==='masuk'||x.tipe==='izin'||x.tipe==='sakit')sdh[x.sid]=1});var blm=G.filter(function(g){return !sdh[g.sid]});
- return '<div class="card"><b>Absensi harian</b><label class="f">Tanggal<input type="date" data-pkft value="'+esc(d)+'"></label>'+(typeof pkoBar==='function'?pkoBar('absen'):'')+Z.bar+
+  sdh={};A.forEach(function(x){if(!x.uji&&(x.tipe==='masuk'||x.tipe==='izin'||x.tipe==='sakit'))sdh[x.sid]=1});var blm=G.filter(function(g){return !sdh[g.sid]});
+ return pkUjiKartu()+'<div class="card"><b>Absensi harian</b><label class="f">Tanggal<input type="date" data-pkft value="'+esc(d)+'"></label>'+(typeof pkoBar==='function'?pkoBar('absen'):'')+Z.bar+
   '<div class="note">'+A.length+(Z.aktif?' dari '+A0.length:'')+' catatan · '+blm.length+' siswa belum absen'+(blm.length?': '+blm.map(function(g){return esc(pkNm(g))}).join(', '):'')+'</div>'+
-  (A.length?A.map(function(a){return pkAbsenBaris(a)+'<div class="row"><button type="button" class="btn small danger" data-act="pkl-del" data-k="absen" data-v="'+esc(a.id)+'">Hapus</button></div>'}).join(''):'<div class="note">'+(A0.length?'Tidak ada catatan yang cocok dengan saringan.':'Belum ada absen pada tanggal ini.')+'</div>')+'</div>';
+  (A.length?A.map(function(a){return pkAbsenBaris(a)+pkTandaAbsen(a)+(actRole()==='admin'?'<div class="row"><button type="button" class="btn small danger" data-act="pkl-del" data-k="absen" data-v="'+esc(a.id)+'">Hapus</button></div>':'')}).join(''):'<div class="note">'+(A0.length?'Tidak ada catatan yang cocok dengan saringan.':'Belum ada absen pada tanggal ini.')+'</div>')+'</div>';
+}
+/* tanda untuk guru: data uji, atau tanggal absen berbeda dengan tanggal diterima server (WIB) */
+function pkTandaAbsen(a){
+ if(a.uji)return '<div class="note"><span class="pill warn">Data uji coba admin</span> tidak dihitung di rekap</div>';
+ if(!a.dibuat)return '';
+ var s=new Date(Date.parse(a.dibuat)+7*3600000).toISOString().slice(0,10);
+ return s===a.tanggal?'':'<div class="note"><span class="pill warn">Periksa tanggal</span> diterima server '+esc(s)+' (offline atau jam HP tidak sesuai)</div>';
+}
+/* fasilitas uji coba: hanya admin, tanpa selfie, selalu bertanda uji */
+function pkUjiKartu(){
+ if(actRole()!=='admin')return '';
+ var G=pkList('tugas').filter(function(g){return g.status==='aktif'});
+ return '<details class="card"><summary><b>Uji coba absen (khusus admin)</b></summary><div class="note">Data bertanda uji, tanpa selfie, tidak dihitung di rekap. Hapus setelah selesai menguji.</div>'+
+  '<label class="f">Siswa<select id="pkuji-sid">'+G.map(function(g){return '<option value="'+esc(g.sid)+'">'+esc(pkNm(g))+'</option>'}).join('')+'</select></label>'+
+  '<label class="f">Tanggal<input type="date" id="pkuji-tgl" max="'+pkToday()+'" value="'+pkToday()+'"></label>'+
+  '<button type="button" class="btn small primary" data-act="pkl-uji"'+(G.length?'':' disabled')+'>Buat data uji (Masuk)</button></details>';
+}
+function pkUjiBuat(){
+ if(actRole()!=='admin')return toast('Hanya admin.');
+ var sid=(document.getElementById('pkuji-sid')||{}).value,tgl=(document.getElementById('pkuji-tgl')||{}).value,tg=sid&&pkTugasSiswa(sid);
+ if(!tg||!/^\d{4}-\d{2}-\d{2}$/.test(tgl)||tgl>pkToday())return toast('Pilih siswa dan tanggal yang tidak melewati hari ini.');
+ pkPut('absen',{id:uid(),sid:sid,nama:pkNm(tg),kelas:pkKl(tg),sekolah:tg.sekolah||'',tanggal:tgl,jam:pkJam(),tipe:'masuk',foto:'',cat:'Uji coba admin',tempatId:tg.tempatId,lokasi:'?',uji:true})
+  .then(function(ok){toast(ok?'Data uji dibuat.':'Data uji tersimpan di perangkat, belum terkirim.');render()});
 }
 function pkTabJurnal(){
  var J0=pkList('jurnal').sort(function(a,b){return (a.verif?1:0)-(b.verif?1:0)||String(b.tanggal).localeCompare(String(a.tanggal))}),Z=pkSaring('jurnal',J0),J=Z.list.slice(0,60);
@@ -852,7 +878,7 @@ function pkXls(){
  var wb=XLSX.utils.book_new(),sh=function(n,rows){XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows.length?rows:[{Keterangan:'Belum ada data'}]),n)},tp=pkTP();
  sh('Tempat PKL',pkList('tempat').map(function(t){var k=pkKunjunganAkhir(t.id);return {Nama:t.nama,Bidang:t.bidang||'',Alamat:t.alamat||'',Kota:t.kota||'',Lokasi:t.negeri==='luar'?'Luar negeri':'Dalam negeri',Telepon:t.telp||'',Pimpinan:t.pimpinan||'',Instruktur:t.instruktur||'','Kontak instruktur':t.instrTelp||'',Kuota:t.kuota||'','Siswa aktif':pkList('tugas').filter(function(x){return x.tempatId===t.id&&x.status==='aktif'}).length,'Jam kerja':t.jam||'','No. PKS sekolah':t.pks||'','No. PKS mitra':t.pksMitra||'','PKS mulai':t.pksMulai||'','PKS selesai':t.pksSelesai||'','Status PKS':pkPksStatus(t)[1],Fasilitas:t.fasilitas||'','Monitoring terakhir':k?k.tanggal:''}}));
  sh('Penempatan',pkList('tugas').map(function(g){var gu=g.guruId&&pkUser(g.guruId);return {Siswa:pkNm(g),Kelas:pkKl(g),Tempat:pkTempatNama(g.tempatId),'Guru pembimbing':gu?gu.nama:(g.guruNama||''),Instruktur:g.instruktur||'',Mulai:g.mulai||'',Selesai:g.selesai||'',Status:g.status||''}}));
- sh('Absensi',pkList('absen').sort(function(a,b){return a.ts-b.ts}).map(function(a){return {Tanggal:a.tanggal,Jam:a.jam||'',Siswa:a.nama||'',Kelas:a.kelas||'',Jenis:PK_TIPE[a.tipe]||a.tipe,Tempat:pkTempatNama(a.tempatId),Lokasi:a.lokasi==='ya'?'Di lokasi':a.lokasi==='tidak'?'Di luar lokasi':'Tidak diketahui','Jarak (m)':a.jarak==null?'':a.jarak,Selfie:(a.foto||a.fotoAda)?'Ada':'Tidak',Catatan:a.cat||''}}));
+ sh('Absensi',pkList('absen').filter(function(x){return !x.uji}).sort(function(a,b){return a.ts-b.ts}).map(function(a){return {Tanggal:a.tanggal,Jam:a.jam||'',Siswa:a.nama||'',Kelas:a.kelas||'',Jenis:PK_TIPE[a.tipe]||a.tipe,Tempat:pkTempatNama(a.tempatId),Lokasi:a.lokasi==='ya'?'Di lokasi':a.lokasi==='tidak'?'Di luar lokasi':'Tidak diketahui','Jarak (m)':a.jarak==null?'':a.jarak,Selfie:(a.foto||a.fotoAda)?'Ada':'Tidak',Catatan:a.cat||''}}));
  sh('Rekap kehadiran',pkRekapBaris().map(function(x){return {Siswa:pkNm(x.g),Kelas:pkKl(x.g),Tempat:pkTempatNama(x.g.tempatId),Hadir:x.r.hadir,Izin:x.r.izin,Sakit:x.r.sakit,'Tanpa keterangan':x.r.alpa,'Masuk di luar lokasi':x.r.luar,'Jurnal':x.jurnal,'Kelengkapan':x.cek+'/'+PK_CEK.length,'Nilai akhir':x.nilai==null?'':x.nilai,Guru:x.guru}}));
  sh('Jurnal',pkList('jurnal').sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))}).map(function(j){return {Tanggal:j.tanggal,Siswa:j.nama||'',Kelas:j.kelas||'','Unit kerja':j.unit||'',Uraian:j.uraian||'',Catatan:j.cat||'','Diketahui oleh':j.verif||''}}));
  sh('Monitoring',pkList('kunjungan').sort(function(a,b){return String(a.tanggal).localeCompare(String(b.tanggal))}).map(function(k){var gu=k.guruId&&pkUser(k.guruId);return {Tanggal:k.tanggal,Tempat:pkTempatNama(k.tempatId),Guru:gu?gu.nama:(k.guruNama||''),Cara:k.mode==='daring'?'Daring':'Langsung',Temuan:k.temuan||'','Tindak lanjut':k.tindak||''}}));
@@ -1032,8 +1058,10 @@ document.addEventListener('click',function(e){
  else if(a==='pkl-cancel'){PK.pksPdf=null;PK.mode='list';PK.f=null;PK.msg='';render()}
  else if(a==='pkl-save')pkSimpan();
  else if(a==='pkl-del'){
+  if(k==='absen'&&actRole()!=='admin'){toast('Hanya admin yang boleh menghapus absen.');return}
   var dk=k;if(typeof uiConfirm==='function')uiConfirm('Hapus data ini?\nData yang dihapus tidak bisa dikembalikan.').then(function(ok){if(ok)pkDel(dk,v).then(render)});else pkDel(dk,v).then(render);
  }
+ else if(a==='pkl-uji')pkUjiBuat();
  else if(a==='pkl-absen')pkAbsenBuka();
  else if(a==='pkl-tipe'){PK.f.tipe=v;PK.msg='';render()}
  else if(a==='pkl-gps'){pkGps();render()}
@@ -1071,7 +1099,10 @@ document.addEventListener('change',function(e){
   var hk=(PK_HOOK[PK.fk]||{})[t.dataset.pkl];
   if(hk&&hk(PK.f,t.value))render();else pkKetPerbarui(t);
  }else if(t.dataset.pklfoto!==undefined&&t.files&&t.files[0]){
-  pkCompress(t.files[0],function(u){if(!u){PK.msg='Foto gagal diproses. Coba lagi.';render();return}PK.f.foto=u;PK.msg='';render()});
+  /* selfie masuk/pulang harus baru dipotret: berkas lama dari galeri ditolak (batas 10 menit); izin/sakit boleh melampirkan surat lama */
+  var hdr=PK.f.tipe==='masuk'||PK.f.tipe==='pulang';
+  if(hdr&&Math.abs(Date.now()-(t.files[0].lastModified||0))>600000){PK.f.foto='';PK.msg='Foto lama tidak bisa dipakai. Ambil selfie langsung dari kamera.';t.value='';render();return}
+  pkCompress(t.files[0],function(u){if(!u){PK.msg='Foto gagal diproses. Coba lagi.';render();return}PK.f.foto=u;PK.f.fotoTgl=pkToday();PK.f.fotoLangsung=hdr;PK.msg='';render()});
  }else if(t.dataset.pklfotoj!==undefined&&t.files&&t.files[0]){
   pkCompress(t.files[0],function(u){if(!u){PK.msg='Foto gagal diproses. Coba lagi.';render();return}PK.f.foto=u;PK.msg='';render()});
  }else if(t.dataset.pkft!==undefined){PK.ft=t.value;render()}

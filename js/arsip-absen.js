@@ -16,17 +16,18 @@ function arHitung(j,senin){
   });
  }else{
   pkList('absen').forEach(function(a){
-   if(!dalam(a.tanggal)||a.tipe==='pulang')return;
+   if(a.uji||!dalam(a.tanggal)||a.tipe==='pulang')return;
    var b=B(a.sid,pkNm(a),pkKl(a)),k=a.tipe==='masuk'?'H':a.tipe==='sakit'?'S':a.tipe==='izin'?'I':'';
    if(k&&!b.hari[a.tanggal]){b.hari[a.tanggal]=1;b[k]++}
   });
  }
  return Object.keys(M).map(function(id){return M[id]}).sort(function(a,b){return String(a.nama).localeCompare(String(b.nama),'id')});
 }
+function arUji(m){return pkList('absen').filter(function(a){return a.uji&&a.tanggal>=m&&a.tanggal<=arAkhir(m)}).length}
 function arKartu(j){
  var m=AR.m[j]||(AR.m[j]=arSenin()),L=arHitung(j,m);
  return '<div class="card"><b>Evaluasi mingguan '+(j==='pkl'?'PKL':'harian')+'</b><label class="f">Pilih tanggal dalam minggu<input type="date" data-ar="'+j+'" value="'+m+'"></label>'+
-  '<div class="note">'+m+' s.d. '+arAkhir(m)+' · '+L.length+' siswa tercatat'+(j==='pkl'?'. Alpa PKL tidak dihitung di sini.':'')+'</div>'+
+  '<div class="note">'+m+' s.d. '+arAkhir(m)+' · '+L.length+' siswa tercatat'+(j==='pkl'&&arUji(m)?' (+'+arUji(m)+' data uji, ikut diarsipkan)':'')+(j==='pkl'?'. Alpa PKL tidak dihitung di sini.':'')+'</div>'+
   (j==='harian'&&AR.pesan?'<div class="note" role="status">'+AR.pesan+'</div>':'')+
   '<div class="row"><button type="button" class="btn small primary" data-arxls="'+j+'">Ekspor Excel minggu</button>'+
   (S.role==='admin'&&Cloud.on?'<button type="button" class="btn small" data-arkirim="'+j+'">Arsipkan ke Drive</button>'+(j==='harian'?'<button type="button" class="btn small danger" data-arhapus="'+m+'">Hapus dari Appwrite</button>':''):'')+'</div></div>';

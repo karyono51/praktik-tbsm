@@ -35,7 +35,7 @@ function pkoKode(){return (typeof schKode==='function'&&schKode()||'semua').toLo
 
 /* ---------- Daftar yang tampil (mengikuti saringan tab) ---------- */
 function pkoAbsenHari(){
- var d=PK.ft||pkToday(),F=PK.flt.absen||{},A=pkList('absen').filter(function(x){return x.tanggal===d});
+ var d=PK.ft||pkToday(),F=PK.flt.absen||{},A=pkList('absen').filter(function(x){return x.tanggal===d&&!x.uji});
  return pkList('tugas').filter(function(g){return g.status==='aktif'&&(!F.tempat||g.tempatId===F.tempat)&&(!F.kelas||pkKl(g)===F.kelas)&&(!F.siswa||g.sid===F.siswa)}).sort(pkoUrutTN).map(function(g){
   var mine=A.filter(function(x){return x.sid===g.sid}),pick=function(tp){return mine.filter(function(x){return x.tipe===tp})[0]||null},m=pick('masuk'),p=pick('pulang'),iz=pick('izin'),sk=pick('sakit');
   var st=iz?'Izin':sk?'Sakit':m?'Hadir':'Belum absen',lok=m?(m.lokasi==='ya'?'Di lokasi':m.lokasi==='tidak'?'Di luar lokasi'+(m.jarak!=null?' ±'+m.jarak+' m':''):'Tidak diketahui'):'';
@@ -81,7 +81,7 @@ function pkoTabel(tab){
  }else if(tab==='absen'){
   var d=PK.ft||tg;
   S('Absensi '+d,['Tanggal','Siswa','Kelas','Tempat PKL','Masuk','Pulang','Status','Lokasi masuk','Keterangan'],L.map(function(r){return [r.d,pkNm(r.g),pkKl(r.g),pkTempatNama(r.g.tempatId),r.masuk,r.pulang,r.status,r.lokasi,r.cat]}),[12,28,10,30,8,8,12,22,36]);
-  var raw=pkSaring('absen',pkList('absen').filter(function(x){return x.tanggal===d}).sort(function(a,b){return String(a.jam).localeCompare(String(b.jam))})).list;
+  var raw=pkSaring('absen',pkList('absen').filter(function(x){return x.tanggal===d&&!x.uji}).sort(function(a,b){return String(a.jam).localeCompare(String(b.jam))})).list;
   S('Catatan absen',['Tanggal','Jam','Siswa','Kelas','Jenis','Tempat PKL','Lokasi','Jarak (m)','Selfie','Catatan'],raw.map(function(a){return [a.tanggal,a.jam||'',a.nama||pkNm(a),a.kelas||pkKl(a),PK_TIPE[a.tipe]||a.tipe,pkTempatNama(a.tempatId),a.lokasi==='ya'?'Di lokasi':a.lokasi==='tidak'?'Di luar lokasi':'Tidak diketahui',a.jarak==null?'':a.jarak,(a.foto||a.fotoAda)?'Ada':'Tidak',a.cat||'']}),[12,8,28,10,10,30,16,10,8,36]);
   T.p={judul:'DAFTAR HADIR PESERTA DIDIK PKL - '+pkTglHari(d).toUpperCase(),file:'Daftar-Hadir-PKL-'+kd+'-'+d,land:true,head:['No','Siswa','Kelas','Tempat PKL','Masuk','Pulang','Status','Lokasi masuk','Keterangan'],
    body:L.map(function(r,i){return [i+1,pkNm(r.g),pkKl(r.g),pkTempatNama(r.g.tempatId),r.masuk||'-',r.pulang||'-',r.status,r.lokasi||'-',r.cat||'']}),cols:{0:{cellWidth:9,halign:'center'},4:{cellWidth:14,halign:'center'},5:{cellWidth:14,halign:'center'}},ttd:['Guru Pembimbing','Koordinator PKL']};
