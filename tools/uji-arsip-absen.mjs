@@ -1,4 +1,4 @@
-import { arsipAbsen, bacaArsip, hapusArsip, gabung, rentang } from '../functions/foto-drive/src/arsip.js';
+import { arsipAbsen, bacaArsip, hapusArsip, gabung, absenSaya, rentang } from '../functions/foto-drive/src/arsip.js';
 let gagal = 0; const T = (n, c) => { if (!c) { gagal++; console.log('GAGAL', n); } };
 T('senin sah', rentang('2026-11-16')[1] === '2026-11-22'); T('bukan senin', !rentang('2026-11-17'));
 let file = null, rusak = false, hapus = 0; const res = (b) => ({ ok: true, json: async () => b, text: async () => b });
@@ -17,4 +17,10 @@ const x = await hapusArsip('u', { minggu: '2026-11-16' }, {}, 'k', adm);
 T('yang berubah tidak dihapus', dihapus.length === 1 && x.berubah === 1);
 const g = gabung({ $createdAt: '1', payload: '{"rows":{"s1":{"s":"H"}}}' }, { $createdAt: '2', payload: '{"rows":{"s2":{"s":"H"}}}' });
 T('sesi dibuat ulang digabung', g.skor === 2);
+const sesi = (id, rows) => ({ $id: id, tipe: 'absen', tanggal: '2026-11-17', payload: JSON.stringify({ rows }) });
+file = JSON.stringify({ dokumen: [sesi('lama', { s1: { s: 'H', c: 'rahasia' }, s2: { s: 'A' } })] });
+const sis = { ...h, aw: async (p) => p.startsWith('/users') ? { email: 'a@x.id' } : p.includes('/akun/') ? { documents: [{ $id: 's1' }] } : { documents: [sesi('baru', { s1: { s: 'I' } }), sesi('lain', { s2: { s: 'H' } })] } };
+const y = await absenSaya('auth1', { minggu: '2026-11-16', sid: 's2' }, 'k', sis);
+T('siswa: arsip + aktif, hanya miliknya', y.sesi.length === 2 && y.sesi.map((v) => v.status).sort().join('') === 'HI');
+T('siswa: tanpa catatan dan data lain', !/rahasia|s2/.test(JSON.stringify(y)));
 console.log(gagal ? gagal + ' gagal' : 'uji arsip: lolos'); process.exit(gagal ? 1 : 0);

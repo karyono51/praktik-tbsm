@@ -103,3 +103,38 @@ export async function hapusArsip(callerId, body, auth, key, h) {
   }
   return { ok: true, ids, berubah, lanjut: mulai + 20 < L.length ? mulai + 20 : null };
 }
+
+/* Kehadiran milik pemanggil saja. Identitas dari sesi login (email -> dokumen akun); isian dari aplikasi tidak dipercaya. */
+export async function absenSaya(callerId, body, key, h) {
+  const r = rentang(String(body.minggu || ''));
+  if (!r) throw new h.Fail('Tanggal Senin tidak valid.', 400);
+  if (!key) throw new h.Fail('Izin fungsi belum lengkap (users.read dan documents.read).', 500);
+  const auth = { 'X-Appwrite-Key': key }, db = '/databases/' + encodeURIComponent(process.env.DB_ID || 'tbsm') + '/collections/';
+  const daftar = async (col, qs) => {
+    const p = new URLSearchParams();
+    qs.forEach((q) => p.append('queries[]', JSON.stringify(q)));
+    return (await h.aw(db + col + '/documents?' + p, auth)).documents || [];
+  };
+  const email = String((await h.aw('/users/' + encodeURIComponent(callerId), auth)).email || '').toLowerCase();
+  const akun = email && (await daftar('akun', [{ method: 'equal', attribute: 'email', values: [email] }, { method: 'limit', values: [1] }]))[0];
+  if (!akun || akun.aktif === false) throw new h.Fail('Akun siswa tidak ditemukan.', 403);
+  const peta = new Map(), tok = await h.accessToken();
+  ((await cariArsip(r[0], tok, await h.folderId(tok), h)) || []).forEach((d) => peta.set(d.$id, d));
+  /* ts = waktu ubah terakhir (berindeks), jadi sesi minggu ini pasti ber-ts sesudah Senin dikurangi satu hari */
+  let after = null;
+  for (;;) {
+    const L = await daftar('observasi', [{ method: 'greaterThanEqual', attribute: 'ts', values: [Date.parse(r[0] + 'T00:00:00Z') - 86400000] },
+      { method: 'limit', values: [100] }, ...(after ? [{ method: 'cursorAfter', values: [after] }] : [])]);
+    L.forEach((d) => { if (d.tipe === 'absen' && d.tanggal >= r[0] && d.tanggal <= r[1]) peta.set(d.$id, gabung(peta.get(d.$id), d)); });
+    if (L.length < 100) break;
+    after = L[L.length - 1].$id;
+  }
+  const sesi = [];
+  peta.forEach((d) => {
+    let x;
+    try { x = JSON.parse(d.payload || '{}').rows[akun.$id]; } catch (e) { return; }
+    if (x) sesi.push({ tanggal: d.tanggal, status: x.s, mapel: d.mapel, guru: d.guru });
+  });
+  sesi.sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+  return { ok: true, sesi };
+}

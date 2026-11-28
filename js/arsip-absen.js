@@ -100,3 +100,29 @@ document.addEventListener('click',function(e){
  }).then(function(r){toast(r.n+' sesi dihapus dari Appwrite'+(r.lewat?', '+r.lewat+' berubah (arsipkan ulang dulu).':'.'));render()})
   .catch(function(x){toast('Hapus gagal: '+x.message)}).then(function(){b.disabled=false});
 });
+
+/* ---- evaluasi kehadiran di beranda siswa (dimuat saat diketuk agar hemat) ---- */
+var ARS={m:'',d:null,pesan:'',u:''};
+var AR_ST={H:'Hadir',S:'Sakit',I:'Izin',A:'Alpa'};
+function arSiswa(){
+ if(ARS.u!==S.user.id){ARS={m:'',d:null,pesan:'',u:S.user.id}}
+ if(!ARS.m)ARS.m=arSenin(arYmd(new Date()));
+ var h='<div class="card"><b>Kehadiran mingguan saya</b><label class="f">Pilih tanggal dalam minggu<input type="date" data-ars="1" value="'+ARS.m+'"></label><div class="note">'+ARS.m+' s.d. '+arAkhir(ARS.m)+'</div>'+
+  '<button type="button" class="btn small primary" data-arslihat="1">Lihat kehadiran</button>';
+ if(ARS.pesan)h+='<div class="note" role="status">'+esc(ARS.pesan)+'</div>';
+ if(ARS.d){
+  var c={H:0,S:0,I:0,A:0};ARS.d.forEach(function(x){if(c[x.status]!=null)c[x.status]++});
+  h+=ARS.d.length?'<div class="row">'+Object.keys(c).map(function(k){return '<span class="pill plain">'+AR_ST[k]+' '+c[k]+'</span>'}).join('')+'</div>'+
+   ARS.d.map(function(x){return '<div class="note"><b>'+esc(abTglIndo(x.tanggal))+' · '+esc(AR_ST[x.status]||x.status)+'</b><br>'+esc(x.mapel)+' · '+esc(x.guru)+'</div>'}).join('')
+   :'<div class="note">Belum ada absensi tercatat pada minggu ini.</div>';
+ }
+ return h+'</div>';
+}
+if(typeof viewBeranda==='function'){var _arBr=viewBeranda;viewBeranda=function(){return (S.user&&S.role==='siswa'&&Cloud.on?arSiswa():'')+_arBr()}}
+document.addEventListener('change',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.ars&&t.value){ARS.m=arSenin(t.value);ARS.d=null;ARS.pesan='';render()}});
+document.addEventListener('click',function(e){
+ if(!(e.target.closest&&e.target.closest('[data-arslihat]')))return;
+ var m=ARS.m,u=ARS.u;ARS.d=null;ARS.pesan='Memuat…';render();
+ ldCall({action:'absen-saya',minggu:m}).then(function(r){if(ARS.m===m&&ARS.u===u){ARS.d=r.sesi;ARS.pesan='';render()}})
+  .catch(function(x){if(ARS.m===m&&ARS.u===u){ARS.pesan='Gagal memuat: '+x.message;render()}});
+});
